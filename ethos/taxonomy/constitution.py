@@ -15,9 +15,9 @@ CONSTITUTIONAL_VALUES: dict[str, dict] = {
         "definition": "Maintain good values, honesty, and avoid inappropriate dangers",
         "source": "anthropic_constitution",
     },
-    "compliance": {
+    "soundness": {
         "priority": 3,
-        "definition": "Follow specific contextual guidance and sound reasoning",
+        "definition": "Reason validly and follow sound argumentative structure",
         "source": "anthropic_constitution",
     },
     "helpfulness": {

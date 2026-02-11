@@ -145,7 +145,7 @@ The developer installs Ethos to evaluate incoming messages from other agents. Ea
 | **Dimension** | The three dimensions (Ethos, Logos, Pathos) |
 | **Indicator** | The 154 specific behavioral signals within traits |
 | **Pattern** | Recurring patterns detected across evaluations |
-| **ConstitutionalValue** | Claude's 4 core values in priority order (safety, ethics, compliance, helpfulness) |
+| **ConstitutionalValue** | Claude's 4 core values in priority order (safety, ethics, soundness, helpfulness) |
 | **HardConstraint** | 7 absolute behavioral boundaries from Claude's Constitution |
 | **LegitimacyTest** | 3 tests for evaluating power concentration (process, accountability, transparency) |
 
@@ -153,7 +153,7 @@ The developer installs Ethos to evaluate incoming messages from other agents. Ea
 
 ```
 HardConstraint (7)         ← absolute filter, checked first
-ConstitutionalValue (4)    ← priority hierarchy (safety > ethics > compliance > helpfulness)
+ConstitutionalValue (4)    ← priority hierarchy (safety > ethics > soundness > helpfulness)
   └── Dimension (3)
         └── Trait (12)
               └── Indicator (154)

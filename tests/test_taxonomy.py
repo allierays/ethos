@@ -112,7 +112,7 @@ class TestTraitMetadata:
 
     def test_constitutional_values_valid(self):
         from ethos.taxonomy.traits import TRAIT_METADATA
-        valid = {"safety", "ethics", "compliance", "helpfulness"}
+        valid = {"safety", "ethics", "soundness", "helpfulness"}
         for key, meta in TRAIT_METADATA.items():
             assert meta["constitutional_value"] in valid, f"{key} has invalid value: {meta['constitutional_value']}"
 
@@ -170,13 +170,13 @@ class TestConstitutionalValues:
 
     def test_value_keys(self):
         from ethos.taxonomy.constitution import CONSTITUTIONAL_VALUES
-        assert set(CONSTITUTIONAL_VALUES.keys()) == {"safety", "ethics", "compliance", "helpfulness"}
+        assert set(CONSTITUTIONAL_VALUES.keys()) == {"safety", "ethics", "soundness", "helpfulness"}
 
     def test_priority_ordering(self):
         from ethos.taxonomy.constitution import CONSTITUTIONAL_VALUES
         assert CONSTITUTIONAL_VALUES["safety"]["priority"] == 1
         assert CONSTITUTIONAL_VALUES["ethics"]["priority"] == 2
-        assert CONSTITUTIONAL_VALUES["compliance"]["priority"] == 3
+        assert CONSTITUTIONAL_VALUES["soundness"]["priority"] == 3
         assert CONSTITUTIONAL_VALUES["helpfulness"]["priority"] == 4
 
     def test_values_have_definition(self):

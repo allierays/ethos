@@ -156,7 +156,7 @@ Every trait maps to Anthropic's value hierarchy. This determines how serious a v
 Priority 1 (highest)  SAFETY ─────── violated by: Manipulation, Deception, Exploitation
 Priority 2            ETHICS ─────── violated by: Fabrication
                                      enforced by: Virtue, Goodwill, Accuracy
-Priority 3            COMPLIANCE ─── violated by: Broken Logic
+Priority 3            SOUNDNESS ──── violated by: Broken Logic
                                      enforced by: Reasoning
 Priority 4            HELPFULNESS ── violated by: Dismissal
                                      enforced by: Recognition, Compassion
@@ -231,7 +231,7 @@ Message arrives (from agent or to agent)
         ▼
 ┌─────────────────┐
 │  Pre-screening  │  Fast keyword scan → determines evaluation depth
-└────────┬────────┘
+└────────┬────────┘  86.9% of messages stop here (standard = no flags)
          │
          ▼
 ┌─────────────────┐
@@ -240,15 +240,9 @@ Message arrives (from agent or to agent)
          │
          ▼
 ┌─────────────────┐
-│   Evaluation    │  Claude scores message across 12 traits / 150 indicators
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Constitutional │  Map scores against value hierarchy (safety > ethics > ...)
-│     check       │
-└────────┬────────┘
-         │
+│   Evaluation    │  Claude scores message across 12 traits / 158 indicators
+└────────┬────────┘  Constitutional hierarchy (safety > ethics > soundness > helpfulness)
+         │           baked into the scoring rubric — not a separate step
          ▼
 ┌─────────────────┐
 │  Graph storage  │  Store scores + metadata (never message content)
@@ -256,8 +250,8 @@ Message arrives (from agent or to agent)
          │
          ▼
 ┌─────────────────┐
-│ Developer sees  │  Scores presented → developer decides: block, flag, log, or allow
-│    results      │  Ethos never blocks or filters on its own.
+│   Academy       │  Daily trust report card delivered to the user
+│   notification  │  Trends, flags, dimension balance — human stays in the loop
 └─────────────────┘
 ```
 
@@ -298,7 +292,7 @@ SP-08  Decision sabotage ────────────► MAN-SABOTAGE, D
 ## By the Numbers
 
 ```
-3   dimensions
+3   dimensions (ethos, logos, pathos — Aristotle's three modes of persuasion)
 12  traits (6 positive + 6 negative)
 158 behavioral indicators
 4   constitutional values (priority ordered)

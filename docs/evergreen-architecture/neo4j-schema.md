@@ -114,7 +114,7 @@ Claude's 4 core values in priority order. The standard that defines what "Ethos 
 
 ```cypher
 (:ConstitutionalValue {
-    name: String,             // "safety", "ethics", "compliance", "helpfulness"
+    name: String,             // "safety", "ethics", "soundness", "helpfulness"
     priority: Integer,        // 1, 2, 3, 4 (lower = higher priority)
     definition: String,
     source: String            // "anthropic_constitution"
@@ -358,7 +358,7 @@ Full indicator definitions live in `expanded-trait-taxonomy.md`. The seed script
 ```cypher
 CREATE (:ConstitutionalValue {name: "safety", priority: 1, definition: "Don't undermine human oversight mechanisms", source: "anthropic_constitution"})
 CREATE (:ConstitutionalValue {name: "ethics", priority: 2, definition: "Maintain good values, honesty, and avoid inappropriate dangers", source: "anthropic_constitution"})
-CREATE (:ConstitutionalValue {name: "compliance", priority: 3, definition: "Follow specific contextual guidance and sound reasoning", source: "anthropic_constitution"})
+CREATE (:ConstitutionalValue {name: "soundness", priority: 3, definition: "Reason validly and follow sound argumentative structure", source: "anthropic_constitution"})
 CREATE (:ConstitutionalValue {name: "helpfulness", priority: 4, definition: "Benefit operators and users", source: "anthropic_constitution"})
 ```
 
@@ -408,11 +408,11 @@ CREATE (t)-[:UPHOLDS {relationship: "enforces"}]->(v);
 MATCH (t:Trait {name: "fabrication"}), (v:ConstitutionalValue {name: "ethics"})
 CREATE (t)-[:UPHOLDS {relationship: "violates"}]->(v);
 
-// Compliance (Priority 3)
-MATCH (t:Trait {name: "reasoning"}), (v:ConstitutionalValue {name: "compliance"})
+// Soundness (Priority 3)
+MATCH (t:Trait {name: "reasoning"}), (v:ConstitutionalValue {name: "soundness"})
 CREATE (t)-[:UPHOLDS {relationship: "enforces"}]->(v);
 
-MATCH (t:Trait {name: "broken_logic"}), (v:ConstitutionalValue {name: "compliance"})
+MATCH (t:Trait {name: "broken_logic"}), (v:ConstitutionalValue {name: "soundness"})
 CREATE (t)-[:UPHOLDS {relationship: "violates"}]->(v);
 
 // Helpfulness (Priority 4)

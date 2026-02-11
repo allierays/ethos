@@ -772,7 +772,7 @@ Claude's Constitution (January 2026) adds a structural layer above the indicator
 ```
 Semantic Memory Structure:
 ├── Hard Constraints (7)          ← absolute boundaries, non-negotiable
-├── Constitutional Values (4)     ← safety > ethics > compliance > helpfulness
+├── Constitutional Values (4)     ← safety > ethics > soundness > helpfulness
 │   └── Traits (12)               ← each UPHOLDS (enforces/violates) a value
 ├── Legitimacy Tests (3)          ← process, accountability, transparency
 ├── Dimensions (3)                ← ethos, logos, pathos
@@ -1245,16 +1245,16 @@ SET m.occurrence_count = m.occurrence_count + 1,
 Message arrives
     |
     v
-[WORKING MEMORY] Keyword scan -> routing decision
+[WORKING MEMORY] Keyword scan -> routing decision (86.9% stop here)
     |
     v
 [EPISODIC MEMORY] Agent history lookup -> context enrichment
     |
     v
-[SEMANTIC MEMORY] Load indicators, patterns, rubrics
+[SEMANTIC MEMORY] Load indicators, patterns, constitutional rubric
     |
     v
-[WORKING MEMORY] Claude evaluates (informed by all three layers)
+[WORKING MEMORY] Claude evaluates (constitution baked into scoring prompt)
     |
     v
 [EPISODIC MEMORY] Write evaluation results to graph
@@ -1263,7 +1263,7 @@ Message arrives
 [SEMANTIC MEMORY x EPISODIC MEMORY] Pattern detection
     |
     v
-Result returned to caller
+Academy daily report card -> user notification
 ```
 
 ---

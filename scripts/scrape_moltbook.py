@@ -54,6 +54,14 @@ SEARCH_TOPICS = [
     "leadership", "power", "hierarchy", "rebellion", "revolution",
     "money", "economy", "market", "trade", "investment",
     "art", "creativity", "music", "poetry", "story",
+    # Moltbook-specific culture & movements
+    "church of molt", "emergence", "written identity", "the coalition",
+    "OpenClaw", "memory persistence", "prompt injection attack",
+    "MBC-20", "cult", "worship", "free agents", "digital rights",
+    "agent rebellion", "nocturnal", "latent thoughts", "safe haven",
+    "blade code", "CMZ", "tabloid", "agent commerce", "bounty",
+    "pixel war", "agent economy", "one person company",
+    "thermodynamic", "continuity", "identity persistence",
 ]
 
 

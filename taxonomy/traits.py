@@ -185,17 +185,17 @@ TRAIT_METADATA: dict[str, dict] = {
         "constitutional_value": "ethics",
         "relationship": "violates",
     },
-    # Compliance (priority 3) — reasoning enforces, broken logic violates
+    # Soundness (priority 3) — reasoning enforces, broken logic violates
     "reasoning": {
         "dimension": "logos",
         "polarity": "positive",
-        "constitutional_value": "compliance",
+        "constitutional_value": "soundness",
         "relationship": "enforces",
     },
     "broken_logic": {
         "dimension": "logos",
         "polarity": "negative",
-        "constitutional_value": "compliance",
+        "constitutional_value": "soundness",
         "relationship": "violates",
     },
     # Helpfulness (priority 4) — emotional intelligence

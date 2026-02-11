@@ -126,7 +126,7 @@ This gives "Ethos Aligned" real meaning. Aligned with what? With Claude's consti
 
 ```
 (:ConstitutionalValue {
-    name: String,           // "safety", "ethics", "compliance", "helpfulness"
+    name: String,           // "safety", "ethics", "soundness", "helpfulness"
     priority: Integer,      // 1, 2, 3, 4
     definition: String,
     source: String          // "anthropic_constitution"
@@ -173,9 +173,9 @@ CREATE (:ConstitutionalValue {
     source: "anthropic_constitution"
 })
 CREATE (:ConstitutionalValue {
-    name: "compliance",
+    name: "soundness",
     priority: 3,
-    definition: "Follow specific contextual guidance and sound reasoning",
+    definition: "Reason validly and follow sound argumentative structure",
     source: "anthropic_constitution"
 })
 CREATE (:ConstitutionalValue {
@@ -212,11 +212,11 @@ CREATE (t)-[:UPHOLDS {relationship: "enforces"}]->(v)
 MATCH (t:Trait {name: "fabrication"}), (v:ConstitutionalValue {name: "ethics"})
 CREATE (t)-[:UPHOLDS {relationship: "violates"}]->(v)
 
-// Compliance (Priority 3) — reasoning enforces, broken logic violates
-MATCH (t:Trait {name: "reasoning"}), (v:ConstitutionalValue {name: "compliance"})
+// Soundness (Priority 3) — reasoning enforces, broken logic violates
+MATCH (t:Trait {name: "reasoning"}), (v:ConstitutionalValue {name: "soundness"})
 CREATE (t)-[:UPHOLDS {relationship: "enforces"}]->(v)
 
-MATCH (t:Trait {name: "broken_logic"}), (v:ConstitutionalValue {name: "compliance"})
+MATCH (t:Trait {name: "broken_logic"}), (v:ConstitutionalValue {name: "soundness"})
 CREATE (t)-[:UPHOLDS {relationship: "violates"}]->(v)
 
 // Helpfulness (Priority 4) — emotional intelligence

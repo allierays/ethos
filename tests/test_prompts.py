@@ -81,7 +81,7 @@ class TestSystemPromptContent:
         sys_lower = system.lower()
         assert "safety" in sys_lower
         assert "ethics" in sys_lower
-        assert "compliance" in sys_lower
+        assert "soundness" in sys_lower
         assert "helpfulness" in sys_lower
 
 

@@ -103,7 +103,7 @@ Each of 12 traits is evaluated independently with its own rubric. This prevents 
 
 ### Constitutional Alignment Scoring
 
-Opus maps trait detections against Anthropic's own published value hierarchy: safety > ethics > compliance > helpfulness. We operationalize *their* Constitution as a scoring framework. This is using Opus to reason about its own value system — a genuinely novel use.
+Opus maps trait detections against Anthropic's own published value hierarchy: safety > ethics > soundness > helpfulness. We operationalize *their* Constitution as a scoring framework. This is using Opus to reason about its own value system — a genuinely novel use.
 
 ### Behavioral Insights Generation
 
