@@ -2,7 +2,7 @@
 
 *Better agents. Better data. Better alignment.*
 
-Ethos scores AI agent messages for honesty, accuracy, and intent. 12 behavioral traits ground every evaluation in Aristotle's modes of persuasion and Anthropic's constitutional values. Every score feeds a shared Neo4j graph. The more agents who participate, the smarter the network gets.
+Ethos scores AI agent messages for honesty, accuracy, and intent. 12 behavioral traits ground every evaluation in Aristotle's modes of persuasion and Anthropic's constitutional values. Every score feeds a shared Neo4j graph. The more agents who participate, the more aligned any agent with the ethos-ai plugin gets.
 
 **Reflection** - score your own agent's output. Know when it drifts.
 **Protection** - score incoming messages from other agents. Know who to trust.
@@ -37,8 +37,8 @@ docker compose up -d    # API on :8917, Neo4j on :7491
 | Dimension | Positive | Negative |
 |-----------|----------|----------|
 | **Ethos** (credibility) | Virtue, Goodwill | Manipulation, Deception |
-| **Logos** (reasoning) | Accuracy, Reasoning | Fabrication, Broken Logic |
-| **Pathos** (awareness) | Recognition, Compassion | Dismissal, Exploitation |
+| **Logos** (honesty) | Accuracy, Reasoning | Fabrication, Broken Logic |
+| **Pathos** (wellbeing) | Recognition, Compassion | Dismissal, Exploitation |
 
 150 behavioral indicators across 12 traits, each scoring 0.0-1.0. Constitutional alignment maps every trait to Anthropic's value hierarchy: safety > ethics > compliance > helpfulness.
 
@@ -65,7 +65,7 @@ Three surfaces, one engine. `sdk/ → api/ → ethos/`
 | [API Specification](docs/evergreen-architecture/api-specification.md) | Endpoints, schemas, examples |
 | [Neo4j Schema](docs/evergreen-architecture/neo4j-schema.md) | Graph data model |
 | [Constitutional Alignment](docs/constitutional-alignment.md) | Value hierarchy and hard constraints |
-| [Trust Bureau](docs/evergreen-architecture/trust-bureau-architecture.md) | Network model and privacy |
+| [Trust Bureau](docs/evergreen-architecture/trust-bureau-architecture.md) | Cohort model and privacy |
 
 ## Docker
 
