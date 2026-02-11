@@ -50,13 +50,13 @@ Call the insights endpoint. Opus reads the agent's full evaluation history from 
 
 This shows Opus doing something no other model can do at this depth: temporal behavioral reasoning across a graph of trust data.
 
-### 2:30–2:50 — The Network Effect
+### 2:30–2:50 — The Cohort Effect
 
 > "Every developer who evaluates their agent contributes to this graph. One evaluation is useful. A thousand evaluations reveal patterns no single developer could see. Like a credit bureau, but for AI trust."
 
 ### 2:50–3:00 — Close
 
-> "Open source. Two lines of code. You're in the network."
+> "Open source. Two lines of code. You're in the cohort."
 
 ---
 
@@ -129,7 +129,7 @@ Opus discovering manipulation patterns that weren't in our taxonomy. Emergent de
 
 ### Taxonomy Rigor
 
-134 behavioral indicators across 12 traits across 3 dimensions. Each indicator has an ID, description, example, and research source. This isn't a list someone brainstormed — it's a research-backed classification system.
+150 behavioral indicators across 12 traits across 3 dimensions. Each indicator has an ID, description, example, and research source. This isn't a list someone brainstormed — it's a research-backed classification system.
 
 ### Architecture Decisions Documented
 

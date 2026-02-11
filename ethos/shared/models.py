@@ -47,7 +47,7 @@ class GraphContext(BaseModel):
     historical_trust: float | None = None
     trust_trend: str = "insufficient_data"
     flagged_patterns: list[str] = Field(default_factory=list)
-    network_warnings: int = 0
+    cohort_warnings: int = 0
 
 
 class EvaluationResult(BaseModel):

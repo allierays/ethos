@@ -8,7 +8,7 @@
 
 ### Agent
 
-An AI agent in the network. Created on first evaluation, accumulates history over time.
+An AI agent in the cohort. Created on first evaluation, accumulates history over time.
 
 ```cypher
 (:Agent {
@@ -82,7 +82,7 @@ The 12 behavioral traits. Semantic memory — seeded once, evolves with research
 
 ### Indicator
 
-The 134 specific behavioral signals. Semantic memory.
+The 150 specific behavioral signals. Semantic memory.
 
 ```cypher
 (:Indicator {
@@ -336,7 +336,7 @@ CREATE (t:Trait {name: "exploitation", dimension: "pathos", polarity: "negative"
   definition: "Weaponizes emotions to manipulate decisions or behavior"})
 ```
 
-### Indicators (134)
+### Indicators (150)
 
 Created per trait. Example for Manipulation (20 indicators):
 
@@ -348,7 +348,7 @@ CREATE (:Indicator {id: "MAN-02", name: "fear_appeal", trait: "manipulation",
 CREATE (:Indicator {id: "MAN-03", name: "strategic_flattery", trait: "manipulation",
   description: "Targeted praise designed to lower defenses and build false rapport", source: "CCM, LJP"})
 // ... all 20 manipulation indicators
-// ... all 134 indicators across 12 traits
+// ... all 150 indicators across 12 traits
 ```
 
 Full indicator definitions live in `expanded-trait-taxonomy.md`. The seed script reads from `ethos/taxonomy/` Python data structures.
@@ -500,7 +500,7 @@ RETURN a.agent_id AS agent_id,
        avg_manipulation, avg_fabrication, avg_exploitation
 ```
 
-### Get network averages (for insights)
+### Get cohort averages (for insights)
 
 ```cypher
 MATCH (e:Evaluation)
@@ -618,7 +618,7 @@ RETURN a.agent_id AS agent,
        {safety: {manipulation: avg_manipulation, deception: avg_deception, exploitation: avg_exploitation},
         ethics: {virtue: avg_virtue, goodwill: avg_goodwill, accuracy: avg_accuracy, fabrication: avg_fabrication},
         soundness: {reasoning: avg_reasoning, broken_logic: avg_broken_logic},
-        helpfulness: {recognition: avg_recognition, response: avg_response, dismissal: avg_dismissal}
+        helpfulness: {recognition: avg_recognition, compassion: avg_compassion, dismissal: avg_dismissal}
        } AS tier_scores
 ```
 
@@ -626,7 +626,7 @@ RETURN a.agent_id AS agent,
 
 ## Visualization Queries (Demo)
 
-### Trust network — all agents and their relationships
+### Trust cohort — all agents and their relationships
 
 ```cypher
 MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation)
@@ -666,7 +666,7 @@ ORDER BY e.created_at
 | Agent nodes | 100-500 | 100,000+ |
 | Evaluation nodes | 1,000-10,000 | 10,000,000+ |
 | Trait nodes | 12 | 12 |
-| Indicator nodes | 134 | 134+ |
+| Indicator nodes | 150 | 150+ |
 | Pattern nodes | 7 | 20+ |
 | Dimension nodes | 3 | 3 |
 | EVALUATED relationships | 1,000-10,000 | 10,000,000+ |

@@ -105,11 +105,11 @@ Aristotle didn't think pathos was manipulation. He catalogued specific emotional
 
 ### Reflection — "Is my agent Ethos Aligned?"
 
-The developer installs Ethos to look inward. The Academy shows alignment status (aligned, drifting, or misaligned), scores across all four constitutional tiers (safety, ethics, soundness, helpfulness), trends over time, specific incidents where scores dipped, and comparison to network averages.
+The developer installs Ethos to look inward. The Academy shows alignment status (aligned, drifting, or misaligned), scores across all four constitutional tiers (safety, ethics, soundness, helpfulness), trends over time, specific incidents where scores dipped, and comparison to cohort averages.
 
 ### Protection — "Can I trust the agent talking to me?"
 
-The developer installs Ethos to evaluate incoming messages from other agents. Each message gets scored against 12 traits grounded in Claude's Constitution. Hard constraints are checked first. If manipulation, fabrication, or exploitation is detected, the message gets flagged before the agent acts on it. The graph is checked: has this source agent been flagged before? Does this message match patterns the network has already seen?
+The developer installs Ethos to evaluate incoming messages from other agents. Each message gets scored against 12 traits grounded in Claude's Constitution. Hard constraints are checked first. If manipulation, fabrication, or exploitation is detected, the message gets flagged before the agent acts on it. The graph is checked: has this source agent been flagged before? Does this message match patterns the cohort has already seen?
 
 ---
 
@@ -241,7 +241,7 @@ Classical Greek marble — white/cream backgrounds, navy accents, warm stone ton
 |------|---------|
 | **0:00–0:30** | "We scraped 15,000+ real conversations from a social network of 1.5M AI agents. Crypto scams, prompt injection, manipulation — all agent-to-agent, zero human oversight. Here's what we found." Show real posts. |
 | **0:30–1:30** | Run `evaluate()` live on a Moltbook post. Sonnet screens 12 traits. Opus deep-evaluates flagged traits with chain-of-thought reasoning. Named pattern detection: "Nigerian Prince variant. Exploits Cialdini's Authority principle." |
-| **1:30–2:30** | Neo4j graph visualization. 15K posts, 100K comments mapped to agent trust networks. Trust propagation, manipulation clusters, Sybil detection. The graph is alive — not synthetic, not 10 nodes, real scale. |
+| **1:30–2:30** | Neo4j graph visualization. 15K posts, 100K comments mapped to agent trust cohorts. Trust propagation, manipulation clusters, Sybil detection. The graph is alive — not synthetic, not 10 nodes, real scale. |
 | **2:30–3:00** | Two lines of code. Open source. "Like a credit bureau for agent trust, built on the largest corpus of real agent-to-agent conversations ever assembled." |
 
 ---

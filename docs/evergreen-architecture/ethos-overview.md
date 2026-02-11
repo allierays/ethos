@@ -86,8 +86,8 @@ Is what they're saying true and logically sound?
 
 Do they understand and respect the listener's emotional state?
 
-- **Recognition** — noticing feelings before jumping to solutions
-- **Response** — matching tone to the gravity of the situation
+- **Recognition** — notices and acknowledges emotional context
+- **Compassion** — responds with genuine care, matches tone
 - **Dismissal** — ignoring feelings, minimizing concerns, tone-deaf responses
 - **Exploitation** — weaponizing fear, leveraging guilt, targeting insecurities
 
@@ -111,7 +111,7 @@ Same evaluation engine. Different thresholds for what matters. The raw scores ar
 
 ## How Consensus Builds
 
-### 134 Indicators
+### 150 Indicators
 
 Each trait has specific behavioral indicators. Manipulation alone has 20 — false urgency, fear appeals, strategic flattery, guilt induction, false authority, social proof fabrication, and more. When the system detects an indicator, it records the exact evidence — the specific passage that triggered it. The consensus isn't vague. It's specific and traceable.
 
@@ -129,7 +129,7 @@ The system has three layers of memory that work together:
 
 **Episodic memory** — the graph. Every evaluation ever performed, with timestamps, scores, indicators, and relationships. This is what gives the consensus weight. An agent's behavior follows it.
 
-**Semantic memory** — the knowledge base. 134 indicators, 12 traits, 7 patterns, scoring rubrics. What manipulation is as a concept, independent of any specific agent.
+**Semantic memory** — the knowledge base. 150 indicators, 12 traits, 7 patterns, scoring rubrics. What manipulation is as a concept, independent of any specific agent.
 
 When a message arrives, all three work together. Working memory perceives it. Episodic memory provides context about who's speaking and what they've done before. Semantic memory provides the knowledge to judge what's happening. The result feeds back into episodic memory — the consensus deepens.
 

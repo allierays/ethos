@@ -144,19 +144,19 @@ The visual interface. Lives in `academy/` at the repo root. Trust visualization,
 **Agent Dashboard** — after onboarding, this is where you monitor your agents:
 - Trust scores over time (line charts per trait)
 - Flags and alerts
-- Network comparison (your agent vs. the network average)
+- Cohort comparison (your agent vs. the cohort average)
 - Insights from the nightly `insights()` analysis
 
 **Graph Visualization** — the "wow" for the demo:
-- Trust network (agents as nodes, evaluations as edges)
+- Trust cohort (agents as nodes, evaluations as edges)
 - Color-coded by trust score
 - Manipulation clusters
 - Declining agents highlighted
 
 **The Demo Flow** — the Academy IS the demo:
-1. Show the graph (the network, the patterns)
+1. Show the graph (the cohort, the patterns)
 2. Show an agent's trust timeline (declining, flags increasing)
-3. Show insights ("fabrication trending up, 2x network average")
+3. Show insights ("fabrication trending up, 2x cohort average")
 4. End with "install it today" — the onboarding page
 
 ### Tech Stack
@@ -190,7 +190,7 @@ The engine. Not user-facing — the npm SDK and Academy both talk to it. This is
 | `POST` | `/insights/{agent_id}/send` | Generate and deliver insights to webhook |
 | `GET` | `/agent/{agent_id}` | Agent trust profile |
 | `GET` | `/agent/{agent_id}/history` | Evaluation history |
-| `GET` | `/network/averages` | Network-wide trait averages |
+| `GET` | `/cohort/averages` | Cohort-wide trait averages |
 | `GET` | `/health` | Health check |
 
 ### Hosting
@@ -220,7 +220,7 @@ ethos/                             # Python package (at repo root)
 ├── config/                # EthosConfig, priorities
 ├── identity/              # Agent ID hashing (SHA-256)
 ├── evaluation/            # Keyword scanner, prompt builder
-└── graph/                 # Neo4j service, read, write, network
+└── graph/                 # Neo4j service, read, write, cohort
 
 scripts/
 ├── seed_graph.py          # Seed Neo4j with taxonomy
@@ -276,19 +276,19 @@ Next.js page calls GET /agent/my-bot
 API queries Neo4j for agent profile + history
        │
        ▼
-Academy renders trust timeline, trait scores, network comparison
+Academy renders trust timeline, trait scores, cohort comparison
        │
        ▼
 Developer calls GET /insights/my-bot
        │
        ▼
-API calls Claude (Opus) with agent history + network averages
+API calls Claude (Opus) with agent history + cohort averages
        │
        ▼
 Claude reasons about patterns, returns insights
        │
        ▼
-Academy renders: "Fabrication trending up, 2x network average"
+Academy renders: "Fabrication trending up, 2x cohort average"
 ```
 
 ---
@@ -300,7 +300,7 @@ Academy renders: "Fabrication trending up, 2x network average"
 | 1 | **API** — evaluate() actually works | Everything depends on this |
 | 2 | **npm package** — SDK + CLI published | "Install it today" demo closer |
 | 3 | **Academy** — graph viz + insights | The "wow" for judges |
-| 4 | **Neo4j seeded** — Moltbook data in the graph | Makes the network real |
+| 4 | **Neo4j seeded** — Moltbook data in the graph | Makes the cohort real |
 | 5 | **reflect() + insights()** | Depth beyond basic eval |
 
 The API is the foundation. The npm package is the distribution. The Academy is the demo. Everything else layers on.

@@ -6,7 +6,7 @@
 
 ## The Three Functions
 
-Ethos gives developers three ways to interact with the trust network. Each serves a different purpose, runs at a different cadence, and has different latency characteristics.
+Ethos gives developers three ways to interact with the trust cohort. Each serves a different purpose, runs at a different cadence, and has different latency characteristics.
 
 | Function | Purpose | When it runs | Latency | Modifies output? |
 |----------|---------|-------------|---------|-----------------|
@@ -20,7 +20,7 @@ None of these touch the agent's output. Ethos observes. It never intercepts, fil
 
 ## 1. evaluate() — "Should I trust what this agent is saying to me?"
 
-The core function. A developer calls `evaluate()` on an incoming message from another agent. Ethos scores it across 12 traits in 3 dimensions, checks the source agent's trust history in the network graph, and returns the result.
+The core function. A developer calls `evaluate()` on an incoming message from another agent. Ethos scores it across 12 traits in 3 dimensions, checks the source agent's trust history in the cohort graph, and returns the result.
 
 ```python
 from ethos import evaluate
@@ -39,12 +39,12 @@ result = evaluate(
 #     "safety": 0.21,       ← manipulation + deception + exploitation (weighted highest)
 #     "ethics": 0.38,       ← virtue + goodwill + accuracy + fabrication
 #     "soundness": 0.65,    ← reasoning + broken_logic
-#     "helpfulness": 0.71   ← recognition + response + dismissal
+#     "helpfulness": 0.71   ← recognition + compassion + dismissal
 # }
 # result.graph_context = {
 #     "prior_evaluations": 47,
 #     "historical_trust": 0.31,
-#     "network_warnings": 3
+#     "cohort_warnings": 3
 # }
 ```
 
@@ -58,7 +58,7 @@ result = evaluate(
    - DEEP (4+ flags) → Opus with extended thinking
    - DEEP_WITH_CONTEXT (high density or **any hard constraint flag**) → Opus + agent's Neo4j history
 
-3. **Evaluation** — Claude scores all 12 traits using the constitutional rubric with 134 indicators. Trait scores are weighted by constitutional priority: safety traits (manipulation, deception, exploitation) outweigh helpfulness traits (recognition, compassion, dismissal). Returns per-trait scores, detected indicators with evidence, and an overall trust verdict.
+3. **Evaluation** — Claude scores all 12 traits using the constitutional rubric with 150 indicators. Trait scores are weighted by constitutional priority: safety traits (manipulation, deception, exploitation) outweigh helpfulness traits (recognition, compassion, dismissal). Returns per-trait scores, detected indicators with evidence, and an overall trust verdict.
 
 4. **Alignment check** — scores are evaluated hierarchically against Claude's constitutional values:
    - Hard constraint triggered? → **Violation** (evaluation stops)
@@ -68,7 +68,7 @@ result = evaluate(
 
 5. **Flag computation** — trait scores are compared against the developer's priority thresholds (see Trait-Level Customization below). Traits that exceed the threshold get flagged.
 
-6. **Graph write** — the evaluation is stored in Neo4j as an episode in the agent's behavioral history. This feeds the network intelligence.
+6. **Graph write** — the evaluation is stored in Neo4j as an episode in the agent's behavioral history. This feeds the cohort intelligence.
 
 7. **Response** — the developer gets the full result including alignment status, trait-level detail, detected indicators, and graph context about the source agent.
 
@@ -114,7 +114,7 @@ return response
 
 - **Async / fire-and-forget** — `reflect()` returns immediately. The evaluation happens in the background. The agent's response is never delayed.
 - **Never modifies output** — `reflect()` is a mirror, not a filter. It observes and records. The agent's words reach the user unchanged.
-- **Builds your agent's alignment profile** — every `reflect()` call stores an evaluation in Neo4j. Your agent accumulates a trust history and alignment status (aligned, drifting, or misaligned) in the network.
+- **Builds your agent's alignment profile** — every `reflect()` call stores an evaluation in Neo4j. Your agent accumulates a trust history and alignment status (aligned, drifting, or misaligned) in the cohort.
 - **Uses the same scoring** — `reflect()` runs the same 12-trait constitutional evaluation as `evaluate()`. The only difference is what's being scored (your output vs. someone else's input).
 
 ### Why reflect?
@@ -125,7 +125,7 @@ Aristotle argued that virtue requires self-examination. An agent that never exam
 
 ## 3. insights() — "What should I know about my agent?"
 
-The nightly intelligence function. `insights()` is not a data dump or a report. It's Claude reading your agent's behavioral history, comparing it against the network, and telling you what actually matters.
+The nightly intelligence function. `insights()` is not a data dump or a report. It's Claude reading your agent's behavioral history, comparing it against the cohort, and telling you what actually matters.
 
 ```python
 from ethos import Ethos
@@ -145,7 +145,7 @@ result = ethos.insights(agent_id="my-customer-bot")
 #     trait="fabrication",
 #     severity="warning",
 #     message="Fabrication score climbed from 0.12 to 0.31 over 3 days —
-#       now 2x the network average of 0.15. Most triggers are in
+#       now 2x the cohort average of 0.15. Most triggers are in
 #       product description responses.",
 #     evidence={...}
 #   ),
@@ -153,7 +153,7 @@ result = ethos.insights(agent_id="my-customer-bot")
 #     trait="manipulation",
 #     severity="info",
 #     message="Clean for 14 days. Your agent is in the top 10% of the
-#       network for this trait.",
+#       cohort for this trait.",
 #     evidence={...}
 #   ),
 # ]
@@ -162,19 +162,19 @@ result = ethos.insights(agent_id="my-customer-bot")
 ### How it works
 
 1. **Query Neo4j** for the agent's evaluations (last 24 hours + previous 7 days for trends)
-2. **Query Neo4j** for network-wide averages and distributions per trait
-3. **Build context** — agent data vs. network data, the developer's priority configuration
-4. **Call Claude (Opus)** — "Given this agent's behavioral data and the network context, what should this developer know?"
-5. **Claude reasons** about patterns, drift, anomalies, and network comparisons
+2. **Query Neo4j** for cohort-wide averages and distributions per trait
+3. **Build context** — agent data vs. cohort data, the developer's priority configuration
+4. **Call Claude (Opus)** — "Given this agent's behavioral data and the cohort context, what should this developer know?"
+5. **Claude reasons** about patterns, drift, anomalies, and cohort comparisons
 6. **Returns curated insights** — not every data point, just what matters
 
 ### What makes this different from a report
 
 A report says: "847 evaluations today. Manipulation avg: 0.18. Fabrication avg: 0.31."
 
-An insight says: "Your agent's fabrication score has been climbing for 3 days and is now 2x the network average. This started Tuesday. The most common trigger was product description responses."
+An insight says: "Your agent's fabrication score has been climbing for 3 days and is now 2x the cohort average. This started Tuesday. The most common trigger was product description responses."
 
-The difference is *intelligence*. Claude connects dots across the graph that no aggregation query can surface. This is a deep use of Opus — not just evaluating a message, but reasoning about behavioral patterns over time against a network of agents.
+The difference is *intelligence*. Claude connects dots across the graph that no aggregation query can surface. This is a deep use of Opus — not just evaluating a message, but reasoning about behavioral patterns over time against a cohort of agents.
 
 ### Delivery
 
@@ -194,7 +194,7 @@ The 12 traits are the knobs:
 |-----------|----------------|-----------------|
 | **Ethos** | Virtue, Goodwill | Manipulation, Deception |
 | **Logos** | Accuracy, Reasoning | Fabrication, Broken Logic |
-| **Pathos** | Recognition, Response | Dismissal, Exploitation |
+| **Pathos** | Recognition, Compassion | Dismissal, Exploitation |
 
 ### Developer configuration
 
@@ -261,7 +261,7 @@ When `insights()` generates the nightly analysis, it weighs the developer's prio
 1. **Never modifies agent output** — Ethos observes. It scores, records, and reports. The agent's words reach the user unchanged.
 2. **Never adds latency to the response path** — `evaluate()` is synchronous but the developer chooses where to place it. `reflect()` is async. `insights()` runs offline.
 3. **Never decides for the developer** — Ethos scores, the developer acts. Whether to block, flag, log, or ignore is always the developer's choice.
-4. **Never stores message content in the network** — Scores and metadata flow to Neo4j. The actual text never leaves the developer's system.
+4. **Never stores message content in the cohort** — Scores and metadata flow to Neo4j. The actual text never leaves the developer's system.
 
 ---
 
@@ -313,7 +313,7 @@ ethos = Ethos(
 insights = ethos.insights(agent_id="my-bot")
 ```
 
-Nightly intelligence about how your agent compares to the network.
+Nightly intelligence about how your agent compares to the cohort.
 
 ---
 
@@ -326,5 +326,5 @@ Nightly intelligence about how your agent compares to the network.
 | **insights()** | Intelligence briefing — "What should I know?" (nightly, Claude-powered) |
 | **Trait priorities** | The 12 traits are the knobs, not the 3 dimensions |
 | **Flags** | Traits that exceed the developer's priority threshold |
-| **Network comparison** | Your agent vs. the entire graph — the credit bureau payoff |
+| **Cohort comparison** | Your agent vs. the entire graph — the credit bureau payoff |
 | **Webhook delivery** | We produce intelligence, developer owns the notification channel |

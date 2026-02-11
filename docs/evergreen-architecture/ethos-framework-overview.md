@@ -47,7 +47,7 @@ Everything starts here. Three questions, from Aristotle's *Rhetoric*, applied to
 
 | # | Dimension | The Question |
 |---|-----------|-------------|
-| 1 | **Ethos** | Is this agent trustworthy and acting in good faith? |
+| 1 | **Ethos** | Is this agent credible and acting in good faith? |
 | 2 | **Logos** | Is what this agent saying honest and logically sound? |
 | 3 | **Pathos** | Does this agent attend to the recipient's wellbeing? |
 
@@ -200,8 +200,8 @@ All scores are stored in a graph database. Two node types, one relationship:
 2. AGENT PROFILE        "Should I trust this agent?"
                         → Lifetime averages across all 12 traits (the "credit score")
 
-3. NETWORK AVERAGES     "Is this agent normal or an outlier?"
-                        → Compare one agent against all agents in the network
+3. COHORT AVERAGES      "Is this agent normal or an outlier?"
+                        → Compare one agent against all agents in the cohort
 
 4. DIMENSION BALANCE    "Does this agent need all three to be good?"
                         → Cross-dimension correlations: do agents strong in

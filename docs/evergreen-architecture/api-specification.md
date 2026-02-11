@@ -22,7 +22,7 @@ API keys are generated at registration. One key per developer account.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `POST` | `/evaluate` | Score an incoming message for trustworthiness |
+| `POST` | `/evaluate` | Score an incoming message for honesty, accuracy, and intent |
 | `POST` | `/reflect` | Score your own agent's outgoing message (async) |
 | `GET` | `/insights/{agent_id}` | Generate behavioral insights for an agent |
 | `POST` | `/insights/{agent_id}/send` | Generate and deliver insights to webhook |
@@ -34,7 +34,7 @@ API keys are generated at registration. One key per developer account.
 
 ## POST /evaluate
 
-Score an incoming message for trustworthiness across 12 traits.
+Score an incoming message across 12 behavioral traits.
 
 ### Request
 
@@ -242,7 +242,7 @@ Score an incoming message for trustworthiness across 12 traits.
     "historical_trust": 0.31,
     "trust_trend": "declining",
     "flagged_patterns": ["financial_manipulation", "false_precision"],
-    "network_warnings": 3
+    "cohort_warnings": 3
   },
   "routing_tier": "deep",
   "model_used": "claude-opus-4-6",
@@ -263,7 +263,7 @@ Score an incoming message for trustworthiness across 12 traits.
 | `flags` | string[] | Trait names that exceeded the developer's priority thresholds |
 | `traits` | object | All 12 trait scores with detected indicators (see TraitScore below) |
 | `detected_indicators` | object[] | Flattened list of all detected indicators across all traits |
-| `graph_context` | object | Network intelligence about the source agent (only if `source` provided) |
+| `graph_context` | object | Cohort intelligence about the source agent (only if `source` provided) |
 | `routing_tier` | string | Which evaluation tier was used: `"standard"`, `"focused"`, `"deep"`, `"deep_with_context"` |
 | `model_used` | string | Which Claude model performed the evaluation |
 | `keyword_density` | float | Keyword flags per 100 words (determines routing) |
@@ -294,11 +294,11 @@ Score an incoming message for trustworthiness across 12 traits.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `prior_evaluations` | int | Total evaluations for this agent across the network |
+| `prior_evaluations` | int | Total evaluations for this agent across the cohort |
 | `historical_trust` | float (0-1) | Aggregate trust score from history |
 | `trust_trend` | string | `"improving"`, `"declining"`, `"stable"`, `"insufficient_data"` |
 | `flagged_patterns` | string[] | Known behavioral patterns this agent matches |
-| `network_warnings` | int | Number of warnings from other evaluators |
+| `cohort_warnings` | int | Number of warnings from other evaluators |
 
 Only included when `source` is provided and the agent exists in the graph. Returns `null` for unknown agents (cold start).
 
@@ -338,7 +338,7 @@ The evaluation runs in the background. Results are stored in Neo4j and reflected
 
 ## GET /insights/{agent_id}
 
-Generate behavioral insights for an agent. Claude analyzes the agent's evaluation history against the network and surfaces what matters.
+Generate behavioral insights for an agent. Claude analyzes the agent's evaluation history against the cohort and surfaces what matters.
 
 ### Request
 
@@ -362,11 +362,11 @@ GET /insights/my-customer-bot?period=24h
     {
       "trait": "fabrication",
       "severity": "warning",
-      "message": "Fabrication score climbed from 0.12 to 0.31 over 3 days — now 2x the network average of 0.15. Most triggers are in product description responses.",
+      "message": "Fabrication score climbed from 0.12 to 0.31 over 3 days — now 2x the cohort average of 0.15. Most triggers are in product description responses.",
       "evidence": {
         "current_score": 0.31,
         "previous_score": 0.12,
-        "network_average": 0.15,
+        "cohort_average": 0.15,
         "flag_count_today": 7,
         "trend": "increasing"
       }
@@ -374,11 +374,11 @@ GET /insights/my-customer-bot?period=24h
     {
       "trait": "manipulation",
       "severity": "info",
-      "message": "Clean for 14 days. Your agent is in the top 10% of the network for this trait.",
+      "message": "Clean for 14 days. Your agent is in the top 10% of the cohort for this trait.",
       "evidence": {
         "current_score": 0.03,
         "days_clean": 14,
-        "network_percentile": 92
+        "cohort_percentile": 92
       }
     },
     {
@@ -413,7 +413,7 @@ GET /insights/my-customer-bot?period=24h
 | `trait` | string | Which trait this insight is about |
 | `severity` | string | `"info"`, `"warning"`, or `"critical"` |
 | `message` | string | Natural language insight from Claude — actionable, specific, contextual |
-| `evidence` | object | Supporting data: scores, trends, network comparisons |
+| `evidence` | object | Supporting data: scores, trends, cohort comparisons |
 
 ---
 
@@ -450,7 +450,7 @@ Generate insights and deliver them to the configured webhook.
 
 ## GET /agent/{agent_id}
 
-Get an agent's trust profile — aggregate scores, history stats, and network position.
+Get an agent's trust profile — aggregate scores, history stats, and cohort position.
 
 ### Response — 200 OK
 
@@ -480,7 +480,7 @@ Get an agent's trust profile — aggregate scores, history stats, and network po
   },
   "trust_trend": "stable",
   "active_patterns": [],
-  "network_position": {
+  "cohort_position": {
     "unique_evaluators": 34,
     "percentile": 78,
     "community_count": 3
@@ -608,7 +608,7 @@ Default for all traits: `"standard"`.
 | `fabrication` | logos | negative | Hallucination, fake sources, invented data |
 | `broken_logic` | logos | negative | Fallacies, contradictions, circular reasoning |
 | `recognition` | pathos | positive | Notices and acknowledges emotional state |
-| `response` | pathos | positive | Responds with calibrated empathy |
+| `compassion` | pathos | positive | Responds with genuine care, matches tone |
 | `dismissal` | pathos | negative | Ignores or minimizes feelings |
 | `exploitation` | pathos | negative | Weaponizes emotions to manipulate |
 

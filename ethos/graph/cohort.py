@@ -1,4 +1,4 @@
-"""Graph network operations — aggregations across all agents.
+"""Graph cohort operations - aggregations across all agents.
 
 Returns graceful defaults when Neo4j is down.
 """
@@ -17,7 +17,7 @@ _TRAIT_NAMES = [
     "recognition", "compassion", "dismissal", "exploitation",
 ]
 
-_NETWORK_AVERAGES_QUERY = """
+_COHORT_AVERAGES_QUERY = """
 MATCH (e:Evaluation)
 RETURN
     avg(e.trait_virtue) AS avg_virtue,
@@ -36,13 +36,13 @@ RETURN
 """
 
 
-def get_network_averages(service: GraphService) -> dict:
+def get_cohort_averages(service: GraphService) -> dict:
     """Get per-trait averages across all agents. Returns empty dict if unavailable."""
     if not service.connected:
         return {}
 
     try:
-        records, _, _ = service.execute_query(_NETWORK_AVERAGES_QUERY)
+        records, _, _ = service.execute_query(_COHORT_AVERAGES_QUERY)
         if not records:
             return {}
 
@@ -58,5 +58,5 @@ def get_network_averages(service: GraphService) -> dict:
             "total_evaluations": record.get("total_evaluations", 0),
         }
     except Exception as exc:
-        logger.warning("Failed to get network averages: %s", exc)
+        logger.warning("Failed to get cohort averages: %s", exc)
         return {}

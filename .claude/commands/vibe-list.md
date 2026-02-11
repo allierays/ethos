@@ -13,6 +13,7 @@ Print this complete reference for the user. Do not add any commentary.
 | Command | Description |
 |---------|-------------|
 | `/idea [feature]` | Brainstorm in plan mode, generate PRD for Ralph |
+| `/setup-review` | Review config against project, fix mismatches |
 | `/sign` | Add a learned pattern for Ralph to remember |
 | `/my-dna` | Set up your personal style preferences |
 | `/vibe-check` | Audit code quality before shipping |
@@ -46,9 +47,10 @@ Print this complete reference for the user. Do not add any commentary.
 ### Autonomous Loop
 | Command | Description |
 |---------|-------------|
-| `npx ralph run` | Run loop until all stories pass |
+| `npx ralph run` | Run loop until all stories pass (shows live activity feed) |
 | `npx ralph run --max 10` | Limit to N iterations (default: 20) |
 | `npx ralph run --story TASK-001` | Run for specific task only |
+| `npx ralph run --quiet` | Suppress the live activity feed |
 | `npx ralph stop` | Stop after current story completes |
 
 ### Verification
@@ -56,6 +58,17 @@ Print this complete reference for the user. Do not add any commentary.
 |---------|-------------|
 | `npx ralph check` | Run all configured checks |
 | `npx ralph verify TASK-001` | Verify a specific task |
+
+### UAT & Chaos Agent
+| Command | Description |
+|---------|-------------|
+| `npx ralph uat` | Team acceptance testing (explore, test, fix) |
+| `npx ralph uat --plan-only` | Generate test plan without executing |
+| `npx ralph uat --focus <id\|cat>` | Run specific test case or category |
+| `npx ralph uat --no-fix` | Write tests but don't fix app bugs |
+| `npx ralph chaos-agent` | Chaos Agent adversarial red team testing |
+| `npx ralph chaos-agent --plan-only` | Generate chaos plan without executing |
+| `npx ralph chaos-agent --no-fix` | Find vulnerabilities without fixing |
 
 ### Signs (Learned Patterns)
 | Command | Description |
@@ -170,7 +183,9 @@ npx ralph unsign "camelCase"
     "test": "npm test",
     "build": "npm run build"
   },
-  "testUrlBase": "http://localhost:3000",
+  "urls": {
+    "frontend": "http://localhost:3000"
+  },
   "maxSessionSeconds": 600
 }
 ```

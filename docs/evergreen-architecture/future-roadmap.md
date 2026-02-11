@@ -33,7 +33,7 @@ from ethos import register, evaluate
 
 agent = register(name="my-customer-service-bot")
 # Auto-generates key pair, stores private key in .ethos/ directory
-# Public key becomes the agent's network identity
+# Public key becomes the agent's cohort identity
 
 result = evaluate(message="...", source_agent_id="ethos:z6Mkf5rG...")
 # Evaluation is signed automatically — can't be forged
@@ -144,9 +144,9 @@ The key pair foundation (Level 1 identity) is the same cryptographic primitive t
 
 ## 4. Advanced Trust Propagation
 
-### EigenTrust for the Evaluator Network
+### EigenTrust for the Evaluator Cohort
 
-The MVP treats all evaluations equally. Post-MVP, evaluations should be weighted by the evaluator's reliability. If Developer A's evaluations consistently diverge from network consensus, they get down-weighted. This is EigenTrust applied to the evaluator layer — trust in an evaluation depends on trust in the evaluator.
+The MVP treats all evaluations equally. Post-MVP, evaluations should be weighted by the evaluator's reliability. If Developer A's evaluations consistently diverge from cohort consensus, they get down-weighted. This is EigenTrust applied to the evaluator layer — trust in an evaluation depends on trust in the evaluator.
 
 ### Trust Decay
 
@@ -242,13 +242,13 @@ Requires awareness of delegation relationships that the MVP graph schema support
 
 ### The Concept
 
-Some enterprises won't send any data to a central graph, period. Local-only mode runs the full evaluation locally (Claude API calls from their infrastructure) and stores results in a local Neo4j instance. They lose network intelligence but gain complete data sovereignty.
+Some enterprises won't send any data to a central graph, period. Local-only mode runs the full evaluation locally (Claude API calls from their infrastructure) and stores results in a local Neo4j instance. They lose cohort intelligence but gain complete data sovereignty.
 
 This is the "off-grid" option from the trust bureau doc, but fully built out with local graph, local pattern matching, and no external communication except Claude API calls for scoring.
 
 ### Why Post-MVP
 
-The network effect IS the product for the hackathon. Local-only mode is an enterprise requirement, not a demo feature.
+The cohort effect IS the product for the hackathon. Local-only mode is an enterprise requirement, not a demo feature.
 
 ---
 

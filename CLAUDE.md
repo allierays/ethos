@@ -39,7 +39,7 @@ Ethos is an open-source Python package and API that scores AI agent messages for
 │   ├── config/                 # EthosConfig, priorities
 │   ├── identity/               # Agent ID hashing (SHA-256)
 │   ├── evaluation/             # Keyword scanner, prompt builder
-│   └── graph/                  # Neo4j service, read, write, network
+│   └── graph/                  # Neo4j service, read, write, cohort
 ├── api/                        # FastAPI server — serves ethos/ over HTTP
 ├── sdk/                        # ethos-ai npm package — SDK + CLI
 │   ├── src/                    # TypeScript SDK (client, evaluate, reflect)

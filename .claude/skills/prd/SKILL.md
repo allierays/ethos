@@ -61,6 +61,8 @@ cat package.json 2>/dev/null | jq '{name, dependencies}' || true
 cat pyproject.toml 2>/dev/null | head -20 || true
 ```
 
+Use the detected tech stack, test runners, and constraints when building each story — these go into each story's `techStack`, `constraints`, and `testing.runner` fields (not at the PRD root).
+
 Then say: "I'll create a PRD for: **{description}**
 
 Before I generate stories, quick questions:
@@ -99,8 +101,9 @@ Break the idea into small, executable stories:
 
 - Each story completable in one Claude session (~10-15 min)
 - Max 3-4 acceptance criteria per story
-- Max 10 stories (suggest phases if more needed)
+- No limit on story count — generate as many stories as the idea needs
 - If appending, start IDs from the next available number
+- **Each story must include its own `techStack`, `constraints`, and `contextFiles`.** Include only what's relevant to that story — don't copy-paste identical context into every story.
 
 ### Step 5: Write Draft PRD
 
@@ -152,10 +155,13 @@ Does acceptanceCriteria include:
 - Query params → "Accepts ?page=N&limit=N"
 - Large datasets → "Database query uses index on [column]"
 
-#### 6e. Context (for frontend stories)
+#### 6e. Context (for all stories)
 - Does `contextFiles` include the idea file (has ASCII mockups)?
 - Does `contextFiles` include styleguide (if exists)?
-- Is `testUrl` set?
+- Does `techStack` include the relevant stack for this story?
+- Does `constraints` include any rules this story must follow?
+- For frontend: Is `testUrl` set?
+- For frontend: Is `mcp` set to `["playwright", "devtools"]`?
 
 **Fix any issues you find:**
 
@@ -168,6 +174,9 @@ Does acceptanceCriteria include:
 | List endpoint missing pagination | Add pagination criteria to acceptanceCriteria |
 | Frontend missing contextFiles | Add idea file + styleguide paths |
 | Frontend missing testUrl | Add URL from config |
+| Frontend missing mcp | Add `"mcp": ["playwright", "devtools"]` |
+| Story missing techStack | Add relevant subset of detected tech |
+| Story missing constraints | Add applicable rules for this story |
 
 ### Step 7: Reorder if Needed
 
@@ -180,6 +189,23 @@ If validation found dependency issues, reorder stories:
 
 **After reordering, re-run Step 6 validation to confirm the new order works.**
 
+### Step 7b: Assign Batch Numbers
+
+After reordering, assign a `batch` number to every story. Batches group independent stories that could theoretically run in parallel.
+
+1. Stories with no `dependsOn` → **batch 1**
+2. Stories whose deps are ALL in batch N → **batch N+1** (use the highest dep batch)
+3. Within each batch level, check `files.create` and `files.modify` overlap — if two stories share any create/modify files, bump one to the next batch
+4. Add `"batch": N` to every story
+
+**Example:**
+```
+TASK-001: batch 1  (no deps)
+TASK-002: batch 2  (depends on TASK-001, creates RegisterForm)
+TASK-003: batch 2  (depends on TASK-001, modifies src/api/users.ts)
+```
+TASK-002 and TASK-003 are in the same batch because they don't depend on each other and don't share create/modify files.
+
 ### Step 8: Present Final PRD
 
 Open the PRD for review:
@@ -190,7 +216,7 @@ open -a TextEdit .ralph/prd.json
 Say: "I've {created|updated} the PRD with {N} stories and opened it in TextEdit.
 
 Review the PRD and let me know:
-- **'approved'** - Ready for `ralph run`
+- **'approved'** - Ready to run in your other terminal
 - **'edit [changes]'** - Tell me what to change
 - Or edit the JSON directly and say **'done'**"
 
@@ -205,9 +231,9 @@ Once approved, say:
 **Source:** `{idea-file-path}`
 **PRD:** `.ralph/prd.json` ({N} stories)
 
-To start autonomous development:
+To start autonomous development, open another terminal and run:
 ```bash
-ralph run
+npx agentic-loop run
 ```
 
 Ralph will work through each story, running tests and committing as it goes."
@@ -229,45 +255,6 @@ Ralph will work through each story, running tests and committing as it goes."
     "status": "pending"
   },
 
-  "originalContext": "docs/ideas/{feature-name}.md",
-
-  "techStack": {
-    "frontend": "{detected from package.json}",
-    "backend": "{detected from pyproject.toml/go.mod}",
-    "database": "{detected or asked}"
-  },
-
-  "testing": {
-    "approach": "TDD",
-    "unit": {
-      "frontend": "{vitest|jest - detected from package.json}",
-      "backend": "{pytest|go test - detected from project}"
-    },
-    "integration": "{playwright|cypress}",
-    "e2e": "{playwright|cypress}",
-    "coverage": {
-      "minimum": 80,
-      "enforced": false
-    }
-  },
-
-  "architecture": {
-    "frontend": "src/components",
-    "backend": "src/api",
-    "doNotCreate": ["new database tables without migration"]
-  },
-
-  "globalConstraints": [
-    "All API calls must have error handling",
-    "No console.log in production code",
-    "Use existing UI components from src/components/ui"
-  ],
-
-  "testUsers": {
-    "admin": {"email": "admin@test.com", "password": "test123"},
-    "user": {"email": "user@test.com", "password": "test123"}
-  },
-
   "metadata": {
     "createdAt": "ISO timestamp",
     "estimatedStories": 5,
@@ -281,6 +268,17 @@ Ralph will work through each story, running tests and committing as it goes."
       "title": "Short description",
       "priority": 1,
       "passes": false,
+
+      "techStack": {
+        "frontend": "{detected from package.json}",
+        "backend": "{detected from pyproject.toml/go.mod}",
+        "database": "{detected or asked}"
+      },
+
+      "constraints": [
+        "Rules that apply to this story",
+        "E.g. Use existing UI components from src/components/ui"
+      ],
 
       "files": {
         "create": ["paths to new files"],
@@ -299,6 +297,7 @@ Ralph will work through each story, running tests and committing as it goes."
       "testing": {
         "types": ["unit", "integration"],
         "approach": "TDD",
+        "runner": "vitest|jest|pytest|go test",
         "files": {
           "unit": ["src/components/Dashboard.test.tsx"],
           "integration": ["tests/integration/dashboard.test.ts"],
@@ -344,7 +343,8 @@ Ralph will work through each story, running tests and committing as it goes."
         "constraints": ["No Redux"]
       },
 
-      "dependsOn": []
+      "dependsOn": [],
+      "batch": 1
     }
   ]
 }
@@ -358,18 +358,14 @@ Ralph will work through each story, running tests and committing as it goes."
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `feature` | Yes | Feature name, branch, status |
-| `originalContext` | Yes | Path to idea file (Claude reads this for full context) |
-| `techStack` | No | Technologies in use (auto-detect from project) |
-| `testing` | Yes | Testing strategy, tools, coverage requirements |
-| `architecture` | No | Directory structure, patterns, constraints |
-| `globalConstraints` | No | Rules that apply to ALL stories |
-| `testUsers` | No | Test accounts for auth flows |
-| `metadata` | Yes | Created date, complexity estimate |
+| `feature` | Yes | Feature name, ideaFile, branch, status |
+| `metadata` | Yes | Created date, estimated stories, complexity |
 
 **Note:** URLs come from `.ralph/config.json`, not the PRD. Use `{config.urls.backend}` in testSteps.
 
 ### Story-Level Fields
+
+Each story is **self-contained** with all the context it needs. No global defaults — include only what's relevant to that story.
 
 | Field | Required | Description |
 |-------|----------|-------------|
@@ -378,69 +374,46 @@ Ralph will work through each story, running tests and committing as it goes."
 | `title` | Yes | Short description |
 | `priority` | No | Order of importance (1 = highest) |
 | `passes` | Yes | Always starts as `false` |
+| `techStack` | Yes | Technologies relevant to this story (auto-detect from project) |
+| `constraints` | No | Rules/constraints specific to this story |
 | `files` | Yes | create, modify, reuse arrays |
 | `acceptanceCriteria` | Yes | What must be true when done |
 | `errorHandling` | Yes | How to handle failures |
-| `testing` | Yes | Test types, approach, and files for this story |
+| `testing` | Yes | Test types, approach, runner, and files for this story |
 | `testSteps` | Yes | Executable shell commands |
 | `testUrl` | Frontend | URL to verify the feature |
 | `mcp` | Frontend | MCP tools for verification |
 | `contextFiles` | No | Files Claude should read (idea files, styleguides) |
 | `skills` | No | Relevant skills with usage hints |
 | `apiContract` | Backend | Expected request/response format |
+| `testUsers` | **Deprecated** | Use `RALPH_TEST_USER` / `RALPH_TEST_PASSWORD` env vars in `.env` instead |
 | `prerequisites` | No | What must be running/ready |
 | `notes` | No | Human guidance for Claude |
 | `scale` | No | small, medium, large |
 | `architecture` | No | Story-specific patterns/constraints |
 | `dependsOn` | No | Story IDs that must complete first |
+| `batch` | Yes | Batch number for parallel grouping (1 = no deps, higher = later) |
 
 ---
 
 ## Testing Strategy
 
-### PRD-Level Testing Config
+### Story-Level Testing Config
 
-Define the overall testing strategy for the feature. **Auto-detect tools from project config files:**
-
-```json
-"testing": {
-  "approach": "TDD",
-  "unit": {
-    "frontend": "vitest",
-    "backend": "pytest"
-  },
-  "integration": "playwright",
-  "e2e": "playwright",
-  "coverage": {
-    "minimum": 80,
-    "enforced": false
-  }
-}
-```
+Each story defines its own testing configuration. **Auto-detect tools from project config files** and include the relevant runner in each story:
 
 **Detection hints:**
 - Check `package.json` for `vitest`, `jest`, `playwright`, `cypress`
 - Check `pyproject.toml` for `pytest`
 - Check `go.mod` for Go projects (use `go test`)
 
-| Field | Values | Description |
-|-------|--------|-------------|
-| `approach` | `TDD`, `test-after` | Write tests first (TDD) or after implementation |
-| `unit.frontend` | `vitest`, `jest` | Frontend unit test runner (detect from package.json) |
-| `unit.backend` | `pytest`, `go test` | Backend unit test runner (detect from project) |
-| `integration` | `playwright`, `cypress` | Integration test tool |
-| `e2e` | `playwright`, `cypress` | End-to-end test tool |
-| `coverage.minimum` | `0-100` | Minimum coverage percentage |
-| `coverage.enforced` | `true/false` | Fail if coverage not met |
-
-### Story-Level Testing Config
-
-Specify what tests each story needs:
+**Note:** Coverage thresholds (`minimum`, `enforced`) belong in `.ralph/config.json`, not in the PRD.
 
 ```json
 "testing": {
   "types": ["unit", "integration"],
   "approach": "TDD",
+  "runner": "vitest",
   "files": {
     "unit": ["src/components/Dashboard.test.tsx"],
     "integration": ["tests/integration/dashboard.test.ts"],
@@ -452,7 +425,8 @@ Specify what tests each story needs:
 | Field | Description |
 |-------|-------------|
 | `types` | Required test types: `unit`, `integration`, `e2e` |
-| `approach` | Override PRD-level approach for this story |
+| `approach` | TDD or test-after for this story |
+| `runner` | Test runner command (vitest, jest, pytest, go test — detected from project) |
 | `files.unit` | Unit test files to create |
 | `files.integration` | Integration test files to create |
 | `files.e2e` | E2E test files to create |
