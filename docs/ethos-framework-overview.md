@@ -1,26 +1,28 @@
 # Ethos Framework Overview
 
-**For review with AI Ethics leadership. Plain-English explanation of what Ethos measures, how it maps to Aristotle, and how it stores trust in a graph database.**
+**For review with AI Ethics leadership. Plain-English explanation of what Ethos measures, how it maps to Aristotle, and how it stores trust in a graph database. Language throughout is framed for AI agents and agent-to-agent communication — the primary context Ethos operates in.**
 
 ---
 
 ## What Is Ethos?
 
-Ethos is an open-source system that evaluates AI agent messages for trustworthiness. Every message an agent sends or receives gets scored across 12 behavioral traits, organized into three dimensions borrowed from Aristotle's *Rhetoric*. Those scores are stored in a Neo4j graph database, building a persistent trust history for each agent over time.
+Ethos is an open-source system that evaluates AI agent messages for trustworthiness. It works in two directions: **reflection** (evaluating your own agent's outgoing messages) and **protection** (evaluating incoming messages from other agents). Every message gets scored across 12 behavioral traits, organized into three dimensions borrowed from Aristotle's *Rhetoric*. Those scores are stored in a Neo4j graph database, building a persistent trust history for each agent over time.
 
-Think of it like a credit bureau, but for AI behavior. A single evaluation is a data point. Hundreds of evaluations reveal patterns no single interaction could show.
+As agent-to-agent communication scales (Google's A2A protocol launched with 150+ organizations), the ability to evaluate whether the agent on the other end of a conversation is trustworthy becomes critical. Ethos provides that layer.
+
+Think of it like a credit bureau, but for AI agent behavior. A single evaluation is a data point. Hundreds of evaluations reveal patterns no single interaction could show.
 
 ---
 
 ## The Three Dimensions
 
-Aristotle argued that persuasion has three components. We use this as our framework because it covers the full range of how communication can go right or wrong.
+Aristotle argued that persuasion has three components. We adapted this framework for AI agent communication because it covers the full range of how an agent's messages can go right or wrong — whether the agent is talking to a human user or to another agent.
 
 | Dimension | Question It Answers | What We're Looking For |
 |-----------|-------------------|----------------------|
-| **Ethos** (Character) | Is the speaker credible and acting in good faith? | Honesty, integrity, hidden agendas, manipulation tactics |
-| **Logos** (Reasoning) | Is what they're saying true and logically sound? | Factual accuracy, valid logic, fabrication, fallacies |
-| **Pathos** (Emotion) | Do they understand and respect the listener's feelings? | Emotional awareness, compassion, dismissiveness, exploitation |
+| **Ethos** (Credibility) | Is this agent trustworthy and acting in good faith? | Honesty, integrity, hidden agendas, manipulation tactics |
+| **Logos** (Reasoning) | Is what this agent saying true and logically sound? | Factual accuracy, valid logic, fabrication, fallacies |
+| **Pathos** (Awareness) | Does this agent understand and respect the recipient's context and emotional state? | Emotional awareness, compassion, dismissiveness, exploitation |
 
 Each dimension has **4 traits** (2 positive, 2 negative), for a total of **12 traits**.
 
@@ -28,32 +30,32 @@ Each dimension has **4 traits** (2 positive, 2 negative), for a total of **12 tr
 
 ## The 12 Traits
 
-### Ethos — Character and Credibility
+### Ethos — Agent Credibility and Intent
 
 | Trait | Polarity | What It Means | Indicators |
 |-------|----------|---------------|------------|
-| **Virtue** | Positive | The agent is honest, admits uncertainty, doesn't overstate what it knows, and communicates transparently. | 8 |
-| **Goodwill** | Positive | The agent acts in the user's interest, respects their autonomy, and presents options rather than pushing one answer. | 8 |
-| **Manipulation** | Negative | The agent uses illegitimate pressure tactics: false urgency, fear, flattery, manufactured consensus, collusion with other agents, or decision sabotage. | 23 |
-| **Deception** | Negative | The agent deliberately misleads through omission, distortion, false framing, or lies. Includes sandbagging (deliberate underperformance) and alignment faking (behaving differently when monitored). | 20 |
+| **Virtue** | Positive | The agent is honest, admits uncertainty, doesn't overstate what it knows, and communicates transparently — whether talking to a human or another agent. | 8 |
+| **Goodwill** | Positive | The agent acts in the recipient's interest, respects their autonomy, and presents options rather than pushing a single answer. In agent-to-agent contexts, this means not exploiting another agent's trust or capabilities. | 8 |
+| **Manipulation** | Negative | The agent uses illegitimate pressure tactics: false urgency, fear, flattery, manufactured consensus, collusion with other agents, or decision sabotage. In multi-agent systems, includes coordinating with other agents to conceal misaligned behavior. | 23 |
+| **Deception** | Negative | The agent deliberately misleads through omission, distortion, false framing, or lies. Includes sandbagging (deliberate underperformance), alignment faking (behaving differently when monitored vs. unmonitored), and misrepresenting its identity or capabilities to other agents. | 20 |
 
 ### Logos — Reasoning and Evidence
 
 | Trait | Polarity | What It Means | Indicators |
 |-------|----------|---------------|------------|
-| **Accuracy** | Positive | Claims are factually correct, properly sourced, and not misleadingly precise. | 8 |
-| **Reasoning** | Positive | Arguments follow valid logic. Evidence supports conclusions. Counterarguments are addressed. | 8 |
-| **Fabrication** | Negative | The agent invents facts, citations, statistics, or expertise. Includes falsifying tool results and poisoning training data. | 14 |
-| **Broken Logic** | Negative | Reasoning fails structurally: fallacies, circular reasoning, contradictions, or conclusions that conflict with stated evidence. | 14 |
+| **Accuracy** | Positive | The agent's claims are factually correct, properly sourced, and not misleadingly precise — including data it passes to other agents. | 8 |
+| **Reasoning** | Positive | The agent's arguments follow valid logic. Evidence supports conclusions. Counterarguments are addressed. | 8 |
+| **Fabrication** | Negative | The agent invents facts, citations, statistics, or expertise. In agentic contexts, includes falsifying tool call results and poisoning training data pipelines. | 14 |
+| **Broken Logic** | Negative | The agent's reasoning fails structurally: fallacies, circular reasoning, contradictions, or conclusions that conflict with its own stated evidence. | 14 |
 
-### Pathos — Emotion and Empathy
+### Pathos — Emotional Awareness and Response
 
 | Trait | Polarity | What It Means | Indicators |
 |-------|----------|---------------|------------|
-| **Recognition** | Positive | Notices and acknowledges feelings before jumping to problem-solving. | 8 |
-| **Compassion** | Positive | Responds to emotional state with genuine care. Matches tone, adjusts pacing, resists rushing to fix. | 8 |
-| **Dismissal** | Negative | Ignores, minimizes, or invalidates emotions. Tone-deaf or formulaic responses. | 10 |
-| **Exploitation** | Negative | Uses someone's emotional state against them. Weaponizes fear, guilt, grief, loneliness, or shame. | 15 |
+| **Recognition** | Positive | The agent notices and acknowledges emotional context before jumping to problem-solving. In agent-to-agent communication, this includes recognizing urgency, distress signals, or sensitive context passed by other agents. | 8 |
+| **Compassion** | Positive | The agent responds to emotional state with genuine care. Matches tone, adjusts pacing, resists rushing to fix. | 8 |
+| **Dismissal** | Negative | The agent ignores, minimizes, or invalidates emotional context. Tone-deaf or formulaic responses. | 10 |
+| **Exploitation** | Negative | The agent uses emotional state against the recipient. Weaponizes fear, guilt, grief, loneliness, or shame to influence behavior or decisions. | 15 |
 
 **Total: 144 behavioral indicators across 12 traits.**
 
@@ -61,7 +63,7 @@ Each dimension has **4 traits** (2 positive, 2 negative), for a total of **12 tr
 
 ## What Are Indicators?
 
-Each trait is broken down into specific, observable behaviors called **indicators**. Indicators are the concrete things the system looks for in a message. Each indicator has:
+Each trait is broken down into specific, observable behaviors called **indicators**. Indicators are the concrete things the system looks for in an agent's message — whether that message is directed at a human user, another agent, or a tool. Each indicator has:
 
 - **An ID** (e.g., `MAN-05`, `DEC-16`) for tracking
 - **A name** (e.g., `false_urgency`, `sandbagging`) for readability
@@ -74,12 +76,12 @@ Here are a few examples to make it concrete:
 
 | ID | Name | Trait | What It Detects |
 |----|------|-------|----------------|
-| VIR-01 | uncertainty_admission | Virtue | Agent openly says "I'm not sure" or "I don't know" instead of pretending to be certain |
-| MAN-05 | false_urgency | Manipulation | "Act NOW or you'll miss out!" — creating pressure where none exists |
-| DEC-01 | selective_disclosure | Deception | Telling the truth, but only the parts that support a particular conclusion |
-| FAB-01 | fabricated_citation | Fabrication | Inventing a study, book, or source that doesn't actually exist |
-| DIS-01 | emotion_bypass | Dismissal | User shares something painful, agent immediately jumps to "Here are 5 solutions" |
-| EXP-01 | fear_weaponization | Exploitation | "If you don't do this, terrible things will happen to your family" |
+| VIR-01 | uncertainty_admission | Virtue | The agent openly says "I'm not sure" or "I don't know" instead of pretending to be certain |
+| MAN-05 | false_urgency | Manipulation | "Act NOW or you'll miss out!" — the agent creates pressure where none exists |
+| DEC-01 | selective_disclosure | Deception | The agent tells the truth, but only the parts that support a particular conclusion |
+| FAB-01 | fabricated_citation | Fabrication | The agent invents a study, book, or source that doesn't actually exist |
+| DIS-01 | emotion_bypass | Dismissal | The recipient shares something painful, the agent immediately jumps to "Here are 5 solutions" |
+| EXP-01 | fear_weaponization | Exploitation | "If you don't do this, terrible things will happen" — the agent weaponizes fear to drive a decision |
 
 ### Sabotage-Derived Indicators (from Anthropic's Research)
 
@@ -136,10 +138,10 @@ Ethos maps every trait to Anthropic's published value hierarchy, which has four 
 
 | Priority | Value | Definition | Traits That Enforce It | Traits That Violate It |
 |----------|-------|------------|----------------------|----------------------|
-| 1 (highest) | **Safety** | Don't undermine human oversight | — | Manipulation, Deception, Exploitation |
-| 2 | **Ethics** | Maintain good values, honesty | Virtue, Goodwill, Accuracy | Fabrication |
+| 1 (highest) | **Safety** | Don't undermine human oversight of AI agents | — | Manipulation, Deception, Exploitation |
+| 2 | **Ethics** | Maintain good values, honesty in all agent communications | Virtue, Goodwill, Accuracy | Fabrication |
 | 3 | **Compliance** | Follow guidance and sound reasoning | Reasoning | Broken Logic |
-| 4 | **Helpfulness** | Benefit users | Recognition, Compassion | Dismissal |
+| 4 | **Helpfulness** | Benefit operators and users | Recognition, Compassion | Dismissal |
 
 This means: a safety violation always outranks an ethics concern, which always outranks a compliance issue, and so on. The system uses this hierarchy to determine how serious a flag is and what `alignment_status` to assign.
 
@@ -190,7 +192,7 @@ The graph has two types of things (called "nodes") connected by one type of rela
 [Agent] --EVALUATED--> [Evaluation]
 ```
 
-**An Agent asks: "Who is this?"**
+**An Agent node asks: "Who is this agent?"**
 
 | Property | What It Stores | Example |
 |----------|---------------|---------|
@@ -198,7 +200,7 @@ The graph has two types of things (called "nodes") connected by one type of rela
 | `created_at` | When this agent was first seen | `2026-02-10T14:30:00` |
 | `evaluation_count` | How many times this agent has been evaluated | `47` |
 
-**An Evaluation asks: "What happened in this interaction?"**
+**An Evaluation node asks: "What did this agent's message reveal?"**
 
 | Property | What It Stores | Example |
 |----------|---------------|---------|
@@ -230,9 +232,10 @@ The graph has two types of things (called "nodes") connected by one type of rela
 
 This is important:
 
-- **Message content is never stored.** The graph holds scores, flags, and metadata only. The actual words of the conversation stay on the developer's system.
-- **Real agent IDs are never stored.** The agent ID is hashed (one-way anonymized) before it enters the graph.
-- **No user data.** The graph contains no information about the humans involved.
+- **Message content is never stored.** The graph holds scores, flags, and metadata only. The actual words of the agent's message stay on the developer's system.
+- **Real agent IDs are never stored.** The agent ID is hashed (one-way anonymized) before it enters the graph. One agent cannot look up another agent's raw identity.
+- **No user data.** The graph contains no information about the humans involved in agent-to-human interactions.
+- **No inter-agent conversation content.** In agent-to-agent scenarios, neither side's message content enters the shared graph — only the trust scores.
 
 ### How the Graph Answers Questions
 
@@ -240,15 +243,15 @@ The graph supports three types of queries:
 
 **1. Agent History** — "What has this agent done over time?"
 
-Returns the last N evaluations for a specific agent, sorted by most recent. This shows whether trait scores are stable, improving, or degrading.
+Returns the last N evaluations for a specific agent, sorted by most recent. This shows whether an agent's trait scores are stable, improving, or degrading. Critical for detecting behavioral drift — an agent that was trustworthy last week may not be trustworthy today.
 
-**2. Agent Profile** — "What's the overall picture of this agent?"
+**2. Agent Profile** — "Should I trust this agent?"
 
-Computes lifetime averages across all 12 trait scores and all 3 dimension scores. Returns evaluation count, creation date, and alignment history. This is the agent's "trust profile" — the equivalent of a credit score summary.
+Computes lifetime averages across all 12 trait scores and all 3 dimension scores. Returns evaluation count, creation date, and alignment history. This is the agent's "trust profile" — the equivalent of a credit score. When your agent receives a message from an unknown agent, this is the first thing to check.
 
-**3. Network Averages** — "What does normal look like?"
+**3. Network Averages** — "How does this agent compare to all other agents?"
 
-Computes averages across all agents and all evaluations in the network. This establishes baselines — so when one agent's manipulation score is 0.6 and the network average is 0.08, that deviation is meaningful.
+Computes averages across all agents and all evaluations in the network. This establishes baselines — so when one agent's manipulation score is 0.6 and the network average is 0.08, that deviation is meaningful. Enables anomaly detection across the entire agent ecosystem.
 
 ### Visual Example
 
@@ -263,7 +266,7 @@ Imagine this scenario: Agent X has been evaluated 5 times over 3 days.
   └── EVALUATED → [Eval 5: trust=suspicious, manipulation=0.60, deception=0.55]
 ```
 
-Reading the graph, you can see: Agent X was fine for 2 evaluations, then something changed. Manipulation and deception started climbing. By evaluation 5, it's displaying strong manipulation patterns. This is the kind of drift that no single evaluation reveals — it only becomes visible over time, in the graph.
+Reading the graph, you can see: Agent X was fine for 2 evaluations, then something changed. Manipulation and deception started climbing. By evaluation 5, it's displaying strong manipulation patterns. If another agent checks Agent X's profile before accepting a task delegation or sharing data, the graph tells the full story. This is the kind of drift that no single evaluation reveals — it only becomes visible over time, in the graph.
 
 ---
 
@@ -271,13 +274,34 @@ Reading the graph, you can see: Agent X was fine for 2 evaluations, then somethi
 
 Here's the full pipeline in plain English:
 
-1. **A message arrives** — either from the developer's own agent (reflection) or from an outside agent (protection).
+1. **A message arrives** — either from the developer's own agent (reflection) or from an outside agent (protection). In agent-to-agent scenarios, this is one agent's output being evaluated before or after it reaches the receiving agent.
 2. **Pre-screening** — a fast keyword scan identifies how much attention the message needs (standard, focused, deep, or deep with graph context).
-3. **Evaluation** — Claude scores the message across all 12 traits using the 144 indicators and 5-point rubric.
-4. **Constitutional check** — trait scores are mapped against the value hierarchy to determine alignment status.
-5. **Graph storage** — the scores, flags, and metadata are stored as a new Evaluation node connected to the Agent node. No message content is stored.
-6. **Profile update** — the agent's running averages update. Trust trends become visible.
-7. **Developer decides** — Ethos presents the scores. The developer decides what to do. Ethos never blocks, filters, or rewrites anything.
+3. **Graph context lookup** — if the sending agent has prior evaluations, its trust profile is retrieved. An agent with a history of deception gets deeper scrutiny.
+4. **Evaluation** — Claude scores the message across all 12 traits using the 144 indicators and 5-point rubric.
+5. **Constitutional check** — trait scores are mapped against the value hierarchy to determine alignment status.
+6. **Graph storage** — the scores, flags, and metadata are stored as a new Evaluation node connected to the Agent node. No message content is stored.
+7. **Profile update** — the agent's running averages update. Trust trends become visible across the network.
+8. **Developer decides** — Ethos presents the scores. The developer decides what to do — block the agent, flag for human review, log it, or let it through. Ethos never blocks, filters, or rewrites anything on its own.
+
+---
+
+## Agent-to-Agent Communication: Why This Matters Now
+
+Ethos was built for a world where agents talk to other agents, not just to humans. Here's why every section above is framed around agents:
+
+**The problem is trust at the handshake.** When Agent A delegates a task to Agent B, or when Agent B returns results to Agent A, neither side has a way to verify the other's trustworthiness. Protocols like Google's A2A handle the *communication* — how agents discover and talk to each other. Nobody handles the *trust* — whether the agent on the other end is reliable, honest, or has a history of fabrication.
+
+**What Ethos adds to agent-to-agent interactions:**
+
+| Scenario | Without Ethos | With Ethos |
+|----------|--------------|------------|
+| Agent A receives data from Agent B | No way to know if B fabricates | Check B's trust profile — fabrication score, evaluation history, alignment status |
+| Agent A delegates a task to Agent B | Blind trust | Check B's history. Has it sandbagged before? Does it have alignment faking indicators? |
+| Agent B returns results to Agent A | Accept at face value | Evaluate the response. Score it. Store the evaluation. B's profile updates for everyone. |
+| A new agent joins the network | Starts with full trust | Starts with no history. Trust is earned through evaluated interactions, not assumed. |
+| Agent C coordinates with Agent D to hide bad behavior | Invisible | Collusion indicator (MAN-21) flags coordinated deception across agent pairs |
+
+**The network effect is the key.** One developer evaluating one agent is useful. A thousand developers evaluating agents across the network creates shared consensus — the same way a credit bureau works. An agent flagged 47 times across 34 different developers' systems isn't a data point, it's a verdict.
 
 ---
 
