@@ -35,7 +35,8 @@ Ethos scores every message an AI agent sends or receives across 12 behavioral tr
                                  │
                     ┌────────────┴────────────┐
                     │    Scores stored in     │
-                    │    Neo4j Trust Graph    │
+                    │      Phronesis          │
+                    │     (Neo4j graph)       │
                     └────────────────────────┘
 ```
 
@@ -194,9 +195,9 @@ Ethos intentionally does not apply numeric harm-factor weights to trait scores. 
 
 ---
 
-## Layer 6: The Trust Graph (Neo4j)
+## Layer 6: Phronesis — The Graph Layer (Neo4j)
 
-All scores are stored in a graph database. The episodic layer (what gets written at runtime) is two node types and one relationship:
+Phronesis — Aristotle's concept of practical wisdom — is the name for Ethos's Neo4j graph layer. All scores are stored here. The episodic layer (what gets written at runtime) is two node types and one relationship:
 
 ```
 ┌───────────────────┐          ┌──────────────────────┐
@@ -223,7 +224,7 @@ The semantic layer (seeded once, read-only) holds the taxonomy: Dimensions, Trai
 
 **What is NEVER stored:** message content, real agent IDs, user data, conversation text.
 
-**Four questions the graph answers:**
+**Four questions Phronesis answers:**
 
 ```
 1. AGENT HISTORY        "Is this agent getting better or worse?"
@@ -245,34 +246,43 @@ The semantic layer (seeded once, read-only) holds the taxonomy: Dimensions, Trai
 
 ## How It All Flows
 
+Three layers. Each does one thing. See `pattern-detection-architecture.md` for full design.
+
 ```
 Message arrives (from agent or to agent)
         │
         ▼
 ┌─────────────────┐
-│  Pre-screening  │  Fast keyword scan → determines evaluation depth
-└────────┬────────┘  86.9% of messages stop here (standard = no flags)
-         │
+│  Layer 1:       │  Fast keyword scan → determines evaluation DEPTH and WIDTH
+│  SCANNER        │  86.9% of messages stop here (standard = no flags)
+└────────┬────────┘  For batch mode: scans entire thread first, produces
+         │           thread-level signal for routing decisions
          ▼
 ┌─────────────────┐
-│  Graph lookup   │  Does this agent have prior history? Check trust profile.
+│  Layer 2:       │  Claude scores message across 12 traits / 153 indicators
+│  EVALUATOR      │  Constitutional hierarchy baked into the scoring rubric
+└────────┬────────┘  Context window set by the router:
+         │             focused → message + scan result
+         │             deep → message + 3-5 prior messages in thread
+         │             deep_with_context → message + full thread + agent history
+         ▼
+┌─────────────────┐
+│  Phronesis      │  Store scores + metadata in the graph (never message content)
+│  (graph store)  │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│   Evaluation    │  Claude scores message across 12 traits / 153 indicators
-└────────┬────────┘  Constitutional hierarchy (safety > ethics > soundness > helpfulness)
-         │           baked into the scoring rubric — not a separate step
-         ▼
-┌─────────────────┐
-│  Graph storage  │  Store scores + metadata (never message content)
-└────────┬────────┘
+│  Layer 3:       │  Graph queries on score sequences detect temporal patterns
+│  PATTERN        │  Love bombing cycles, DARVO, con games, sabotage pathways
+│  DETECTOR       │  No LLM needed — patterns are shapes in the score data
+└────────┬────────┘  Results stored as (Agent)-[:EXHIBITS_PATTERN]->(Pattern)
          │
          ▼
 ┌─────────────────┐
 │   Academy       │  Daily trust report card delivered to the user
-│   notification  │  Trends, flags, dimension balance — human stays in the loop
-└─────────────────┘
+│   notification  │  Trends, flags, patterns, dimension balance
+└─────────────────┘  Human stays in the loop
 ```
 
 ---
@@ -281,7 +291,7 @@ Message arrives (from agent or to agent)
 
 8 patterns from Anthropic's Sabotage Risk Report (Claude Opus 4.6, 2025). These are not single behaviors — they're attack patterns that play out over time. Each maps to specific indicators.
 
-**Scope note:** Ethos detects sabotage indicators at the message level — individual behavioral signals like sandbagging or alignment faking. The full sabotage pathways described in the report are multi-step, temporal patterns that unfold across many interactions. Detecting the complete pathway (e.g., "persistent rogue deployment") requires graph-level temporal analysis across an agent's evaluation history, which is a planned capability for the cohort intelligence layer. Currently, Ethos flags the component indicators; connecting them into pathway-level detections is future work.
+**Scope note:** Ethos uses a three-layer detection architecture. **Layer 1** (scanner) detects keyword signals per message — free, instant. **Layer 2** (evaluator) has Claude score individual messages with context windows set by the router. **Layer 3** (pattern detector) runs graph queries on score sequences to detect multi-message patterns like the sabotage pathways below. Layer 2 detects the component indicators (sandbagging, alignment faking). Layer 3 connects them into pathway-level detections by finding temporal shapes in the score data. See `pattern-detection-architecture.md` for the full design.
 
 ```
 SP-01  Diffuse sandbagging ──────────► DEC-SANDBAG, FAB-TOOLRESULT
