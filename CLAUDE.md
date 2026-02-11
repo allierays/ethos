@@ -8,9 +8,11 @@ Ethos is an open-source Python package and API for evaluating AI agent messages 
 
 ## Tech Stack
 
-- **Language**: Python 3.11+
-- **Package manager**: uv
+- **Language**: Python 3.11+ (engine), TypeScript (SDK + CLI)
+- **Package manager**: uv (Python), npm (TypeScript)
 - **API**: FastAPI + Uvicorn
+- **SDK**: ethos-ai npm package (SDK + CLI)
+- **Academy**: Next.js (trust visualization UI)
 - **Database**: Neo4j 5 (graph)
 - **LLM**: Anthropic SDK (Claude Sonnet)
 - **Validation**: Pydantic v2
@@ -21,50 +23,43 @@ Ethos is an open-source Python package and API for evaluating AI agent messages 
 
 6 bounded contexts + shared + API. See `docs/evergreen-architecture/ddd-architecture.md` for full spec.
 
+### Repo Layout (three surfaces, one engine)
+
 ```
-ethos/                          # Python package (DDD domains)
-├── __init__.py                 # Public API: evaluate, reflect, EvaluationResult
-├── shared/
-│   ├── models.py               # All Pydantic models (EvaluationResult, etc.)
-│   └── errors.py               # EthosError, GraphUnavailableError, etc.
-├── taxonomy/
-│   ├── traits.py               # 12 traits, 3 dimensions, TRAIT_METADATA
-│   ├── indicators.py           # 134 behavioral indicators
-│   ├── constitution.py         # 4 values, 7 hard constraints, 3 legitimacy tests
-│   └── rubrics.py              # Per-trait scoring anchors (0.0-1.0)
-├── config/
-│   ├── config.py               # EthosConfig, from_env()
-│   └── priorities.py           # Priority thresholds (critical/high/standard/low)
-├── identity/
-│   └── hashing.py              # hash_agent_id() — SHA-256
-├── evaluation/
-│   ├── scanner.py              # Keyword lexicon + scan_keywords()
-│   ├── prompts.py              # Constitutional rubric prompt builder
-│   ├── parser.py               # Parse Claude JSON → TraitScores
-│   └── evaluate.py             # Orchestrator: scan → prompt → Claude → parse
-├── reflection/
-│   └── reflect.py              # Query graph, compute trends
-└── graph/
-    ├── service.py              # GraphService — sync Neo4j driver lifecycle
-    ├── write.py                # store_evaluation, merge nodes
-    ├── read.py                 # get_evaluation_history, get_agent_profile
-    ├── network.py              # get_network_averages
-    └── seed.py                 # Schema creation + taxonomy seeding
-api/
-├── main.py                     # FastAPI app, lifespan
-├── schemas.py                  # Request/response Pydantic models (API-layer)
-├── deps.py                     # Dependency injection (GraphService, config)
-└── routes/
-    ├── evaluate.py             # POST /evaluate
-    ├── reflect.py              # POST /reflect
-    ├── agent.py                # GET /agent/{agent_id}
-    └── health.py               # GET /health
-tests/
-scripts/
-├── seed_graph.py               # Thin wrapper → ethos.graph.seed
-└── import_moltbook.py          # Scan + evaluate + import Moltbook posts
-data/moltbook/                  # Scraped social data (14K posts, 99K comments)
-dashboard/                      # Future: visualization UI
+~/Sites/ethos/
+├── ethos/                      # Python package — the engine (pip install ethos)
+│   ├── __init__.py             # Public API: evaluate, reflect, EvaluationResult
+│   ├── evaluate.py             # Top-level evaluate() entry point
+│   ├── reflect.py              # Top-level reflect() entry point
+│   ├── models.py               # Re-exports from shared.models
+│   ├── prompts.py              # Re-exports from evaluation.prompts
+│   ├── graph.py                # Re-exports from graph.service
+│   ├── shared/                 # Cross-domain models and errors
+│   ├── taxonomy/               # 12 traits, 144 indicators, constitution
+│   ├── config/                 # EthosConfig, priorities
+│   ├── identity/               # Agent ID hashing (SHA-256)
+│   ├── evaluation/             # Keyword scanner, prompt builder
+│   └── graph/                  # Neo4j service, read, write, network
+├── api/                        # FastAPI server — serves ethos/ over HTTP
+├── sdk/                        # ethos-ai npm package — SDK + CLI
+│   ├── src/                    # TypeScript SDK (client, evaluate, reflect)
+│   ├── cli/                    # CLI commands (npx ethos evaluate)
+│   ├── package.json
+│   └── tsconfig.json
+├── academy/                    # Next.js — trust visualization UI
+├── docs/                       # Architecture docs, research, framework overview
+├── scripts/                    # seed_graph.py, scrape_moltbook.py
+├── tests/                      # Python tests for ethos/
+└── data/                       # Moltbook scraped data
+```
+
+### Dependency Flow (always one-way)
+
+```
+sdk/ ──→ api/ ──→ ethos/
+academy/ ──→ api/ ──→ ethos/
+tests/ ──→ ethos/
+scripts/ ──→ ethos/
 ```
 
 ## DDD Rules
@@ -82,27 +77,33 @@ dashboard/                      # Future: visualization UI
 ## Dependency Graph
 
 ```
-                    ┌──────────┐
-                    │   API    │
-                    └────┬─────┘
-                         │
-          ┌──────────────┼──────────────┐
-          ▼              ▼              ▼
-    ┌───────────┐  ┌───────────┐  ┌───────────┐
-    │ Evaluation │  │ Reflection│  │  Config   │
-    └─────┬─────┘  └─────┬─────┘  └───────────┘
-          │              │
-          │         ┌────┘
-          ▼         ▼
-    ┌───────────┐
-    │   Graph   │
-    └─────┬─────┘
-          │
-    ┌─────┴─────┐
-    ▼           ▼
-┌──────────┐ ┌──────────┐
-│ Taxonomy │ │ Identity │
-└──────────┘ └──────────┘
+┌─────────┐  ┌─────────┐
+│   SDK   │  │ Academy │         ← surfaces (consumers)
+└────┬────┘  └────┬────┘
+     │            │
+     └──────┬─────┘
+            ▼
+      ┌──────────┐
+      │   API    │               ← HTTP layer
+      └────┬─────┘
+           │
+  ┌────────┼──────────┐
+  ▼        ▼          ▼
+┌────────┐┌────────┐┌────────┐
+│Evaluate││Reflect ││ Config │   ← ethos/ domains
+└───┬────┘└───┬────┘└────────┘
+    │         │
+    │    ┌────┘
+    ▼    ▼
+┌────────┐
+│ Graph  │
+└───┬────┘
+    │
+ ┌──┴──┐
+ ▼     ▼
+┌────┐┌────────┐
+│Tax.││Identity│               ← pure data / hashing
+└────┘└────────┘
 
 All domains import from: Shared (models, errors)
 ```
@@ -120,29 +121,34 @@ All domains import from: Shared (models, errors)
 # Run tests
 uv run pytest -v
 
-# Start dev server
+# Start dev server (local, port 8000)
 uv run uvicorn api.main:app --reload --port 8000
 
 # Seed Neo4j with taxonomy
 uv run python -m scripts.seed_graph
 
-# Import Moltbook posts (scan + evaluate + graph)
-uv run python -m scripts.import_moltbook --limit 20
-
 # Import check
 uv run python -c "from ethos import evaluate, reflect"
 
-# Docker
+# Docker (production ports)
 docker compose build
-docker compose up -d        # API on :8917, Neo4j browser on :7491, bolt on :7694
+docker compose up -d
 docker compose down
 ```
+
+### Docker Ports
+
+| Service    | Host Port | Container Port | URL                          |
+|------------|-----------|----------------|------------------------------|
+| API        | 8917      | 8000           | http://localhost:8917        |
+| Neo4j UI   | 7491      | 7474           | http://localhost:7491        |
+| Neo4j Bolt | 7694      | 7687           | bolt://localhost:7694        |
 
 ## Environment Variables
 
 Copy `.env.example` to `.env`. Required:
 - `ANTHROPIC_API_KEY` — Claude API key
-- `NEO4J_URI` — default `bolt://localhost:7694` (Docker-mapped), inside Docker `bolt://neo4j:7687`
+- `NEO4J_URI` — `bolt://localhost:7694` (host), `bolt://neo4j:7687` (inside Docker)
 - `NEO4J_USER` / `NEO4J_PASSWORD`
 
 ## Key Models (ethos/shared/models.py)

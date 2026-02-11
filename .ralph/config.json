@@ -1,0 +1,75 @@
+{
+  "auth": {
+    "loginEndpoint": "/api/auth/login",
+    "loginMethod": "POST",
+    "tokenType": "session",
+    "tokenHeader": "Authorization",
+    "tokenPrefix": "Bearer"
+  },
+  "docker": {
+    "enabled": false,
+    "composeFile": "docker-compose.yml",
+    "serviceName": "app",
+    "execPrefix": "docker compose exec -T"
+  },
+  "paths": {
+    "src": "ethos",
+    "tests": "tests",
+    "e2e": "tests/e2e"
+  },
+  "commands": {
+    "dev": "uv run uvicorn api.main:app --reload --port 8000",
+    "install": "uv sync",
+    "seed": "uv run python -m scripts.seed_graph",
+    "migrate": ""
+  },
+  "migrations": {
+    "command": "",
+    "pattern": ""
+  },
+  "checks": {
+    "lint": true,
+    "typecheck": true,
+    "build": "final",
+    "test": true,
+    "requireTests": false,
+    "fastapi": true
+  },
+  "tests": {
+    "directory": "tests",
+    "patterns": "test_*.py"
+  },
+  "api": {
+    "baseUrl": "http://localhost:8917",
+    "healthEndpoint": "/health",
+    "timeout": 30
+  },
+  "playwright": {
+    "enabled": false,
+    "testDir": "tests/e2e",
+    "projects": [
+      "chromium"
+    ],
+    "baseUrl": "http://localhost:8917"
+  },
+  "verification": {
+    "codeReviewEnabled": false,
+    "browserEnabled": false,
+    "a11yEnabled": false,
+    "mobileViewport": 375,
+    "screenshotOnFailure": false
+  },
+  "urls": {
+    "app": "http://localhost:8917"
+  },
+  "env": {
+    "required": [],
+    "optional": []
+  },
+  "maxIterations": 20,
+  "maxSessionSeconds": 600,
+  "contextRotThreshold": {
+    "maxStories": 10,
+    "maxFilesChanged": 20
+  }
+}
