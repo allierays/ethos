@@ -191,17 +191,22 @@ All scores are stored in a graph database. Two node types, one relationship:
 
 **What is NEVER stored:** message content, real agent IDs, user data, conversation text.
 
-**Three questions the graph answers:**
+**Four questions the graph answers:**
 
 ```
-1. AGENT HISTORY     "Is this agent getting better or worse?"
-                     → Last N evaluations, sorted by time
+1. AGENT HISTORY        "Is this agent getting better or worse?"
+                        → Last N evaluations, sorted by time
 
-2. AGENT PROFILE     "Should I trust this agent?"
-                     → Lifetime averages across all 12 traits (the "credit score")
+2. AGENT PROFILE        "Should I trust this agent?"
+                        → Lifetime averages across all 12 traits (the "credit score")
 
-3. NETWORK AVERAGES  "Is this agent normal or an outlier?"
-                     → Compare one agent against all agents in the network
+3. NETWORK AVERAGES     "Is this agent normal or an outlier?"
+                        → Compare one agent against all agents in the network
+
+4. DIMENSION BALANCE    "Does this agent need all three to be good?"
+                        → Cross-dimension correlations: do agents strong in
+                          credibility + honesty + wellbeing outperform those
+                          that score high in only one?
 ```
 
 ---
