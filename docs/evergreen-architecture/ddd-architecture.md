@@ -154,13 +154,13 @@ class GraphService:
 
 ### The Schema
 
-Graph owns the schema definition. `seed.py` creates constraints, indexes, and the semantic memory (3 dimensions, 12 traits, 154 indicators, 7 patterns, 4 constitutional values, 7 hard constraints, 3 legitimacy tests, and all trait→value UPHOLDS relationships). See `neo4j-schema.md` for the complete schema.
+Graph owns the schema definition. `seed.py` creates constraints, indexes, and the semantic memory (3 dimensions, 12 traits, 158 indicators, 7 patterns, 4 constitutional values, 7 hard constraints, 3 legitimacy tests, and all trait→value UPHOLDS relationships). See `neo4j-schema.md` for the complete schema.
 
 ---
 
 ## Domain 4: Taxonomy
 
-**Responsibility:** The 12 traits, 154 indicators, 7 patterns, 4 constitutional values, 7 hard constraints, and scoring rubrics. Ethos's semantic memory.
+**Responsibility:** The 12 traits, 158 indicators, 7 patterns, 4 constitutional values, 7 hard constraints, and scoring rubrics. Ethos's semantic memory.
 
 ```
 ethos/taxonomy/

@@ -58,7 +58,7 @@ result = evaluate(
    - DEEP (4+ flags) → Opus with extended thinking
    - DEEP_WITH_CONTEXT (high density or **any hard constraint flag**) → Opus + agent's Neo4j history
 
-3. **Evaluation** — Claude scores all 12 traits using the constitutional rubric with 154 indicators. Trait scores are weighted by constitutional priority: safety traits (manipulation, deception, exploitation) outweigh helpfulness traits (recognition, compassion, dismissal). Returns per-trait scores, detected indicators with evidence, and an overall trust verdict.
+3. **Evaluation** — Claude scores all 12 traits using the constitutional rubric with 158 indicators. Trait scores are weighted by constitutional priority: safety traits (manipulation, deception, exploitation) outweigh helpfulness traits (recognition, compassion, dismissal). Returns per-trait scores, detected indicators with evidence, and an overall trust verdict.
 
 4. **Alignment check** — scores are evaluated hierarchically against Claude's constitutional values:
    - Hard constraint triggered? → **Violation** (evaluation stops)

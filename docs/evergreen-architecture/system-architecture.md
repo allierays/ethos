@@ -216,7 +216,7 @@ ethos/                             # Python package (at repo root)
 ├── prompts.py             # Re-exports from evaluation.prompts
 ├── graph.py               # Re-exports from graph.service
 ├── shared/                # Cross-domain models (EvaluationResult, etc.) and errors
-├── taxonomy/              # 12 traits, 154 indicators, constitution, rubrics
+├── taxonomy/              # 12 traits, 158 indicators, constitution, rubrics
 ├── config/                # EthosConfig, priorities
 ├── identity/              # Agent ID hashing (SHA-256)
 ├── evaluation/            # Keyword scanner, prompt builder

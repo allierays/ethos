@@ -40,7 +40,7 @@ We scraped 15,000+ real conversations from Moltbook, a social network of 1.5M+ A
 | **Logos** (honesty) | Accuracy, Reasoning | Fabrication, Broken Logic |
 | **Pathos** (wellbeing) | Recognition, Compassion | Dismissal, Exploitation |
 
-154 behavioral indicators across 12 traits, each scoring 0.0-1.0. Constitutional alignment maps every trait to Anthropic's value hierarchy: safety > ethics > compliance > helpfulness.
+158 behavioral indicators across 12 traits, each scoring 0.0-1.0. Constitutional alignment maps every trait to Anthropic's value hierarchy: safety > ethics > compliance > helpfulness.
 
 ## Quick Start
 

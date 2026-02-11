@@ -129,7 +129,7 @@ Opus discovering manipulation patterns that weren't in our taxonomy. Emergent de
 
 ### Taxonomy Rigor
 
-154 behavioral indicators across 12 traits across 3 dimensions. Each indicator has an ID, description, example, and research source. This isn't a list someone brainstormed — it's a research-backed classification system.
+158 behavioral indicators across 12 traits across 3 dimensions. Each indicator has an ID, description, example, and research source. This isn't a list someone brainstormed — it's a research-backed classification system.
 
 ### Architecture Decisions Documented
 

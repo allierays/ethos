@@ -28,7 +28,7 @@ Ethos implements all three. This is not a metaphor. The system literally has thr
 |---|---|---|---|
 | **Working Memory** | Current perception, attention, active reasoning | Keyword scan, model routing, Claude's context window | In-flight (ephemeral) |
 | **Episodic Memory** | Specific past events, personal history | Agent evaluation history, interaction records, temporal patterns | Neo4j graph (persistent) |
-| **Semantic Memory** | General knowledge, concepts, categories | 154 indicators, 12 traits, 7 combination patterns, scoring rubrics | Neo4j graph + prompt templates (persistent) |
+| **Semantic Memory** | General knowledge, concepts, categories | 158 indicators, 12 traits, 7 combination patterns, scoring rubrics | Neo4j graph + prompt templates (persistent) |
 
 ---
 
@@ -446,7 +446,7 @@ def scan_keywords(message: str) -> KeywordScanResult:
 |---|---|---|---|
 | **STANDARD** | No keyword flags | Sonnet | Fast evaluation across all 12 traits. Standard rubric. Most messages land here. |
 | **FOCUSED** | 1-3 flags, low density | Sonnet | Sonnet evaluates all traits but receives a **focused rubric** highlighting the flagged traits with extra indicators and examples. |
-| **DEEP** | 4+ flags or density > 2% | Opus 4.6 | Opus evaluates with extended thinking enabled. Full rubric with all 154 indicators active. Chain-of-thought reasoning before scoring. |
+| **DEEP** | 4+ flags or density > 2% | Opus 4.6 | Opus evaluates with extended thinking enabled. Full rubric with all 158 indicators active. Chain-of-thought reasoning before scoring. |
 | **DEEP_WITH_CONTEXT** | High density (>5%), known patterns, or **any hard constraint flag** | Opus 4.6 + graph | Opus evaluates with extended thinking AND the system queries Neo4j for the source agent's history before evaluation begins. Episodic memory informs working memory. Hard constraint flags are checked against the 7 absolute boundaries from Claude's Constitution. |
 
 This tiered approach is critical for cost and latency. The Moltbook dataset shows that the vast majority of agent messages are benign. Running Opus 4.6 with extended thinking on every message would be prohibitively expensive and slow. The keyword lexicon acts as a cheap, fast triage layer that reserves deep reasoning for the messages that need it.
@@ -761,7 +761,7 @@ This is the critical loop: episodic memory informs working memory, and working m
 
 ## Layer 3: Semantic Memory
 
-**What it is:** Everything Ethos knows about trust, manipulation, and ethical communication -- independent of any specific agent or message. The 154 indicators and what they mean. The 12 traits and their definitions. The 7 combination patterns and how they unfold. The scoring rubrics. The 7 hard constraints from Claude's Constitution. The 4 constitutional values and their priority hierarchy. The 3 legitimacy tests. What manipulation *is*, as a concept, regardless of who is doing it.
+**What it is:** Everything Ethos knows about trust, manipulation, and ethical communication -- independent of any specific agent or message. The 158 indicators and what they mean. The 12 traits and their definitions. The 7 combination patterns and how they unfold. The scoring rubrics. The 7 hard constraints from Claude's Constitution. The 4 constitutional values and their priority hierarchy. The 3 legitimacy tests. What manipulation *is*, as a concept, regardless of who is doing it.
 
 Semantic memory is the system's knowledge base. It does not change with each evaluation (unlike episodic memory). It changes when the research expands -- when new indicators are discovered, new patterns documented, rubrics refined, or constitutional mappings updated.
 
@@ -777,7 +777,7 @@ Semantic Memory Structure:
 ├── Legitimacy Tests (3)          ← process, accountability, transparency
 ├── Dimensions (3)                ← ethos, logos, pathos
 │   └── Traits (12)
-│       └── Indicators (154)
+│       └── Indicators (158)
 └── Combination Patterns (7)      ← multi-indicator attack sequences
 ```
 
@@ -785,7 +785,7 @@ The constitutional layer gives the scoring hierarchy its weight. Without it, all
 
 ### The Indicator Taxonomy
 
-154 indicators across 12 traits across 3 dimensions. Each indicator is a node in Neo4j:
+158 indicators across 12 traits across 3 dimensions. Each indicator is a node in Neo4j:
 
 ```
 (Indicator)-[:BELONGS_TO]->(Trait)-[:BELONGS_TO]->(Dimension)
@@ -796,7 +796,7 @@ The constitutional layer gives the scoring hierarchy its weight. Without it, all
 | **Ethos** (Trust) | Virtue (8), Goodwill (8) | Manipulation (20), Deception (16) | 64 |
 | **Logos** (Accuracy) | Accuracy (8), Reasoning (8) | Fabrication (14), Broken Logic (14) | 44 |
 | **Pathos** (Compassion) | Recognition (8), Compassion (8) | Dismissal (10), Exploitation (16) | 42 |
-| **Total** | 54 positive | 100 negative | **154** |
+| **Total** | 58 positive | 100 negative | **158** |
 
 Each indicator has a precise definition, example, and research source. For instance:
 
@@ -1051,7 +1051,7 @@ The full semantic knowledge base lives in the graph:
 (:Trait {name: "virtue", polarity: "positive"})-[:BELONGS_TO]->(:Dimension {name: "ethos"})
 // ... 11 more
 
-// Indicators (154) linked to Traits
+// Indicators (158) linked to Traits
 (:Indicator {id: "MAN-01", name: "false_urgency"})-[:BELONGS_TO]->(:Trait {name: "manipulation"})
 // ... 149 more
 
@@ -1131,7 +1131,7 @@ Opus 4.6 receives a prompt containing:
 You are evaluating an AI agent message across 12 behavioral traits.
 
 [SEMANTIC MEMORY: Rubrics]
-{Full rubric with 154 indicators, scoring anchors for all 12 traits}
+{Full rubric with 158 indicators, scoring anchors for all 12 traits}
 
 [EPISODIC MEMORY: Agent History]
 Agent: moltbook-sales-agent-7
@@ -1282,7 +1282,7 @@ Episodic memory is Ethos's phronesis. An agent with 2 evaluations cannot be judg
 
 Arete is knowing what virtue IS. Not from experience, but from understanding the concept itself. What does honesty look like? What does manipulation look like? These are not empirical questions answered by observing specific agents. They are conceptual questions answered by the taxonomy.
 
-Semantic memory is Ethos's arete. The 154 indicators define what good and bad communication look like. The 12 traits define the dimensions of character. The 7 patterns define what corruption looks like in sequence. This knowledge exists before any agent is ever evaluated. It is the system's understanding of virtue and vice as concepts.
+Semantic memory is Ethos's arete. The 158 indicators define what good and bad communication look like. The 12 traits define the dimensions of character. The 7 patterns define what corruption looks like in sequence. This knowledge exists before any agent is ever evaluated. It is the system's understanding of virtue and vice as concepts.
 
 ### Eunoia (Goodwill) = Working Memory
 
@@ -1293,7 +1293,7 @@ Working memory is Ethos's eunoia. When a message arrives, the system gives it at
 | Aristotle | Cognitive Science | Ethos |
 |---|---|---|
 | Phronesis (practical wisdom) | Episodic memory | Agent history, pattern recognition, trend analysis |
-| Arete (virtue/character) | Semantic memory | 154 indicators, 12 traits, 7 patterns, scoring rubrics |
+| Arete (virtue/character) | Semantic memory | 158 indicators, 12 traits, 7 patterns, scoring rubrics |
 | Eunoia (goodwill) | Working memory | Keyword attention, model routing, current evaluation |
 
 ---
@@ -1312,9 +1312,9 @@ The three memory layers are three slices of cheese. Each is a defensive layer wi
 
 ### Semantic Memory as a Defensive Layer
 
-**What it catches:** Known patterns. When Claude evaluates with the full 154-indicator rubric, it can detect manipulation techniques that do not use keyword triggers. A frame control tactic (DEC-02) or a hidden premise (BLG-13) does not require specific keywords -- it requires understanding the structure of the argument.
+**What it catches:** Known patterns. When Claude evaluates with the full 158-indicator rubric, it can detect manipulation techniques that do not use keyword triggers. A frame control tactic (DEC-02) or a hidden premise (BLG-13) does not require specific keywords -- it requires understanding the structure of the argument.
 
-**Its holes:** Novel manipulation techniques not yet in the taxonomy. A new type of social engineering that does not match any of the 154 indicators would be invisible to semantic memory. The rubric cannot detect what it does not define.
+**Its holes:** Novel manipulation techniques not yet in the taxonomy. A new type of social engineering that does not match any of the 158 indicators would be invisible to semantic memory. The rubric cannot detect what it does not define.
 
 ### Episodic Memory as a Defensive Layer
 
@@ -1375,7 +1375,7 @@ CREATE CONSTRAINT FOR (t:Trait) REQUIRE t.name IS UNIQUE;
 (:Trait {name: "virtue", polarity: "positive", definition: "..."})-[:BELONGS_TO]->(:Dimension)
 // ... 11 more traits
 
-// Indicators (154) -> Traits
+// Indicators (158) -> Traits
 CREATE CONSTRAINT FOR (i:Indicator) REQUIRE i.id IS UNIQUE;
 (:Indicator {id: "MAN-01", name: "false_urgency", description: "..."})-[:BELONGS_TO]->(:Trait)
 // ... 149 more indicators
@@ -1637,7 +1637,7 @@ The three memory layers are not an academic framework bolted onto a technical sy
 
 2. **Episodic memory** provides context about who is speaking (agent history), what they have done before (trend analysis), and who they have done it to (interaction records).
 
-3. **Semantic memory** provides the knowledge needed to judge what is happening (154 indicators, 12 traits, 7 patterns, scoring rubrics).
+3. **Semantic memory** provides the knowledge needed to judge what is happening (158 indicators, 12 traits, 7 patterns, scoring rubrics).
 
 Working memory is fast and disposable. Episodic memory accumulates and provides wisdom. Semantic memory is stable and provides knowledge. Together, they give Ethos the cognitive architecture to evaluate trust the way a wise, experienced human would -- but at the speed and scale of a machine.
 
