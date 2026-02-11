@@ -35,7 +35,7 @@ Ethos is an open-source Python package and API that scores AI agent messages for
 │   ├── prompts.py              # Re-exports from evaluation.prompts
 │   ├── graph.py                # Re-exports from graph.service
 │   ├── shared/                 # Cross-domain models and errors
-│   ├── taxonomy/               # 12 traits, 144 indicators, constitution
+│   ├── taxonomy/               # 12 traits, 150 indicators, constitution
 │   ├── config/                 # EthosConfig, priorities
 │   ├── identity/               # Agent ID hashing (SHA-256)
 │   ├── evaluation/             # Keyword scanner, prompt builder

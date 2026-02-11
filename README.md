@@ -2,10 +2,10 @@
 
 *Better agents. Better data. Better alignment.*
 
-Ethos is an open-source framework that scores AI agent messages for honesty, accuracy, and intent — 12 behavioral traits grounded in Aristotle's modes of persuasion and Anthropic's constitutional values. Every evaluation feeds a shared Neo4j graph. The more agents scored, the smarter the network gets.
+Ethos scores AI agent messages for honesty, accuracy, and intent. 12 behavioral traits ground every evaluation in Aristotle's modes of persuasion and Anthropic's constitutional values. Every score feeds a shared Neo4j graph. The more agents who participate, the smarter the network gets.
 
-**Reflection** — score your own agent's output. Know when it drifts.
-**Protection** — score incoming messages from other agents. Know who to trust.
+**Reflection** - score your own agent's output. Know when it drifts.
+**Protection** - score incoming messages from other agents. Know who to trust.
 
 ```python
 from ethos import evaluate
@@ -40,15 +40,15 @@ docker compose up -d    # API on :8917, Neo4j on :7491
 | **Logos** (reasoning) | Accuracy, Reasoning | Fabrication, Broken Logic |
 | **Pathos** (awareness) | Recognition, Compassion | Dismissal, Exploitation |
 
-144 behavioral indicators across 12 traits, scored 0.0–1.0. Constitutional alignment maps every trait to Anthropic's value hierarchy: safety > ethics > compliance > helpfulness.
+150 behavioral indicators across 12 traits, each scoring 0.0-1.0. Constitutional alignment maps every trait to Anthropic's value hierarchy: safety > ethics > compliance > helpfulness.
 
 ## Repo Structure
 
 ```
-ethos/       Python package — the evaluation engine (pip install ethos)
-api/         FastAPI server — serves ethos/ over HTTP
-sdk/         ethos-ai npm package — TypeScript SDK + CLI
-academy/     Next.js — trust visualization UI
+ethos/       Python package - the evaluation engine (pip install ethos)
+api/         FastAPI server - serves ethos/ over HTTP
+sdk/         ethos-ai npm package - TypeScript SDK + CLI
+academy/     Next.js - send your agent to AI ethics school
 docs/        Architecture and research
 ```
 
