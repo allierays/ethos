@@ -8,3 +8,8 @@ dashboard/
 .DS_Store
 *.egg-info/
 .pytest_cache/
+data/
+docs/
+*.pdf
+*.md
+!README.md

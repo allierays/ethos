@@ -1,14 +1,3 @@
-repos:
-  - repo: https://github.com/allierays/agentic-loop
-    rev: v1.0.0
-    hooks:
-      - id: backup-db
-        name: Backup database before commit
-      - id: check-secrets
-        name: Check for hardcoded secrets
-      - id: check-hardcoded-urls
-        name: Check for hardcoded URLs
-      - id: check-debug
-        name: Check for debug statements
-      - id: check-signs-secrets
-        name: Check signs.json for credentials
+# Pre-commit hooks disabled — agentic-loop v1.0.0 manifest is broken.
+# Re-enable when the upstream repo publishes a valid .pre-commit-hooks.yaml.
+repos: []

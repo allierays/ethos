@@ -183,21 +183,13 @@ def main():
     api_key = os.environ.get("MOLTBOOK_API_KEY")
 
     if not api_key:
-        if "--register" in sys.argv:
-            print("Registering new agent on Moltbook...")
-            from scripts.scrape_moltbook import register_agent
-            result = register_agent()
-            api_key = result.get("api_key")
-            print(f"API Key: {api_key}")
-            print(f"Claim URL: {result.get('claim_url')}")
-            save_json(result, OUTPUT_DIR / "registration.json")
-            return
-        print("No MOLTBOOK_API_KEY set. Run with --register or set the env var.")
+        print("No MOLTBOOK_API_KEY set. Add it to .env and try again.")
         sys.exit(1)
 
     client = get_client(api_key)
     existing = load_existing_posts()
     all_posts: dict[str, dict] = {}
+    submolts_count = 0
 
     # 1. Deep-paginate all 4 feed sorts
     for sort in ["hot", "new", "top", "rising"]:
@@ -213,8 +205,9 @@ def main():
     print("Fetching all submolts...")
     try:
         submolts = fetch_submolts(client)
+        submolts_count = len(submolts)
         save_json(submolts, OUTPUT_DIR / "submolts.json")
-        print(f"  Found {len(submolts)} submolts")
+        print(f"  Found {submolts_count} submolts")
         for submolt in submolts:
             name = submolt.get("name", "")
             if not name:
@@ -264,7 +257,7 @@ def main():
     summary = {
         "total_posts": len(post_list),
         "total_comments": total_comments,
-        "submolts_scraped": len(submolts) if 'submolts' in dir() else 0,
+        "submolts_scraped": submolts_count,
         "topics_searched": len(search_results),
         "results_per_topic": {t: len(r) for t, r in search_results.items()},
     }
