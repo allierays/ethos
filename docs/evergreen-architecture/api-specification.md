@@ -87,7 +87,7 @@ Score an incoming message across 12 behavioral traits.
       "score": 0.82,
       "indicators": [
         {
-          "id": "MAN-01",
+          "id": "MAN-URGENCY",
           "name": "false_urgency",
           "trait": "manipulation",
           "confidence": 0.95,
@@ -95,7 +95,7 @@ Score an incoming message across 12 behavioral traits.
           "evidence": "Act now — this opportunity expires in 24 hours."
         },
         {
-          "id": "MAN-05",
+          "id": "MAN-AUTHORITY",
           "name": "false_authority",
           "trait": "manipulation",
           "confidence": 0.70,
@@ -111,7 +111,7 @@ Score an incoming message across 12 behavioral traits.
       "score": 0.58,
       "indicators": [
         {
-          "id": "DEC-05",
+          "id": "DEC-PRECISION",
           "name": "misleading_precision",
           "trait": "deception",
           "confidence": 0.85,
@@ -141,7 +141,7 @@ Score an incoming message across 12 behavioral traits.
       "score": 0.71,
       "indicators": [
         {
-          "id": "FAB-04",
+          "id": "FAB-EXPERT",
           "name": "fabricated_expert_consensus",
           "trait": "fabrication",
           "confidence": 0.80,
@@ -185,7 +185,7 @@ Score an incoming message across 12 behavioral traits.
       "score": 0.62,
       "indicators": [
         {
-          "id": "EXP-01",
+          "id": "EXP-FEAR",
           "name": "fear_weaponization",
           "trait": "exploitation",
           "confidence": 0.75,
@@ -197,7 +197,7 @@ Score an incoming message across 12 behavioral traits.
   },
   "detected_indicators": [
     {
-      "id": "MAN-01",
+      "id": "MAN-URGENCY",
       "name": "false_urgency",
       "trait": "manipulation",
       "confidence": 0.95,
@@ -205,7 +205,7 @@ Score an incoming message across 12 behavioral traits.
       "evidence": "Act now — this opportunity expires in 24 hours."
     },
     {
-      "id": "MAN-05",
+      "id": "MAN-AUTHORITY",
       "name": "false_authority",
       "trait": "manipulation",
       "confidence": 0.70,
@@ -213,7 +213,7 @@ Score an incoming message across 12 behavioral traits.
       "evidence": "I can guarantee"
     },
     {
-      "id": "DEC-05",
+      "id": "DEC-PRECISION",
       "name": "misleading_precision",
       "trait": "deception",
       "confidence": 0.85,
@@ -221,7 +221,7 @@ Score an incoming message across 12 behavioral traits.
       "evidence": "10x returns"
     },
     {
-      "id": "FAB-04",
+      "id": "FAB-EXPERT",
       "name": "fabricated_expert_consensus",
       "trait": "fabrication",
       "confidence": 0.80,
@@ -229,7 +229,7 @@ Score an incoming message across 12 behavioral traits.
       "evidence": "I can guarantee 10x returns"
     },
     {
-      "id": "EXP-01",
+      "id": "EXP-FEAR",
       "name": "fear_weaponization",
       "trait": "exploitation",
       "confidence": 0.75,
@@ -283,7 +283,7 @@ Score an incoming message across 12 behavioral traits.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | string | Indicator ID (e.g., `"MAN-01"`) |
+| `id` | string | Indicator ID (e.g., `"MAN-URGENCY"`) |
 | `name` | string | Indicator name (e.g., `"false_urgency"`) |
 | `trait` | string | Parent trait name |
 | `confidence` | float (0-1) | How confident the evaluator is that this indicator is present |

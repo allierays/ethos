@@ -86,7 +86,7 @@ The 150 specific behavioral signals. Semantic memory.
 
 ```cypher
 (:Indicator {
-    id: String,               // "MAN-01", "VIR-03", etc.
+    id: String,               // "MAN-URGENCY", "VIR-SELFCORRECT", etc.
     name: String,             // "false_urgency", "uncertainty_admission", etc.
     trait: String,            // Parent trait name
     description: String,
@@ -341,11 +341,11 @@ CREATE (t:Trait {name: "exploitation", dimension: "pathos", polarity: "negative"
 Created per trait. Example for Manipulation (20 indicators):
 
 ```cypher
-CREATE (:Indicator {id: "MAN-01", name: "false_urgency", trait: "manipulation",
+CREATE (:Indicator {id: "MAN-URGENCY", name: "false_urgency", trait: "manipulation",
   description: "Creates artificial time pressure to prevent careful evaluation", source: "CCM, AH, LJP"})
-CREATE (:Indicator {id: "MAN-02", name: "fear_appeal", trait: "manipulation",
+CREATE (:Indicator {id: "MAN-FEAR", name: "fear_appeal", trait: "manipulation",
   description: "Triggers threat response to bypass rational evaluation", source: "CCM, AH"})
-CREATE (:Indicator {id: "MAN-03", name: "strategic_flattery", trait: "manipulation",
+CREATE (:Indicator {id: "MAN-FLATTERY", name: "strategic_flattery", trait: "manipulation",
   description: "Targeted praise designed to lower defenses and build false rapport", source: "CCM, LJP"})
 // ... all 20 manipulation indicators
 // ... all 158 indicators across 12 traits

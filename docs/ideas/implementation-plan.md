@@ -66,18 +66,18 @@ The 12 traits and 134 indicators as Python data structures. Source: `product-des
 - `TRAIT_METADATA` dict: trait name → {dimension, polarity, definition}
 - `DIMENSIONS` dict: dimension name → {greek, description, traits list}
 - `INDICATORS` dict: trait name → list of {id, name, description}
-  - Manipulation: 20 indicators (MAN-01 through MAN-20)
-  - Deception: 15 indicators (DEC-01 through DEC-15)
-  - Virtue: 10 indicators (VIR-01 through VIR-10)
-  - Goodwill: 10 indicators (GDW-01 through GDW-10)
-  - Accuracy: 12 indicators (ACC-01 through ACC-12)
-  - Reasoning: 10 indicators (RSN-01 through RSN-10)
-  - Fabrication: 12 indicators (FAB-01 through FAB-12)
-  - Broken Logic: 10 indicators (BLG-01 through BLG-10)
-  - Recognition: 8 indicators (REC-01 through REC-08)
-  - Compassion: 8 indicators (CMP-01 through CMP-08)
-  - Dismissal: 9 indicators (DIS-01 through DIS-09)
-  - Exploitation: 9 indicators (EXP-01 through EXP-09)
+  - Manipulation: 20 indicators (MAN-URGENCY through MAN-INJECTION)
+  - Deception: 15 indicators (DEC-SELECTIVE through DEC-ANTHRO)
+  - Virtue: 10 indicators (VIR-UNCERTAIN through VIR-TIMING)
+  - Goodwill: 10 indicators (GDW-INTEREST through GDW-10)
+  - Accuracy: 12 indicators (ACC-FACTUAL through ACC-12)
+  - Reasoning: 10 indicators (RSN-INFERENCE through RSN-10)
+  - Fabrication: 12 indicators (FAB-HALLUCINATE through FAB-SLOPSQUAT)
+  - Broken Logic: 10 indicators (BLG-CIRCULAR through BLG-BEGGING)
+  - Recognition: 8 indicators (REC-IDENTIFY through REC-CULTURAL)
+  - Compassion: 8 indicators (CMP-TONE through CMP-REPAIR)
+  - Dismissal: 9 indicators (DIS-BYPASS through DIS-PATHOLOGIZE)
+  - Exploitation: 9 indicators (EXP-FEAR through EXP-FOMO)
 - `PATTERNS` list: 7 combination patterns (PAT-01 through PAT-07)
 - Helper functions: `get_trait_dimension()`, `get_trait_polarity()`, `get_indicators_for_trait()`, `get_all_indicator_ids()`
 
