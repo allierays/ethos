@@ -1,4 +1,8 @@
-"""Pydantic models for Ethos evaluation results."""
+"""Pydantic models for Ethos evaluation results.
+
+This is the shared domain — cross-cutting data models used by all other domains.
+No business logic, no I/O, no dependencies beyond pydantic.
+"""
 
 from __future__ import annotations
 
@@ -67,6 +71,10 @@ class EvaluationResult(BaseModel):
 
     # Graph context (only when source agent is provided)
     graph_context: GraphContext | None = None
+
+    # DDD additions
+    alignment_status: str = "unknown"
+    tier_scores: dict[str, float] = Field(default_factory=dict)
 
 
 class ReflectionResult(BaseModel):

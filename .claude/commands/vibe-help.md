@@ -12,8 +12,7 @@ Print this cheatsheet for the user. Do not add any commentary or explanation.
 
 ```
 /idea [feature]          brainstorm & generate PRD
-npx ralph run            autonomous coding loop (live activity feed)
-npx ralph run --quiet    same, but suppress activity feed
+npx ralph run            autonomous coding loop
 npx ralph status         check progress
 npx ralph stop           stop after current story
 ```
@@ -24,14 +23,12 @@ Run `/vibe-list` to see all commands.
 
 ---
 
-## Quality & Testing
+## Quality
 
 ```
 /vibe-check              audit code quality
 /review                  security-focused review
 npx ralph check          run verification only
-npx ralph uat            team acceptance testing
-npx ralph chaos-agent          adversarial red team testing
 ```
 
 ---
