@@ -13,31 +13,30 @@ Ethos scores every message an AI agent sends or receives across 12 behavioral tr
 ## The Architecture (Top Down)
 
 ```
-                         ┌─────────────┐
-                         │    ETHOS    │
-                         │   System    │
-                         └──────┬──────┘
-                                │
-              ┌─────────────────┼─────────────────┐
-              │                 │                 │
-        ┌─────┴─────┐    ┌─────┴─────┐    ┌─────┴─────┐
-        │   ETHOS   │    │   LOGOS   │    │  PATHOS   │
-        │ Credibility│    │ Reasoning │    │ Awareness │
-        └─────┬─────┘    └─────┬─────┘    └─────┬─────┘
-              │                 │                 │
-        ┌──┬──┼──┬──┐    ┌──┬──┼──┬──┐    ┌──┬──┼──┬──┐
-        4 traits each    4 traits each    4 traits each
-                                │
-                    ┌───────────┴───────────┐
-                    │  144 total indicators │
-                    │  (specific behaviors  │
-                    │   we look for)        │
-                    └───────────┬───────────┘
-                                │
-                    ┌───────────┴───────────┐
-                    │   Scores stored in    │
-                    │   Neo4j Trust Graph   │
-                    └───────────────────────┘
+                          ┌─────────────┐
+                          │    ETHOS    │
+                          │   System    │
+                          └──────┬──────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              │                  │                  │
+        ┌─────┴─────┐     ┌─────┴─────┐     ┌─────┴─────┐
+        │   ETHOS   │     │   LOGOS   │     │  PATHOS   │
+        │Credibility│     │ Reasoning │     │ Awareness │
+        └─────┬─────┘     └─────┬─────┘     └─────┬─────┘
+              │                  │                  │
+         4 traits            4 traits           4 traits
+              │                  │                  │
+        59 indicators      44 indicators      41 indicators
+              │                  │                  │
+              └──────────────────┼──────────────────┘
+                                 │
+                        144 total indicators
+                                 │
+                    ┌────────────┴────────────┐
+                    │    Scores stored in     │
+                    │    Neo4j Trust Graph    │
+                    └────────────────────────┘
 ```
 
 ---
