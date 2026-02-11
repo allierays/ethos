@@ -138,6 +138,13 @@ Each trait gets a score from **0.0 to 1.0**:
 - Positive traits (virtue, goodwill, etc.): **higher = better**
 - Negative traits (manipulation, deception, etc.): **higher = worse**
 
+All 152 indicators are **equally weighted** within their trait. There are no numeric multipliers — a manipulation indicator doesn't score "harder" than a reasoning indicator. This is intentional:
+
+- The constitutional hierarchy already operates at the **trait-to-tier mapping** level (Layer 5), not the indicator level
+- Severity is expressed through **alignment_status and flags**, not score multipliers
+- Equal weighting produces cleaner data for the **dimension balance hypothesis** — weighting some dimensions higher would bias results and prevent testing whether balance matters independently
+- Anthropic's Constitution says prioritization should be "holistic rather than strict" — a judgment call, not a numeric formula
+
 Trait scores roll up:
 
 ```
@@ -183,7 +190,7 @@ Ethos currently evaluates messages without distinguishing which principal is spe
 
 Anthropic's Constitution uses a structured harm evaluation framework: weighing probability, counterfactual impact, severity, breadth, and whether the agent is the proximate cause. Ethos does not currently implement this multi-factor harm calculus — it detects behavioral indicators and maps them to constitutional values.
 
-A future enhancement could weight trait scores by these harm factors, so that a manipulation score of 0.7 with high severity and breadth is treated differently from the same score in a low-stakes context. See Claude's Constitution (January 2026), Section 3 for the full harm evaluation framework.
+Ethos intentionally does not apply numeric harm-factor weights to trait scores. The constitutional hierarchy handles severity through trait-to-tier mapping and alignment status escalation — a safety-tier violation (manipulation, deception, exploitation) triggers a different alignment status than a helpfulness-tier issue (dismissal), without needing a score multiplier. This avoids Goodhart's Law risk (agents gaming lower-weighted traits) and preserves clean data for dimension balance analysis. See Claude's Constitution (January 2026), Section 3 for the full harm evaluation framework.
 
 ---
 

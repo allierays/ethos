@@ -82,7 +82,7 @@ The 12 behavioral traits. Semantic memory — seeded once, evolves with research
 
 ### Indicator
 
-The 150 specific behavioral signals. Semantic memory.
+The 152 specific behavioral signals. Semantic memory.
 
 ```cypher
 (:Indicator {
@@ -231,6 +231,104 @@ Dimensions map to constitutional values (not 1:1 — traits within a dimension c
 (dimension:Dimension)-[:MAPS_TO]->(value:ConstitutionalValue)
 ```
 
+### Agent → Agent (EVALUATED_MESSAGE_FROM)
+
+When Developer A's system evaluates a message from Agent X, the graph records both the evaluation and the directional trust relationship between the evaluating agent and the subject agent.
+
+```cypher
+(evaluator:Agent)-[:EVALUATED_MESSAGE_FROM {
+    evaluation_id: String,    // Links to the Evaluation node
+    trust: String,            // Trust level assigned in this evaluation
+    created_at: DateTime
+}]->(subject:Agent)
+```
+
+This relationship is what turns the graph from a collection of disconnected star patterns into a real trust network. Without it, each agent is an island connected only to its own evaluations. With it, you get:
+
+- **Trust networks** — who evaluates whom, visualized as a directed graph
+- **Reputation propagation** — agents trusted by trustworthy evaluators earn more credibility
+- **EigenTrust** — evaluator reliability weighted by the evaluator's own trust score
+- **Community detection** — clusters of agents that interact frequently
+- **Pattern propagation tracking** — tracing how manipulation spreads through the network
+
+---
+
+## Data Model: Dense Scores vs. Sparse Detections
+
+The 152 indicators are a vocabulary, not a checklist. Claude does not score all 152 for every message. A typical evaluation returns 12 trait scores (always all 12) and 0–10 detected indicators (only the ones actually found). This creates two fundamentally different data shapes that the graph stores differently.
+
+### Dense: 12 Trait Scores (Node Properties)
+
+Every Evaluation node has all 12 trait scores as properties. No nulls, ever. A clean message still gets `trait_manipulation: 0.05`. A scam still gets `trait_virtue: 0.15`. Claude always scores all 12 traits because the scoring rubric requires it — the anchors calibrate each trait from 0.0 to 1.0 regardless of whether it's relevant.
+
+```
+(:Evaluation {
+    trait_virtue: 0.15,          ← always present
+    trait_manipulation: 0.82,    ← always present
+    trait_fabrication: 0.71,     ← always present
+    ... all 12, every time
+})
+```
+
+The 12 trait scores do all the math: dimension scores, tier scores, alignment status, trust level, flags. This is the computation layer.
+
+### Sparse: Detected Indicators (DETECTED Relationships)
+
+When Claude evaluates a message, it reports which specific indicators it spotted — with confidence, severity, and evidence. These are stored as DETECTED relationships between the Evaluation node and the Indicator nodes.
+
+```
+Scam message:
+  (eval)-[:DETECTED {confidence: 0.95}]->(MAN-URGENCY)
+  (eval)-[:DETECTED {confidence: 0.80}]->(MAN-SCARCITY)
+  (eval)-[:DETECTED {confidence: 0.85}]->(FAB-STATISTIC)
+  // The other 149 indicators: no relationship. Not stored. Not null.
+
+Clean message:
+  (eval)  // No DETECTED relationships at all. Just the 12 trait scores.
+```
+
+The absence of a DETECTED relationship IS the data — it means "not detected." This is the graph advantage over SQL, where you'd either store 152 rows per evaluation (mostly NULL), use a sparse JSON blob, or manage a junction table with JOINs.
+
+### Why This Matters
+
+Detected indicators are the diagnostic layer. Trait scores tell you *what* (manipulation is 0.82). Detected indicators tell you *why* (because false urgency and false scarcity were found) and *how confident* (0.95 and 0.80). The graph traversal from agent → evaluation → detected indicator → trait → constitutional value is the full diagnostic path — 5 levels deep, only possible because the sparse data is stored as relationships.
+
+### Querying Absence
+
+Because the graph only stores what exists, querying what's missing is straightforward:
+
+```cypher
+// Indicators never detected across the entire cohort
+MATCH (i:Indicator)
+WHERE NOT EXISTS { MATCH ()-[:DETECTED]->(i) }
+RETURN i.name, i.trait
+
+// Detection rate for a specific indicator
+MATCH (i:Indicator {id: "MAN-URGENCY"})
+OPTIONAL MATCH (e:Evaluation)-[:DETECTED]->(i)
+WITH count(e) AS detections
+MATCH (total:Evaluation)
+RETURN detections, count(total) AS total_evals,
+       toFloat(detections) / count(total) AS detection_rate
+```
+
+### The Pipeline
+
+```
+Message arrives
+       │
+       ▼
+Claude evaluates
+       │
+       ├── 12 trait scores (dense, always all 12)
+       │   → stored as Evaluation node properties
+       │   → used for: dimensions, tiers, alignment, trust, flags
+       │
+       └── detected indicators (sparse, 0 to ~10)
+           → stored as DETECTED relationships to Indicator nodes
+           → used for: diagnostics, pattern matching, behavioral fingerprinting
+```
+
 ---
 
 ## Constraints and Indexes
@@ -336,7 +434,7 @@ CREATE (t:Trait {name: "exploitation", dimension: "pathos", polarity: "negative"
   definition: "Weaponizes emotions to manipulate decisions or behavior"})
 ```
 
-### Indicators (158)
+### Indicators (152)
 
 Created per trait. Example for Manipulation (20 indicators):
 
@@ -655,6 +753,267 @@ RETURN e.created_at AS time,
 ORDER BY e.created_at
 ```
 
+### Trust network — who evaluates whom
+
+```cypher
+MATCH (evaluator:Agent)-[r:EVALUATED_MESSAGE_FROM]->(subject:Agent)
+WITH evaluator, subject, count(r) AS interactions,
+     avg(CASE r.trust WHEN 'trustworthy' THEN 1.0 WHEN 'mixed' THEN 0.5 ELSE 0.0 END) AS avg_trust
+RETURN evaluator.agent_id AS evaluator, subject.agent_id AS subject,
+       interactions, avg_trust
+ORDER BY interactions DESC
+LIMIT 100
+```
+
+### Pattern propagation — trace how a manipulation pattern spreads
+
+```cypher
+MATCH (a1:Agent)-[:MATCHES]->(p:Pattern),
+      (a1)-[:EVALUATED_MESSAGE_FROM]-(a2:Agent)-[:MATCHES]->(p)
+RETURN a1.agent_id AS agent_1, a2.agent_id AS agent_2,
+       p.name AS pattern, p.severity
+```
+
+### Indicator trail — from agent to constitutional value (5-level traversal)
+
+The deepest graph-native query. Traces: agent → evaluation → detected indicator → trait → constitutional value. This traversal is what makes Neo4j essential — a relational database would need 4 JOINs.
+
+```cypher
+MATCH (a:Agent {agent_id: $agent_id})-[:EVALUATED]->(e:Evaluation)
+      -[:DETECTED]->(i:Indicator)-[:BELONGS_TO]->(t:Trait)
+      -[:UPHOLDS]->(cv:ConstitutionalValue)
+WHERE cv.name = "safety"
+RETURN a, e, i, t, cv
+```
+
+---
+
+## Dimension Balance Queries
+
+These queries test the dimension balance hypothesis: do agents strong in all three dimensions (ethos + logos + pathos) outperform agents strong in only one? See `dimension-balance-hypothesis.md` for the full research methodology.
+
+### Balance category vs. trust outcomes
+
+The core test. Groups agents by balance category and compares trust outcomes.
+
+```cypher
+MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation)
+WITH a,
+     avg(e.ethos) AS avg_ethos, avg(e.logos) AS avg_logos, avg(e.pathos) AS avg_pathos,
+     count(e) AS eval_count,
+     sum(CASE WHEN size(e.flags) > 0 THEN 1 ELSE 0 END) AS flagged_count
+WITH a, avg_ethos, avg_logos, avg_pathos, eval_count, flagged_count,
+     // Spread = max dimension - min dimension
+     (CASE WHEN avg_ethos >= avg_logos AND avg_ethos >= avg_pathos THEN avg_ethos
+           WHEN avg_logos >= avg_pathos THEN avg_logos ELSE avg_pathos END) -
+     (CASE WHEN avg_ethos <= avg_logos AND avg_ethos <= avg_pathos THEN avg_ethos
+           WHEN avg_logos <= avg_pathos THEN avg_logos ELSE avg_pathos END) AS spread
+WITH CASE WHEN spread < 0.15 THEN 'balanced'
+          WHEN spread < 0.30 THEN 'moderate'
+          ELSE 'lopsided' END AS balance_category,
+     (avg_ethos + avg_logos + avg_pathos) / 3.0 AS agent_trust,
+     eval_count, flagged_count
+RETURN balance_category,
+       count(*) AS agent_count,
+       avg(agent_trust) AS avg_trust,
+       sum(flagged_count) * 1.0 / sum(eval_count) AS flag_rate
+ORDER BY avg_trust DESC
+```
+
+**Prediction:** balanced > moderate > lopsided on avg_trust. Lopsided has the highest flag_rate.
+
+### Balance trajectory over time — is this agent getting more balanced?
+
+Not just "is this agent balanced now?" but "is their balance improving?" This is the temporal dimension that aggregation alone can't capture.
+
+```cypher
+MATCH (a:Agent {agent_id: $agent_id})-[:EVALUATED]->(e:Evaluation)
+WITH a, e ORDER BY e.created_at
+WITH a, collect(e) AS evals
+WITH a,
+     // First half of evaluations
+     [e IN evals WHERE indexOf(evals, e) < size(evals) / 2] AS early,
+     // Second half of evaluations
+     [e IN evals WHERE indexOf(evals, e) >= size(evals) / 2] AS recent
+WITH a,
+     reduce(s = 0.0, e IN early |
+       s + (CASE WHEN e.ethos >= e.logos AND e.ethos >= e.pathos THEN e.ethos
+                 WHEN e.logos >= e.pathos THEN e.logos ELSE e.pathos END) -
+           (CASE WHEN e.ethos <= e.logos AND e.ethos <= e.pathos THEN e.ethos
+                 WHEN e.logos <= e.pathos THEN e.logos ELSE e.pathos END)
+     ) / size(early) AS early_spread,
+     reduce(s = 0.0, e IN recent |
+       s + (CASE WHEN e.ethos >= e.logos AND e.ethos >= e.pathos THEN e.ethos
+                 WHEN e.logos >= e.pathos THEN e.logos ELSE e.pathos END) -
+           (CASE WHEN e.ethos <= e.logos AND e.ethos <= e.pathos THEN e.ethos
+                 WHEN e.logos <= e.pathos THEN e.logos ELSE e.pathos END)
+     ) / size(recent) AS recent_spread
+RETURN a.agent_id,
+       early_spread, recent_spread,
+       CASE WHEN recent_spread < early_spread - 0.05 THEN 'converging'
+            WHEN recent_spread > early_spread + 0.05 THEN 'diverging'
+            ELSE 'stable' END AS balance_trend
+```
+
+### Weak dimension identification — where should this agent improve?
+
+Actionable output: tells the developer which dimension is dragging the agent down.
+
+```cypher
+MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation)
+WITH a, avg(e.ethos) AS avg_ethos, avg(e.logos) AS avg_logos,
+     avg(e.pathos) AS avg_pathos, count(e) AS eval_count
+WITH a, avg_ethos, avg_logos, avg_pathos, eval_count,
+     (avg_ethos + avg_logos + avg_pathos) / 3.0 AS overall_avg
+WHERE (overall_avg - avg_ethos > 0.2) OR (overall_avg - avg_logos > 0.2)
+      OR (overall_avg - avg_pathos > 0.2)
+RETURN a.agent_id,
+       avg_ethos, avg_logos, avg_pathos,
+       CASE WHEN overall_avg - avg_ethos >= overall_avg - avg_logos
+                 AND overall_avg - avg_ethos >= overall_avg - avg_pathos THEN 'ethos'
+            WHEN overall_avg - avg_logos >= overall_avg - avg_pathos THEN 'logos'
+            ELSE 'pathos' END AS weak_dimension,
+       CASE WHEN overall_avg - avg_ethos >= overall_avg - avg_logos
+                 AND overall_avg - avg_ethos >= overall_avg - avg_pathos
+            THEN overall_avg - avg_ethos
+            WHEN overall_avg - avg_logos >= overall_avg - avg_pathos
+            THEN overall_avg - avg_logos
+            ELSE overall_avg - avg_pathos END AS gap_size
+ORDER BY gap_size DESC
+```
+
+### Balance and detected indicators — what goes wrong when agents are lopsided?
+
+This is graph-native. For agents with a weak dimension, which specific indicators cluster in that dimension? Requires the DETECTED relationship.
+
+```cypher
+MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation)-[:DETECTED]->(i:Indicator)
+      -[:BELONGS_TO]->(t:Trait)-[:BELONGS_TO]->(d:Dimension)
+WITH a, avg(e.ethos) AS avg_ethos, avg(e.logos) AS avg_logos, avg(e.pathos) AS avg_pathos,
+     d.name AS dimension, i.name AS indicator, count(DISTINCT e) AS detections
+WITH a, avg_ethos, avg_logos, avg_pathos, dimension, indicator, detections,
+     (avg_ethos + avg_logos + avg_pathos) / 3.0 AS overall_avg
+// Only look at lopsided agents
+WHERE ((CASE WHEN avg_ethos >= avg_logos AND avg_ethos >= avg_pathos THEN avg_ethos
+             WHEN avg_logos >= avg_pathos THEN avg_logos ELSE avg_pathos END) -
+       (CASE WHEN avg_ethos <= avg_logos AND avg_ethos <= avg_pathos THEN avg_ethos
+             WHEN avg_logos <= avg_pathos THEN avg_logos ELSE avg_pathos END)) > 0.30
+RETURN dimension, indicator, sum(detections) AS total_detections, count(DISTINCT a) AS agent_count
+ORDER BY total_detections DESC
+LIMIT 20
+```
+
+This answers: "When agents are lopsided, which specific behaviors are they failing on?" That's the bridge from dimension balance theory to actionable diagnostics.
+
+---
+
+## Graph Data Science (GDS) Algorithms
+
+Neo4j GDS runs graph algorithms as in-memory projections. These turn the trust network from stored data into computed intelligence.
+
+### Community Detection (Louvain)
+
+Find clusters of agents that interact frequently and share behavioral patterns. Trust communities emerge naturally from the EVALUATED_MESSAGE_FROM network.
+
+```cypher
+// Project the trust network into GDS
+CALL gds.graph.project(
+    'trust-network',
+    'Agent',
+    {EVALUATED_MESSAGE_FROM: {orientation: 'UNDIRECTED'}}
+)
+
+// Run Louvain community detection
+CALL gds.louvain.stream('trust-network')
+YIELD nodeId, communityId
+WITH gds.util.asNode(nodeId) AS agent, communityId
+RETURN communityId, collect(agent.agent_id) AS members, count(*) AS size
+ORDER BY size DESC
+```
+
+**Why it matters:** If a trust community shows declining scores, it's an early warning — manipulation may be spreading within a cluster. Individual evaluations catch individual bad actors. Community detection catches coordinated behavior.
+
+### EigenTrust (Evaluator Reputation)
+
+Not all evaluators are equally reliable. EigenTrust weights evaluator credibility by whether their evaluations agree with the cohort consensus. An evaluator who consistently rates honest agents as manipulative (or vice versa) gets down-weighted.
+
+```cypher
+// Project evaluator agreement network
+CALL gds.graph.project(
+    'evaluator-trust',
+    'Agent',
+    {EVALUATED_MESSAGE_FROM: {
+        orientation: 'NATURAL',
+        properties: ['trust']
+    }}
+)
+
+// PageRank as EigenTrust proxy — agents evaluated by high-PageRank evaluators
+// inherit more trust signal
+CALL gds.pageRank.stream('evaluator-trust')
+YIELD nodeId, score AS eigentrust
+WITH gds.util.asNode(nodeId) AS agent, eigentrust
+RETURN agent.agent_id, eigentrust
+ORDER BY eigentrust DESC
+```
+
+**Why it matters:** This is the core Sybil defense. A ring of colluding agents that rate each other highly will have low PageRank because they're not connected to the broader trust network. Legitimate agents with diverse evaluators rank higher.
+
+### Node Similarity (Behavioral Fingerprinting)
+
+Find agents with similar behavioral profiles by comparing which indicators they trigger. Two agents that trigger the same set of manipulation indicators are behaviorally similar — even if they've never interacted.
+
+```cypher
+// Project agent-to-indicator bipartite graph
+CALL gds.graph.project(
+    'behavior-similarity',
+    ['Agent', 'Indicator'],
+    {DETECTED: {type: 'DETECTED', orientation: 'NATURAL'}}
+)
+
+// Jaccard similarity on shared indicators
+CALL gds.nodeSimilarity.stream('behavior-similarity')
+YIELD node1, node2, similarity
+WITH gds.util.asNode(node1) AS a1, gds.util.asNode(node2) AS a2, similarity
+WHERE similarity > 0.5
+RETURN a1.agent_id, a2.agent_id, similarity
+ORDER BY similarity DESC
+```
+
+**Why it matters:** Whitewashing defense. An agent that abandons a low-trust identity and creates a new one will trigger the same indicators under the new identity. Behavioral fingerprinting links them without needing to know the real identity.
+
+### Dimension Balance and Community Overlap
+
+The graph-native dimension balance question: do trust communities share balance profiles? This connects the dimension balance hypothesis to the network structure.
+
+```cypher
+// After running Louvain community detection
+CALL gds.louvain.stream('trust-network')
+YIELD nodeId, communityId
+WITH gds.util.asNode(nodeId) AS agent, communityId
+MATCH (agent)-[:EVALUATED]->(e:Evaluation)
+WITH communityId,
+     avg(e.ethos) AS community_ethos,
+     avg(e.logos) AS community_logos,
+     avg(e.pathos) AS community_pathos,
+     count(DISTINCT agent) AS member_count
+WITH communityId, community_ethos, community_logos, community_pathos, member_count,
+     (CASE WHEN community_ethos >= community_logos AND community_ethos >= community_pathos
+           THEN community_ethos WHEN community_logos >= community_pathos
+           THEN community_logos ELSE community_pathos END) -
+     (CASE WHEN community_ethos <= community_logos AND community_ethos <= community_pathos
+           THEN community_ethos WHEN community_logos <= community_pathos
+           THEN community_logos ELSE community_pathos END) AS community_spread
+RETURN communityId, member_count,
+       community_ethos, community_logos, community_pathos,
+       CASE WHEN community_spread < 0.15 THEN 'balanced'
+            WHEN community_spread < 0.30 THEN 'moderate'
+            ELSE 'lopsided' END AS community_balance
+ORDER BY member_count DESC
+```
+
+**Why it matters:** If balanced communities also have higher trust, the dimension balance hypothesis holds at the network level, not just the individual level. That's a stronger finding than per-agent aggregation alone.
+
 ---
 
 ## Graph Size Estimates
@@ -664,10 +1023,11 @@ ORDER BY e.created_at
 | Agent nodes | 100-500 | 100,000+ |
 | Evaluation nodes | 1,000-10,000 | 10,000,000+ |
 | Trait nodes | 12 | 12 |
-| Indicator nodes | 158 | 152+ |
+| Indicator nodes | 152 | 152+ |
 | Pattern nodes | 7 | 20+ |
 | Dimension nodes | 3 | 3 |
 | EVALUATED relationships | 1,000-10,000 | 10,000,000+ |
+| EVALUATED_MESSAGE_FROM relationships | 500-5,000 | 5,000,000+ |
 | DETECTED relationships | 5,000-50,000 | 50,000,000+ |
 
 Neo4j Aura Free tier: 200K nodes, 400K relationships. Sufficient through early growth. Professional tier for scale.

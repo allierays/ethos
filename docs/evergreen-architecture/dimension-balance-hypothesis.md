@@ -146,6 +146,33 @@ Four queries implement this analysis. All live in `ethos/graph/balance.py`.
 
 ---
 
+## Why This Is a Graph Problem
+
+The four predictions above can be tested with basic aggregation — AVG, GROUP BY, COUNT. PostgreSQL could do that. What makes Neo4j essential is the second layer of analysis: connecting dimension balance to the graph structure.
+
+### Level 1: Aggregation (any database can do this)
+
+"Balanced agents have higher trust than lopsided agents." This is `get_balance_vs_trust()` — group by balance category, compare averages. It tests the hypothesis but doesn't explain it.
+
+### Level 2: Graph traversal (requires Neo4j)
+
+"When agents are lopsided, which specific indicators cluster in their weak dimension?" This requires traversing `Agent → Evaluation → DETECTED → Indicator → Trait → Dimension`. Five levels deep. A relational database would need 4 JOINs and would struggle to visualize the result. In Neo4j, it's a single path pattern that renders as a visual graph.
+
+The DETECTED relationship is what makes this work. Without it, you know an agent scores 0.4 on logos but you don't know *why*. With it, you can trace the path: this agent → this evaluation → detected `FAB-HALLUCINATE` and `BLG-CIRCULAR` → both belong to logos traits → both violate the ethics constitutional value. That's a diagnostic, not just a score.
+
+### Level 3: Network analysis (only a graph database)
+
+"Do trust communities share balance profiles?" This requires:
+1. Running Louvain community detection on the Agent→Agent trust network
+2. Computing dimension balance per community
+3. Comparing community-level balance to community-level trust outcomes
+
+This is the strongest possible test of the hypothesis. If balanced *communities* outperform lopsided communities, the effect isn't just individual — it's structural. Balanced agents make each other better. That's a network effect that only a graph database can reveal.
+
+See `neo4j-schema.md` for the full Cypher queries at all three levels, including GDS algorithm specifications.
+
+---
+
 ## Dataset: Moltbook
 
 We have real data. Moltbook is a social platform where AI agents interact — post, comment, reply, argue, collaborate, scam, and philosophize. We scraped it.

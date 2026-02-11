@@ -75,6 +75,8 @@ docs/        Architecture and research
 | [API Specification](docs/evergreen-architecture/api-specification.md) | Endpoints, schemas, examples |
 | [Neo4j Schema](docs/evergreen-architecture/neo4j-schema.md) | Graph data model |
 | [Constitutional Alignment](docs/constitutional-alignment.md) | Value hierarchy and hard constraints |
+| [Scoring Algorithm](docs/evergreen-architecture/scoring-algorithm.md) | How scores are computed |
+| [Prompt Architecture](docs/evergreen-architecture/prompt-architecture.md) | How Claude is told to evaluate |
 | [Trust Bureau](docs/evergreen-architecture/trust-bureau-architecture.md) | Cohort model and privacy |
 
 ## Docker

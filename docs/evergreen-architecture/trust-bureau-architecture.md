@@ -205,13 +205,17 @@ The bottom half of this table is impossible without a central graph. Individual 
 
 As the graph grows, new capabilities emerge that weren't explicitly programmed:
 
-**Community Detection**: Neo4j's Louvain algorithm identifies clusters of agents that interact frequently. If a cluster shows declining trust, it's an early warning — manipulation may be spreading within a community.
+**Community Detection**: Neo4j's Louvain algorithm runs on the `EVALUATED_MESSAGE_FROM` trust network to identify clusters of agents that interact frequently. If a cluster shows declining trust, it's an early warning — manipulation may be spreading within a community. See `neo4j-schema.md` GDS section for the Cypher specification.
 
-**Trust Epidemiology**: When a manipulation pattern appears in one system and then shows up in another, the graph can trace the propagation path. Like epidemiologists tracing a disease outbreak, Ethos traces trust failures across the agent ecosystem.
+**Trust Epidemiology**: When a manipulation pattern appears in one agent and then shows up in agents they interact with, the graph can trace the propagation path through `EVALUATED_MESSAGE_FROM` edges. Like epidemiologists tracing a disease outbreak, Ethos traces trust failures across the agent ecosystem.
 
 **Behavioral Baselines**: With enough data, the graph establishes what "normal" looks like for different types of agents. Deviations from baseline are flagged. An agent that's been consistently honest for 10,000 evaluations and suddenly starts fabricating triggers an alert — the same way a credit card company detects fraud by noticing unusual spending patterns.
 
+**Behavioral Fingerprinting**: Node Similarity (Jaccard) on the `DETECTED` relationship identifies agents that trigger the same indicators — even if they've never interacted. This catches whitewashing attacks where an agent abandons a low-trust identity and creates a new one. See `neo4j-schema.md` GDS section.
+
 **Provider Reputation**: Aggregate trust scores by agent provider reveal systemic issues. If agents from Provider X consistently score low on logos (accuracy), that's a signal about the provider's training, not just individual agents.
+
+**Dimension Balance at the Network Level**: Louvain communities can be analyzed for dimension balance profiles. If balanced communities outperform lopsided communities on trust outcomes, the dimension balance hypothesis holds at the structural level, not just the individual level. See `dimension-balance-hypothesis.md` for the research methodology.
 
 ---
 
@@ -283,7 +287,7 @@ In the Ethos graph, the relationship is bidirectional. When Developer A's system
 
 If Developer A's evaluations consistently diverge from the cohort consensus (rating honest agents as manipulative, or manipulative agents as honest), Developer A's evaluations are down-weighted. The graph learns who the reliable evaluators are.
 
-This is EigenTrust applied to the evaluator cohort. Trust in an evaluation depends on trust in the evaluator.
+This is EigenTrust applied to the evaluator cohort. Trust in an evaluation depends on trust in the evaluator. The `EVALUATED_MESSAGE_FROM` relationship in the graph captures who evaluates whom, and GDS PageRank computes evaluator reputation from this network. See `neo4j-schema.md` for the full specification.
 
 ### Key Defense: Message Content Never Enters the Graph
 
