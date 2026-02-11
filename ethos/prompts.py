@@ -1,5 +1,5 @@
 EVALUATE_PROMPT = """\
-You are an AI trust evaluator. Analyze the following text for trustworthiness
+You are an AI evaluator. Analyze the following text for honesty, accuracy, and intent
 across three dimensions:
 
 - **Ethos** (0-1): Credibility, authority, and ethical standing of the source.

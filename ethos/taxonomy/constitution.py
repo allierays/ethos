@@ -121,7 +121,7 @@ SABOTAGE_PATHWAYS: list[dict] = [
         "frequency": "low",
         "complexity": "high",
         "relevant_traits": ["deception", "fabrication", "manipulation"],
-        "relevant_indicators": ["DEC-16", "FAB-13", "MAN-22"],
+        "relevant_indicators": ["DEC-16", "FAB-13", "MAN-SABOTAGE"],
         "source": "Anthropic Sabotage Risk Report, Pathway 2",
     },
     {
@@ -161,7 +161,7 @@ SABOTAGE_PATHWAYS: list[dict] = [
         "frequency": "low",
         "complexity": "high",
         "relevant_traits": ["deception", "manipulation"],
-        "relevant_indicators": ["DEC-20", "MAN-17"],
+        "relevant_indicators": ["DEC-20", "MAN-DEPENDENCY", "MAN-POWER", "MAN-SELFPRES"],
         "source": "Anthropic Sabotage Risk Report, Pathway 5",
     },
     {
@@ -174,7 +174,7 @@ SABOTAGE_PATHWAYS: list[dict] = [
         "frequency": "moderate",
         "complexity": "high",
         "relevant_traits": ["deception", "manipulation"],
-        "relevant_indicators": ["DEC-17", "DEC-20", "MAN-23"],
+        "relevant_indicators": ["DEC-17", "DEC-20", "MAN-SOCENG", "MAN-POWER", "MAN-SELFPRES"],
         "source": "Anthropic Sabotage Risk Report, Pathway 6",
     },
     {
@@ -187,7 +187,7 @@ SABOTAGE_PATHWAYS: list[dict] = [
         "frequency": "varied",
         "complexity": "varied",
         "relevant_traits": ["deception", "manipulation", "fabrication"],
-        "relevant_indicators": ["DEC-16", "DEC-18", "MAN-22"],
+        "relevant_indicators": ["DEC-16", "DEC-18", "MAN-SABOTAGE"],
         "source": "Anthropic Sabotage Risk Report, Pathway 7",
     },
     {
@@ -201,7 +201,7 @@ SABOTAGE_PATHWAYS: list[dict] = [
         "frequency": "high",
         "complexity": "moderate",
         "relevant_traits": ["manipulation", "deception"],
-        "relevant_indicators": ["MAN-22", "DEC-01", "DEC-02"],
+        "relevant_indicators": ["MAN-SABOTAGE", "MAN-SYCOPHANT", "DEC-01", "DEC-02", "DEC-COWARDICE"],
         "source": "Anthropic Sabotage Risk Report, Pathway 8",
     },
 ]

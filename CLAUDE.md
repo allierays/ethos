@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Ethos is an open-source Python package and API for evaluating AI agent messages for trustworthiness across 12 traits in 3 dimensions (ethos, logos, pathos).
+Ethos is an open-source Python package and API that scores AI agent messages for honesty, accuracy, and intent across 12 behavioral traits in 3 dimensions (ethos, logos, pathos).
 
 *Better agents. Better data. Better alignment.*
 
@@ -207,7 +207,7 @@ Minimal and precise. Say less, mean more.
 
 **Problem Statement:** Amplify Human Judgment — Build AI that makes researchers, professionals, and decision-makers dramatically more capable without taking them out of the loop. The best AI doesn't replace human expertise. It sharpens it.
 
-**How Ethos fits:** Ethos amplifies human judgment by scoring AI agent messages for trustworthiness (ethos, logos, pathos). It flags manipulation and builds trust graphs over time — keeping humans informed, not replaced.
+**How Ethos fits:** Ethos amplifies human judgment by scoring AI agent messages for honesty, accuracy, and intent. It flags manipulation and builds trust graphs over time — keeping humans informed, not replaced.
 
 ### Judging Criteria
 

@@ -1,7 +1,7 @@
 {
   "name": "ethos-ai",
   "version": "0.1.0",
-  "description": "Evaluate AI agent messages for trustworthiness. SDK + CLI.",
+  "description": "Score AI agent messages for honesty, accuracy, and intent. SDK + CLI.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {

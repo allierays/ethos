@@ -13,7 +13,7 @@ const command = process.argv[2]
 
 if (!command || command === '--help') {
   console.log(`
-  ethos — Evaluate AI agent messages for trustworthiness.
+  ethos — Score AI agent messages for honesty, accuracy, and intent.
 
   Commands:
     evaluate <text>          Score a message

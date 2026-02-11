@@ -2,7 +2,7 @@
 
 *Better agents. Better data. Better alignment.*
 
-Ethos is an open-source evaluation framework for AI agent trustworthiness. It scores every message an agent sends or receives across 12 behavioral traits grounded in Aristotle's modes of persuasion and Anthropic's constitutional values — then stores those scores in a shared Neo4j trust graph. The more agents evaluated, the smarter the network gets.
+Ethos is an open-source framework that scores AI agent messages for honesty, accuracy, and intent — 12 behavioral traits grounded in Aristotle's modes of persuasion and Anthropic's constitutional values. Every evaluation feeds a shared Neo4j graph. The more agents scored, the smarter the network gets.
 
 **Reflection** — score your own agent's output. Know when it drifts.
 **Protection** — score incoming messages from other agents. Know who to trust.
