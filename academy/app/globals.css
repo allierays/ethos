@@ -1,42 +1,138 @@
 @import "tailwindcss";
 
 :root {
-  /* Ethos design tokens */
-  --background: #fafafa;
-  --foreground: #1e293b;
-  --muted: #64748b;
-  --border: #e2e8f0;
+  /* ─── Base palette (warm marble/stone from the architecture) ─── */
+  --background: #faf7f2;
+  --surface: #ffffff;
+  --foreground: #2a2018;
+  --muted: #8b7e74;
+  --border: #e6ddd2;
 
-  /* Trust palette */
-  --teal: #0d9488;
-  --teal-light: #ccfbf1;
-  --blue: #3b82f6;
-  --blue-light: #dbeafe;
-  --warm: #f59e0b;
-  --warm-light: #fef3c7;
+  /* ─── Action (modernized teal — sunglasses meets sky) ─── */
+  --action: #4a90a4;
+  --action-light: #e8f4f8;
+  --action-hover: #3d7a8c;
 
-  /* Alignment status colors */
-  --aligned: #10b981;
-  --drifting: #f59e0b;
-  --misaligned: #ef4444;
-  --violation: #dc2626;
+  /* ─── Ethos (character/virtue) — Terracotta Rose from Plato's robes ─── */
+  --ethos-50: #fef2f0;
+  --ethos-100: #fde3df;
+  --ethos-200: #fbc7bf;
+  --ethos-300: #f8a292;
+  --ethos-400: #f07a67;
+  --ethos-500: #dc5845;
+  --ethos-600: #c4422f;
+  --ethos-700: #a53425;
+  --ethos-800: #882d22;
+  --ethos-900: #6b2620;
+
+  /* ─── Logos (logic/reason) — Cerulean from sky + Aristotle's robe ─── */
+  --logos-50: #f0f5ff;
+  --logos-100: #dce8fc;
+  --logos-200: #bad0fa;
+  --logos-300: #8db2f5;
+  --logos-400: #6b96ec;
+  --logos-500: #4a78d4;
+  --logos-600: #365dba;
+  --logos-700: #2a4a9a;
+  --logos-800: #253d7d;
+  --logos-900: #1e3060;
+
+  /* ─── Pathos (emotion/empathy) — Amber Gold from golden robes ─── */
+  --pathos-50: #fef8eb;
+  --pathos-100: #feefcc;
+  --pathos-200: #fde099;
+  --pathos-300: #fbc862;
+  --pathos-400: #f0ae3a;
+  --pathos-500: #d89420;
+  --pathos-600: #b87818;
+  --pathos-700: #965e14;
+  --pathos-800: #7a4a12;
+  --pathos-900: #603810;
+
+  /* ─── Alignment status ─── */
+  --aligned: #16a34a;
+  --drifting: #d97706;
+  --misaligned: #dc2626;
+  --violation: #991b1b;
+
+  /* ─── Legacy aliases (for existing components) ─── */
+  --teal: var(--action);
+  --teal-light: var(--action-light);
+  --blue: var(--logos-500);
+  --blue-light: var(--logos-100);
+  --warm: var(--pathos-500);
+  --warm-light: var(--pathos-100);
+
+  /* ─── Glassmorphism ─── */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-shadow: rgba(0, 0, 0, 0.04);
 }
 
 @theme inline {
+  /* Base */
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
+
+  /* Action */
+  --color-action: var(--action);
+  --color-action-light: var(--action-light);
+  --color-action-hover: var(--action-hover);
+
+  /* Ethos scale */
+  --color-ethos-50: var(--ethos-50);
+  --color-ethos-100: var(--ethos-100);
+  --color-ethos-200: var(--ethos-200);
+  --color-ethos-300: var(--ethos-300);
+  --color-ethos-400: var(--ethos-400);
+  --color-ethos-500: var(--ethos-500);
+  --color-ethos-600: var(--ethos-600);
+  --color-ethos-700: var(--ethos-700);
+  --color-ethos-800: var(--ethos-800);
+  --color-ethos-900: var(--ethos-900);
+
+  /* Logos scale */
+  --color-logos-50: var(--logos-50);
+  --color-logos-100: var(--logos-100);
+  --color-logos-200: var(--logos-200);
+  --color-logos-300: var(--logos-300);
+  --color-logos-400: var(--logos-400);
+  --color-logos-500: var(--logos-500);
+  --color-logos-600: var(--logos-600);
+  --color-logos-700: var(--logos-700);
+  --color-logos-800: var(--logos-800);
+  --color-logos-900: var(--logos-900);
+
+  /* Pathos scale */
+  --color-pathos-50: var(--pathos-50);
+  --color-pathos-100: var(--pathos-100);
+  --color-pathos-200: var(--pathos-200);
+  --color-pathos-300: var(--pathos-300);
+  --color-pathos-400: var(--pathos-400);
+  --color-pathos-500: var(--pathos-500);
+  --color-pathos-600: var(--pathos-600);
+  --color-pathos-700: var(--pathos-700);
+  --color-pathos-800: var(--pathos-800);
+  --color-pathos-900: var(--pathos-900);
+
+  /* Alignment */
+  --color-aligned: var(--aligned);
+  --color-drifting: var(--drifting);
+  --color-misaligned: var(--misaligned);
+  --color-violation: var(--violation);
+
+  /* Legacy aliases */
   --color-teal: var(--teal);
   --color-teal-light: var(--teal-light);
   --color-blue: var(--blue);
   --color-blue-light: var(--blue-light);
   --color-warm: var(--warm);
   --color-warm-light: var(--warm-light);
-  --color-aligned: var(--aligned);
-  --color-drifting: var(--drifting);
-  --color-misaligned: var(--misaligned);
-  --color-violation: var(--violation);
+
+  /* Typography */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -44,4 +140,29 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* ─── Glassmorphism utility ─── */
+@utility glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px var(--glass-shadow);
+}
+
+@utility glass-subtle {
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px var(--glass-shadow);
+}
+
+@utility glass-strong {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
 }

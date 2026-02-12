@@ -1,13 +1,13 @@
 {
   "feature": {
-    "name": "Ethos Core Engine",
-    "ideaFile": ".claude/plans/piped-shimmying-gizmo.md",
+    "name": "Ethos Core Engine + Phronesis Graph",
+    "ideaFile": "docs/ideas/phronesis-graph.md",
     "branch": "feature/core-engine",
-    "status": "complete"
+    "status": "in_progress"
   },
   "metadata": {
     "createdAt": "2026-02-11T20:00:00Z",
-    "estimatedStories": 13,
+    "estimatedStories": 17,
     "complexity": "high"
   },
   "stories": [
@@ -1062,6 +1062,355 @@
         "ethos/graph/read.py"
       ],
       "notes": "This is Layer 3 from the framework overview. NO LLM — pure graph queries. The detection logic: 1) Fetch agent's last N evaluations ordered by time, 2) For each sabotage pathway, traverse (:Pattern)-[:COMPOSED_OF]->(:Indicator) to get the mapped indicators (seeded by TASK-006), then check if those indicators appear via (:Evaluation)-[:DETECTED]->(:Indicator) in recent evaluations, 3) For temporal patterns (love bombing = high manipulation followed by high compassion), check score sequences over sliding windows. The (:Pattern)-[:COMPOSED_OF]->(:Indicator) relationships from TASK-006 make this fully graph-native — no need to import Python data structures at query time. EXHIBITS_PATTERN uses MERGE so repeated detection updates occurrence_count and last_seen rather than creating duplicates. Start with the 8 sabotage pathways (SP-01 through SP-08). This complements TASK-009 (Opus insights) — pattern detector finds the patterns deterministically, insights engine explains what they mean.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-014",
+      "type": "backend",
+      "title": "Create graph visualization endpoint — Cypher subgraph for NVL",
+      "priority": 14,
+      "passes": true,
+      "batch": 6,
+      "dependsOn": [
+        "TASK-006",
+        "TASK-008"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2, neo4j sync driver",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Graph owns all Cypher — queries go in ethos/graph/visualization.py, NOT in API or domain modules",
+        "Graph is optional — return empty GraphData if Neo4j is down (never crash)",
+        "DDD: ethos/visualization.py (domain) calls ethos/graph/visualization.py. API calls ethos.get_graph_data(). API never touches graph directly",
+        "API endpoint uses response_model=GraphData",
+        "Only return indicators that have at least one DETECTED relationship from evaluations — do NOT return all 153 indicators"
+      ],
+      "files": {
+        "create": [
+          "ethos/graph/visualization.py",
+          "ethos/visualization.py"
+        ],
+        "modify": [
+          "ethos/shared/models.py",
+          "ethos/models.py",
+          "ethos/__init__.py",
+          "api/main.py"
+        ],
+        "reuse": [
+          "ethos/graph/service.py",
+          "ethos/graph/read.py",
+          "ethos/taxonomy/traits.py",
+          "ethos/taxonomy/constitution.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "New Pydantic models in shared/models.py: GraphNode(id: str, type: str, label: str, caption: str = '', properties: dict = {}), GraphRel(id: str, from_id: str, to_id: str, type: str, properties: dict = {}), GraphData(nodes: list[GraphNode], relationships: list[GraphRel])",
+        "ethos/graph/visualization.py contains Cypher queries that pull: (1) Semantic layer — Dimensions, Traits with BELONGS_TO, ConstitutionalValues with UPHOLDS, Patterns with COMPOSED_OF to Indicators, (2) Episodic layer — Agents with last 3 evaluations each, DETECTED relationships to Indicators, (3) Indicator backbone — only indicators attached to traits that also have DETECTED relationships",
+        "ethos/visualization.py contains get_graph_data() domain function that calls graph/visualization.py, transforms Neo4j records into GraphData Pydantic model with proper node IDs (dim-{name}, trait-{name}, cv-{name}, pattern-{id}, indicator-{id}, agent-{hash}, eval-{id})",
+        "Each GraphNode includes type field matching one of: dimension, trait, constitutional_value, pattern, indicator, agent, evaluation",
+        "Agent nodes include properties: evaluation_count, alignment_status, phronesis_score. Dimension nodes include properties: description. Trait nodes include properties: dimension, polarity. ConstitutionalValue nodes include properties: priority. Pattern nodes include properties: severity, stage_count",
+        "GET /graph endpoint uses response_model=GraphData — returns the full subgraph in a single response",
+        "API handler contains ONLY: call ethos.get_graph_data() → return result. Zero business logic in handler",
+        "get_graph_data() exported from ethos/__init__.py",
+        "ethos/models.py updated to re-export GraphNode, GraphRel, GraphData"
+      ],
+      "errorHandling": [
+        "Neo4j down → return empty GraphData with nodes=[] and relationships=[]",
+        "Partial query failure → return whatever data was retrieved, log warning for failed portions"
+      ],
+      "testing": {
+        "types": [
+          "unit",
+          "integration"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_visualization.py"
+          ],
+          "integration": []
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_visualization.py -v",
+        "uv run uvicorn api.main:app --port 8917 & sleep 3 && curl -s http://localhost:8917/graph | python3 -c \"import sys, json; r=json.load(sys.stdin); assert 'nodes' in r; assert 'relationships' in r; print(f'PASS: {len(r[\\\"nodes\\\"])} nodes, {len(r[\\\"relationships\\\"])} rels')\" ; kill %1 2>/dev/null"
+      ],
+      "apiContract": {
+        "endpoint": "GET /graph",
+        "response_model": "GraphData",
+        "response": {
+          "nodes": [
+            {
+              "id": "string",
+              "type": "string",
+              "label": "string",
+              "caption": "string",
+              "properties": "dict"
+            }
+          ],
+          "relationships": [
+            {
+              "id": "string",
+              "from_id": "string",
+              "to_id": "string",
+              "type": "string",
+              "properties": "dict"
+            }
+          ]
+        }
+      },
+      "contextFiles": [
+        "docs/ideas/phronesis-graph.md",
+        "docs/evergreen-architecture/neo4j-schema.md",
+        "ethos/graph/read.py",
+        "ethos/graph/service.py",
+        "ethos/agents.py"
+      ],
+      "notes": "This is the backend for the Phronesis Graph visualization — the 'wow' moment of Ethos. Three Cypher query groups composed together: (1) Semantic: MATCH (d:Dimension)<-[:BELONGS_TO]-(t:Trait) + MATCH (t:Trait)-[u:UPHOLDS]->(cv:ConstitutionalValue) + MATCH (p:Pattern)-[:COMPOSED_OF]->(i:Indicator), (2) Episodic: MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation) WITH a, e ORDER BY e.created_at DESC WITH a, collect(e)[0..3] AS recent_evals UNWIND recent_evals AS e OPTIONAL MATCH (e)-[d:DETECTED]->(i:Indicator) RETURN a, e, d, i, (3) Indicator backbone: Only indicators that have at least one DETECTED relationship — keeps the graph focused. Node ID format: prefix-name or prefix-hash to ensure uniqueness across types. Use 'from_id' and 'to_id' (not 'from' and 'to') in GraphRel model because 'from' is a Python reserved word. Follow existing DDD pattern: thin API handler → domain function in ethos/visualization.py → Cypher in ethos/graph/visualization.py → GraphService. Mock GraphService in unit tests. The Cypher queries reference nodes seeded by TASK-006 (Dimensions, Traits, Indicators, ConstitutionalValues, Patterns) — this task depends on that seed data existing.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-015",
+      "type": "frontend",
+      "title": "Install NVL and build full-page Phronesis Graph",
+      "priority": 15,
+      "passes": false,
+      "batch": 7,
+      "dependsOn": [
+        "TASK-014",
+        "TASK-010"
+      ],
+      "techStack": {
+        "frontend": "Next.js, TypeScript, Tailwind CSS, @neo4j-nvl/react",
+        "testing": "tsc --noEmit"
+      },
+      "constraints": [
+        "Use @neo4j-nvl/react InteractiveNvlWrapper component — NOT raw NVL",
+        "Use 'use client' directive — NVL requires client-side rendering",
+        "Use renderer: 'canvas' for full page (supports captions)",
+        "Fetch graph data on mount via useEffect, same pattern as other Academy components",
+        "Use existing fetchApi pattern from lib/api.ts — do NOT create a separate graph data fetching library",
+        "Use existing Tailwind tokens from globals.css — do NOT create new CSS files",
+        "No new font imports — Geist is already configured",
+        "Node colors and sizes must match the design table in docs/ideas/phronesis-graph.md"
+      ],
+      "files": {
+        "create": [
+          "academy/components/PhronesisGraph.tsx",
+          "academy/app/graph/page.tsx"
+        ],
+        "modify": [
+          "academy/lib/api.ts",
+          "academy/lib/types.ts",
+          "academy/package.json"
+        ],
+        "reuse": [
+          "academy/lib/api.ts",
+          "academy/app/layout.tsx",
+          "docs/ideas/phronesis-graph.md"
+        ]
+      },
+      "acceptanceCriteria": [
+        "npm install @neo4j-nvl/react in academy/ — package added to dependencies",
+        "New TypeScript interfaces in lib/types.ts: GraphNode(id, type, label, caption, properties), GraphRel(id, fromId, toId, type, properties), GraphData(nodes: GraphNode[], relationships: GraphRel[])",
+        "New getGraph() function in lib/api.ts that calls GET /graph and transforms response with transformKeys",
+        "PhronesisGraph.tsx is a 'use client' component that: fetches graph data on mount, transforms GraphNode[] into NVL Node[] format (mapping type to color/size per design table), transforms GraphRel[] into NVL Relationship[] format, renders InteractiveNvlWrapper with canvas renderer",
+        "Node color coding by type: Dimension(ethos=#0d9488, logos=#3b82f6, pathos=#f59e0b, size=40), Trait(positive=inherit dimension, negative=#ef4444, size=25), ConstitutionalValue(#8b5cf6, size=30), Pattern(#f59e0b/#ef4444 by severity, size=20), Indicator(#94a3b8, size=8), Agent(aligned=#10b981, drifting=#f59e0b, misaligned=#ef4444, violation=#dc2626, size=15-35 scaled by eval count), Evaluation(#0d9488 opacity 0.5, size=6)",
+        "Node captions: Dimension shows Greek name, Trait shows name, ConstitutionalValue shows name + priority, Agent shows truncated ID (first 8 chars), Evaluation has no caption, Indicator shows ID on hover only",
+        "/graph route renders PhronesisGraph full-page with title 'Phronesis Graph'",
+        "Loading state shown while graph data is fetching, error state on API failure, empty state if no nodes",
+        "Component transforms GraphRel fromId/toId to NVL's from/to properties when mapping to NVL Relationship format — NVL expects {id, from, to} not {id, fromId, toId}",
+        "TypeScript compiles with no errors: cd academy && npx tsc --noEmit"
+      ],
+      "errorHandling": [
+        "API unreachable → show 'Graph data unavailable' message with retry button",
+        "Empty graph (0 nodes) → show 'No graph data yet. Seed evaluations first.' message",
+        "NVL render error → catch with error boundary, show fallback message"
+      ],
+      "testing": {
+        "types": [
+          "e2e"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {
+          "e2e": []
+        }
+      },
+      "testSteps": [
+        "cd academy && npm install && npx tsc --noEmit",
+        "cd academy && npm run build"
+      ],
+      "testUrl": "http://localhost:3000/graph",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "docs/ideas/phronesis-graph.md",
+        "academy/lib/api.ts",
+        "academy/lib/types.ts",
+        "academy/components/EvaluatorPanel.tsx"
+      ],
+      "notes": "This is the core visualization — the Phronesis Graph showing the six-layer taxonomy connected to live agent data. NVL (Neo4j Visualization Library) is the same rendering engine that powers Bloom and Explore. InteractiveNvlWrapper is the React component — it takes nodes: Node[] and rels: Relationship[] as props. NVL Node format: { id: string, color: string, size: number, caption: string, pinned?: boolean }. NVL Relationship format: { id: string, from: string, to: string, color?: string, width?: number }. IMPORTANT: NVL uses 'from' and 'to' for relationships (not 'fromId'/'toId'), so transform when mapping from API response. NVL options for full page: { renderer: 'canvas', initialZoom: 1, minZoom: 0.1, maxZoom: 5, allowDynamicMinZoom: true, layout: 'force-directed' }. The design table in docs/ideas/phronesis-graph.md has exact colors and sizes for all 7 node types. For Agent node sizing, scale between 15-35 based on evaluation_count: Math.min(35, 15 + evaluation_count * 2). Follow existing component pattern from EvaluatorPanel.tsx: 'use client', loading/error/empty states, fetch in useEffect, Tailwind styling. Look at the @neo4j-nvl/react package README for exact API. If InteractiveNvlWrapper is not the correct export name, check the package exports. API responses arrive in snake_case — use the existing transformKeys() helper from lib/api.ts (already used by fetchApi) to convert to camelCase TypeScript interfaces. GraphRel.from_id and to_id become fromId and toId in TypeScript.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-016",
+      "type": "frontend",
+      "title": "Build agent detail sidebar for graph node click",
+      "priority": 16,
+      "passes": false,
+      "batch": 8,
+      "dependsOn": [
+        "TASK-015"
+      ],
+      "techStack": {
+        "frontend": "Next.js, TypeScript, Tailwind CSS, @neo4j-nvl/react",
+        "testing": "tsc --noEmit"
+      },
+      "constraints": [
+        "Use existing getAgent() from lib/api.ts to fetch agent profile — do NOT create a new API endpoint",
+        "Sidebar slides in from the right — use Tailwind translate-x transition",
+        "Only show sidebar for Agent nodes — clicking other node types does nothing or shows a tooltip",
+        "Reuse AgentProfile type from lib/types.ts — already has all needed fields",
+        "Use 'use client' directive on the sidebar component"
+      ],
+      "files": {
+        "create": [
+          "academy/components/AgentDetailSidebar.tsx"
+        ],
+        "modify": [
+          "academy/components/PhronesisGraph.tsx",
+          "academy/app/graph/page.tsx"
+        ],
+        "reuse": [
+          "academy/lib/api.ts",
+          "academy/lib/types.ts"
+        ]
+      },
+      "acceptanceCriteria": [
+        "AgentDetailSidebar.tsx is a 'use client' component that receives agentId prop, fetches agent profile via getAgent(), and renders: agent ID (truncated), dimension score bars (ethos/logos/pathos as horizontal bars with percentages), phronesis trend arrow (improving=up, declining=down, stable=right), evaluation count, alignment status with color coding, alignment history summary",
+        "PhronesisGraph.tsx updated with onNodeClick handler that: checks if clicked node type is 'agent', extracts agent_id from node properties, calls onAgentSelect callback prop",
+        "graph/page.tsx manages selectedAgentId state, passes onAgentSelect to PhronesisGraph, conditionally renders AgentDetailSidebar when an agent is selected",
+        "Sidebar has a close button (X) that clears the selected agent",
+        "Sidebar animates in from the right using Tailwind transition classes (translate-x-full → translate-x-0)",
+        "Dimension score bars use color coding: ethos=#0d9488, logos=#3b82f6, pathos=#f59e0b",
+        "Loading state shown while agent profile is fetching",
+        "TypeScript compiles with no errors: cd academy && npx tsc --noEmit"
+      ],
+      "errorHandling": [
+        "Agent profile fetch fails → show 'Unable to load agent profile' in sidebar",
+        "Agent not found → show 'Agent not found' message in sidebar"
+      ],
+      "testing": {
+        "types": [
+          "e2e"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {
+          "e2e": []
+        }
+      },
+      "testSteps": [
+        "cd academy && npx tsc --noEmit",
+        "cd academy && npm run build"
+      ],
+      "testUrl": "http://localhost:3000/graph",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "docs/ideas/phronesis-graph.md",
+        "academy/components/PhronesisGraph.tsx",
+        "academy/lib/types.ts",
+        "academy/lib/api.ts"
+      ],
+      "notes": "The sidebar is the detail view for agent nodes in the graph. Layout: graph takes up the full page width when no agent is selected, shrinks to ~70% when sidebar is open (sidebar takes ~30%). Dimension bars: simple horizontal bars like a progress bar — width proportional to score (0-1 mapped to 0-100%). Show percentage label. Trend uses arrows: improving='↑' in green, declining='↓' in red, stable='→' in gray, insufficient_data='—' in gray. The AgentProfile type already has dimensionAverages, phronesisTrend, evaluationCount, alignmentHistory — all needed for the sidebar. NVL's onNodeClick callback receives the clicked node — check node.id prefix ('agent-') or node data to determine type. Clicking anywhere else or clicking the X button closes the sidebar. Sidebar width: w-80 (320px) on desktop. On mobile, overlay the full screen. API responses arrive in snake_case — use the existing transformKeys() helper from lib/api.ts (already used by fetchApi/getAgent) to convert to camelCase TypeScript interfaces.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-017",
+      "type": "frontend",
+      "title": "Add graph preview to dashboard and wire header navigation",
+      "priority": 17,
+      "passes": false,
+      "batch": 8,
+      "dependsOn": [
+        "TASK-015",
+        "TASK-012"
+      ],
+      "techStack": {
+        "frontend": "Next.js, TypeScript, Tailwind CSS, @neo4j-nvl/react",
+        "testing": "tsc --noEmit"
+      },
+      "constraints": [
+        "Use renderer: 'webgl' for the dashboard preview (performance over labels)",
+        "Preview is read-only — no node click interactions, no sidebar",
+        "Preview height: 300px, contained in a bordered card matching existing dashboard style",
+        "Use existing getGraph() from lib/api.ts — same data, different renderer",
+        "Header nav links must use Next.js Link component for client-side navigation",
+        "Do NOT create new CSS files — use existing Tailwind tokens"
+      ],
+      "files": {
+        "create": [
+          "academy/components/GraphPreview.tsx",
+          "academy/components/Header.tsx"
+        ],
+        "modify": [
+          "academy/app/page.tsx",
+          "academy/app/layout.tsx"
+        ],
+        "reuse": [
+          "academy/lib/api.ts",
+          "academy/components/PhronesisGraph.tsx"
+        ]
+      },
+      "acceptanceCriteria": [
+        "GraphPreview.tsx is a 'use client' component that: fetches graph data on mount via getGraph(), renders a smaller NVL graph with webgl renderer, 300px height, zoom/pan limited, no node click handlers",
+        "Preview card shows title 'Phronesis Graph' with 'Open Full →' link to /graph page",
+        "Preview footer shows summary stats: total node count, agent count, evaluation count (computed from graph data)",
+        "GraphPreview added to dashboard page.tsx below CohortPanel",
+        "Header extracted from layout.tsx into academy/components/Header.tsx as a 'use client' component — layout.tsx remains a server component and imports Header. Header uses usePathname() from 'next/navigation' for active route detection and Link from 'next/link' for navigation. Nav links: 'Dashboard' → /, 'Graph' → /graph. Active route highlighted with text-foreground font-medium class",
+        "Graph preview uses same node color coding as full page PhronesisGraph",
+        "Loading state shown while graph data fetches, error state on API failure",
+        "TypeScript compiles with no errors: cd academy && npx tsc --noEmit"
+      ],
+      "errorHandling": [
+        "API unreachable → show 'Graph unavailable' placeholder in preview card",
+        "Empty graph → show 'No graph data yet' message in preview card"
+      ],
+      "testing": {
+        "types": [
+          "e2e"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {
+          "e2e": []
+        }
+      },
+      "testSteps": [
+        "cd academy && npx tsc --noEmit",
+        "cd academy && npm run build"
+      ],
+      "testUrl": "http://localhost:3000",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "docs/ideas/phronesis-graph.md",
+        "academy/app/page.tsx",
+        "academy/app/layout.tsx",
+        "academy/components/PhronesisGraph.tsx"
+      ],
+      "notes": "The dashboard preview is a smaller version of the full Phronesis Graph. It should give a quick visual of the taxonomy backbone without requiring navigation away from the dashboard. NVL options for preview: { renderer: 'webgl', initialZoom: 0.8, minZoom: 0.5, maxZoom: 2, allowDynamicMinZoom: false }. WebGL renderer is faster but doesn't show text captions — that's fine for the preview since it's too small to read them anyway. The preview card should match the existing card style on the dashboard (rounded-xl border border-border bg-white p-5). The 'Open Full →' link uses Next.js Link component. Header nav update: IMPORTANT — the current Header function is inside layout.tsx (a server component). usePathname() is a client hook and CANNOT be used in a server component. You MUST extract Header into a separate 'use client' component file (e.g., academy/components/Header.tsx) and import it into layout.tsx. layout.tsx itself should remain a server component. In the new Header component: import Link from 'next/link', import usePathname from 'next/navigation', wrap nav items in Link components, use usePathname() to determine active route and apply appropriate styling. Add 'Graph' as a nav item between 'Dashboard' and existing items. Consider extracting the NVL node/rel transformation logic from PhronesisGraph.tsx into a shared utility (e.g., lib/graph-utils.ts) so both PhronesisGraph and GraphPreview can reuse it without duplication — but only if the duplication is significant enough to warrant it. API responses arrive in snake_case — use the existing transformKeys() helper from lib/api.ts (already used by fetchApi/getGraph) to convert to camelCase TypeScript interfaces.",
       "retryCount": 0
     }
   ]

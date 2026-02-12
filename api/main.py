@@ -10,6 +10,7 @@ from ethos import (
     get_agent,
     get_agent_history,
     get_cohort,
+    get_graph_data,
     insights,
     list_agents,
     reflect,
@@ -20,6 +21,7 @@ from ethos.models import (
     CohortResult,
     EvaluationHistoryItem,
     EvaluationResult,
+    GraphData,
     InsightsResult,
     PatternResult,
     ReflectionResult,
@@ -99,3 +101,8 @@ def patterns_endpoint(agent_id: str):
 @app.get("/insights/{agent_id}", response_model=InsightsResult)
 def insights_endpoint(agent_id: str):
     return insights(agent_id)
+
+
+@app.get("/graph", response_model=GraphData)
+def graph_endpoint():
+    return get_graph_data()

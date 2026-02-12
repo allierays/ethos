@@ -162,6 +162,27 @@ class PatternResult(BaseModel):
     checked_at: str = ""
 
 
+class GraphNode(BaseModel):
+    id: str
+    type: str
+    label: str
+    caption: str = ""
+    properties: dict = Field(default_factory=dict)
+
+
+class GraphRel(BaseModel):
+    id: str
+    from_id: str
+    to_id: str
+    type: str
+    properties: dict = Field(default_factory=dict)
+
+
+class GraphData(BaseModel):
+    nodes: list[GraphNode] = Field(default_factory=list)
+    relationships: list[GraphRel] = Field(default_factory=list)
+
+
 class KeywordScanResult(BaseModel):
     total_flags: int = 0
     flagged_traits: dict[str, int] = Field(default_factory=dict)
