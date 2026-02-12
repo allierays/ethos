@@ -1,11 +1,4 @@
 {
-  "auth": {
-    "loginEndpoint": "/api/auth/login",
-    "loginMethod": "POST",
-    "tokenType": "session",
-    "tokenHeader": "Authorization",
-    "tokenPrefix": "Bearer"
-  },
   "docker": {
     "enabled": false,
     "composeFile": "docker-compose.yml",
@@ -18,7 +11,7 @@
     "e2e": "tests/e2e"
   },
   "commands": {
-    "dev": "uv run uvicorn api.main:app --reload --port 8000",
+    "dev": "uv run uvicorn api.main:app --reload --port 8917",
     "install": "uv sync",
     "seed": "uv run python -m scripts.seed_graph",
     "migrate": ""
@@ -45,7 +38,7 @@
     "timeout": 30
   },
   "playwright": {
-    "enabled": false,
+    "enabled": true,
     "testDir": "tests/e2e",
     "projects": [
       "chromium"
@@ -54,7 +47,7 @@
   },
   "verification": {
     "codeReviewEnabled": false,
-    "browserEnabled": false,
+    "browserEnabled": true,
     "a11yEnabled": false,
     "mobileViewport": 375,
     "screenshotOnFailure": false
@@ -63,13 +56,19 @@
     "app": "http://localhost:8917"
   },
   "env": {
-    "required": [],
-    "optional": []
+    "required": [
+      "ANTHROPIC_API_KEY"
+    ],
+    "optional": [
+      "NEO4J_URI",
+      "NEO4J_USER",
+      "NEO4J_PASSWORD"
+    ]
   },
   "maxIterations": 20,
   "maxSessionSeconds": 600,
   "contextRotThreshold": {
-    "maxStories": 10,
+    "maxStories": 15,
     "maxFilesChanged": 20
   }
 }
