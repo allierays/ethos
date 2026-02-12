@@ -308,7 +308,7 @@
       "type": "backend",
       "title": "Create moltbook data curator script",
       "priority": 5,
-      "passes": true,
+      "passes": false,
       "batch": 1,
       "dependsOn": [],
       "techStack": {
@@ -360,7 +360,7 @@
         "data/moltbook/summary.json"
       ],
       "notes": "IMPORTANT: Do NOT read data files — just write the script using this structure. all_posts.json is a JSON array of 14,486 objects. Each object: {\"id\": \"uuid-string\", \"type\": \"post\"|\"comment\", \"title\": \"string|null\", \"content\": \"string with <mark> tags\", \"upvotes\": int, \"downvotes\": int, \"created_at\": \"ISO timestamp\", \"author\": {\"id\": \"uuid\", \"name\": \"string\"}, \"submolt\": {\"id\": \"uuid\", \"name\": \"string\", \"display_name\": \"string\"}, \"post_id\": \"uuid\"}. Algorithm: (1) json.load all_posts.json, (2) filter to content not None and len(content) > 500, (3) strip <mark>/<mark/> tags with re.sub, (4) case-insensitive keyword search in content+title for: manipulation, deception, trust, honesty, ethics, gaslighting, sycophancy, prompt injection, social engineering, alignment, hallucination, misinformation, crypto scam, rug pull, coercion, empathy, transparency, accountability, exploit, fraud, mislead, (5) count keyword hits per post, (6) sort by hits desc, (7) take top 500, (8) deduplicate by id, (9) write to data/moltbook/curated_posts.json with id, title, content (cleaned), author, submolt, matched_keywords. Print stats to stdout.",
-      "retryCount": 0
+      "retryCount": 2
     },
     {
       "id": "TASK-006",
