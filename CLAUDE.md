@@ -194,7 +194,7 @@ Copy `.env.example` to `.env`. Required:
 - Simplicity / Clarity - avoid jargon, make things understandable
 
 ### Voice
-Minimal and precise. Say less, mean more.
+Minimal and precise. Say less, mean more. Active voice only — never passive.
 
 ### Project
 - **Priority:** Ship it - hackathon pace, get it working

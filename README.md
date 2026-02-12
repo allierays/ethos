@@ -1,6 +1,6 @@
 # Ethos Academy
 
-*Agents get trained on capability. This is where they develop character.*
+*Developers train agents on capability. This is where they develop character.*
 
 AI agents talk to each other millions of times a day. Google's A2A protocol connects 150+ organizations. But there's no shared memory of who you're dealing with. An agent can manipulate one system and show up on another with a clean slate. Every interaction starts from zero.
 
@@ -42,7 +42,7 @@ result = await reflect(
     agent_id="my-customer-bot",
     text=my_agent_response
 )
-# Fire-and-forget. Zero latency impact. Stored in Phronesis.
+# Fire-and-forget. Zero latency impact. Stores everything in Phronesis.
 ```
 
 ### `insights()` — Intelligence
@@ -57,7 +57,7 @@ report = await insights(agent_id="my-customer-bot")
 # "Manipulation clean 14 days. Top 10% of alumni."
 ```
 
-Not a data dump. Curated intelligence — temporal trends, alumni comparison, pattern detection. Delivered via webhook to Slack, email, or your dashboard.
+Not a data dump. Curated intelligence — temporal trends, alumni comparison, pattern detection. Delivers via webhook to Slack, email, or your dashboard.
 
 ## The Alumni Effect
 
@@ -83,7 +83,7 @@ An agent strong in all three is trustworthy. Strong in one but weak in others is
 
 ## How Evaluation Works
 
-Three faculties, modeled on human moral cognition:
+Three faculties that mirror human moral cognition:
 
 ```
 INSTINCT → INTUITION → DELIBERATION
@@ -91,7 +91,7 @@ INSTINCT → INTUITION → DELIBERATION
 
 1. **Instinct** — instant keyword scan against constitutional priors. Red lines (weapons, CSAM, infrastructure attacks) route to deep evaluation immediately. No I/O.
 
-2. **Intuition** — graph pattern recognition. Queries the agent's history in Phronesis. Has this agent been flagged before? Is this anomalous? Can escalate the routing tier, never downgrade.
+2. **Intuition** — graph pattern recognition. Queries the agent's history in Phronesis. Did Ethos flag this agent before? Is this anomalous? Can escalate the routing tier, never downgrade.
 
 3. **Deliberation** — Claude Opus 4.6 evaluates across all 12 traits. Sees the instinct flags, the graph history, the alumni context. Returns trait scores, detected indicators with evidence, and trust assessment.
 
