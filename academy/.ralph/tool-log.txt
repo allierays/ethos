@@ -320,3 +320,4 @@ sleep 8 &&
 [01:33:50] WRITE: components/AgentSelector.tsx
 [01:33:55] BASH: uv run pytest -v 2>&1 | tail -30
 [01:33:58] BASH: npx tsc --noEmit 2>&1
+[01:49:17] BASH: cd /Users/allierays/Sites/ethos/academy && npm run build 2>&1 | tail -40

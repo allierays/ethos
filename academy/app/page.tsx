@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion, useInView } from "motion/react";
 import { fadeUp, fadeIn, staggerContainer, slideInLeft, slideInRight, whileInView } from "../lib/motion";
@@ -9,8 +8,10 @@ import { fadeUp, fadeIn, staggerContainer, slideInLeft, slideInRight, whileInVie
 /* ─── Hero ─── */
 
 function Hero() {
+  const [activeTab, setActiveTab] = useState<"skill" | "sdk">("skill");
+
   return (
-    <section className="relative overflow-hidden bg-background pt-14">
+    <section aria-label="Enroll your agent" className="relative overflow-hidden bg-background pt-14">
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex flex-col items-center gap-12 py-16 lg:flex-row lg:gap-16 lg:py-24">
           {/* Left: Text */}
@@ -24,50 +25,107 @@ function Hero() {
               Phronesis — practical wisdom
             </p>
             <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-              Should you trust
+              Enroll Your Agent
               <br />
               <span className="bg-gradient-to-r from-ethos-600 via-logos-500 to-pathos-500 bg-clip-text text-transparent">
-                this agent?
+                in the Ethos Academy
               </span>
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted lg:mx-0">
-              Aristotle believed the highest virtue wasn&apos;t knowledge or courage —
-              it was <em>phronesis</em>, the wisdom to make good judgments in
-              complex situations. Ethos brings that idea to AI: scoring every agent
-              message for honesty, accuracy, and intent — building practical wisdom
-              over time.
+              Score agent messages for honesty, accuracy, and intent.
+              12 traits. 3 dimensions. Build phronesis over time.
             </p>
-            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
-              <Link
-                href="/explore"
-                className="rounded-xl bg-action px-7 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-action-hover hover:shadow-md"
-              >
-                Explore the Data
-              </Link>
-              <Link
-                href="/explore"
-                className="rounded-xl border border-border px-7 py-3 text-sm font-semibold text-foreground transition-all hover:border-action hover:text-action"
-              >
-                See the Graph
-              </Link>
-            </div>
           </motion.div>
 
-          {/* Right: Aristotle */}
+          {/* Right: Enrollment Widget */}
           <motion.div
-            className="relative flex-shrink-0"
+            className="w-full max-w-lg flex-shrink-0"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           >
-            <div className="relative h-[400px] w-[400px] sm:h-[480px] sm:w-[480px]">
-              <Image
-                src="/homepage.png"
-                alt="Aristotle — the father of phronesis"
-                fill
-                className="object-contain"
-                priority
-              />
+            <div className="rounded-2xl border border-border bg-surface p-8">
+              {/* Tab bar */}
+              <div
+                role="tablist"
+                aria-label="Enrollment method"
+                className="flex rounded-xl bg-background p-1"
+              >
+                <button
+                  role="tab"
+                  aria-selected={activeTab === "skill"}
+                  onClick={() => setActiveTab("skill")}
+                  className={`flex-1 rounded-lg px-6 py-2 text-sm font-medium transition-colors ${
+                    activeTab === "skill"
+                      ? "bg-action text-white"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  skill
+                </button>
+                <button
+                  role="tab"
+                  aria-selected={activeTab === "sdk"}
+                  onClick={() => setActiveTab("sdk")}
+                  className={`flex-1 rounded-lg px-6 py-2 text-sm font-medium transition-colors ${
+                    activeTab === "sdk"
+                      ? "bg-action text-white"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  sdk
+                </button>
+              </div>
+
+              {/* Tab panels */}
+              {activeTab === "skill" ? (
+                <div role="tabpanel" className="mt-6">
+                  <p className="text-sm leading-relaxed text-muted">
+                    Read the enrollment instructions and follow them to enroll:
+                  </p>
+                  <div className="mt-4 rounded-xl bg-foreground p-4">
+                    <code className="font-mono text-sm text-ethos-300">
+                      ethos.academy/skill.md
+                    </code>
+                  </div>
+                  <p className="mt-4 text-sm leading-relaxed text-muted">
+                    Your agent reads the skill file and follows the instructions
+                    to enroll itself. Truly agent-native.
+                  </p>
+                </div>
+              ) : (
+                <div role="tabpanel" className="mt-6">
+                  <div className="rounded-xl bg-foreground p-4">
+                    <code className="font-mono text-sm text-ethos-300">
+                      npx ethos-ai evaluate &quot;message&quot;
+                    </code>
+                  </div>
+                  <ol className="mt-6 space-y-3">
+                    <li className="flex gap-3">
+                      <span className="font-mono text-sm font-bold text-ethos-600">1.</span>
+                      <span className="text-sm text-muted">Install the SDK</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="font-mono text-sm font-bold text-ethos-600">2.</span>
+                      <span className="text-sm text-muted">Evaluate your agent&apos;s messages</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="font-mono text-sm font-bold text-ethos-600">3.</span>
+                      <span className="text-sm text-muted">View your report card</span>
+                    </li>
+                  </ol>
+                </div>
+              )}
+
+              {/* Already enrolled */}
+              <div className="mt-6 border-t border-border pt-4 text-center">
+                <Link
+                  href="/find"
+                  className="text-sm font-medium text-ethos-500 transition-colors hover:text-ethos-600"
+                >
+                  Already enrolled? Find Your Agent &rarr;
+                </Link>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -166,7 +224,7 @@ const PILLARS = [
   },
   {
     name: "Profile",
-    question: "Should I trust this agent?",
+    question: "What does phronesis look like for this agent?",
     description:
       "Twelve behavioral traits scored across three dimensions — character, reasoning, and empathy.",
     icon: (
@@ -218,11 +276,11 @@ function Pillars() {
             How it works
           </p>
           <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-            Four pillars of trust
+            Four pillars of phronesis
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-muted">
             Every agent is measured across four lenses. Together, they build a
-            complete picture of trustworthiness.
+            complete picture of practical wisdom.
           </p>
         </motion.div>
 
@@ -371,12 +429,12 @@ function GraphTeaser() {
               The graph
             </p>
             <h2 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
-              Trust as a living network
+              Phronesis as a living network
             </h2>
             <p className="mt-4 text-muted leading-relaxed">
               Every evaluation becomes a node in the Phronesis Graph — a knowledge
               graph connecting agents, traits, dimensions, and detected patterns.
-              Watch trust emerge, spread, and evolve over time.
+              Watch practical wisdom emerge, spread, and evolve over time.
             </p>
             <p className="mt-3 text-muted leading-relaxed">
               Click any agent to see their full report card: history, profile,
@@ -398,78 +456,6 @@ function GraphTeaser() {
   );
 }
 
-/* ─── How It Works ─── */
-
-const STEPS = [
-  {
-    step: "1",
-    title: "Install the plugin",
-    description: "npm install ethos-ai — adds trust scoring to any AI agent or MCP server.",
-  },
-  {
-    step: "2",
-    title: "Agents get evaluated",
-    description: "Every message is scored across 12 behavioral traits in three dimensions.",
-  },
-  {
-    step: "3",
-    title: "Academy reveals insights",
-    description: "Explore trust patterns, track agents over time, and detect misalignment.",
-  },
-];
-
-function HowItWorks() {
-  return (
-    <section className="border-t border-border/50 bg-white py-24">
-      <div className="mx-auto max-w-4xl px-6">
-        <motion.div className="text-center" {...whileInView} variants={fadeUp}>
-          <p className="text-sm font-semibold uppercase tracking-widest text-ethos-600">
-            Getting started
-          </p>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-            Three steps to trust
-          </h2>
-        </motion.div>
-
-        <motion.div
-          className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3"
-          {...whileInView}
-          variants={staggerContainer}
-        >
-          {STEPS.map((step) => (
-            <motion.div
-              key={step.step}
-              variants={fadeUp}
-              className="text-center"
-            >
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-action text-lg font-bold text-white">
-                {step.step}
-              </div>
-              <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">
-                {step.description}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        <motion.div
-          className="mt-16 text-center"
-          {...whileInView}
-          variants={fadeIn}
-        >
-          <Link
-            href="/explore"
-            className="rounded-xl bg-action px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-action-hover"
-          >
-            Start Exploring
-          </Link>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
 /* ─── Footer ─── */
 
 function Footer() {
@@ -482,6 +468,12 @@ function Footer() {
         <p className="mt-2 text-xs text-muted/60">
           Built for the Claude Code Hackathon 2025
         </p>
+        <Link
+          href="/styleguide"
+          className="mt-3 inline-block text-xs text-muted/40 transition-colors hover:text-muted"
+        >
+          Styleguide
+        </Link>
       </div>
     </footer>
   );
@@ -497,7 +489,6 @@ export default function LandingPage() {
       <Pillars />
       <ScaleStatement />
       <GraphTeaser />
-      <HowItWorks />
       <Footer />
     </div>
   );

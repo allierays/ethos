@@ -1,8 +1,11 @@
 """FastAPI application for the Ethos evaluation API."""
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+from api.auth import require_api_key
+from api.rate_limit import rate_limit
 
 from ethos import (
     detect_patterns,
@@ -64,12 +67,20 @@ def health() -> HealthResponse:
     return HealthResponse(status="ok")
 
 
-@app.post("/evaluate", response_model=EvaluationResult)
+@app.post(
+    "/evaluate",
+    response_model=EvaluationResult,
+    dependencies=[Depends(require_api_key), Depends(rate_limit)],
+)
 def evaluate_endpoint(req: EvaluateRequest):
     return evaluate(req.text, source=req.source, source_name=req.source_name)
 
 
-@app.post("/reflect", response_model=ReflectionResult)
+@app.post(
+    "/reflect",
+    response_model=ReflectionResult,
+    dependencies=[Depends(require_api_key)],
+)
 def reflect_endpoint(req: ReflectRequest):
     return reflect(req.agent_id, text=req.text)
 
