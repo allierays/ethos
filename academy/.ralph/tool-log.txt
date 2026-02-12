@@ -21,3 +21,5 @@ curl -s -o /dev/null -w "%{http_code}" http://l
 sleep 3
 curl -s -o /dev/null -w "%{http_code}" --max-ti
 [18:54:51] BASH: npx tsc --noEmit 2>&1
+[18:57:28] BASH: cd /Users/allierays/Sites/ethos/academy && npx tsc --noEmit 2>&1
+[18:57:37] BASH: npm run build 2>&1

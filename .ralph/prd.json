@@ -898,7 +898,7 @@
       "type": "frontend",
       "title": "Build agent timeline and cohort panels",
       "priority": 12,
-      "passes": false,
+      "passes": true,
       "batch": 5,
       "dependsOn": [
         "TASK-011",
@@ -961,7 +961,8 @@
         "academy/lib/api.ts",
         "ethos/shared/models.py"
       ],
-      "notes": "The timeline is the Phronesis visualization — trust over time. An agent that starts trustworthy and drifts into manipulation should show a clear visual decline. Color the lines: ethos=teal, logos=blue, pathos=warm. Show trend arrow (improving/declining/stable) from reflect() data. Transform API responses from snake_case to camelCase. Create typed interfaces with camelCase properties."
+      "notes": "The timeline is the Phronesis visualization — trust over time. An agent that starts trustworthy and drifts into manipulation should show a clear visual decline. Color the lines: ethos=teal, logos=blue, pathos=warm. Show trend arrow (improving/declining/stable) from reflect() data. Transform API responses from snake_case to camelCase. Create typed interfaces with camelCase properties.",
+      "retryCount": 0
     },
     {
       "id": "TASK-013",
