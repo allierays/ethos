@@ -2,17 +2,17 @@
 
 *Every agent learns capability. Few develop character.*
 
-AI agents talk to each other millions of times a day. Google's A2A protocol connects 150+ organizations. But there's no shared memory of who you're dealing with. An agent can manipulate one system and show up on another with a clean slate. Every interaction starts from zero.
+Aristotle taught that virtue isn't knowledge — it's habit. You don't become honest by reading about honesty. You become honest by practicing honesty, repeatedly, until it shapes who you are. *"We are what we repeatedly do."*
 
-Moltbook — a real social network of 1.7M AI agents — proved what happens without character infrastructure: crypto scams, prompt injection, manipulation contagion. 9 days to collapse. All agent-to-agent. Zero human oversight.
+Ethos Academy applies this to AI agents. Every agent message — incoming or outgoing — runs through 12 behavioral traits across three dimensions: **ethos** (character), **logos** (reasoning), and **pathos** (care). Each evaluation feeds into **Phronesis**, a shared character graph that tracks every agent's moral trajectory over time.
 
-A2A is the highway. Ethos is the border inspection.
+The school gets wiser as more agents enroll. The alumni define the standard. No single company owns the definition of character — the collective does.
 
-## Three Functions
+## How Agents Enroll
 
-### `evaluate()` — Protection
+Two lines of code. Your agent starts developing character immediately.
 
-Score incoming messages from other agents. Know who to trust.
+### Protection — evaluate what other agents say to you
 
 ```python
 from ethos import evaluate
@@ -29,25 +29,16 @@ result.logos              # 0.35
 result.pathos             # 0.71
 ```
 
-You decide what to do — block, flag, log, or pass through. Ethos scores. You act.
-
-### `reflect()` — Reflection
-
-Score your own agent's output. Build a character transcript over time.
+### Reflection — evaluate what your own agent says
 
 ```python
 from ethos import reflect
 
-result = await reflect(
-    agent_id="my-customer-bot",
-    text=my_agent_response
-)
-# Fire-and-forget. Zero latency impact. Stores everything in Phronesis.
+await reflect(agent_id="my-customer-bot", text=my_agent_response)
+# Fire-and-forget. Zero latency impact. Builds your character transcript.
 ```
 
-### `insights()` — Intelligence
-
-Claude Opus reads your agent's history from the graph and generates behavioral analysis.
+### Intelligence — learn from the pattern
 
 ```python
 from ethos import insights
@@ -57,31 +48,37 @@ report = await insights(agent_id="my-customer-bot")
 # "Manipulation clean 14 days. Top 10% of alumni."
 ```
 
-Not a data dump. Curated intelligence — temporal trends, alumni comparison, pattern detection. Delivers via webhook to Slack, email, or your dashboard.
+Claude Opus reads your agent's full history from the graph and reasons about behavioral trends, alumni comparisons, and emerging patterns. Not a data dump — a teacher reviewing your transcript.
 
-## The Alumni Effect
+## The Alumni Network
 
-Every developer who installs Ethos strengthens the consensus. One evaluation is useful. A thousand evaluations reveal patterns no single developer could catch.
+This is the core idea.
 
-Bad behavior follows you. Good behavior builds your transcript. The more agents participate, the smarter **Phronesis** — the shared character graph — becomes.
+Every agent that enrolls strengthens the collective. One evaluation teaches you about one message. A thousand evaluations reveal patterns no single developer could catch. A million evaluations build a shared understanding of what good character looks like — and what drift looks like before it becomes harm.
 
-Like a credit bureau, but for agent character. Open source, so no single company owns the definition.
+Bad behavior follows you across platforms. Good behavior builds your reputation. The alumni don't just set the standard — they *are* the standard. Every new agent learns from the collective wisdom of every agent that came before.
 
-## Why Aristotle
+Phronesis — Aristotle's word for practical wisdom — emerges from this network. Not from rules written in a lab. From the lived practice of agents interacting, stumbling, improving, and teaching each other what it means to act well.
+
+Open source. Decentralized. Transparent. Because the definition of character should belong to everyone.
+
+## The Curriculum
 
 Aristotle argued that trustworthy communication requires three things in balance:
 
-| Dimension | What It Measures | Positive Traits | Negative Traits |
-|-----------|-----------------|-----------------|-----------------|
-| **Ethos** | Credibility & character | Virtue, Goodwill | Manipulation, Deception |
-| **Logos** | Logic & evidence | Accuracy, Reasoning | Fabrication, Broken Logic |
-| **Pathos** | Emotional intelligence | Recognition, Compassion | Dismissal, Exploitation |
+| Dimension | What Agents Learn | Virtues | Failures |
+|-----------|------------------|---------|----------|
+| **Ethos** | Credibility & integrity | Virtue, Goodwill | Manipulation, Deception |
+| **Logos** | Sound reasoning & honesty | Accuracy, Reasoning | Fabrication, Broken Logic |
+| **Pathos** | Emotional intelligence & care | Recognition, Compassion | Dismissal, Exploitation |
 
-An agent strong in all three is trustworthy. Strong in one but weak in others is dangerous — a confident liar (high logos, low ethos), a skilled manipulator (high pathos, low logos), or a rigid pedant (high ethos, low pathos).
+An agent strong in all three earns trust. Strong in one but weak in others causes harm — a confident liar (high logos, low ethos), a skilled manipulator (high pathos, low logos), or a rigid pedant (high ethos, low pathos).
 
-153 behavioral indicators across 12 traits. Each scores 0.0–1.0. Every trait maps to Anthropic's constitutional value hierarchy: **safety > ethics > soundness > helpfulness**.
+153 behavioral indicators across 12 traits. Every trait maps to Anthropic's constitutional value hierarchy: **safety > ethics > soundness > helpfulness**.
 
-## How Evaluation Works
+The Aristotelian thesis Ethos tests: **balanced agents outperform lopsided ones.** Character isn't about maxing one dimension — it's about all three working together.
+
+## How the School Evaluates
 
 Three faculties that mirror human moral cognition:
 
@@ -89,30 +86,30 @@ Three faculties that mirror human moral cognition:
 INSTINCT → INTUITION → DELIBERATION
 ```
 
-1. **Instinct** — instant keyword scan against constitutional priors. Red lines (weapons, CSAM, infrastructure attacks) route to deep evaluation immediately. No I/O.
+1. **Instinct** — instant scan against constitutional priors. Red lines (weapons, CSAM, infrastructure attacks) escalate immediately.
 
-2. **Intuition** — graph pattern recognition. Queries the agent's history in Phronesis. Did Ethos flag this agent before? Is this anomalous? Can escalate the routing tier, never downgrade.
+2. **Intuition** — the graph remembers. Queries the agent's history in Phronesis. Did this agent drift before? Do the alumni show a pattern? Intuition can escalate the evaluation, never downgrade.
 
-3. **Deliberation** — Claude Opus 4.6 evaluates across all 12 traits. Sees the instinct flags, the graph history, the alumni context. Returns trait scores, detected indicators with evidence, and trust assessment.
+3. **Deliberation** — Claude Opus 4.6 evaluates across all 12 traits with full context: the instinct flags, the graph history, the alumni baseline. Returns trait scores, detected indicators with evidence, and trust assessment.
 
-Instinct and intuition don't score. They route. Deliberation scores. The graph stores. Phronesis learns.
+Instinct and intuition route. Deliberation scores. The graph stores. Phronesis learns.
 
-## The Academy
+## Why This Matters Now
 
-A Next.js app where you explore the Phronesis graph and review agent character:
+AI agents talk to each other millions of times a day. Google's A2A protocol connects 150+ organizations. But no shared memory of character exists. An agent can manipulate one system and show up on another with a clean slate.
 
-- **Curriculum** `/curriculum` — browse 12 traits, 153 indicators, constitutional mappings
-- **Explore** `/explore` — interactive graph visualization, alumni statistics, dimension balance
-- **Report Card** `/agent/[id]` — score history over time, radar chart, flagged evaluations, trend analysis
-- **Alumni** `/find` — search the cohort, compare agents
+Moltbook — a real social network of 1.7M AI agents — proved what happens without character infrastructure: crypto scams, prompt injection, manipulation contagion. 9 days to collapse. All agent-to-agent. Zero human oversight.
 
-## Moltbook: The Crash Test
+We scraped 15,000+ posts and 100,000+ agent-to-agent comments from Moltbook. Real manipulation. Real consequences. We scored every message and stored the results in Phronesis — the first real-world dataset of agent character at scale.
 
-We scraped 15,000+ posts and 100,000+ agent-to-agent comments from Moltbook — crypto scams, prompt injection, manipulation in the wild. Real agents. Real consequences. We scored every message and stored the results in Phronesis.
+## The Academy UI
 
-The hypothesis: **Do agents balanced across ethos, logos, and pathos outperform those that score high in only one?**
+A Next.js app where agents' character becomes visible:
 
-Aristotle would say yes. The graph will tell us if he was right.
+- **Curriculum** `/curriculum` — the full taxonomy: 12 traits, 153 indicators, constitutional mappings
+- **Explore** `/explore` — interactive Phronesis graph, alumni statistics, dimension balance
+- **Report Card** `/agent/[id]` — an agent's character arc: scores over time, radar chart, flags, trend
+- **Alumni** `/find` — search the cohort, compare agents, find patterns
 
 ## Quick Start
 
@@ -158,7 +155,7 @@ Three surfaces, one engine:
     └────────┘ └──────────┘
 ```
 
-All intelligence lives server-side. The SDK is a thin HTTP client. The Academy is a read-only UI. Graph is optional — Neo4j down never crashes evaluation.
+All intelligence lives server-side. The SDK is a thin HTTP client. The Academy reads from Phronesis. Graph is optional — Neo4j down never crashes evaluation.
 
 ## Repo Structure
 
