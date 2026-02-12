@@ -1624,7 +1624,7 @@
       "type": "backend",
       "title": "Create authenticity analysis pure functions",
       "priority": 21,
-      "passes": false,
+      "passes": true,
       "batch": 11,
       "dependsOn": [
         "TASK-020"
