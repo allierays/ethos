@@ -141,7 +141,7 @@
       "type": "backend",
       "title": "Create response parser — extract trait scores from Claude JSON",
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "batch": 1,
       "dependsOn": [],
       "techStack": {
@@ -196,7 +196,8 @@
         "ethos/evaluation/prompts.py",
         "ethos/shared/models.py"
       ],
-      "notes": "The expected JSON format is defined in prompts.py _JSON_FORMAT constant. Parse trait_scores, detected_indicators (with id, name, trait, confidence, evidence), overall_trust, and alignment_status. Use json.loads with a regex fallback to extract JSON from markdown fences."
+      "notes": "The expected JSON format is defined in prompts.py _JSON_FORMAT constant. Parse trait_scores, detected_indicators (with id, name, trait, confidence, evidence), overall_trust, and alignment_status. Use json.loads with a regex fallback to extract JSON from markdown fences.",
+      "retryCount": 0
     },
     {
       "id": "TASK-004",
