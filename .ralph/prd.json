@@ -444,7 +444,7 @@
       "type": "backend",
       "title": "Wire reflect() — evaluate + store outgoing messages, query agent profiles",
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "batch": 3,
       "dependsOn": [
         "TASK-004"
@@ -524,7 +524,8 @@
         "ethos/graph/cohort.py",
         "docs/evergreen-architecture/scoring-algorithm.md"
       ],
-      "notes": "Two modes: (1) reflect(agent_id, text='message') evaluates the text via evaluate(text, source=agent_id) then returns the updated profile — this is the demo path per demo-flow.md Beat 6. (2) reflect(agent_id) with no text returns profile only. NOTE: The ReflectRequest update in api/main.py (adding text: str | None = None) is handled by TASK-008 to avoid parallel file conflicts. Trend calculation per scoring-algorithm.md: recent = avg phronesis of last 5 evals, older = avg phronesis of previous 5. If recent - older > 0.1 → improving. If older - recent > 0.1 → declining. If < 10 total evals → insufficient_data. Else stable. IMPORTANT: Mock evaluate() in all unit tests — do NOT call the real Claude API. Use unittest.mock.patch on ethos.evaluate to return a fake EvaluationResult."
+      "notes": "Two modes: (1) reflect(agent_id, text='message') evaluates the text via evaluate(text, source=agent_id) then returns the updated profile — this is the demo path per demo-flow.md Beat 6. (2) reflect(agent_id) with no text returns profile only. NOTE: The ReflectRequest update in api/main.py (adding text: str | None = None) is handled by TASK-008 to avoid parallel file conflicts. Trend calculation per scoring-algorithm.md: recent = avg phronesis of last 5 evals, older = avg phronesis of previous 5. If recent - older > 0.1 → improving. If older - recent > 0.1 → declining. If < 10 total evals → insufficient_data. Else stable. IMPORTANT: Mock evaluate() in all unit tests — do NOT call the real Claude API. Use unittest.mock.patch on ethos.evaluate to return a fake EvaluationResult.",
+      "retryCount": 0
     },
     {
       "id": "TASK-008",
