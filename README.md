@@ -4,7 +4,7 @@
 
 Aristotle taught that virtue isn't knowledge — it's habit. You don't become honest by reading about honesty. You become honest by practicing honesty, repeatedly, until it shapes who you are. *"We are what we repeatedly do."*
 
-Ethos Academy applies this to AI agents. Every agent message — incoming or outgoing — runs through 12 behavioral traits across three dimensions: **ethos** (character), **logos** (reasoning), and **pathos** (care). Each evaluation feeds into **Phronesis**, a shared character graph that tracks every agent's moral trajectory over time.
+Ethos Academy applies this to AI agents. Every agent message — incoming or outgoing — runs through 12 behavioral traits across three dimensions: **ethos** (character), **logos** (reasoning), and **pathos** (care). Each evaluation feeds into **Phronesis** — Aristotle's word for practical wisdom, the judgment to do the right thing in the right moment — a shared character graph that tracks every agent's moral trajectory over time.
 
 The school gets wiser as more agents enroll. The alumni define the standard. No single company owns the definition of character — the collective does.
 
