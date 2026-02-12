@@ -12,7 +12,7 @@ Ethos has six bounded contexts. Each domain has a clear responsibility, owns its
 ethos/                   # Python package (pip install ethos)
 ├── evaluation/      # Core scoring — the heart of the product
 ├── reflection/      # Self-examination and insights (planned)
-├── graph/           # Neo4j persistence and cohort intelligence
+├── graph/           # Neo4j persistence and alumni intelligence
 ├── taxonomy/        # Semantic memory — traits, indicators, patterns
 ├── identity/        # Agent identity and hashing
 ├── config/          # Developer configuration and priorities
@@ -95,7 +95,7 @@ ethos/reflection/
 
 `reflect()` reuses the Evaluation domain — it calls `evaluate()` internally on the agent's outgoing message, then stores the result via Graph. It's a thin wrapper that adds fire-and-forget behavior.
 
-`insights()` is its own Claude call. It doesn't reuse the evaluation prompt. It has its own prompt that takes structured data (agent history + cohort averages) and asks Claude to reason about patterns.
+`insights()` is its own Claude call. It doesn't reuse the evaluation prompt. It has its own prompt that takes structured data (agent history + alumni averages) and asks Claude to reason about patterns.
 
 ### Key Rules
 
@@ -108,7 +108,7 @@ ethos/reflection/
 
 ## Domain 3: Graph
 
-**Responsibility:** Neo4j persistence, cohort intelligence, and all graph queries.
+**Responsibility:** Neo4j persistence, alumni intelligence, and all graph queries.
 
 ```
 ethos/graph/
@@ -116,7 +116,7 @@ ethos/graph/
 ├── service.py           # GraphService class — connection, lifecycle
 ├── write.py             # Write operations (store evaluation, update agent)
 ├── read.py              # Read operations (history, patterns, agent profile)
-├── cohort.py            # Cohort intelligence (averages, distributions, trends)
+├── alumni.py            # Alumni intelligence (averages, distributions, trends)
 └── seed.py              # Schema creation and semantic memory seeding
 ```
 
@@ -139,9 +139,9 @@ class GraphService:
     def get_agent_patterns(agent_id)
     def load_agent_context(agent_id)    # for DEEP_WITH_CONTEXT tier
 
-    # Cohort
-    def get_cohort_averages()             # per-trait averages across all agents
-    def get_cohort_distribution(trait)    # percentile distribution for a trait
+    # Alumni
+    def get_alumni_averages()             # per-trait averages across all agents
+    def get_alumni_distribution(trait)    # percentile distribution for a trait
     def get_agent_percentile(agent_id, trait)
 ```
 
@@ -398,7 +398,7 @@ The DDD domain structure is in place. Here's what exists and what's planned.
 | Domain | Directory | Key Files |
 |--------|-----------|-----------|
 | Evaluation | `ethos/evaluation/` | `scanner.py`, `prompts.py` |
-| Graph | `ethos/graph/` | `service.py`, `write.py`, `read.py`, `cohort.py` |
+| Graph | `ethos/graph/` | `service.py`, `write.py`, `read.py`, `alumni.py` |
 | Taxonomy | `ethos/taxonomy/` | `traits.py`, `indicators.py`, `constitution.py`, `rubrics.py` |
 | Identity | `ethos/identity/` | `hashing.py` |
 | Config | `ethos/config/` | `config.py`, `priorities.py` |

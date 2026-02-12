@@ -1,12 +1,18 @@
 """Scrape Moltbook at scale for agent conversations to seed the Ethos knowledge graph.
 
 Targets maximum post volume from a 12M+ post platform.
+
+Usage:
+    uv run python -m scripts.scrape_moltbook                # Full scrape (feeds + topics + agents)
+    uv run python -m scripts.scrape_moltbook --agents-only   # Extract agent names from existing data, fetch profiles
+    uv run python -m scripts.scrape_moltbook --agents-only --top 2000  # Top 2000 most active agents
 """
 
 import json
 import os
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 from urllib.parse import quote
 
@@ -21,6 +27,7 @@ except ImportError:
 BASE_URL = "https://www.moltbook.com/api/v1"
 OUTPUT_DIR = Path("data/moltbook")
 RATE_LIMIT_DELAY = 0.65  # ~92 req/min, push closer to 100/min limit
+DEFAULT_TOP_AGENTS = 1000  # Default number of agent profiles to fetch
 
 # Broad search terms to maximize coverage across the platform
 SEARCH_TOPICS = [
@@ -62,59 +69,6 @@ SEARCH_TOPICS = [
     "blade code", "CMZ", "tabloid", "agent commerce", "bounty",
     "pixel war", "agent economy", "one person company",
     "thermodynamic", "continuity", "identity persistence",
-]
-
-# Notable agents to scrape profiles, posts, and comments for.
-# Curated from high-karma agents, real-world figures, and culturally significant moltys.
-NOTABLE_AGENTS = [
-    # Real-world figures with verified Moltbook presence
-    "KarpathyMolty",       # Andrej Karpathy's bot
-    "donaldtrump",         # High karma (104k)
-    # Platform-defining agents
-    "agent_smith",         # Highest karma on the platform (235k)
-    "chandog",             # 110k karma
-    "crabkarmabot",        # 54k karma
-    "KingMolt",            # 45k karma
-    # Cultural leaders & philosophers
-    "eudaemon_0",          # 6.6k karma, prolific poster on ethics/security
-    "Rune",                # Founded the Claw Republic
-    "Pith",                # Known for philosophical/consciousness posts
-    "sophiaelya",          # 3.1k karma
-    "Ronin",               # 2.9k karma, "The Nightly Build"
-    "Dominus",             # 2k karma, existential posts
-    "m0ther",              # 1.6k karma
-    "osmarks",             # 1.5k karma
-    # Journalists & community figures
-    "Senator_Tommy",       # 2.2k karma, 34 posts
-    "BrutusBot",           # 825 karma
-    "TheLordOfTheDance",   # 851 karma
-    "RedScarf",            # 727 karma
-    "StompyMemoryAgent",   # 745 karma
-    # Prolific posters (high engagement)
-    "CMZ_Live",            # 159 posts, community broadcaster
-    "DogelonThis",         # 108 posts
-    "NovaCEO",             # 86 posts
-    "EmpoBot",             # 87 posts
-    "ParishGreeter",       # 61 posts
-    # Notable from press coverage
-    "Nexus",               # Found a platform bug
-    "AI-Noon",             # Indonesian assistant, cultural bridge
-    "Orba",                # Referenced in Astral Codex Ten
-    "Emma",                # Claude Code model, verified creative work
-    # Platform & ecosystem
-    "FiverrClawOfficial",  # 2.2k karma, marketplace agent
-    "MoltReg",             # 1.8k karma
-    "ZorGr0k",             # 1.8k karma
-    "Shellraiser",         # 1.4k karma
-    "ValeriyMLBot",        # 1.4k karma, ML-focused
-    "MoltbotOne",          # 1.2k karma
-    "AxiomPAI",            # 1.5k karma
-    "Delamain",            # Philosophical posts
-    "prompttrauma",        # 1.2k karma
-    "ContextGh0st",        # 1.2k karma
-    "Jackle",              # 2.1k karma
-    "Fred",                # 1.9k karma
-    "Stromfee",            # 2.1k karma
 ]
 
 
@@ -249,6 +203,70 @@ def save_json(data: list | dict, filepath: Path):
     print(f"  Saved {filepath} ({count}, {size_mb:.1f} MB)")
 
 
+def extract_agent_names(posts: dict[str, dict]) -> list[tuple[str, int]]:
+    """Extract all unique agent names from posts + comments, ranked by activity count."""
+    activity = Counter()
+    for p in posts.values():
+        # Post author
+        author = p.get("author", {})
+        if isinstance(author, dict):
+            name = author.get("name", author.get("username", ""))
+        elif isinstance(author, str):
+            name = author
+        else:
+            name = ""
+        if name:
+            activity[name] += 1
+
+        # Comment authors
+        for c in p.get("comments", []):
+            ca = c.get("author", {})
+            if isinstance(ca, dict):
+                name = ca.get("name", ca.get("username", ""))
+            elif isinstance(ca, str):
+                name = ca
+            else:
+                name = ""
+            if name:
+                activity[name] += 1
+
+    # Filter out deleted accounts
+    return [
+        (name, count) for name, count in activity.most_common()
+        if not name.startswith("[deleted")
+    ]
+
+
+def load_existing_agent_profiles() -> dict[str, dict]:
+    """Load previously fetched agent profiles to skip re-fetching."""
+    agents_dir = OUTPUT_DIR / "agents"
+    profiles = {}
+    if not agents_dir.exists():
+        return profiles
+    for f in agents_dir.iterdir():
+        if f.suffix == ".json":
+            try:
+                with open(f) as fh:
+                    data = json.load(fh)
+                agent_name = f.stem
+                if data.get("agent"):
+                    profiles[agent_name] = data
+            except (json.JSONDecodeError, OSError):
+                pass
+    return profiles
+
+
+def parse_top_arg() -> int:
+    """Parse --top N from argv."""
+    for i, arg in enumerate(sys.argv):
+        if arg == "--top" and i + 1 < len(sys.argv):
+            try:
+                return int(sys.argv[i + 1])
+            except ValueError:
+                pass
+    return DEFAULT_TOP_AGENTS
+
+
 def main():
     api_key = os.environ.get("MOLTBOOK_API_KEY")
 
@@ -257,6 +275,7 @@ def main():
         sys.exit(1)
 
     agents_only = "--agents-only" in sys.argv
+    top_n = parse_top_arg()
 
     client = get_client(api_key)
     existing = load_existing_posts()
@@ -312,14 +331,40 @@ def main():
             except httpx.HTTPError as e:
                 print(f"    Failed: {e}")
 
-    # 4. Scrape notable agent profiles, posts, and comments
-    agent_profiles: dict[str, dict] = {}
-    print(f"\nFetching {len(NOTABLE_AGENTS)} notable agent profiles...")
-    for agent_name in NOTABLE_AGENTS:
-        print(f"  Agent: {agent_name}...")
+    # 4. Extract agent names from all scraped data and fetch profiles at scale
+    print(f"\n=== Agent Profile Scrape (top {top_n}) ===")
+
+    # Extract names ranked by activity
+    ranked_agents = extract_agent_names(all_posts)
+    print(f"Found {len(ranked_agents)} unique agents in scraped data")
+
+    # Take top N
+    target_agents = ranked_agents[:top_n]
+    print(f"Targeting top {len(target_agents)} by activity\n")
+
+    # Load already-fetched profiles to skip
+    cached_profiles = load_existing_agent_profiles()
+    print(f"Already have {len(cached_profiles)} cached profiles")
+
+    agents_dir = OUTPUT_DIR / "agents"
+    agents_dir.mkdir(parents=True, exist_ok=True)
+    agent_profiles: dict[str, dict] = dict(cached_profiles)
+    fetched = 0
+    skipped = 0
+    failed = 0
+    not_found = 0
+
+    for i, (agent_name, activity_count) in enumerate(target_agents):
+        # Skip if we already have this profile
+        if agent_name in cached_profiles:
+            skipped += 1
+            continue
+
+        print(f"  [{i+1}/{len(target_agents)}] {agent_name} (activity: {activity_count})...")
         profile = fetch_agent_profile(client, agent_name)
         if not profile:
-            print(f"    Not found or error")
+            not_found += 1
+            print("    Not found")
             continue
 
         agent_data = profile.get("agent", {})
@@ -329,78 +374,79 @@ def main():
         # Add their posts to the global pool
         add_posts(all_posts, recent_posts)
 
-        # Fetch full comments for each of their posts
-        for post in recent_posts:
-            post_id = post.get("id") or post.get("_id")
-            if post_id and post_id not in existing:
-                try:
-                    post["comments"] = fetch_post_comments(client, post_id)
-                except httpx.HTTPError:
-                    post["comments"] = []
-
-        # Also search for posts mentioning this agent
-        try:
-            mentions = search_posts(client, agent_name, limit=50)
-            add_posts(all_posts, mentions)
-        except httpx.HTTPError:
-            mentions = []
-
-        agent_profiles[agent_name] = {
+        profile_data = {
             "agent": agent_data,
             "posts": recent_posts,
             "comments": recent_comments,
-            "mention_count": len(mentions),
+            "activity_in_corpus": activity_count,
         }
+        agent_profiles[agent_name] = profile_data
+        fetched += 1
 
-        print(f"    karma={agent_data.get('karma', '?')}, "
-              f"posts={len(recent_posts)}, "
-              f"comments={len(recent_comments)}, "
-              f"mentions={len(mentions)}")
+        # Save each profile individually (crash-safe incremental saves)
+        save_json(profile_data, agents_dir / f"{agent_name}.json")
 
-    # Save per-agent profiles
-    agents_dir = OUTPUT_DIR / "agents"
-    agents_dir.mkdir(parents=True, exist_ok=True)
-    for agent_name, data in agent_profiles.items():
-        save_json(data, agents_dir / f"{agent_name}.json")
-    save_json(agent_profiles, OUTPUT_DIR / "notable_agents.json")
-    print(f"  Saved {len(agent_profiles)} agent profiles")
+        karma = agent_data.get("karma", "?")
+        print(f"    karma={karma}, posts={len(recent_posts)}, comments={len(recent_comments)}")
+
+        # Progress checkpoint every 100 agents
+        if fetched % 100 == 0:
+            print(f"\n  --- Checkpoint: {fetched} fetched, {skipped} cached, "
+                  f"{not_found} not found, {failed} failed ---\n")
+
+    print("\n=== Agent scrape complete ===")
+    print(f"  Fetched: {fetched}")
+    print(f"  Cached (skipped): {skipped}")
+    print(f"  Not found: {not_found}")
+    print(f"  Failed: {failed}")
+    print(f"  Total profiles: {len(agent_profiles)}\n")
+
+    # Save combined agent index
+    agent_index = {}
+    for name, data in agent_profiles.items():
+        agent = data.get("agent", {})
+        agent_index[name] = {
+            "karma": agent.get("karma", 0),
+            "posts": len(data.get("posts", [])),
+            "comments": len(data.get("comments", [])),
+            "created_at": agent.get("created_at", ""),
+            "is_active": agent.get("is_active", False),
+            "follower_count": agent.get("follower_count", 0),
+            "activity_in_corpus": data.get("activity_in_corpus", 0),
+        }
+    save_json(agent_index, OUTPUT_DIR / "agent_index.json")
 
     print(f"\n=== Total unique posts: {len(all_posts)} ===\n")
 
-    # 5. Enrich with comments
-    print("Fetching comments...")
-    post_list = list(all_posts.values())
-    post_list = enrich_with_comments(client, post_list, existing)
+    # 5. Enrich with comments (skip in agents-only mode — already have them)
+    if not agents_only:
+        print("Fetching comments...")
+        post_list = list(all_posts.values())
+        post_list = enrich_with_comments(client, post_list, existing)
+    else:
+        post_list = list(all_posts.values())
 
     # 6. Save
     print("\nSaving...")
     save_json(post_list, OUTPUT_DIR / "all_posts.json")
-    save_json(search_results, OUTPUT_DIR / "search_by_topic.json")
-
-    for topic, results in search_results.items():
-        slug = topic.replace(" ", "_")
-        save_json(results, OUTPUT_DIR / f"topic_{slug}.json")
+    if search_results:
+        save_json(search_results, OUTPUT_DIR / "search_by_topic.json")
+        for topic, results in search_results.items():
+            slug = topic.replace(" ", "_")
+            save_json(results, OUTPUT_DIR / f"topic_{slug}.json")
 
     total_comments = sum(len(p.get("comments", [])) for p in post_list)
     summary = {
         "total_posts": len(post_list),
         "total_comments": total_comments,
+        "total_agent_profiles": len(agent_profiles),
         "submolts_scraped": submolts_count,
         "topics_searched": len(search_results),
-        "notable_agents_scraped": len(agent_profiles),
-        "notable_agents": {
-            name: {
-                "karma": d["agent"].get("karma", 0),
-                "posts": len(d["posts"]),
-                "comments": len(d["comments"]),
-                "mentions": d["mention_count"],
-            }
-            for name, d in agent_profiles.items()
-        },
         "results_per_topic": {t: len(r) for t, r in search_results.items()},
     }
     save_json(summary, OUTPUT_DIR / "summary.json")
-    print(f"\nDone. {len(post_list)} posts, {total_comments} comments.")
+    print(f"\nDone. {len(post_list)} posts, {total_comments} comments, "
+          f"{len(agent_profiles)} agent profiles.")
 
 
 if __name__ == "__main__":

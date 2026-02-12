@@ -88,6 +88,14 @@
       "learnedFrom": "TASK-015",
       "autoPromoted": true,
       "createdAt": "2026-02-11T20:26:02-08:00"
+    },
+    {
+      "id": "sign-013",
+      "pattern": "When building dictionary literals, never duplicate key names — if a key is already set earlier in the dict (e.g. from a default or computed value), don't add it again with a different value; search for the key name in the dict before inserting.",
+      "category": "backend",
+      "learnedFrom": "TASK-018",
+      "autoPromoted": true,
+      "createdAt": "2026-02-12T12:56:48-08:00"
     }
   ]
 }

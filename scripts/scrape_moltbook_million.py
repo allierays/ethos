@@ -227,8 +227,6 @@ def _process_post(api_key: str, post: dict) -> tuple[str, list[dict], int]:
     client = make_client(api_key)
     pid = post.get("id") or post.get("_id")
     existing_comments = post.get("comments") or []
-    existing_ids = set(c.get("id") for c in existing_comments if c.get("id"))
-
     all_new = fetch_comments_for_post(client, pid)
 
     # Merge
@@ -288,7 +286,7 @@ def backfill_comments(api_key: str, posts: dict[str, dict]):
                         posts[pid]["_comments_full"] = True
                         new_comments_total += new_count
                     processed += 1
-                except Exception as e:
+                except Exception:
                     processed += 1
                     # Mark as done even on error to avoid retrying forever
                     post = futures[future]

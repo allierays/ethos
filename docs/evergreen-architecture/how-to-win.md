@@ -50,13 +50,13 @@ Call the insights endpoint. Opus reads the agent's full evaluation history from 
 
 This shows Opus doing something no other model can do at this depth: temporal behavioral reasoning across a graph of character data.
 
-### 2:30–2:50 — The Cohort Effect
+### 2:30–2:50 — The Alumni Effect
 
 > "Every developer who evaluates their agent contributes to this graph. One evaluation is useful. A thousand evaluations reveal patterns no single developer could see. Every agent gets trained on capability — Ethos Academy is where they develop character."
 
 ### 2:50–3:00 — Close
 
-> "Open source. Two lines of code. You're in the cohort."
+> "Open source. Two lines of code. You're in the alumni."
 
 ---
 

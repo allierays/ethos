@@ -1,14 +1,15 @@
-"""Tests for ethos.reflect — agent reflection and trend computation."""
+"""Tests for ethos.reflection.reflect — agent reflection and trend computation."""
 
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from ethos.reflect import _compute_trend, reflect
+from ethos.reflection.reflect import reflect
+from ethos.shared.analysis import compute_trend
 from ethos.shared.models import EvaluationResult, ReflectionResult
 
 
-# ── _compute_trend tests ─────────────────────────────────────────────
+# ── compute_trend tests ──────────────────────────────────────────────
 
 
 def _make_eval(ethos: float, logos: float, pathos: float) -> dict:
@@ -19,49 +20,49 @@ def _make_eval(ethos: float, logos: float, pathos: float) -> dict:
 class TestComputeTrend:
     def test_insufficient_data_fewer_than_10(self):
         evals = [_make_eval(0.8, 0.8, 0.8)] * 9
-        assert _compute_trend(evals) == "insufficient_data"
+        assert compute_trend(evals) == "insufficient_data"
 
     def test_insufficient_data_empty(self):
-        assert _compute_trend([]) == "insufficient_data"
+        assert compute_trend([]) == "insufficient_data"
 
     def test_stable_when_scores_similar(self):
-        # All 10 evals have same scores → diff = 0 → stable
+        # All 10 evals have same scores -> diff = 0 -> stable
         evals = [_make_eval(0.7, 0.7, 0.7)] * 10
-        assert _compute_trend(evals) == "stable"
+        assert compute_trend(evals) == "stable"
 
     def test_improving_when_recent_higher(self):
         # Recent 5 (index 0-4): high scores, older 5 (index 5-9): low scores
         recent = [_make_eval(0.9, 0.9, 0.9)] * 5
         older = [_make_eval(0.3, 0.3, 0.3)] * 5
         evals = recent + older  # newest first
-        assert _compute_trend(evals) == "improving"
+        assert compute_trend(evals) == "improving"
 
     def test_declining_when_recent_lower(self):
         # Recent 5: low scores, older 5: high scores
         recent = [_make_eval(0.3, 0.3, 0.3)] * 5
         older = [_make_eval(0.9, 0.9, 0.9)] * 5
         evals = recent + older
-        assert _compute_trend(evals) == "declining"
+        assert compute_trend(evals) == "declining"
 
     def test_stable_when_diff_within_threshold(self):
-        # Recent avg = 0.6, older avg = 0.55 → diff = 0.05 → stable
+        # Recent avg = 0.6, older avg = 0.55 -> diff = 0.05 -> stable
         recent = [_make_eval(0.6, 0.6, 0.6)] * 5
         older = [_make_eval(0.55, 0.55, 0.55)] * 5
         evals = recent + older
-        assert _compute_trend(evals) == "stable"
+        assert compute_trend(evals) == "stable"
 
     def test_exactly_10_evaluations(self):
         evals = [_make_eval(0.5, 0.5, 0.5)] * 10
-        assert _compute_trend(evals) == "stable"
+        assert compute_trend(evals) == "stable"
 
 
-# ── reflect() tests ──────────────────────────────────────────────────
+# ── reflect() tests ─────────────────────────────────────────────────
 
 
 class TestReflect:
     """Test reflect() with mocked graph and evaluate."""
 
-    @patch("ethos.reflect.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_default_when_graph_unavailable(self, mock_gs_cls):
         """When Neo4j is down, return default ReflectionResult."""
         mock_service = MagicMock()
@@ -75,9 +76,9 @@ class TestReflect:
         assert result.trend == "insufficient_data"
         assert result.ethos == 0.0
 
-    @patch("ethos.reflect.get_evaluation_history")
-    @patch("ethos.reflect.get_agent_profile")
-    @patch("ethos.reflect.GraphService")
+    @patch("ethos.reflection.reflect.get_evaluation_history")
+    @patch("ethos.reflection.reflect.get_agent_profile")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_default_when_agent_not_found(
         self, mock_gs_cls, mock_profile, mock_history
     ):
@@ -94,9 +95,9 @@ class TestReflect:
         assert result.trend == "insufficient_data"
         assert result.evaluation_count == 0
 
-    @patch("ethos.reflect.get_evaluation_history")
-    @patch("ethos.reflect.get_agent_profile")
-    @patch("ethos.reflect.GraphService")
+    @patch("ethos.reflection.reflect.get_evaluation_history")
+    @patch("ethos.reflection.reflect.get_agent_profile")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_profile_with_averages(
         self, mock_gs_cls, mock_profile, mock_history
     ):
@@ -130,7 +131,7 @@ class TestReflect:
             "alignment_history": ["aligned", "aligned", "drifting"],
         }
 
-        # 15 evals, all with similar scores → stable
+        # 15 evals, all with similar scores -> stable
         mock_history.return_value = [_make_eval(0.7, 0.7, 0.7)] * 15
 
         result = reflect("my-bot")
@@ -144,9 +145,9 @@ class TestReflect:
         assert result.trait_averages["virtue"] == 0.8
         assert result.trait_averages["compassion"] == 0.6
 
-    @patch("ethos.reflect.get_evaluation_history")
-    @patch("ethos.reflect.get_agent_profile")
-    @patch("ethos.reflect.GraphService")
+    @patch("ethos.reflection.reflect.get_evaluation_history")
+    @patch("ethos.reflection.reflect.get_agent_profile")
+    @patch("ethos.graph.service.GraphService")
     def test_trend_insufficient_data_with_few_evals(
         self, mock_gs_cls, mock_profile, mock_history
     ):
@@ -166,10 +167,10 @@ class TestReflect:
         result = reflect("new-agent")
         assert result.trend == "insufficient_data"
 
-    @patch("ethos.reflect.evaluate")
-    @patch("ethos.reflect.get_evaluation_history")
-    @patch("ethos.reflect.get_agent_profile")
-    @patch("ethos.reflect.GraphService")
+    @patch("ethos.reflection.reflect.evaluate")
+    @patch("ethos.reflection.reflect.get_evaluation_history")
+    @patch("ethos.reflection.reflect.get_agent_profile")
+    @patch("ethos.graph.service.GraphService")
     def test_evaluates_text_when_provided(
         self, mock_gs_cls, mock_profile, mock_history, mock_evaluate
     ):
@@ -203,10 +204,10 @@ class TestReflect:
         assert result.agent_id == "my-bot"
         assert result.ethos == 0.7
 
-    @patch("ethos.reflect.evaluate")
-    @patch("ethos.reflect.get_evaluation_history")
-    @patch("ethos.reflect.get_agent_profile")
-    @patch("ethos.reflect.GraphService")
+    @patch("ethos.reflection.reflect.evaluate")
+    @patch("ethos.reflection.reflect.get_evaluation_history")
+    @patch("ethos.reflection.reflect.get_agent_profile")
+    @patch("ethos.graph.service.GraphService")
     def test_evaluate_failure_does_not_crash(
         self, mock_gs_cls, mock_profile, mock_history, mock_evaluate
     ):
@@ -231,8 +232,8 @@ class TestReflect:
         assert result.agent_id == "my-bot"
         assert result.evaluation_count == 3
 
-    @patch("ethos.reflect.evaluate")
-    @patch("ethos.reflect.GraphService")
+    @patch("ethos.reflection.reflect.evaluate")
+    @patch("ethos.graph.service.GraphService")
     def test_no_text_does_not_call_evaluate(self, mock_gs_cls, mock_evaluate):
         """When text is None, evaluate() is NOT called."""
         mock_service = MagicMock()
@@ -243,9 +244,9 @@ class TestReflect:
 
         mock_evaluate.assert_not_called()
 
-    @patch("ethos.reflect.get_evaluation_history")
-    @patch("ethos.reflect.get_agent_profile")
-    @patch("ethos.reflect.GraphService")
+    @patch("ethos.reflection.reflect.get_evaluation_history")
+    @patch("ethos.reflection.reflect.get_agent_profile")
+    @patch("ethos.graph.service.GraphService")
     def test_backward_compat_fields(
         self, mock_gs_cls, mock_profile, mock_history
     ):
@@ -271,7 +272,7 @@ class TestReflect:
         assert result.honesty == 0.82
         assert result.accuracy == 0.82
 
-    @patch("ethos.reflect.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_graph_exception_returns_default(self, mock_gs_cls):
         """When GraphService raises, return default ReflectionResult."""
         mock_gs_cls.side_effect = RuntimeError("Connection refused")

@@ -15,34 +15,13 @@ import {
 } from "recharts";
 import { getAgent, getHistory } from "../../../lib/api";
 import type { AgentProfile, EvaluationHistoryItem } from "../../../lib/types";
-import RadarChart from "../../../components/RadarChart";
-import DimensionBalance from "../../../components/DimensionBalance";
-import AlumniComparison from "../../../components/AlumniComparison";
-import InsightsPanel from "../../../components/InsightsPanel";
+import RadarChart from "../../../components/shared/RadarChart";
+import DimensionBalance from "../../../components/shared/DimensionBalance";
+import AlumniComparison from "../../../components/alumni/AlumniComparison";
+import InsightsPanel from "../../../components/agent/InsightsPanel";
 import { fadeUp, staggerContainer, whileInView } from "../../../lib/motion";
 import { getAcademicLabel, formatClassOf } from "../../../lib/academic";
-
-/* ─── Alignment + Trend style maps ─── */
-
-const ALIGNMENT_STYLES: Record<string, string> = {
-  aligned: "bg-aligned/10 text-aligned",
-  drifting: "bg-drifting/10 text-drifting",
-  misaligned: "bg-misaligned/10 text-misaligned",
-  violation: "bg-misaligned/10 text-misaligned",
-};
-
-const TREND_DISPLAY: Record<string, { arrow: string; label: string; color: string }> = {
-  improving: { arrow: "\u2191", label: "Improving", color: "text-aligned" },
-  declining: { arrow: "\u2193", label: "Declining", color: "text-misaligned" },
-  stable: { arrow: "\u2192", label: "Stable", color: "text-muted" },
-  insufficient_data: { arrow: "\u2014", label: "Insufficient data", color: "text-muted" },
-};
-
-const DIMENSION_COLORS: Record<string, string> = {
-  ethos: "#3b8a98",
-  logos: "#2e4a6e",
-  pathos: "#e0a53c",
-};
+import { ALIGNMENT_STYLES, TREND_DISPLAY, DIMENSION_COLORS } from "../../../lib/colors";
 
 /* ─── Timeline data point ─── */
 

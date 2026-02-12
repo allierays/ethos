@@ -240,7 +240,7 @@ The Pattern nodes already exist in the semantic layer (7 combination patterns). 
 
 **Real-time mode (SDK):** After each evaluation, check if the agent's recent evaluation sequence matches any pattern. Incremental — only checks the latest window, not the full history.
 
-**Scheduled (cohort analysis):** Periodic sweep across all agents with N+ evaluations. Catches slow-developing patterns that span many conversations.
+**Scheduled (alumni analysis):** Periodic sweep across all agents with N+ evaluations. Catches slow-developing patterns that span many conversations.
 
 ---
 

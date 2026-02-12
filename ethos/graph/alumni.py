@@ -8,14 +8,9 @@ from __future__ import annotations
 import logging
 
 from ethos.graph.service import GraphService
+from ethos.shared.analysis import TRAIT_NAMES
 
 logger = logging.getLogger(__name__)
-
-_TRAIT_NAMES = [
-    "virtue", "goodwill", "manipulation", "deception",
-    "accuracy", "reasoning", "fabrication", "broken_logic",
-    "recognition", "compassion", "dismissal", "exploitation",
-]
 
 _ALUMNI_AVERAGES_QUERY = """
 MATCH (e:Evaluation)
@@ -48,7 +43,7 @@ def get_alumni_averages(service: GraphService) -> dict:
 
         record = records[0]
         averages = {}
-        for trait in _TRAIT_NAMES:
+        for trait in TRAIT_NAMES:
             avg_val = record.get(f"avg_{trait}")
             if avg_val is not None:
                 averages[trait] = round(float(avg_val), 4)

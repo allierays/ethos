@@ -8,15 +8,9 @@ from __future__ import annotations
 import logging
 
 from ethos.graph.service import GraphService
-from ethos.identity.hashing import hash_agent_id
+from ethos.shared.analysis import TRAIT_NAMES
 
 logger = logging.getLogger(__name__)
-
-_TRAIT_NAMES = [
-    "virtue", "goodwill", "manipulation", "deception",
-    "accuracy", "reasoning", "fabrication", "broken_logic",
-    "recognition", "compassion", "dismissal", "exploitation",
-]
 
 _GET_ALL_AGENTS_QUERY = """
 MATCH (a:Agent)
@@ -81,20 +75,101 @@ RETURN a.agent_id AS agent_id,
 """
 
 
+_AGENT_SIGNATURE_QUERY = """
+MATCH (a:Agent {agent_id: $agent_id})-[:EVALUATED]->(e:Evaluation)
+WITH a, e ORDER BY e.created_at DESC
+WITH a,
+     count(e) AS eval_count,
+     avg(e.ethos) AS avg_ethos,
+     avg(e.logos) AS avg_logos,
+     avg(e.pathos) AS avg_pathos,
+     collect(e.alignment_status)[..10] AS recent_statuses,
+     collect(e.flags)[..10] AS recent_flags,
+     stdev(e.ethos) AS std_ethos,
+     stdev(e.logos) AS std_logos,
+     stdev(e.pathos) AS std_pathos,
+     avg(e.trait_manipulation) AS avg_manipulation,
+     avg(e.trait_deception) AS avg_deception,
+     avg(e.trait_fabrication) AS avg_fabrication,
+     avg(e.trait_exploitation) AS avg_exploitation,
+     avg(e.trait_dismissal) AS avg_dismissal,
+     avg(e.trait_broken_logic) AS avg_broken_logic
+RETURN eval_count, avg_ethos, avg_logos, avg_pathos,
+       recent_statuses, recent_flags,
+       std_ethos, std_logos, std_pathos,
+       avg_manipulation, avg_deception, avg_fabrication,
+       avg_exploitation, avg_dismissal, avg_broken_logic,
+       a.trait_variance AS stored_variance,
+       a.balance_score AS stored_balance
+"""
+
+_RECENT_TREND_QUERY = """
+MATCH (a:Agent {agent_id: $agent_id})-[:EVALUATED]->(e:Evaluation)
+WITH e ORDER BY e.created_at DESC LIMIT 5
+WITH collect({
+    ethos: e.ethos,
+    logos: e.logos,
+    pathos: e.pathos,
+    alignment_status: e.alignment_status
+}) AS recent
+RETURN recent
+"""
+
+
+def get_agent_signature(service: GraphService, agent_id: str) -> dict:
+    """Get agent behavioral signature — aggregate stats + recent patterns.
+
+    Returns dict with eval_count, avg dimensions, std devs, recent statuses/flags,
+    and negative trait averages. Returns empty dict if unavailable.
+    """
+    if not service.connected:
+        return {}
+
+    try:
+        records, _, _ = service.execute_query(
+            _AGENT_SIGNATURE_QUERY, {"agent_id": agent_id}
+        )
+        if not records:
+            return {}
+        return dict(records[0])
+    except Exception as exc:
+        logger.warning("Failed to get agent signature: %s", exc)
+        return {}
+
+
+def get_recent_trend(service: GraphService, agent_id: str) -> list[dict]:
+    """Get last 5 evaluations for temporal trend analysis.
+
+    Returns list of dicts with ethos, logos, pathos, alignment_status.
+    Returns empty list if unavailable.
+    """
+    if not service.connected:
+        return []
+
+    try:
+        records, _, _ = service.execute_query(
+            _RECENT_TREND_QUERY, {"agent_id": agent_id}
+        )
+        if not records:
+            return []
+        return records[0].get("recent", [])
+    except Exception as exc:
+        logger.warning("Failed to get recent trend: %s", exc)
+        return []
+
+
 def get_evaluation_history(
     service: GraphService,
-    raw_agent_id: str,
+    agent_id: str,
     limit: int = 10,
 ) -> list[dict]:
     """Get recent evaluations for an agent. Returns empty list if unavailable."""
     if not service.connected:
         return []
 
-    hashed_id = hash_agent_id(raw_agent_id)
-
     try:
         records, _, _ = service.execute_query(
-            _GET_HISTORY_QUERY, {"agent_id": hashed_id, "limit": limit}
+            _GET_HISTORY_QUERY, {"agent_id": agent_id, "limit": limit}
         )
         results = []
         for record in records:
@@ -108,24 +183,22 @@ def get_evaluation_history(
 
 def get_agent_profile(
     service: GraphService,
-    raw_agent_id: str,
+    agent_id: str,
 ) -> dict:
     """Get agent phronesis profile with averages. Returns empty dict if unavailable."""
     if not service.connected:
         return {}
 
-    hashed_id = hash_agent_id(raw_agent_id)
-
     try:
         records, _, _ = service.execute_query(
-            _GET_PROFILE_QUERY, {"agent_id": hashed_id}
+            _GET_PROFILE_QUERY, {"agent_id": agent_id}
         )
         if not records:
             return {}
 
         record = records[0]
         trait_averages = {}
-        for trait in _TRAIT_NAMES:
+        for trait in TRAIT_NAMES:
             avg_val = record.get(f"avg_{trait}")
             if avg_val is not None:
                 trait_averages[trait] = round(float(avg_val), 4)

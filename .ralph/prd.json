@@ -7,7 +7,7 @@
   },
   "metadata": {
     "createdAt": "2026-02-11T20:00:00Z",
-    "estimatedStories": 19,
+    "estimatedStories": 23,
     "complexity": "high"
   },
   "stories": [
@@ -1418,7 +1418,7 @@
       "type": "backend",
       "title": "Fix double-hashing bug — remove redundant hash_agent_id() calls from graph layer",
       "priority": 18,
-      "passes": false,
+      "passes": true,
       "batch": 9,
       "dependsOn": [],
       "techStack": {
@@ -1460,7 +1460,9 @@
         "Neo4j down → return defaults (existing behavior preserved)"
       ],
       "testing": {
-        "types": ["unit"],
+        "types": [
+          "unit"
+        ],
         "approach": "TDD",
         "runner": "pytest",
         "files": {
@@ -1531,7 +1533,9 @@
         "Empty detected_indicators after filtering is valid (not an error)"
       ],
       "testing": {
-        "types": ["unit"],
+        "types": [
+          "unit"
+        ],
         "approach": "TDD",
         "runner": "pytest",
         "files": {
@@ -1552,6 +1556,311 @@
         "docs/evergreen-architecture/ethos-framework-overview.md"
       ],
       "notes": "This is the root cause fix for 0 DETECTED relationships. The prompt template at prompts.py line 77 shows 'MAN-01' as the example indicator ID. Claude follows this pattern and invents IDs like MAN-02, MAN-03 — none of which exist in the taxonomy. The MATCH (indicator:Indicator {id: ind.id}) in write.py silently fails because no Indicator node has id='MAN-01'. Fix: (1) Change the example to 'MAN-URGENCY' (a real ID), (2) Add a compact indicator catalog to the system prompt so Claude knows ALL valid IDs, (3) Validate IDs in the parser to catch any remaining hallucinated IDs. The catalog format: one line per trait, e.g. 'manipulation: MAN-URGENCY, MAN-SANDBAG, MAN-GATEKEEP, ...' — keep it compact to minimize token usage. Import INDICATORS from ethos/taxonomy/indicators.py which has all 153 indicator dicts with 'id' and 'trait' fields.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-020",
+      "type": "backend",
+      "title": "Add authenticity Pydantic models to shared/models.py",
+      "priority": 20,
+      "passes": false,
+      "batch": 10,
+      "dependsOn": [],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Models go in ethos/shared/models.py alongside existing models",
+        "Use Pydantic Field(ge=0.0, le=1.0) for score bounds",
+        "Also update ethos/models.py to re-export new models (existing re-export pattern)"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "ethos/shared/models.py",
+          "ethos/models.py"
+        ],
+        "reuse": []
+      },
+      "acceptanceCriteria": [
+        "TemporalSignature model with cv_score (float 0-1), mean_interval_seconds (float), classification (str: autonomous|human_influenced|indeterminate)",
+        "BurstAnalysis model with burst_rate (float 0-1), classification (str: organic|automated|burst_bot)",
+        "ActivityPattern model with classification (str: always_on|human_schedule|mixed), active_hours (int), has_sleep_gap (bool)",
+        "IdentitySignals model with is_claimed (bool), owner_verified (bool), karma_post_ratio (float)",
+        "AuthenticityResult model with agent_name (str), temporal (TemporalSignature), burst (BurstAnalysis), activity (ActivityPattern), identity (IdentitySignals), authenticity_score (float 0-1), classification (str: likely_autonomous|likely_human|bot_farm|indeterminate), confidence (float 0-1)"
+      ],
+      "errorHandling": [
+        "All fields have sensible defaults so AuthenticityResult() creates a valid instance",
+        "Score fields use Field(ge=0.0, le=1.0) for validation"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_authenticity_models.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_authenticity_models.py -v",
+        "uv run pytest -v --tb=short -q 2>&1 | tail -5",
+        "uv run python -c \"from ethos.shared.models import AuthenticityResult; from ethos.models import AuthenticityResult as AR2; from pydantic import ValidationError; r = AuthenticityResult(agent_name='test'); assert r.authenticity_score == 0.5; assert r.temporal.classification == 'indeterminate'; try: AuthenticityResult(agent_name='x', authenticity_score=2.0); assert False, 'Should reject score>1.0'; except ValidationError: pass; assert AR2 is AuthenticityResult; print('PASS: models, defaults, validation, re-exports all correct')\""
+      ],
+      "contextFiles": [
+        "ethos/shared/models.py",
+        "ethos/models.py"
+      ],
+      "notes": "5 new Pydantic models for authenticity detection. All have sensible defaults. TemporalSignature defaults: cv_score=0.0, classification='indeterminate'. BurstAnalysis defaults: burst_rate=0.0, classification='organic'. ActivityPattern defaults: classification='mixed', active_hours=24, has_sleep_gap=False. IdentitySignals defaults: all False/0.0. AuthenticityResult defaults: authenticity_score=0.5, classification='indeterminate', confidence=0.0. Use Field(default_factory=TemporalSignature) for nested model defaults in AuthenticityResult. Update ethos/models.py to re-export ALL 5 new models (TemporalSignature, BurstAnalysis, ActivityPattern, IdentitySignals, AuthenticityResult) — add to imports and re-exports, following existing pattern. NOTE: Do NOT modify ethos/__init__.py here — that is handled by TASK-023. Unit tests MUST include: (1) default construction, (2) Pydantic validation rejects out-of-range scores (authenticity_score=2.0 → ValidationError), (3) model_dump() roundtrip (serialize then reconstruct), (4) nested model defaults work correctly.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-021",
+      "type": "backend",
+      "title": "Create authenticity analysis pure functions",
+      "priority": 21,
+      "passes": false,
+      "batch": 11,
+      "dependsOn": [
+        "TASK-020"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Pure computation functions — NO file I/O, NO graph I/O, NO network calls",
+        "Takes pre-parsed data as input (lists of timestamps, profile dicts)",
+        "Uses standard library only (statistics, datetime, collections) — no numpy/pandas"
+      ],
+      "files": {
+        "create": [
+          "ethos/evaluation/authenticity.py",
+          "tests/test_authenticity.py"
+        ],
+        "modify": [],
+        "reuse": [
+          "ethos/shared/models.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "analyze_temporal_signature(timestamps: list[str]) computes CV (std/mean) of inter-post intervals in seconds — CV<0.3 returns 'autonomous', CV>1.0 returns 'human_influenced', else 'indeterminate'. Requires >=5 timestamps, else returns default TemporalSignature",
+        "analyze_burst_rate(timestamps: list[str]) computes % of consecutive posts within 10-second windows — >50% returns 'burst_bot', >20% returns 'automated', else 'organic'. Requires >=3 timestamps",
+        "analyze_activity_pattern(timestamps: list[str]) bins posts into 24 hours, detects sleep gap (>=6 consecutive zero-activity hours) — gap found returns 'human_schedule', all 24 hours active returns 'always_on', else 'mixed'",
+        "analyze_identity_signals(profile: dict) extracts is_claimed, owner.x_verified, karma/(post_count+comment_count) ratio from Moltbook agent profile dict",
+        "compute_authenticity(temporal, burst, activity, identity, num_timestamps: int) combines sub-scores with weights (temporal=0.35, burst=0.25, activity=0.25, identity=0.15) into authenticity_score 0.0-1.0. Score>0.7='likely_autonomous', <0.3='likely_human', burst_bot classification overrides to 'bot_farm'. Computes confidence based on data volume: <5 timestamps=0.1, 5-20=0.5, 20-50=0.7, 50+=0.9"
+      ],
+      "errorHandling": [
+        "Empty timestamps list → return default sub-result with 'indeterminate' classification",
+        "Invalid timestamp strings → skip with warning, continue with valid ones",
+        "Profile missing expected keys → return default IdentitySignals"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_authenticity.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_authenticity.py -v",
+        "uv run pytest -v --tb=short -q 2>&1 | tail -5",
+        "uv run python -c \"from ethos.evaluation.authenticity import analyze_temporal_signature, analyze_burst_rate, analyze_activity_pattern, analyze_identity_signals, compute_authenticity; from datetime import datetime, timedelta; ts = [(datetime(2026,1,1) + timedelta(hours=i)).isoformat() for i in range(20)]; sig = analyze_temporal_signature(ts); assert sig.classification == 'autonomous', f'Expected autonomous, got {sig.classification}'; burst = analyze_burst_rate(ts); assert burst.classification == 'organic'; activity = analyze_activity_pattern(ts); assert activity.classification in ('always_on','mixed'); empty = analyze_temporal_signature([]); assert empty.classification == 'indeterminate'; identity = analyze_identity_signals({'is_claimed': False, 'owner': {'x_verified': False}, 'karma': 100}); result = compute_authenticity(sig, burst, activity, identity, num_timestamps=20); assert 0.0 <= result.authenticity_score <= 1.0; assert result.confidence == 0.7; print(f'PASS: all 5 functions work, score={result.authenticity_score:.3f}, class={result.classification}, confidence={result.confidence}')\""
+      ],
+      "contextFiles": [
+        "ethos/shared/models.py",
+        "data/moltbook/agents/a-dao.json"
+      ],
+      "notes": "These are pure computation functions inspired by research: (1) Temporal Fingerprint from arXiv:2602.07432 — coefficient of variation of inter-post intervals. Perfectly regular posting (e.g. every 3600s) gives CV≈0, human-like random timing gives CV>1.0. (2) Burst rate from SimulaMet Observatory — bot farms post hundreds of messages within seconds. (3) Activity pattern — real AI agents run 24/7, human-operated accounts show sleep gaps. (4) Identity signals from Moltbook API data — is_claimed means a human verified ownership, x_verified adds credibility. For compute_authenticity: convert each sub-classification to a numeric score (autonomous/organic/always_on/not_claimed = 1.0, human_influenced/automated/human_schedule/claimed+verified = 0.0, indeterminate/mixed = 0.5), then weighted average. The burst_bot override is important — if >50% of posts are within 10-second windows, it's a bot farm regardless of other signals. compute_authenticity() takes a num_timestamps int to compute confidence: <5=0.1, 5-20=0.5, 20-50=0.7, 50+=0.9. Timestamp format is ISO 8601 (e.g. '2026-02-12T04:07:38.285118+00:00') — use datetime.fromisoformat() to parse. TESTING: tests/test_authenticity.py MUST cover ALL 5 functions with at minimum these cases: (a) empty timestamps → default/indeterminate, (b) regular intervals → autonomous, (c) random intervals → human_influenced, (d) burst timestamps (within 10s) → burst_bot, (e) 24-hour coverage → always_on, (f) 8-hour gap → human_schedule, (g) profile with is_claimed=True → IdentitySignals.is_claimed=True, (h) compute_authenticity with burst_bot override → classification='bot_farm'. Each function returns a Pydantic model so test model_dump() roundtrip too.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-022",
+      "type": "backend",
+      "title": "Create batch analysis script and run on scraped agents",
+      "priority": 22,
+      "passes": false,
+      "batch": 12,
+      "dependsOn": [
+        "TASK-021"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Reads from data/moltbook/agents/*.json (1,010 profiles) — DO NOT read these files with the Read tool, they are large",
+        "Writes output to data/moltbook/authenticity_results.json",
+        "Uses ethos.evaluation.authenticity functions for analysis — no duplicate logic",
+        "Print progress to stdout every 50 agents"
+      ],
+      "files": {
+        "create": [
+          "scripts/analyze_agents.py"
+        ],
+        "modify": [],
+        "reuse": [
+          "ethos/evaluation/authenticity.py",
+          "data/moltbook/agents/"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Script reads all agent profiles from data/moltbook/agents/*.json, extracts timestamps from posts + comments, runs authenticity analysis, saves results to data/moltbook/authenticity_results.json",
+        "Output JSON is a dict keyed by agent_name, each value is an AuthenticityResult dict with temporal, burst, activity, identity sub-results, authenticity_score, classification, confidence",
+        "Results file contains entries for at least 900 agents (some may have insufficient data)",
+        "Script prints summary: total analyzed, distribution of classifications (likely_autonomous, likely_human, bot_farm, indeterminate)"
+      ],
+      "errorHandling": [
+        "Malformed agent profile JSON → skip with warning, continue",
+        "Agent with 0 posts/comments → store with default 'indeterminate' classification",
+        "File write failure → raise with clear error message"
+      ],
+      "testing": {
+        "types": [
+          "integration"
+        ],
+        "approach": "test-after",
+        "runner": "pytest",
+        "files": {
+          "integration": []
+        }
+      },
+      "testSteps": [
+        "uv run python scripts/analyze_agents.py",
+        "python3 -c \"import json; d=json.load(open('data/moltbook/authenticity_results.json')); assert len(d) >= 900, f'Expected >=900 agents, got {len(d)}'; classes = {}; [classes.__setitem__(v['classification'], classes.get(v['classification'],0)+1) for v in d.values()]; assert len(classes) >= 2, f'Only {len(classes)} classifications, expected variety'; scores = [v['authenticity_score'] for v in d.values()]; assert all(0.0 <= s <= 1.0 for s in scores), 'Score out of range'; assert any(v.get('temporal',{}).get('cv_score',0) > 0 for v in d.values()), 'No temporal analysis computed'; print(f'PASS: {len(d)} agents, distribution: {classes}, score range: [{min(scores):.3f}, {max(scores):.3f}]')\"",
+        "uv run pytest -v --tb=short -q 2>&1 | tail -5"
+      ],
+      "prerequisites": [
+        "data/moltbook/agents/ directory exists with scraped agent profiles"
+      ],
+      "contextFiles": [
+        "scripts/scrape_moltbook.py",
+        "data/moltbook/agents/a-dao.json"
+      ],
+      "notes": "This is the data prep step — runs once to produce demo data. Agent profile structure: {'agent': {name, is_claimed, owner: {x_verified, ...}, karma, ...}, 'posts': [{created_at, ...}, ...], 'comments': [{created_at, ...}, ...]}. For each agent: (1) Collect all timestamps from posts[].created_at + comments[].created_at, (2) Sort chronologically, (3) Call analyze_temporal_signature(timestamps), analyze_burst_rate(timestamps), analyze_activity_pattern(timestamps), (4) Build profile dict from agent data for analyze_identity_signals(), (5) compute_authenticity() to get final result, (6) Store as {agent_name: result.model_dump()}. The output file is read by the API endpoint in TASK-023. Confidence is computed by compute_authenticity() based on num_timestamps (passed from the script) — do NOT duplicate confidence logic here. Use glob.glob('data/moltbook/agents/*.json') to find all profiles. Script should be runnable as 'uv run python scripts/analyze_agents.py' (use __name__ == '__main__' guard).",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-023",
+      "type": "backend",
+      "title": "Wire authenticity API endpoint, export, and graph storage",
+      "priority": 23,
+      "passes": false,
+      "batch": 13,
+      "dependsOn": [
+        "TASK-022"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, FastAPI, Pydantic v2, neo4j sync driver",
+        "testing": "pytest, FastAPI TestClient"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "API is a thin layer — NO business logic in route handlers",
+        "DDD layering: api/main.py → ethos/authenticity.py (domain) → ethos/evaluation/authenticity.py (pure functions). Domain loads pre-computed data, API just calls domain",
+        "Graph owns all Cypher — new store_authenticity() function in ethos/graph/write.py with its OWN Cypher query (do NOT modify _STORE_EVALUATION_QUERY — authenticity is per-agent, not per-evaluation)",
+        "Graph is optional — never crash if Neo4j is down",
+        "ethos/models.py re-exports already handled by TASK-020 — do NOT duplicate"
+      ],
+      "files": {
+        "create": [
+          "ethos/authenticity.py",
+          "tests/test_authenticity_api.py"
+        ],
+        "modify": [
+          "ethos/__init__.py",
+          "api/main.py",
+          "ethos/graph/write.py"
+        ],
+        "reuse": [
+          "ethos/evaluation/authenticity.py",
+          "ethos/shared/models.py",
+          "ethos/graph/service.py",
+          "data/moltbook/authenticity_results.json"
+        ]
+      },
+      "acceptanceCriteria": [
+        "ethos/authenticity.py contains analyze_authenticity(agent_name: str) -> AuthenticityResult that loads from pre-computed data/moltbook/authenticity_results.json (cached in module-level dict) or computes on the fly from agent profile, returning defaults for unknown agents",
+        "analyze_authenticity exported from ethos/__init__.py and imported in api/main.py. GET /agents/{agent_name}/authenticity endpoint uses response_model=AuthenticityResult — handler is one line: return analyze_authenticity(agent_name)",
+        "New store_authenticity(service, agent_name, result) function in graph/write.py with its OWN Cypher query using MATCH (a:Agent) WHERE a.agent_name = $agent_name to SET a.authenticity_score and a.authenticity_classification — do NOT use MERGE on agent_name (existing Agent nodes are keyed by agent_id hash, MERGE on agent_name would create duplicates)",
+        "analyze_authenticity() calls store_authenticity() after loading/computing results (wrapped in try/except, non-fatal if graph down)",
+        "FastAPI TestClient integration tests (from fastapi.testclient import TestClient, matching existing test_api_endpoints.py pattern) verify: (1) known agent returns valid AuthenticityResult with score 0.0-1.0, (2) unknown agent returns default AuthenticityResult with classification='indeterminate', (3) response matches Pydantic schema exactly"
+      ],
+      "errorHandling": [
+        "Agent not found in pre-computed results AND no profile file → return AuthenticityResult with defaults and classification='indeterminate'",
+        "Pre-computed results file missing → compute on the fly from agent profile, or return defaults if profile also missing",
+        "Graph write for authenticity properties fails → log warning, continue (non-fatal)"
+      ],
+      "testing": {
+        "types": [
+          "unit",
+          "integration"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_authenticity_api.py"
+          ],
+          "integration": [
+            "tests/test_authenticity_api.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_authenticity_api.py -v",
+        "uv run pytest -v --tb=short -q 2>&1 | tail -5",
+        "uv run uvicorn api.main:app --port 8917 & sleep 3 && curl -s {config.urls.backend}/agents/a-dao/authenticity | python3 -c \"import sys, json; r=json.load(sys.stdin); assert 'authenticity_score' in r and 0.0 <= r['authenticity_score'] <= 1.0, f'Bad score: {r.get(\\\"authenticity_score\\\")}'; assert r['classification'] in ('likely_autonomous','likely_human','bot_farm','indeterminate'), f'Bad class: {r[\\\"classification\\\"]}'; assert 'temporal' in r and 'cv_score' in r['temporal']; assert 'burst' in r and 'burst_rate' in r['burst']; print(f'PASS: score={r[\\\"authenticity_score\\\"]:.3f}, class={r[\\\"classification\\\"]}, cv={r[\\\"temporal\\\"][\\\"cv_score\\\"]:.3f}')\" && curl -s {config.urls.backend}/agents/NONEXISTENT_AGENT_XYZ/authenticity | python3 -c \"import sys, json; r=json.load(sys.stdin); assert r['classification'] == 'indeterminate', f'Unknown agent should be indeterminate, got {r[\\\"classification\\\"]}'; print('PASS: unknown agent returns indeterminate')\" ; kill %1 2>/dev/null"
+      ],
+      "apiContract": {
+        "endpoint": "GET /agents/{agent_name}/authenticity",
+        "response_model": "AuthenticityResult",
+        "response": {
+          "agent_name": "string",
+          "temporal": {
+            "cv_score": "float",
+            "mean_interval_seconds": "float",
+            "classification": "string"
+          },
+          "burst": {
+            "burst_rate": "float",
+            "classification": "string"
+          },
+          "activity": {
+            "classification": "string",
+            "active_hours": "int",
+            "has_sleep_gap": "bool"
+          },
+          "identity": {
+            "is_claimed": "bool",
+            "owner_verified": "bool",
+            "karma_post_ratio": "float"
+          },
+          "authenticity_score": "float",
+          "classification": "string",
+          "confidence": "float"
+        }
+      },
+      "contextFiles": [
+        "api/main.py",
+        "ethos/__init__.py",
+        "ethos/graph/write.py",
+        "ethos/agents.py",
+        "tests/test_api_endpoints.py"
+      ],
+      "notes": "DDD LAYERING: api/main.py handler is ONE line → ethos/authenticity.py domain function → loads data. Domain function caches pre-computed results in a module-level dict (_RESULTS_CACHE: dict | None = None) loaded lazily on first call from data/moltbook/authenticity_results.json. If agent not in cache, falls back to computing from data/moltbook/agents/{agent_name}.json using evaluation/authenticity.py pure functions. If neither exists, returns default AuthenticityResult(agent_name=agent_name). GRAPH STORAGE: Create a NEW store_authenticity(service, agent_name, result) function in graph/write.py — do NOT modify _STORE_EVALUATION_QUERY. CRITICAL: Existing Agent nodes are keyed by {agent_id: $agent_id} (SHA-256 hash) — do NOT use MERGE on agent_name as that would create duplicate Agent nodes. Instead use: MATCH (a:Agent) WHERE a.agent_name = $agent_name SET a.authenticity_score = $score, a.authenticity_classification = $classification. If no Agent node matches (agent hasn't been evaluated yet), log a warning and skip. This function is called by analyze_authenticity() in ethos/authenticity.py after loading results (wrapped in try/except with graph_context, non-fatal). INTEGRATION TESTS: Use FastAPI TestClient pattern from existing tests/test_api_endpoints.py — 'from fastapi.testclient import TestClient' (NOT raw httpx), create TestClient(app) from api.main:app, test GET /agents/a-dao/authenticity returns 200 with valid AuthenticityResult, test GET /agents/UNKNOWN/authenticity returns 200 with defaults (not 404 — graceful degradation). Test Pydantic validation by asserting response JSON can be parsed into AuthenticityResult model. IMPORTANT: ethos/models.py re-exports already handled by TASK-020 — do NOT modify models.py here (DRY). Only modify __init__.py to add analyze_authenticity to imports and __all__.",
       "retryCount": 0
     }
   ]

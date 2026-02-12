@@ -21,11 +21,13 @@ from ethos.models import (
 )
 from ethos.patterns import detect_patterns
 from ethos.reflect import reflect
+from ethos.reflection.history import reflect_history
 from ethos.visualization import get_graph_data
 
 __all__ = [
     "evaluate",
     "reflect",
+    "reflect_history",
     "insights",
     "detect_patterns",
     "get_graph_data",

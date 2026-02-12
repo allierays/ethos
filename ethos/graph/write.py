@@ -7,6 +7,7 @@ Message content is NEVER stored — only scores, hashes, and metadata.
 from __future__ import annotations
 
 import logging
+import math
 
 from ethos.graph.service import GraphService
 from ethos.identity.hashing import hash_agent_id
@@ -22,7 +23,9 @@ SET a.evaluation_count = a.evaluation_count + 1,
     a.agent_name = CASE WHEN $agent_name <> '' THEN $agent_name ELSE coalesce(a.agent_name, '') END,
     a.agent_specialty = CASE WHEN $agent_specialty <> '' THEN $agent_specialty ELSE coalesce(a.agent_specialty, '') END,
     a.phronesis_score = $phronesis_score,
-    a.phronesis_trend = $phronesis_trend
+    a.phronesis_trend = $phronesis_trend,
+    a.trait_variance = $trait_variance,
+    a.balance_score = $balance_score
 
 CREATE (e:Evaluation {
     evaluation_id: $evaluation_id,
@@ -53,6 +56,14 @@ CREATE (e:Evaluation {
     created_at: datetime()
 })
 CREATE (a)-[:EVALUATED]->(e)
+
+WITH a, e
+OPTIONAL MATCH (a)-[:EVALUATED]->(prev:Evaluation)
+WHERE prev.evaluation_id <> e.evaluation_id
+WITH e, prev ORDER BY prev.created_at DESC LIMIT 1
+FOREACH (_ IN CASE WHEN prev IS NOT NULL THEN [1] ELSE [] END |
+    CREATE (prev)-[:PRECEDES]->(e)
+)
 
 WITH e
 UNWIND CASE WHEN size($indicators) > 0 THEN $indicators ELSE [null] END AS ind
@@ -96,6 +107,28 @@ def store_evaluation(
     # Compute agent-level phronesis_score as running avg of 3 dimensions
     phronesis_score = round((result.ethos + result.logos + result.pathos) / 3.0, 4)
 
+    # Compute balance_score: how balanced across dimensions (1.0 = perfectly balanced)
+    scores = [result.ethos, result.logos, result.pathos]
+    mean = sum(scores) / 3.0
+    if mean > 0:
+        variance = sum((s - mean) ** 2 for s in scores) / 3.0
+        std_dev = math.sqrt(variance)
+        balance_score = round(max(0.0, min(1.0, 1.0 - (std_dev / mean))), 4)
+    else:
+        balance_score = 0.0
+
+    # Compute trait_variance: spread across all 12 trait scores
+    all_trait_scores = [_get_trait_score(result, t) for t in [
+        "virtue", "goodwill", "manipulation", "deception",
+        "accuracy", "reasoning", "fabrication", "broken_logic",
+        "recognition", "compassion", "dismissal", "exploitation",
+    ]]
+    trait_mean = sum(all_trait_scores) / len(all_trait_scores)
+    trait_variance = round(
+        sum((s - trait_mean) ** 2 for s in all_trait_scores) / len(all_trait_scores),
+        4,
+    )
+
     # Build indicators list for UNWIND
     indicators = [
         {
@@ -116,7 +149,7 @@ def store_evaluation(
         "logos": result.logos,
         "pathos": result.pathos,
         "phronesis": phronesis,
-        "phronesis_score": round((result.ethos + result.logos + result.pathos) / 3.0, 4),
+        "phronesis_score": phronesis_score,
         "flags": result.flags,
         "message_hash": message_hash,
         "routing_tier": result.routing_tier,
@@ -124,8 +157,9 @@ def store_evaluation(
         "model_used": result.model_used,
         "agent_model": result.agent_model,
         "alignment_status": result.alignment_status,
-        "phronesis_score": phronesis_score,
         "phronesis_trend": "insufficient_data",
+        "trait_variance": trait_variance,
+        "balance_score": balance_score,
         "indicators": indicators,
         "trait_virtue": _get_trait_score(result, "virtue"),
         "trait_goodwill": _get_trait_score(result, "goodwill"),

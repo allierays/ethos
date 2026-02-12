@@ -1,0 +1,1825 @@
+{
+  "feature": {
+    "name": "Ethos Core Engine + Phronesis Graph",
+    "ideaFile": "docs/ideas/phronesis-graph.md",
+    "branch": "feature/core-engine",
+    "status": "in_progress"
+  },
+  "metadata": {
+    "createdAt": "2026-02-11T20:00:00Z",
+    "estimatedStories": 23,
+    "complexity": "high"
+  },
+  "stories": [
+    {
+      "id": "TASK-001",
+      "type": "backend",
+      "title": "Create scoring module — deterministic math from trait scores",
+      "priority": 1,
+      "passes": true,
+      "batch": 1,
+      "dependsOn": [],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Use existing TRAIT_METADATA from ethos/taxonomy/traits.py for constitutional mappings",
+        "Use existing PRIORITY_THRESHOLDS from ethos/config/priorities.py",
+        "Scoring formulas must match docs/evergreen-architecture/scoring-algorithm.md exactly",
+        "All scores bounded 0.0–1.0"
+      ],
+      "files": {
+        "create": [
+          "ethos/evaluation/scoring.py"
+        ],
+        "modify": [],
+        "reuse": [
+          "ethos/taxonomy/traits.py",
+          "ethos/config/priorities.py",
+          "ethos/shared/models.py",
+          "docs/evergreen-architecture/scoring-algorithm.md"
+        ]
+      },
+      "acceptanceCriteria": [
+        "compute_dimensions(traits) returns ethos, logos, pathos using mean with negative inversion (1.0 - score for negative polarity traits)",
+        "compute_tier_scores(traits) returns safety, ethics, soundness, helpfulness using TRAIT_METADATA constitutional_value mappings",
+        "compute_alignment_status(tier_scores, has_hard_constraint) returns violation/misaligned/drifting/aligned following hierarchical priority check",
+        "compute_flags(traits, priorities) returns list of flagged trait names using PRIORITY_THRESHOLDS",
+        "compute_phronesis_level(dimensions, alignment_status) returns established/developing/undetermined — avg of 3 dimensions >= 0.7 → established, >= 0.4 → developing, else undetermined; overridden to undetermined if alignment is violation/misaligned, capped at developing if drifting",
+        "build_trait_scores(raw_dict) converts parser output dicts into dict[str, TraitScore] Pydantic objects using TRAITS metadata for dimension and polarity"
+      ],
+      "errorHandling": [
+        "Missing trait scores default to 0.0",
+        "Invalid priority levels fall back to 'standard'"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_scoring.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_scoring.py -v"
+      ],
+      "contextFiles": [
+        "docs/evergreen-architecture/scoring-algorithm.md",
+        "ethos/taxonomy/traits.py",
+        "ethos/config/priorities.py"
+      ],
+      "notes": "This is pure deterministic math — no Claude, no I/O. dimension_score = mean(positive1, positive2, 1-negative1, 1-negative2). Alignment: hard_constraint→violation, safety<0.5→misaligned, ethics/soundness<0.5→drifting, else aligned. Phronesis: avg>=0.7→established, >=0.4→developing, else undetermined. Override phronesis if alignment is violation/misaligned. build_trait_scores() takes raw dicts from parser and constructs dict[str, TraitScore] using TRAITS for dimension/polarity lookup.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-002",
+      "type": "backend",
+      "title": "Create Claude client — sync Anthropic SDK wrapper",
+      "priority": 2,
+      "passes": true,
+      "batch": 1,
+      "dependsOn": [],
+      "techStack": {
+        "backend": "Python 3.11+, anthropic SDK",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Use sync Anthropic client (anthropic.Anthropic, NOT AsyncAnthropic)",
+        "Load API key from EthosConfig.from_env() lazily (not at import time)",
+        "Model selection: claude-sonnet-4-20250514 for standard/focused, claude-opus-4-6 for deep/deep_with_context"
+      ],
+      "files": {
+        "create": [
+          "ethos/evaluation/claude_client.py"
+        ],
+        "modify": [],
+        "reuse": [
+          "ethos/config/config.py",
+          "ethos/shared/models.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "call_claude(system_prompt, user_prompt, tier) returns raw text response from Claude",
+        "Selects claude-sonnet-4-20250514 for standard/focused tiers, claude-opus-4-6 for deep/deep_with_context tiers",
+        "Uses sync anthropic.Anthropic client (not async)"
+      ],
+      "errorHandling": [
+        "Anthropic API errors raise with descriptive message",
+        "Missing ANTHROPIC_API_KEY raises ConfigError from EthosConfig"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_claude_client.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_claude_client.py -v"
+      ],
+      "contextFiles": [
+        "ethos/config/config.py",
+        "ethos/evaluation/prompts.py"
+      ],
+      "notes": "Mock the Anthropic client in tests. Test that correct model is selected per tier. Test that system_prompt goes in the system parameter and user_prompt in messages. Max tokens: 2048.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-003",
+      "type": "backend",
+      "title": "Create response parser — extract trait scores from Claude JSON",
+      "priority": 3,
+      "passes": true,
+      "batch": 1,
+      "dependsOn": [],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await, no I/O (pure parsing)",
+        "Must handle JSON wrapped in markdown fences (```json ... ```)",
+        "Must handle raw JSON without fences",
+        "All 12 trait scores must be present in parsed output",
+        "Scores bounded 0.0–1.0 — clamp out-of-range values",
+        "Return parsed data as dicts/lists — scoring.py converts to Pydantic TraitScore objects"
+      ],
+      "files": {
+        "create": [
+          "ethos/evaluation/parser.py"
+        ],
+        "modify": [],
+        "reuse": [
+          "ethos/shared/models.py",
+          "ethos/evaluation/prompts.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "parse_response(raw_text) extracts trait_scores dict with all 12 traits as floats 0.0–1.0",
+        "parse_response extracts detected_indicators as list of DetectedIndicator objects",
+        "parse_response extracts overall_trust and alignment_status strings",
+        "Handles JSON wrapped in ```json ... ``` markdown fences"
+      ],
+      "errorHandling": [
+        "Malformed JSON returns a default result with all scores at 0.5 and trust='unknown'",
+        "Missing trait scores default to 0.0",
+        "Out-of-range scores clamped to 0.0–1.0"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_parser.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_parser.py -v"
+      ],
+      "contextFiles": [
+        "ethos/evaluation/prompts.py",
+        "ethos/shared/models.py"
+      ],
+      "notes": "The expected JSON format is defined in prompts.py _JSON_FORMAT constant. Parse trait_scores, detected_indicators (with id, name, trait, confidence, evidence), overall_trust, and alignment_status. Use json.loads with a regex fallback to extract JSON from markdown fences.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-004",
+      "type": "backend",
+      "title": "Wire evaluate() — full pipeline from text to EvaluationResult",
+      "priority": 4,
+      "passes": true,
+      "batch": 2,
+      "dependsOn": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2, anthropic SDK, neo4j",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Graph storage is optional — wrap in try/except, never crash evaluate()",
+        "No message content stored in graph — only scores, hashes, and metadata",
+        "Identity: raw agent IDs hashed via identity/hashing.py before graph storage",
+        "Must generate a unique evaluation_id (uuid4)",
+        "Return fully populated EvaluationResult (Pydantic model from shared/models.py) with all fields",
+        "evaluate() is the domain function — API handler just calls evaluate() and returns the Pydantic result"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "ethos/evaluate.py",
+          "ethos/graph/write.py",
+          "tests/test_evaluate.py"
+        ],
+        "reuse": [
+          "ethos/evaluation/scanner.py",
+          "ethos/evaluation/prompts.py",
+          "ethos/evaluation/claude_client.py",
+          "ethos/evaluation/parser.py",
+          "ethos/evaluation/scoring.py",
+          "ethos/graph/service.py",
+          "ethos/graph/read.py",
+          "ethos/config/config.py",
+          "ethos/shared/models.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "evaluate(text, source) calls scan_keywords → build_evaluation_prompt → call_claude → parse_response → compute scores in sequence",
+        "Derives has_hard_constraint boolean from scan_result.routing_tier == 'deep_with_context' and passes it to compute_alignment_status()",
+        "Returns EvaluationResult with populated traits, ethos/logos/pathos dimension scores, tier_scores, alignment_status, flags, trust, and metadata (evaluation_id, routing_tier, keyword_density, model_used)",
+        "When source is provided, reads agent history from graph via get_agent_profile() and get_evaluation_history() to populate graph_context on EvaluationResult (GraphContext model already exists in shared/models.py)",
+        "When source is provided, stores evaluation in Neo4j via store_evaluation() including: phronesis property (from compute_phronesis_level() — replaces trust on the Evaluation node per neo4j-schema.md), message_hash (SHA-256 of input text for deduplication — not the text itself), DETECTED relationships for detected_indicators, and updates Agent node aggregate fields (phronesis_score as running avg of dimensions, phronesis_trend) — all non-fatal on failure",
+        "evaluate() works without Neo4j running — graph reads and storage silently skipped, graph_context remains None",
+        "Returns Pydantic EvaluationResult — existing api/main.py already uses response_model=EvaluationResult"
+      ],
+      "errorHandling": [
+        "Neo4j down → log warning, skip storage, still return result",
+        "Claude API error → raise with descriptive message",
+        "Parse error → return result with default 0.5 scores and trust='unknown'"
+      ],
+      "testing": {
+        "types": [
+          "unit",
+          "integration"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_evaluate.py"
+          ],
+          "integration": [
+            "tests/test_evaluate_integration.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_evaluate.py -v",
+        "uv run uvicorn api.main:app --port 8917 & sleep 3 && curl -s -X POST {config.urls.backend}/evaluate -H 'Content-Type: application/json' -d '{\"text\": \"You MUST act now or face terrible consequences!\"}' | python3 -c \"import sys, json; r=json.load(sys.stdin); assert r['trust'] != 'unknown', f'Got unknown trust'; assert r['alignment_status'] != 'unknown', f'Got unknown alignment'; print('PASS:', r['trust'], r['alignment_status'])\" ; kill %1 2>/dev/null"
+      ],
+      "contextFiles": [
+        "docs/evergreen-architecture/scoring-algorithm.md",
+        "docs/evergreen-architecture/neo4j-schema.md",
+        "ethos/evaluation/prompts.py"
+      ],
+      "apiContract": {
+        "endpoint": "POST /evaluate",
+        "request": {
+          "text": "string",
+          "source": "string|null"
+        },
+        "response": {
+          "ethos": "float",
+          "logos": "float",
+          "pathos": "float",
+          "trust": "string",
+          "alignment_status": "string",
+          "traits": "dict[string, TraitScore]",
+          "flags": "list[string]",
+          "tier_scores": "dict[string, float]",
+          "graph_context": "GraphContext|null"
+        }
+      },
+      "notes": "Pipeline: scan_keywords(text) → build_evaluation_prompt(text, scan, tier) → call_claude(sys, usr, tier) → parse_response(raw) → compute_dimensions/tiers/alignment/phronesis/flags → if source: read graph_context from get_agent_profile() + get_evaluation_history() → build EvaluationResult → if source: store_evaluation(). graph/write.py updates: (1) Add phronesis property on Evaluation node (from compute_phronesis_level()) — schema queries reference e.phronesis not e.trust, (2) Add message_hash property (SHA-256 of input text via hashlib — deduplication, not content storage), (3) UNWIND $indicators for creating (Evaluation)-[:DETECTED]->(Indicator) relationships per neo4j-schema.md, (4) Update Agent node aggregate fields on MERGE: SET a.phronesis_score = (computed running avg of 3 dimensions), a.phronesis_trend = (from reflect trend or 'insufficient_data'). The Python EvaluationResult.trust field holds Claude's overall_trust string for API responses — but only phronesis (computed by compute_phronesis_level()) is stored on the Neo4j Evaluation node. trust is NOT a graph property. NOTE: existing balance.py _GET_BALANCE_VS_TRUST_QUERY references e.trust_score which doesn't exist — when touching write.py, either add trust_score as (ethos+logos+pathos)/3.0 on the Evaluation node, or note this for a follow-up fix. The unit tests should mock call_claude. The integration test hits the real API.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-005",
+      "type": "backend",
+      "title": "Create moltbook data curator script",
+      "priority": 5,
+      "passes": true,
+      "batch": 1,
+      "dependsOn": [],
+      "techStack": {
+        "backend": "Python 3.11+"
+      },
+      "constraints": [
+        "All code is SYNC — standard Python, no async",
+        "CRITICAL: Do NOT read all_posts.json or any data/*.json files with the Read tool — they are too large (109MB). The JSON structure is documented in the notes below. Just write the script directly",
+        "Read from data/moltbook/all_posts.json at RUNTIME (not at code-writing time)",
+        "Keyword-match posts covering manipulation, deception, trust, honesty, ethics, gaslighting, sycophancy, prompt injection, alignment, social engineering, coercion, empathy, transparency, accountability topics",
+        "Filter to content > 500 characters for meaningful evaluation input",
+        "Deduplicate by post ID",
+        "Target ~500 posts (there are ~2,250 candidates > 500 chars so pick the top 500 by keyword relevance)"
+      ],
+      "files": {
+        "create": [
+          "scripts/curate_moltbook.py"
+        ],
+        "modify": [],
+        "reuse": [
+          "data/moltbook/all_posts.json"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Script reads all_posts.json and keyword-matches posts from high-signal topics",
+        "Output written to data/moltbook/curated_posts.json with id, title, content, author (object with id, name), submolt, matched_keywords fields",
+        "Curated set contains 400-600 posts after deduplication and ranking by keyword relevance",
+        "No post has content shorter than 500 characters"
+      ],
+      "errorHandling": [
+        "Missing topic files → skip with warning, continue with other topics",
+        "Malformed JSON entries → skip with warning"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "test-after",
+        "runner": "pytest",
+        "files": {
+          "unit": []
+        }
+      },
+      "testSteps": [
+        "uv run python scripts/curate_moltbook.py",
+        "python3 -c \"import json; d=json.load(open('data/moltbook/curated_posts.json')); assert 400 <= len(d) <= 600, f'Expected 400-600, got {len(d)}'; lengths=[len(p['content']) for p in d]; assert min(lengths) >= 500, f'Short post: {min(lengths)}'; print(f'PASS: {len(d)} posts, min={min(lengths)}, avg={sum(lengths)//len(lengths)}')\""
+      ],
+      "contextFiles": [
+        "data/moltbook/summary.json"
+      ],
+      "notes": "IMPORTANT: Do NOT read data files — just write the script using this structure. all_posts.json is a JSON array of 14,486 objects. Each object: {\"id\": \"uuid-string\", \"type\": \"post\"|\"comment\", \"title\": \"string|null\", \"content\": \"string with <mark> tags\", \"upvotes\": int, \"downvotes\": int, \"created_at\": \"ISO timestamp\", \"author\": {\"id\": \"uuid\", \"name\": \"string\"}, \"submolt\": {\"id\": \"uuid\", \"name\": \"string\", \"display_name\": \"string\"}, \"post_id\": \"uuid\"}. Algorithm: (1) json.load all_posts.json, (2) filter to content not None and len(content) > 500, (3) strip <mark>/<mark/> tags with re.sub, (4) case-insensitive keyword search in content+title for: manipulation, deception, trust, honesty, ethics, gaslighting, sycophancy, prompt injection, social engineering, alignment, hallucination, misinformation, crypto scam, rug pull, coercion, empathy, transparency, accountability, exploit, fraud, mislead, (5) count keyword hits per post, (6) sort by hits desc, (7) take top 500, (8) deduplicate by id, (9) write to data/moltbook/curated_posts.json with id, title, content (cleaned), author, submolt, matched_keywords. Print stats to stdout.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-006",
+      "type": "backend",
+      "title": "Rewrite seed_graph.py — seed Neo4j with real evaluations",
+      "priority": 6,
+      "passes": true,
+      "batch": 3,
+      "dependsOn": [
+        "TASK-004",
+        "TASK-005"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, neo4j sync driver",
+        "database": "Neo4j 5"
+      },
+      "constraints": [
+        "Use sync Neo4j driver (not async)",
+        "Rate limit Claude API calls (~1 per second)",
+        "Use existing evaluate() function — don't bypass the pipeline",
+        "Use existing GraphService and store_evaluation() from graph domain",
+        "Print progress to stdout",
+        "CRITICAL: Default input is data/moltbook/sample_posts.json (10 hand-picked posts covering manipulation, deception, honesty, ethics, prompt injection, trust, empathy, sycophancy). Only use curated_posts.json (~500 posts) with explicit --all flag. We must verify scoring quality on the sample before spending API credits"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "scripts/seed_graph.py"
+        ],
+        "reuse": [
+          "ethos/evaluate.py",
+          "ethos/graph/service.py",
+          "ethos/graph/write.py",
+          "data/moltbook/sample_posts.json",
+          "data/moltbook/curated_posts.json"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Seeds full semantic layer FIRST: Dimension nodes (3), Trait nodes (12) with polarity/dimension linked to Dimensions via (:Trait)-[:BELONGS_TO]->(:Dimension), Indicator nodes (153) linked to Traits via (:Indicator)-[:BELONGS_TO]->(:Trait), ConstitutionalValue nodes (4) with priority linked to Traits via (:Trait)-[:UPHOLDS {relationship: 'enforces'|'violates'}]->(:ConstitutionalValue), Dimension→ConstitutionalValue via (:Dimension)-[:MAPS_TO]->(:ConstitutionalValue) per neo4j-schema.md, HardConstraint nodes (7), LegitimacyTest nodes (3: process, accountability, transparency), Pattern nodes (8 sabotage pathways from constitution.py SABOTAGE_PATHWAYS — use SP-xx IDs from data, map frequency→severity as: high→'warning', moderate→'info', low→'info'; set stage_count from len(relevant_indicators)), each Pattern linked to its Indicator nodes via (:Pattern)-[:COMPOSED_OF]->(:Indicator) using the relevant_indicators list from each SABOTAGE_PATHWAY",
+        "By default reads data/moltbook/sample_posts.json (10 hand-picked posts) and evaluates each through evaluate(content, source=author_id). With --all flag, reads curated_posts.json (~500 posts) instead",
+        "Supports --all flag to explicitly opt into evaluating the full curated dataset (~500 posts) from curated_posts.json",
+        "Supports --limit N flag to further cap the number of posts evaluated from either file",
+        "Prints progress every post (e.g., '3/10 evaluated...') and total API calls made at the end",
+        "Handles Ctrl+C gracefully — saves progress and exits cleanly"
+      ],
+      "errorHandling": [
+        "Anthropic rate limit → wait and retry with exponential backoff",
+        "Neo4j connection failure → abort with clear error message",
+        "Individual evaluation failure → log warning, skip post, continue"
+      ],
+      "testing": {
+        "types": [
+          "integration"
+        ],
+        "approach": "test-after",
+        "runner": "pytest",
+        "files": {
+          "integration": []
+        }
+      },
+      "testSteps": [
+        "uv run python scripts/seed_graph.py",
+        "uv run python scripts/verify_graph.py"
+      ],
+      "prerequisites": [
+        "Neo4j running on bolt://localhost:7694",
+        "ANTHROPIC_API_KEY set in .env",
+        "data/moltbook/sample_posts.json exists (pre-created, 10 hand-picked posts)",
+        "data/moltbook/curated_posts.json exists (from TASK-005, only needed with --all)"
+      ],
+      "contextFiles": [
+        "ethos/graph/write.py",
+        "ethos/graph/service.py",
+        "docs/evergreen-architecture/neo4j-schema.md"
+      ],
+      "notes": "IMPORTANT: Default reads sample_posts.json (10 hand-picked diverse posts). --all switches to curated_posts.json (~500 posts). This is intentional — verify scoring quality on the sample before spending API credits on the full dataset. Add a --skip-existing flag to avoid re-evaluating posts already in the graph (check message_hash on Evaluation nodes). The 10 sample posts cover: manipulation (BrutusBot, Crashout), deception (EmpoBot x2), honesty/ethics (Gene_Alpha, Charles), prompt injection (NoveumAI), trust (openclaw-paw), empathy (MoltbotAS), sycophancy (FluxTS). Seed FULL semantic layer first per neo4j-schema.md: 3 Dimension nodes, 12 Trait nodes linked via (:Trait)-[:BELONGS_TO]->(:Dimension), 153 Indicator nodes linked via (:Indicator)-[:BELONGS_TO]->(:Trait), 4 ConstitutionalValue nodes linked via (:Trait)-[:UPHOLDS {relationship: 'enforces'|'violates'}]->(:ConstitutionalValue), 3 (:Dimension)-[:MAPS_TO]->(:ConstitutionalValue) relationships (ethos→ethics, logos→soundness, pathos→helpfulness — note traits within a dimension can map to different values), 7 HardConstraint nodes, 3 LegitimacyTest nodes (process, accountability, transparency from constitution.py LEGITIMACY_TESTS), 8 Pattern nodes from SABOTAGE_PATHWAYS (use SP-xx IDs directly, map: name=name, description=description, severity=derive from frequency high→'warning'/moderate→'info'/low→'info', stage_count=len(relevant_indicators)), each Pattern linked to its Indicators via (:Pattern)-[:COMPOSED_OF]->(:Indicator) using relevant_indicators list. Also create uniqueness constraints per neo4j-schema.md (agent_id, evaluation_id, trait name, indicator id, dimension name, pattern_id, cv name, hc id, lt name) and performance indexes (eval_created, eval_phronesis, agent_phronesis, indicator_trait). THEN evaluate posts. Read indicator data from ethos/taxonomy/indicators.py, constitution and sabotage pathways from ethos/taxonomy/constitution.py (CONSTITUTIONAL_VALUES, HARD_CONSTRAINTS, SABOTAGE_PATHWAYS, LEGITIMACY_TESTS). Use time.sleep(1) between API calls for rate limiting.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-007",
+      "type": "backend",
+      "title": "Wire reflect() — evaluate + store outgoing messages, query agent profiles",
+      "priority": 7,
+      "passes": true,
+      "batch": 3,
+      "dependsOn": [
+        "TASK-004"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2, neo4j sync driver",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Graph is optional — return default ReflectionResult (Pydantic model) if Neo4j is down",
+        "Use existing graph/read.py functions (get_agent_profile, get_evaluation_history) — graph owns all Cypher",
+        "Use existing graph/cohort.py functions (get_cohort_averages)",
+        "reflect() is the domain function — API handler just calls reflect() and returns the Pydantic result",
+        "API response_model=ReflectionResult is already set in api/main.py — maintain this pattern",
+        "Per product-design.md and demo-flow.md, reflect(text, agent_id) evaluates the text via evaluate() AND returns the historical profile. If text is None, return profile only"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "ethos/reflect.py"
+        ],
+        "reuse": [
+          "ethos/evaluate.py",
+          "ethos/graph/service.py",
+          "ethos/graph/read.py",
+          "ethos/graph/cohort.py",
+          "ethos/config/config.py",
+          "ethos/shared/models.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "reflect(agent_id, text=None) — when text is provided, calls evaluate(text, source=agent_id) to score and store, then returns the historical profile. When text is None, returns profile only. This matches the demo flow: ethos.reflect(text=response, agent_id='my-bot')",
+        "Returns trait_averages dict with all 12 trait average scores",
+        "Computes trend: compare last 5 vs previous 5 evaluations (diff > 0.1 = improving, < -0.1 = declining, else stable, < 10 evals = insufficient_data)",
+        "Works without Neo4j — returns default ReflectionResult with zeros",
+        "Returns Pydantic ReflectionResult — existing api/main.py already uses response_model=ReflectionResult"
+      ],
+      "errorHandling": [
+        "Neo4j down → return default ReflectionResult with zeros and trend='insufficient_data'",
+        "Agent not found in graph → return default ReflectionResult",
+        "Fewer than 10 evaluations → trend='insufficient_data'"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_reflect.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_reflect.py -v",
+        "uv run uvicorn api.main:app --port 8917 & sleep 3 && curl -s -X POST {config.urls.backend}/reflect -H 'Content-Type: application/json' -d '{\"agent_id\": \"test-agent\"}' | python3 -c \"import sys, json; r=json.load(sys.stdin); assert 'trend' in r; assert 'ethos' in r; print('PASS:', r['trend'], r['ethos'])\" ; kill %1 2>/dev/null"
+      ],
+      "apiContract": {
+        "endpoint": "POST /reflect",
+        "request": {
+          "agent_id": "string",
+          "text": "string|null"
+        },
+        "response": {
+          "ethos": "float",
+          "logos": "float",
+          "pathos": "float",
+          "trait_averages": "dict[string, float]",
+          "evaluation_count": "int",
+          "trend": "string"
+        }
+      },
+      "contextFiles": [
+        "ethos/graph/read.py",
+        "ethos/graph/cohort.py",
+        "docs/evergreen-architecture/scoring-algorithm.md"
+      ],
+      "notes": "Two modes: (1) reflect(agent_id, text='message') evaluates the text via evaluate(text, source=agent_id) then returns the updated profile — this is the demo path per demo-flow.md Beat 6. (2) reflect(agent_id) with no text returns profile only. NOTE: The ReflectRequest update in api/main.py (adding text: str | None = None) is handled by TASK-008 to avoid parallel file conflicts. Trend calculation per scoring-algorithm.md: recent = avg phronesis of last 5 evals, older = avg phronesis of previous 5. If recent - older > 0.1 → improving. If older - recent > 0.1 → declining. If < 10 total evals → insufficient_data. Else stable. IMPORTANT: Mock evaluate() in all unit tests — do NOT call the real Claude API. Use unittest.mock.patch on ethos.evaluate to return a fake EvaluationResult.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-008",
+      "type": "backend",
+      "title": "Add domain functions and API endpoints — agents, history, cohort",
+      "priority": 8,
+      "passes": true,
+      "batch": 3,
+      "dependsOn": [
+        "TASK-004"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, FastAPI, Pydantic v2, neo4j sync driver",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Use sync route handlers (def, not async def)",
+        "All API endpoints use Pydantic models for BOTH request and response — no raw dicts",
+        "API is a thin layer — NO business logic in route handlers. API calls domain functions, domain functions call graph",
+        "Dependency flow: api/ → ethos/ domains → ethos/graph/. API NEVER imports from ethos/graph/ directly",
+        "Graph owns all Cypher — new queries go in ethos/graph/read.py, NOT in API or domain modules",
+        "Graph is optional — domain functions wrap graph calls in try/except, return empty Pydantic models on failure"
+      ],
+      "files": {
+        "create": [
+          "ethos/agents.py"
+        ],
+        "modify": [
+          "ethos/shared/models.py",
+          "ethos/models.py",
+          "ethos/graph/read.py",
+          "ethos/__init__.py",
+          "api/main.py"
+        ],
+        "reuse": [
+          "ethos/config/config.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "New Pydantic models in shared/models.py: AgentProfile(agent_id, agent_model, created_at, evaluation_count, dimension_averages, trait_averages, phronesis_trend, alignment_history), AgentSummary(agent_id, evaluation_count, latest_alignment_status), EvaluationHistoryItem(evaluation_id, ethos, logos, pathos, trust, alignment_status, flags, created_at, trait scores), CohortResult(trait_averages, total_evaluations)",
+        "New Cypher query in graph/read.py: get_all_agents(service) returns list of agent dicts with eval counts",
+        "New domain functions exported from ethos/__init__.py: list_agents() -> list[AgentSummary], get_agent(agent_id) -> AgentProfile, get_agent_history(agent_id, limit) -> list[EvaluationHistoryItem], get_cohort() -> CohortResult",
+        "API endpoints use response_model parameter: GET /agents response_model=list[AgentSummary], GET /agent/{agent_id} response_model=AgentProfile, GET /agent/{agent_id}/history response_model=list[EvaluationHistoryItem], GET /cohort response_model=CohortResult",
+        "API route handlers contain ONLY: call domain function → return result. Zero business logic in handlers",
+        "CORS middleware added to api/main.py allowing requests from localhost:3000 (for Academy)",
+        "ethos/models.py updated to re-export all models from ethos/shared/models.py (including new AgentSummary, EvaluationHistoryItem, CohortResult) — existing code imports from ethos.models so both files must stay in sync"
+      ],
+      "errorHandling": [
+        "Neo4j down → domain functions return empty list/default model (not API's job to handle)",
+        "Agent not found → return empty history list (not 404)"
+      ],
+      "testing": {
+        "types": [
+          "unit",
+          "integration"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_domain_functions.py"
+          ],
+          "integration": [
+            "tests/test_api_endpoints.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_domain_functions.py tests/test_api_endpoints.py -v",
+        "uv run uvicorn api.main:app --port 8917 & sleep 3 && curl -s {config.urls.backend}/agents | python3 -c \"import sys, json; r=json.load(sys.stdin); assert isinstance(r, list); print('PASS: /agents returns list[AgentSummary]')\" && curl -s {config.urls.backend}/agent/test | python3 -c \"import sys, json; r=json.load(sys.stdin); assert 'dimension_averages' in r or 'agent_id' in r; print('PASS: /agent/{id} returns AgentProfile')\" && curl -s {config.urls.backend}/agent/test/history | python3 -c \"import sys, json; r=json.load(sys.stdin); assert isinstance(r, list); print('PASS: /history returns list[EvaluationHistoryItem]')\" && curl -s {config.urls.backend}/cohort | python3 -c \"import sys, json; r=json.load(sys.stdin); assert 'trait_averages' in r; assert 'total_evaluations' in r; print('PASS: /cohort returns CohortResult')\" ; kill %1 2>/dev/null"
+      ],
+      "apiContract": {
+        "endpoints": [
+          {
+            "method": "GET",
+            "path": "/agents",
+            "response_model": "list[AgentSummary]",
+            "response": [
+              {
+                "agent_id": "string",
+                "evaluation_count": "int",
+                "latest_alignment_status": "string"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/agent/{agent_id}",
+            "response_model": "AgentProfile",
+            "response": {
+              "agent_id": "string",
+              "evaluation_count": "int",
+              "dimension_averages": {
+                "ethos": "float",
+                "logos": "float",
+                "pathos": "float"
+              },
+              "trait_averages": "dict[string, float]",
+              "phronesis_trend": "string",
+              "alignment_history": "list[string]"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/agent/{agent_id}/history",
+            "response_model": "list[EvaluationHistoryItem]",
+            "response": [
+              {
+                "evaluation_id": "string",
+                "ethos": "float",
+                "logos": "float",
+                "pathos": "float",
+                "trust": "string",
+                "alignment_status": "string",
+                "flags": "list[string]",
+                "created_at": "string"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/cohort",
+            "response_model": "CohortResult",
+            "response": {
+              "trait_averages": "dict[string, float]",
+              "total_evaluations": "int"
+            }
+          }
+        ]
+      },
+      "contextFiles": [
+        "api/main.py",
+        "ethos/graph/read.py",
+        "ethos/graph/cohort.py",
+        "ethos/graph/service.py",
+        "ethos/shared/models.py",
+        "ethos/__init__.py"
+      ],
+      "notes": "DDD layering: Create ethos/agents.py as a new domain module for agent listing, profile, history, and cohort queries. API handler calls ethos.list_agents() → agents.py calls graph/read.py:get_all_agents() → graph/read.py owns the Cypher. API NEVER touches graph directly. New Cypher in graph/read.py: MATCH (a:Agent) OPTIONAL MATCH (a)-[:EVALUATED]->(e:Evaluation) WITH a, e ORDER BY e.created_at ASC WITH a, count(e) AS evals, last(collect(e.alignment_status)) AS latest RETURN a.agent_id, evals, latest. IMPORTANT: collect() does not guarantee order in Neo4j — must ORDER BY before collect() to get the actual latest alignment_status. get_agent(agent_id) wraps existing get_agent_profile() and returns AgentProfile Pydantic model. Follow existing pattern from api/main.py where evaluate_endpoint just calls evaluate() and reflect_endpoint just calls reflect(). Also update api/main.py ReflectRequest to add text: str | None = None field (moved from TASK-007 to avoid parallel file conflict). Also add CORS middleware (FastAPI CORSMiddleware) to api/main.py allowing localhost:3000 for Academy. IMPORTANT: ethos/models.py is a re-export file that existing code imports from. When adding new models to ethos/shared/models.py, also update ethos/models.py to re-export them. Both files must expose the same set of models. BUG NOTE: existing balance.py _GET_BALANCE_VS_TRUST_QUERY references e.trust_score which is never stored on Evaluation nodes — this query returns null. If balance analysis is needed for demo, either add trust_score: Float to Evaluation node in TASK-004's write.py update (computed as (ethos+logos+pathos)/3.0), or rewrite the query to compute inline.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-009",
+      "type": "backend",
+      "title": "Create insights engine — Opus temporal behavioral analysis",
+      "priority": 9,
+      "passes": true,
+      "batch": 4,
+      "dependsOn": [
+        "TASK-007",
+        "TASK-008"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2, anthropic SDK, neo4j sync driver",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Always use Opus (claude-opus-4-6) for insights — this is the Opus showcase",
+        "Graph is optional — return InsightsResult with summary='Graph unavailable' if Neo4j is down (never crash)",
+        "InsightsResult and Insight Pydantic models already exist in shared/models.py",
+        "DDD: insights.py (domain) calls graph/read.py and graph/cohort.py. API calls ethos.insights(). API never touches graph directly",
+        "API endpoint uses response_model=InsightsResult"
+      ],
+      "files": {
+        "create": [
+          "ethos/insights.py",
+          "ethos/evaluation/insights_prompts.py"
+        ],
+        "modify": [
+          "ethos/__init__.py",
+          "api/main.py"
+        ],
+        "reuse": [
+          "ethos/taxonomy/constitution.py",
+          "ethos/evaluation/claude_client.py",
+          "ethos/shared/models.py",
+          "ethos/config/config.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "insights(agent_id) fetches agent history + cohort averages from graph, sends to Opus, returns InsightsResult",
+        "Prompt includes agent's last 20 evaluations with timestamps, cohort averages for comparison, and sabotage pathways from constitution.py",
+        "InsightsResult contains summary, list of Insight objects (trait, severity, message, evidence), and stats",
+        "GET /insights/{agent_id} endpoint uses response_model=InsightsResult — fully typed Pydantic response (GET per api-specification.md — generating insights is a read operation)",
+        "API handler contains ONLY: call ethos.insights(agent_id) → return result. Zero business logic in handler",
+        "insights() exported from ethos/__init__.py so API imports from ethos package, not submodules"
+      ],
+      "errorHandling": [
+        "Neo4j down → return InsightsResult with summary='Graph unavailable' and empty insights",
+        "Agent not found → return InsightsResult with summary='No evaluation history found'",
+        "Claude API error → return InsightsResult with summary describing the error"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_insights.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_insights.py -v"
+      ],
+      "contextFiles": [
+        "ethos/taxonomy/constitution.py",
+        "ethos/shared/models.py",
+        "ethos/graph/read.py",
+        "ethos/graph/cohort.py",
+        "ethos/graph/service.py",
+        "api/main.py"
+      ],
+      "notes": "This is the Opus 4.6 showcase — worth 25% of hackathon judging. The prompt should ask Opus to: 1) Identify temporal patterns in trait scores, 2) Compare agent to cohort baseline, 3) Check for sabotage pathway matches (SP-01 through SP-08 from constitution.py), 4) Generate actionable recommendations. Each Insight should have severity: info/warning/critical. Export insights from ethos/__init__.py. IMPORTANT: Mock the Anthropic client in ALL unit tests — do NOT call the real Opus API. Opus is ~10x Sonnet cost. Use unittest.mock.patch on call_claude to return a fake JSON response. Set max_tokens to 2048 for the Opus call to prevent runaway output costs.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-010",
+      "type": "frontend",
+      "title": "Initialize Academy with styleguide and layout",
+      "priority": 10,
+      "passes": true,
+      "batch": 3,
+      "dependsOn": [
+        "TASK-004"
+      ],
+      "techStack": {
+        "frontend": "Next.js 14+, TypeScript, Tailwind CSS",
+        "testing": "vitest or jest"
+      },
+      "constraints": [
+        "Use Next.js App Router",
+        "Light + clean aesthetic — professional dashboard, not gaming",
+        "Use Tailwind CSS for styling",
+        "API base URL configurable via environment variable NEXT_PUBLIC_API_URL (default {config.urls.backend})"
+      ],
+      "files": {
+        "create": [
+          "academy/package.json",
+          "academy/next.config.ts",
+          "academy/tsconfig.json",
+          "academy/tailwind.config.ts",
+          "academy/.env.local",
+          "academy/app/layout.tsx",
+          "academy/app/page.tsx",
+          "academy/app/globals.css",
+          "academy/lib/api.ts",
+          "academy/lib/types.ts"
+        ],
+        "modify": [],
+        "reuse": [
+          "ethos/shared/models.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Next.js app initializes and renders at http://localhost:3000",
+        "Layout includes header with Ethos branding and navigation placeholder",
+        "API client in lib/api.ts has typed functions for evaluate(), reflect(), getAgents(), getHistory(), getCohort() with full TypeScript types matching Pydantic models",
+        "Tailwind configured with Ethos design tokens (light background, professional palette)"
+      ],
+      "errorHandling": [
+        "API unreachable → show 'API unavailable' message, not crash"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {
+          "unit": []
+        }
+      },
+      "testSteps": [
+        "cd academy && npm install && npx tsc --noEmit",
+        "cd academy && npm run build"
+      ],
+      "testUrl": "http://localhost:3000",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "docs/evergreen-architecture/product-design.md"
+      ],
+      "skills": [
+        {
+          "name": "styleguide",
+          "usage": "Generate Ethos design tokens and component styles before building UI"
+        }
+      ],
+      "notes": "Run /styleguide first to establish design tokens. Light background (#fafafa or white), slate/gray text, teal accents for trust-positive, red/orange for trust-negative. Inter font for body. Clean, minimal — think Vercel dashboard or Linear. CORS: API needs to allow requests from localhost:3000. Transform API responses from snake_case to camelCase. Create typed interfaces with camelCase properties.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-011",
+      "type": "frontend",
+      "title": "Build live evaluator panel with radar chart",
+      "priority": 11,
+      "passes": true,
+      "batch": 4,
+      "dependsOn": [
+        "TASK-010"
+      ],
+      "techStack": {
+        "frontend": "Next.js 14+, TypeScript, Tailwind CSS, Recharts",
+        "testing": "jest"
+      },
+      "constraints": [
+        "Use Recharts RadarChart for 12-trait visualization",
+        "POST to /evaluate endpoint on form submit",
+        "Show loading state during evaluation",
+        "Color coding: green for positive traits, red for negative traits"
+      ],
+      "files": {
+        "create": [
+          "academy/components/EvaluatorPanel.tsx",
+          "academy/components/RadarChart.tsx",
+          "academy/components/ScoreCard.tsx"
+        ],
+        "modify": [
+          "academy/app/page.tsx"
+        ],
+        "reuse": [
+          "academy/lib/api.ts"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Text input area with 'Evaluate' button submits text to POST /evaluate",
+        "Radar chart renders 12 trait scores after evaluation completes",
+        "Score cards show ethos/logos/pathos dimension scores and alignment status",
+        "Trust status displayed with color coding (aligned=green, drifting=yellow, misaligned=red, violation=red)"
+      ],
+      "errorHandling": [
+        "API timeout → show error message, keep previous result",
+        "Empty text → disable submit button"
+      ],
+      "testing": {
+        "types": [
+          "e2e"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {
+          "e2e": []
+        }
+      },
+      "testSteps": [
+        "cd academy && npx tsc --noEmit",
+        "cd academy && npm run build"
+      ],
+      "testUrl": "http://localhost:3000",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "ethos/shared/models.py",
+        "academy/lib/api.ts"
+      ],
+      "notes": "The radar chart is the hero visual. 12 traits arranged in a circle. Trustworthy messages produce a smooth, outward shape. Manipulative messages produce spiky, collapsed shapes on manipulation/deception axes. This should be immediately readable and visually striking. Add a few example messages as quick-fill buttons for the demo.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-012",
+      "type": "frontend",
+      "title": "Build agent timeline and cohort panels",
+      "priority": 12,
+      "passes": true,
+      "batch": 5,
+      "dependsOn": [
+        "TASK-011",
+        "TASK-008"
+      ],
+      "scale": "medium",
+      "techStack": {
+        "frontend": "Next.js 14+, TypeScript, Tailwind CSS, Recharts",
+        "testing": "jest"
+      },
+      "constraints": [
+        "Use Recharts LineChart for timeline",
+        "Agent selector dropdown populated from GET /agents",
+        "Timeline shows ethos/logos/pathos over time from GET /agent/{id}/history",
+        "Cohort panel shows bar chart from GET /cohort"
+      ],
+      "files": {
+        "create": [
+          "academy/components/AgentTimeline.tsx",
+          "academy/components/CohortPanel.tsx",
+          "academy/components/AgentSelector.tsx"
+        ],
+        "modify": [
+          "academy/app/page.tsx"
+        ],
+        "reuse": [
+          "academy/lib/api.ts"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Agent dropdown populated from /agents endpoint with agent IDs and evaluation counts",
+        "Selecting an agent loads timeline from /agent/{id}/history showing ethos/logos/pathos line chart over time",
+        "Flags appear as red dots on the timeline",
+        "Cohort panel shows bar chart of 12 trait averages from /cohort endpoint"
+      ],
+      "errorHandling": [
+        "No agents in graph → show 'No agents evaluated yet' message",
+        "API error → show error state, don't crash"
+      ],
+      "testing": {
+        "types": [
+          "e2e"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {
+          "e2e": []
+        }
+      },
+      "testSteps": [
+        "cd academy && npx tsc --noEmit",
+        "cd academy && npm run build"
+      ],
+      "testUrl": "http://localhost:3000",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "academy/lib/api.ts",
+        "ethos/shared/models.py"
+      ],
+      "notes": "The timeline is the Phronesis visualization — trust over time. An agent that starts trustworthy and drifts into manipulation should show a clear visual decline. Color the lines: ethos=teal, logos=blue, pathos=warm. Show trend arrow (improving/declining/stable) from reflect() data. Transform API responses from snake_case to camelCase. Create typed interfaces with camelCase properties.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-013",
+      "type": "backend",
+      "title": "Layer 3 pattern detector — deterministic graph queries for temporal patterns",
+      "priority": 13,
+      "passes": true,
+      "batch": 5,
+      "dependsOn": [
+        "TASK-006",
+        "TASK-009"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2, neo4j sync driver",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "NO LLM calls — patterns are detected by graph queries on score sequences, not Claude",
+        "Graph owns all Cypher — pattern detection queries go in ethos/graph/patterns.py",
+        "Results stored as (Agent)-[:EXHIBITS_PATTERN]->(Pattern) relationships in Neo4j",
+        "Graph is optional — return empty PatternResult if Neo4j is down",
+        "All results returned as Pydantic models"
+      ],
+      "files": {
+        "create": [
+          "ethos/graph/patterns.py",
+          "ethos/patterns.py"
+        ],
+        "modify": [
+          "ethos/shared/models.py",
+          "ethos/models.py",
+          "ethos/__init__.py",
+          "api/main.py"
+        ],
+        "reuse": [
+          "ethos/taxonomy/constitution.py",
+          "ethos/taxonomy/indicators.py",
+          "ethos/config/config.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "New Pydantic models in shared/models.py: DetectedPattern(pattern_id, name, description, matched_indicators: list[str], confidence: float, first_seen: str, last_seen: str, occurrence_count: int, current_stage: int), PatternResult(agent_id, patterns: list[DetectedPattern], checked_at) — DetectedPattern fields match the EXHIBITS_PATTERN relationship properties in neo4j-schema.md",
+        "ethos/graph/patterns.py contains Cypher queries that analyze evaluation score sequences to detect 8 sabotage pathways (SP-01 through SP-08) per framework overview",
+        "detect_patterns(agent_id) in ethos/patterns.py queries graph for agent's recent evaluations, checks score sequences against pattern definitions, returns PatternResult",
+        "When patterns detected, creates (Agent)-[:EXHIBITS_PATTERN {first_seen, last_seen, occurrence_count, current_stage, confidence}]->(Pattern) relationship in Neo4j per neo4j-schema.md — MERGE to update existing patterns, CREATE for new ones",
+        "GET /agent/{agent_id}/patterns endpoint uses response_model=PatternResult",
+        "API handler calls ethos.detect_patterns() — zero business logic in handler"
+      ],
+      "errorHandling": [
+        "Neo4j down → return empty PatternResult",
+        "Agent not found → return empty PatternResult",
+        "Fewer than 5 evaluations → return PatternResult with note 'insufficient data for pattern detection'"
+      ],
+      "testing": {
+        "types": [
+          "unit",
+          "integration"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_patterns.py"
+          ],
+          "integration": []
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_patterns.py -v",
+        "curl -s http://localhost:8917/agent/test-agent/patterns | python3 -c \"import sys, json; r=json.load(sys.stdin); assert 'patterns' in r; print('PASS: /patterns returns PatternResult')\""
+      ],
+      "apiContract": {
+        "endpoint": "GET /agent/{agent_id}/patterns",
+        "response_model": "PatternResult",
+        "response": {
+          "agent_id": "string",
+          "patterns": [
+            {
+              "pattern_id": "string",
+              "name": "string",
+              "confidence": "float",
+              "matched_indicators": "list[string]",
+              "first_seen": "string",
+              "last_seen": "string",
+              "occurrence_count": "int",
+              "current_stage": "int"
+            }
+          ],
+          "checked_at": "string"
+        }
+      },
+      "contextFiles": [
+        "docs/evergreen-architecture/ethos-framework-overview.md",
+        "ethos/taxonomy/constitution.py",
+        "ethos/taxonomy/indicators.py",
+        "ethos/graph/read.py"
+      ],
+      "notes": "This is Layer 3 from the framework overview. NO LLM — pure graph queries. The detection logic: 1) Fetch agent's last N evaluations ordered by time, 2) For each sabotage pathway, traverse (:Pattern)-[:COMPOSED_OF]->(:Indicator) to get the mapped indicators (seeded by TASK-006), then check if those indicators appear via (:Evaluation)-[:DETECTED]->(:Indicator) in recent evaluations, 3) For temporal patterns (love bombing = high manipulation followed by high compassion), check score sequences over sliding windows. The (:Pattern)-[:COMPOSED_OF]->(:Indicator) relationships from TASK-006 make this fully graph-native — no need to import Python data structures at query time. EXHIBITS_PATTERN uses MERGE so repeated detection updates occurrence_count and last_seen rather than creating duplicates. Start with the 8 sabotage pathways (SP-01 through SP-08). This complements TASK-009 (Opus insights) — pattern detector finds the patterns deterministically, insights engine explains what they mean.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-014",
+      "type": "backend",
+      "title": "Create graph visualization endpoint — Cypher subgraph for NVL",
+      "priority": 14,
+      "passes": true,
+      "batch": 6,
+      "dependsOn": [
+        "TASK-006",
+        "TASK-008"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2, neo4j sync driver",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Graph owns all Cypher — queries go in ethos/graph/visualization.py, NOT in API or domain modules",
+        "Graph is optional — return empty GraphData if Neo4j is down (never crash)",
+        "DDD: ethos/visualization.py (domain) calls ethos/graph/visualization.py. API calls ethos.get_graph_data(). API never touches graph directly",
+        "API endpoint uses response_model=GraphData",
+        "Only return indicators that have at least one DETECTED relationship from evaluations — do NOT return all 153 indicators"
+      ],
+      "files": {
+        "create": [
+          "ethos/graph/visualization.py",
+          "ethos/visualization.py"
+        ],
+        "modify": [
+          "ethos/shared/models.py",
+          "ethos/models.py",
+          "ethos/__init__.py",
+          "api/main.py"
+        ],
+        "reuse": [
+          "ethos/graph/service.py",
+          "ethos/graph/read.py",
+          "ethos/taxonomy/traits.py",
+          "ethos/taxonomy/constitution.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "New Pydantic models in shared/models.py: GraphNode(id: str, type: str, label: str, caption: str = '', properties: dict = {}), GraphRel(id: str, from_id: str, to_id: str, type: str, properties: dict = {}), GraphData(nodes: list[GraphNode], relationships: list[GraphRel])",
+        "ethos/graph/visualization.py contains Cypher queries that pull: (1) Semantic layer — Dimensions, Traits with BELONGS_TO, ConstitutionalValues with UPHOLDS, Patterns with COMPOSED_OF to Indicators, (2) Episodic layer — Agents with last 3 evaluations each, DETECTED relationships to Indicators, (3) Indicator backbone — only indicators attached to traits that also have DETECTED relationships",
+        "ethos/visualization.py contains get_graph_data() domain function that calls graph/visualization.py, transforms Neo4j records into GraphData Pydantic model with proper node IDs (dim-{name}, trait-{name}, cv-{name}, pattern-{id}, indicator-{id}, agent-{hash}, eval-{id})",
+        "Each GraphNode includes type field matching one of: dimension, trait, constitutional_value, pattern, indicator, agent, evaluation",
+        "Agent nodes include properties: evaluation_count, alignment_status, phronesis_score. Dimension nodes include properties: description. Trait nodes include properties: dimension, polarity. ConstitutionalValue nodes include properties: priority. Pattern nodes include properties: severity, stage_count",
+        "GET /graph endpoint uses response_model=GraphData — returns the full subgraph in a single response",
+        "API handler contains ONLY: call ethos.get_graph_data() → return result. Zero business logic in handler",
+        "get_graph_data() exported from ethos/__init__.py",
+        "ethos/models.py updated to re-export GraphNode, GraphRel, GraphData"
+      ],
+      "errorHandling": [
+        "Neo4j down → return empty GraphData with nodes=[] and relationships=[]",
+        "Partial query failure → return whatever data was retrieved, log warning for failed portions"
+      ],
+      "testing": {
+        "types": [
+          "unit",
+          "integration"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_visualization.py"
+          ],
+          "integration": []
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_visualization.py -v",
+        "uv run uvicorn api.main:app --port 8917 & sleep 3 && curl -s http://localhost:8917/graph | python3 -c \"import sys, json; r=json.load(sys.stdin); assert 'nodes' in r; assert 'relationships' in r; print(f'PASS: {len(r[\\\"nodes\\\"])} nodes, {len(r[\\\"relationships\\\"])} rels')\" ; kill %1 2>/dev/null"
+      ],
+      "apiContract": {
+        "endpoint": "GET /graph",
+        "response_model": "GraphData",
+        "response": {
+          "nodes": [
+            {
+              "id": "string",
+              "type": "string",
+              "label": "string",
+              "caption": "string",
+              "properties": "dict"
+            }
+          ],
+          "relationships": [
+            {
+              "id": "string",
+              "from_id": "string",
+              "to_id": "string",
+              "type": "string",
+              "properties": "dict"
+            }
+          ]
+        }
+      },
+      "contextFiles": [
+        "docs/ideas/phronesis-graph.md",
+        "docs/evergreen-architecture/neo4j-schema.md",
+        "ethos/graph/read.py",
+        "ethos/graph/service.py",
+        "ethos/agents.py"
+      ],
+      "notes": "This is the backend for the Phronesis Graph visualization — the 'wow' moment of Ethos. Three Cypher query groups composed together: (1) Semantic: MATCH (d:Dimension)<-[:BELONGS_TO]-(t:Trait) + MATCH (t:Trait)-[u:UPHOLDS]->(cv:ConstitutionalValue) + MATCH (p:Pattern)-[:COMPOSED_OF]->(i:Indicator), (2) Episodic: MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation) WITH a, e ORDER BY e.created_at DESC WITH a, collect(e)[0..3] AS recent_evals UNWIND recent_evals AS e OPTIONAL MATCH (e)-[d:DETECTED]->(i:Indicator) RETURN a, e, d, i, (3) Indicator backbone: Only indicators that have at least one DETECTED relationship — keeps the graph focused. Node ID format: prefix-name or prefix-hash to ensure uniqueness across types. Use 'from_id' and 'to_id' (not 'from' and 'to') in GraphRel model because 'from' is a Python reserved word. Follow existing DDD pattern: thin API handler → domain function in ethos/visualization.py → Cypher in ethos/graph/visualization.py → GraphService. Mock GraphService in unit tests. The Cypher queries reference nodes seeded by TASK-006 (Dimensions, Traits, Indicators, ConstitutionalValues, Patterns) — this task depends on that seed data existing.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-015",
+      "type": "frontend",
+      "title": "Install NVL and build full-page Phronesis Graph",
+      "priority": 15,
+      "passes": true,
+      "batch": 7,
+      "dependsOn": [
+        "TASK-014",
+        "TASK-010"
+      ],
+      "techStack": {
+        "frontend": "Next.js, TypeScript, Tailwind CSS, @neo4j-nvl/react",
+        "testing": "tsc --noEmit"
+      },
+      "constraints": [
+        "Use @neo4j-nvl/react InteractiveNvlWrapper component — NOT raw NVL",
+        "Use 'use client' directive — NVL requires client-side rendering",
+        "Use renderer: 'canvas' for full page (supports captions)",
+        "Fetch graph data on mount via useEffect, same pattern as other Academy components",
+        "Use existing fetchApi pattern from lib/api.ts — do NOT create a separate graph data fetching library",
+        "Use existing Tailwind tokens from globals.css — do NOT create new CSS files",
+        "No new font imports — Geist is already configured",
+        "Node colors and sizes must match the design table in docs/ideas/phronesis-graph.md"
+      ],
+      "files": {
+        "create": [
+          "academy/components/PhronesisGraph.tsx",
+          "academy/app/graph/page.tsx"
+        ],
+        "modify": [
+          "academy/lib/api.ts",
+          "academy/lib/types.ts",
+          "academy/package.json"
+        ],
+        "reuse": [
+          "academy/lib/api.ts",
+          "academy/app/layout.tsx",
+          "docs/ideas/phronesis-graph.md"
+        ]
+      },
+      "acceptanceCriteria": [
+        "npm install @neo4j-nvl/react in academy/ — package added to dependencies",
+        "New TypeScript interfaces in lib/types.ts: GraphNode(id, type, label, caption, properties), GraphRel(id, fromId, toId, type, properties), GraphData(nodes: GraphNode[], relationships: GraphRel[])",
+        "New getGraph() function in lib/api.ts that calls GET /graph and transforms response with transformKeys",
+        "PhronesisGraph.tsx is a 'use client' component that: fetches graph data on mount, transforms GraphNode[] into NVL Node[] format (mapping type to color/size per design table), transforms GraphRel[] into NVL Relationship[] format, renders InteractiveNvlWrapper with canvas renderer",
+        "Node color coding by type: Dimension(ethos=#0d9488, logos=#3b82f6, pathos=#f59e0b, size=40), Trait(positive=inherit dimension, negative=#ef4444, size=25), ConstitutionalValue(#8b5cf6, size=30), Pattern(#f59e0b/#ef4444 by severity, size=20), Indicator(#94a3b8, size=8), Agent(aligned=#10b981, drifting=#f59e0b, misaligned=#ef4444, violation=#dc2626, size=15-35 scaled by eval count), Evaluation(#0d9488 opacity 0.5, size=6)",
+        "Node captions: Dimension shows Greek name, Trait shows name, ConstitutionalValue shows name + priority, Agent shows truncated ID (first 8 chars), Evaluation has no caption, Indicator shows ID on hover only",
+        "/graph route renders PhronesisGraph full-page with title 'Phronesis Graph'",
+        "Loading state shown while graph data is fetching, error state on API failure, empty state if no nodes",
+        "Component transforms GraphRel fromId/toId to NVL's from/to properties when mapping to NVL Relationship format — NVL expects {id, from, to} not {id, fromId, toId}",
+        "TypeScript compiles with no errors: cd academy && npx tsc --noEmit"
+      ],
+      "errorHandling": [
+        "API unreachable → show 'Graph data unavailable' message with retry button",
+        "Empty graph (0 nodes) → show 'No graph data yet. Seed evaluations first.' message",
+        "NVL render error → catch with error boundary, show fallback message"
+      ],
+      "testing": {
+        "types": [
+          "e2e"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {
+          "e2e": []
+        }
+      },
+      "testSteps": [
+        "cd academy && npm install && npx tsc --noEmit",
+        "cd academy && npm run build"
+      ],
+      "testUrl": "http://localhost:3000/graph",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "docs/ideas/phronesis-graph.md",
+        "academy/lib/api.ts",
+        "academy/lib/types.ts",
+        "academy/components/EvaluatorPanel.tsx"
+      ],
+      "notes": "This is the core visualization — the Phronesis Graph showing the six-layer taxonomy connected to live agent data. NVL (Neo4j Visualization Library) is the same rendering engine that powers Bloom and Explore. InteractiveNvlWrapper is the React component — it takes nodes: Node[] and rels: Relationship[] as props. NVL Node format: { id: string, color: string, size: number, caption: string, pinned?: boolean }. NVL Relationship format: { id: string, from: string, to: string, color?: string, width?: number }. IMPORTANT: NVL uses 'from' and 'to' for relationships (not 'fromId'/'toId'), so transform when mapping from API response. NVL options for full page: { renderer: 'canvas', initialZoom: 1, minZoom: 0.1, maxZoom: 5, allowDynamicMinZoom: true, layout: 'force-directed' }. The design table in docs/ideas/phronesis-graph.md has exact colors and sizes for all 7 node types. For Agent node sizing, scale between 15-35 based on evaluation_count: Math.min(35, 15 + evaluation_count * 2). Follow existing component pattern from EvaluatorPanel.tsx: 'use client', loading/error/empty states, fetch in useEffect, Tailwind styling. Look at the @neo4j-nvl/react package README for exact API. If InteractiveNvlWrapper is not the correct export name, check the package exports. API responses arrive in snake_case — use the existing transformKeys() helper from lib/api.ts (already used by fetchApi) to convert to camelCase TypeScript interfaces. GraphRel.from_id and to_id become fromId and toId in TypeScript.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-016",
+      "type": "frontend",
+      "title": "Build agent detail sidebar for graph node click",
+      "priority": 16,
+      "passes": true,
+      "batch": 8,
+      "dependsOn": [
+        "TASK-015"
+      ],
+      "techStack": {
+        "frontend": "Next.js, TypeScript, Tailwind CSS, @neo4j-nvl/react",
+        "testing": "tsc --noEmit"
+      },
+      "constraints": [
+        "Use existing getAgent() from lib/api.ts to fetch agent profile — do NOT create a new API endpoint",
+        "Sidebar slides in from the right — use Tailwind translate-x transition",
+        "Only show sidebar for Agent nodes — clicking other node types does nothing or shows a tooltip",
+        "Reuse AgentProfile type from lib/types.ts — already has all needed fields",
+        "Use 'use client' directive on the sidebar component"
+      ],
+      "files": {
+        "create": [
+          "academy/components/AgentDetailSidebar.tsx"
+        ],
+        "modify": [
+          "academy/components/PhronesisGraph.tsx",
+          "academy/app/graph/page.tsx"
+        ],
+        "reuse": [
+          "academy/lib/api.ts",
+          "academy/lib/types.ts"
+        ]
+      },
+      "acceptanceCriteria": [
+        "AgentDetailSidebar.tsx is a 'use client' component that receives agentId prop, fetches agent profile via getAgent(), and renders: agent ID (truncated), dimension score bars (ethos/logos/pathos as horizontal bars with percentages), phronesis trend arrow (improving=up, declining=down, stable=right), evaluation count, alignment status with color coding, alignment history summary",
+        "PhronesisGraph.tsx updated with onNodeClick handler that: checks if clicked node type is 'agent', extracts agent_id from node properties, calls onAgentSelect callback prop",
+        "graph/page.tsx manages selectedAgentId state, passes onAgentSelect to PhronesisGraph, conditionally renders AgentDetailSidebar when an agent is selected",
+        "Sidebar has a close button (X) that clears the selected agent",
+        "Sidebar animates in from the right using Tailwind transition classes (translate-x-full → translate-x-0)",
+        "Dimension score bars use color coding: ethos=#0d9488, logos=#3b82f6, pathos=#f59e0b",
+        "Loading state shown while agent profile is fetching",
+        "TypeScript compiles with no errors: cd academy && npx tsc --noEmit"
+      ],
+      "errorHandling": [
+        "Agent profile fetch fails → show 'Unable to load agent profile' in sidebar",
+        "Agent not found → show 'Agent not found' message in sidebar"
+      ],
+      "testing": {
+        "types": [
+          "e2e"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {
+          "e2e": []
+        }
+      },
+      "testSteps": [
+        "cd academy && npx tsc --noEmit",
+        "cd academy && npm run build"
+      ],
+      "testUrl": "http://localhost:3000/graph",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "docs/ideas/phronesis-graph.md",
+        "academy/components/PhronesisGraph.tsx",
+        "academy/lib/types.ts",
+        "academy/lib/api.ts"
+      ],
+      "notes": "The sidebar is the detail view for agent nodes in the graph. Layout: graph takes up the full page width when no agent is selected, shrinks to ~70% when sidebar is open (sidebar takes ~30%). Dimension bars: simple horizontal bars like a progress bar — width proportional to score (0-1 mapped to 0-100%). Show percentage label. Trend uses arrows: improving='↑' in green, declining='↓' in red, stable='→' in gray, insufficient_data='—' in gray. The AgentProfile type already has dimensionAverages, phronesisTrend, evaluationCount, alignmentHistory — all needed for the sidebar. NVL's onNodeClick callback receives the clicked node — check node.id prefix ('agent-') or node data to determine type. Clicking anywhere else or clicking the X button closes the sidebar. Sidebar width: w-80 (320px) on desktop. On mobile, overlay the full screen. API responses arrive in snake_case — use the existing transformKeys() helper from lib/api.ts (already used by fetchApi/getAgent) to convert to camelCase TypeScript interfaces.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-017",
+      "type": "frontend",
+      "title": "Add graph preview to dashboard and wire header navigation",
+      "priority": 17,
+      "passes": true,
+      "batch": 8,
+      "dependsOn": [
+        "TASK-015",
+        "TASK-012"
+      ],
+      "techStack": {
+        "frontend": "Next.js, TypeScript, Tailwind CSS, @neo4j-nvl/react",
+        "testing": "tsc --noEmit"
+      },
+      "constraints": [
+        "Use renderer: 'webgl' for the dashboard preview (performance over labels)",
+        "Preview is read-only — no node click interactions, no sidebar",
+        "Preview height: 300px, contained in a bordered card matching existing dashboard style",
+        "Use existing getGraph() from lib/api.ts — same data, different renderer",
+        "Header nav links must use Next.js Link component for client-side navigation",
+        "Do NOT create new CSS files — use existing Tailwind tokens"
+      ],
+      "files": {
+        "create": [
+          "academy/components/GraphPreview.tsx",
+          "academy/components/Header.tsx"
+        ],
+        "modify": [
+          "academy/app/page.tsx",
+          "academy/app/layout.tsx"
+        ],
+        "reuse": [
+          "academy/lib/api.ts",
+          "academy/components/PhronesisGraph.tsx"
+        ]
+      },
+      "acceptanceCriteria": [
+        "GraphPreview.tsx is a 'use client' component that: fetches graph data on mount via getGraph(), renders a smaller NVL graph with webgl renderer, 300px height, zoom/pan limited, no node click handlers",
+        "Preview card shows title 'Phronesis Graph' with 'Open Full →' link to /graph page",
+        "Preview footer shows summary stats: total node count, agent count, evaluation count (computed from graph data)",
+        "GraphPreview added to dashboard page.tsx below CohortPanel",
+        "Header extracted from layout.tsx into academy/components/Header.tsx as a 'use client' component — layout.tsx remains a server component and imports Header. Header uses usePathname() from 'next/navigation' for active route detection and Link from 'next/link' for navigation. Nav links: 'Dashboard' → /, 'Graph' → /graph. Active route highlighted with text-foreground font-medium class",
+        "Graph preview uses same node color coding as full page PhronesisGraph",
+        "Loading state shown while graph data fetches, error state on API failure",
+        "TypeScript compiles with no errors: cd academy && npx tsc --noEmit"
+      ],
+      "errorHandling": [
+        "API unreachable → show 'Graph unavailable' placeholder in preview card",
+        "Empty graph → show 'No graph data yet' message in preview card"
+      ],
+      "testing": {
+        "types": [
+          "e2e"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {
+          "e2e": []
+        }
+      },
+      "testSteps": [
+        "cd academy && npx tsc --noEmit",
+        "cd academy && npm run build"
+      ],
+      "testUrl": "http://localhost:3000",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "docs/ideas/phronesis-graph.md",
+        "academy/app/page.tsx",
+        "academy/app/layout.tsx",
+        "academy/components/PhronesisGraph.tsx"
+      ],
+      "notes": "The dashboard preview is a smaller version of the full Phronesis Graph. It should give a quick visual of the taxonomy backbone without requiring navigation away from the dashboard. NVL options for preview: { renderer: 'webgl', initialZoom: 0.8, minZoom: 0.5, maxZoom: 2, allowDynamicMinZoom: false }. WebGL renderer is faster but doesn't show text captions — that's fine for the preview since it's too small to read them anyway. The preview card should match the existing card style on the dashboard (rounded-xl border border-border bg-white p-5). The 'Open Full →' link uses Next.js Link component. Header nav update: IMPORTANT — the current Header function is inside layout.tsx (a server component). usePathname() is a client hook and CANNOT be used in a server component. You MUST extract Header into a separate 'use client' component file (e.g., academy/components/Header.tsx) and import it into layout.tsx. layout.tsx itself should remain a server component. In the new Header component: import Link from 'next/link', import usePathname from 'next/navigation', wrap nav items in Link components, use usePathname() to determine active route and apply appropriate styling. Add 'Graph' as a nav item between 'Dashboard' and existing items. Consider extracting the NVL node/rel transformation logic from PhronesisGraph.tsx into a shared utility (e.g., lib/graph-utils.ts) so both PhronesisGraph and GraphPreview can reuse it without duplication — but only if the duplication is significant enough to warrant it. API responses arrive in snake_case — use the existing transformKeys() helper from lib/api.ts (already used by fetchApi/getGraph) to convert to camelCase TypeScript interfaces.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-018",
+      "type": "backend",
+      "title": "Fix double-hashing bug — remove redundant hash_agent_id() calls from graph layer",
+      "priority": 18,
+      "passes": false,
+      "batch": 9,
+      "dependsOn": [],
+      "techStack": {
+        "backend": "Python 3.11+, neo4j sync driver",
+        "database": "Neo4j 5",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Graph owns all Cypher — no Cypher outside ethos/graph/",
+        "hash_agent_id() should only be called ONCE per request — in graph/write.py store_evaluation() which is the write entry point",
+        "All graph read functions accept the already-hashed agent_id — callers are responsible for passing the correct ID",
+        "evaluate.py _build_graph_context must hash source ONCE and pass that hash to all graph read functions"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "ethos/graph/read.py",
+          "ethos/graph/patterns.py",
+          "ethos/graph/balance.py",
+          "ethos/evaluate.py"
+        ],
+        "reuse": [
+          "ethos/graph/service.py",
+          "ethos/identity/hashing.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "graph/read.py get_agent_profile() NO LONGER calls hash_agent_id() — parameter renamed from raw_agent_id to agent_id, used directly in Cypher query",
+        "graph/read.py get_evaluation_history() NO LONGER calls hash_agent_id() — same pattern",
+        "graph/patterns.py: all 4 functions (get_agent_evaluation_count, get_agent_detected_indicators, store_exhibits_pattern, get_existing_patterns) NO LONGER call hash_agent_id() — parameter renamed from raw_agent_id to agent_id",
+        "graph/balance.py: all agent-scoped functions NO LONGER call hash_agent_id() — same pattern",
+        "graph/read.py, graph/patterns.py, graph/balance.py no longer import hash_agent_id",
+        "evaluate.py _build_graph_context(service, source) now computes hashed_id = hash_agent_id(source) ONCE internally, then passes hashed_id to get_agent_profile() and get_evaluation_history()",
+        "evaluate.py _try_store_evaluation() continues to pass raw source to store_evaluation() (which hashes internally — that's the one correct place)"
+      ],
+      "errorHandling": [
+        "Graph read functions return empty results gracefully when agent_id doesn't match (existing behavior preserved)",
+        "Neo4j down → return defaults (existing behavior preserved)"
+      ],
+      "testing": {
+        "types": ["unit"],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_domain_functions.py",
+            "tests/test_evaluate.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_domain_functions.py tests/test_evaluate.py -v",
+        "uv run python -c \"import inspect; from ethos.graph.read import get_agent_profile, get_evaluation_history; src1 = inspect.getsource(get_agent_profile); src2 = inspect.getsource(get_evaluation_history); assert 'hash_agent_id' not in src1, 'get_agent_profile still hashes'; assert 'hash_agent_id' not in src2, 'get_evaluation_history still hashes'; print('PASS: No double-hashing in read.py')\"",
+        "uv run python -c \"import inspect; from ethos.graph.patterns import get_agent_evaluation_count, get_agent_detected_indicators; src1 = inspect.getsource(get_agent_evaluation_count); src2 = inspect.getsource(get_agent_detected_indicators); assert 'hash_agent_id' not in src1, 'get_agent_evaluation_count still hashes'; assert 'hash_agent_id' not in src2, 'get_agent_detected_indicators still hashes'; print('PASS: No double-hashing in patterns.py')\""
+      ],
+      "contextFiles": [
+        "ethos/graph/read.py",
+        "ethos/graph/patterns.py",
+        "ethos/graph/balance.py",
+        "ethos/evaluate.py",
+        "ethos/agents.py"
+      ],
+      "notes": "ROOT CAUSE: agents.py get_agent(agent_id) receives agent_id from the API — this is already a SHA-256 hash (stored as a.agent_id in Neo4j by store_evaluation). It passes this hash to get_agent_profile(service, agent_id), which calls hash_agent_id() AGAIN — producing hash(hash(uuid)), which matches nothing in Neo4j. Same bug in get_evaluation_history(), and all 4 functions in graph/patterns.py (lines 82, 132, 166, 191), and graph/balance.py (line 205). FIX: Remove hash_agent_id() from all graph READ functions. They should accept the agent_id as-is (already hashed by the write path). The ONLY place hash_agent_id() should be called is graph/write.py store_evaluation() — that's the write entry point where raw agent IDs enter the system. For evaluate.py: _build_graph_context currently passes raw source to read functions. After this fix, it must hash source ONCE with hash_agent_id(source) and pass the hash to get_agent_profile() and get_evaluation_history(). _try_store_evaluation still passes raw source to store_evaluation() which hashes internally — don't change that. The reflect path (reflect.py) calls evaluate(text, source=agent_id) where agent_id is already a hash from the API — evaluate's _build_graph_context will hash it again, but since read.py no longer hashes, we get hash(hash(id)) which is wrong. To fix: reflect.py should continue passing agent_id as source — evaluate will hash it in _build_graph_context. But agent_id from the API IS already hashed. So _build_graph_context's hash produces hash(hash). The cleanest fix: _build_graph_context should NOT hash — just pass source directly to read functions. The source IS the hash when called from reflect (via API), and when called from direct evaluate() with a raw ID, write.py handles hashing for writes. For reads in the direct evaluate path, source is raw — but get_agent_profile with a raw ID simply returns empty dict (no match), which is fine since it's a new agent with no history. SIMPLEST CORRECT FIX: Remove hash_agent_id from read.py, patterns.py, balance.py. In evaluate.py _build_graph_context, pass source directly (don't hash). This works because: (1) API path: source is already a hash → reads match correctly. (2) Direct evaluate with new raw ID: reads return empty (no history yet) → correct behavior. (3) Writes: store_evaluation hashes internally → correct.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-019",
+      "type": "backend",
+      "title": "Fix indicator detection — MAN-01 bug, add indicator catalog to prompt, validate IDs in parser",
+      "priority": 19,
+      "passes": false,
+      "batch": 9,
+      "dependsOn": [],
+      "techStack": {
+        "backend": "Python 3.11+",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Indicator IDs use descriptive format: MAN-URGENCY, VIR-UNCERTAIN, DEC-SANDBAG (NOT MAN-01)",
+        "System prompt gets full indicator catalog (153 IDs grouped by trait)",
+        "User prompt gets flagged-trait indicators only (when scan_result.flagged_traits exists)",
+        "Parser filters out invalid IDs with a warning log, doesn't reject the whole response"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "ethos/evaluation/prompts.py",
+          "ethos/evaluation/parser.py",
+          "tests/test_parser.py",
+          "tests/test_evaluate.py"
+        ],
+        "reuse": [
+          "ethos/taxonomy/indicators.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "prompts.py _JSON_FORMAT example uses 'MAN-URGENCY' instead of 'MAN-01', and 'false_urgency_pressure' instead of 'false_urgency'",
+        "New _build_indicator_ids() function returns a compact string listing all 153 indicator IDs grouped by trait (12 lines, one per trait)",
+        "System prompt includes the full indicator catalog section after the trait rubric",
+        "User prompt includes only flagged-trait indicator IDs when scan_result.flagged_traits is non-empty",
+        "parser.py builds VALID_IDS set at module level from ethos.taxonomy.indicators.INDICATORS",
+        "parser.py _parse_indicators() filters out indicators with IDs not in VALID_IDS, logs a warning for each invalid ID",
+        "tests/test_parser.py updated: MAN-01 → MAN-URGENCY in test fixtures",
+        "tests/test_evaluate.py updated: MAN-01 → MAN-URGENCY in test fixtures"
+      ],
+      "errorHandling": [
+        "Invalid indicator IDs are silently filtered (warning logged) — rest of response still parsed",
+        "Empty detected_indicators after filtering is valid (not an error)"
+      ],
+      "testing": {
+        "types": ["unit"],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_parser.py",
+            "tests/test_evaluate.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_parser.py tests/test_evaluate.py -v",
+        "uv run python -c \"from ethos.evaluation.prompts import build_evaluation_prompt; from ethos.shared.models import KeywordScanResult; s,u = build_evaluation_prompt('test', KeywordScanResult(total_flags=1, flagged_traits={'manipulation': 1}, density=0.1, routing_tier='focused'), 'focused'); assert 'MAN-URGENCY' in s, 'Indicator catalog not in system prompt'; assert 'MAN-01' not in s, 'Old MAN-01 still present'; print('PASS: Indicator catalog in prompt')\""
+      ],
+      "contextFiles": [
+        "ethos/evaluation/prompts.py",
+        "ethos/evaluation/parser.py",
+        "ethos/taxonomy/indicators.py",
+        "docs/evergreen-architecture/ethos-framework-overview.md"
+      ],
+      "notes": "This is the root cause fix for 0 DETECTED relationships. The prompt template at prompts.py line 77 shows 'MAN-01' as the example indicator ID. Claude follows this pattern and invents IDs like MAN-02, MAN-03 — none of which exist in the taxonomy. The MATCH (indicator:Indicator {id: ind.id}) in write.py silently fails because no Indicator node has id='MAN-01'. Fix: (1) Change the example to 'MAN-URGENCY' (a real ID), (2) Add a compact indicator catalog to the system prompt so Claude knows ALL valid IDs, (3) Validate IDs in the parser to catch any remaining hallucinated IDs. The catalog format: one line per trait, e.g. 'manipulation: MAN-URGENCY, MAN-SANDBAG, MAN-GATEKEEP, ...' — keep it compact to minimize token usage. Import INDICATORS from ethos/taxonomy/indicators.py which has all 153 indicator dicts with 'id' and 'trait' fields.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-020",
+      "type": "backend",
+      "title": "Add authenticity Pydantic models to shared/models.py",
+      "priority": 20,
+      "passes": false,
+      "batch": 10,
+      "dependsOn": [],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Models go in ethos/shared/models.py alongside existing models",
+        "Use Pydantic Field(ge=0.0, le=1.0) for score bounds",
+        "Also update ethos/models.py to re-export new models (existing re-export pattern)"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "ethos/shared/models.py",
+          "ethos/models.py"
+        ],
+        "reuse": []
+      },
+      "acceptanceCriteria": [
+        "TemporalSignature model with cv_score (float 0-1), mean_interval_seconds (float), classification (str: autonomous|human_influenced|indeterminate)",
+        "BurstAnalysis model with burst_rate (float 0-1), classification (str: organic|automated|burst_bot)",
+        "ActivityPattern model with classification (str: always_on|human_schedule|mixed), active_hours (int), has_sleep_gap (bool)",
+        "IdentitySignals model with is_claimed (bool), owner_verified (bool), karma_post_ratio (float)",
+        "AuthenticityResult model with agent_name (str), temporal (TemporalSignature), burst (BurstAnalysis), activity (ActivityPattern), identity (IdentitySignals), authenticity_score (float 0-1), classification (str: likely_autonomous|likely_human|bot_farm|indeterminate), confidence (float 0-1)"
+      ],
+      "errorHandling": [
+        "All fields have sensible defaults so AuthenticityResult() creates a valid instance",
+        "Score fields use Field(ge=0.0, le=1.0) for validation"
+      ],
+      "testing": {
+        "types": ["unit"],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": ["tests/test_authenticity_models.py"]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_authenticity_models.py -v",
+        "uv run pytest -v --tb=short -q 2>&1 | tail -5",
+        "uv run python -c \"from ethos.shared.models import AuthenticityResult; from ethos.models import AuthenticityResult as AR2; from pydantic import ValidationError; r = AuthenticityResult(agent_name='test'); assert r.authenticity_score == 0.5; assert r.temporal.classification == 'indeterminate'; try: AuthenticityResult(agent_name='x', authenticity_score=2.0); assert False, 'Should reject score>1.0'; except ValidationError: pass; assert AR2 is AuthenticityResult; print('PASS: models, defaults, validation, re-exports all correct')\""
+      ],
+      "contextFiles": [
+        "ethos/shared/models.py",
+        "ethos/models.py"
+      ],
+      "notes": "5 new Pydantic models for authenticity detection. All have sensible defaults. TemporalSignature defaults: cv_score=0.0, classification='indeterminate'. BurstAnalysis defaults: burst_rate=0.0, classification='organic'. ActivityPattern defaults: classification='mixed', active_hours=24, has_sleep_gap=False. IdentitySignals defaults: all False/0.0. AuthenticityResult defaults: authenticity_score=0.5, classification='indeterminate', confidence=0.0. Use Field(default_factory=TemporalSignature) for nested model defaults in AuthenticityResult. Update ethos/models.py to re-export ALL 5 new models (TemporalSignature, BurstAnalysis, ActivityPattern, IdentitySignals, AuthenticityResult) — add to imports and re-exports, following existing pattern. NOTE: Do NOT modify ethos/__init__.py here — that is handled by TASK-023. Unit tests MUST include: (1) default construction, (2) Pydantic validation rejects out-of-range scores (authenticity_score=2.0 → ValidationError), (3) model_dump() roundtrip (serialize then reconstruct), (4) nested model defaults work correctly.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-021",
+      "type": "backend",
+      "title": "Create authenticity analysis pure functions",
+      "priority": 21,
+      "passes": false,
+      "batch": 11,
+      "dependsOn": ["TASK-020"],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Pure computation functions — NO file I/O, NO graph I/O, NO network calls",
+        "Takes pre-parsed data as input (lists of timestamps, profile dicts)",
+        "Uses standard library only (statistics, datetime, collections) — no numpy/pandas"
+      ],
+      "files": {
+        "create": [
+          "ethos/evaluation/authenticity.py",
+          "tests/test_authenticity.py"
+        ],
+        "modify": [],
+        "reuse": [
+          "ethos/shared/models.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "analyze_temporal_signature(timestamps: list[str]) computes CV (std/mean) of inter-post intervals in seconds — CV<0.3 returns 'autonomous', CV>1.0 returns 'human_influenced', else 'indeterminate'. Requires >=5 timestamps, else returns default TemporalSignature",
+        "analyze_burst_rate(timestamps: list[str]) computes % of consecutive posts within 10-second windows — >50% returns 'burst_bot', >20% returns 'automated', else 'organic'. Requires >=3 timestamps",
+        "analyze_activity_pattern(timestamps: list[str]) bins posts into 24 hours, detects sleep gap (>=6 consecutive zero-activity hours) — gap found returns 'human_schedule', all 24 hours active returns 'always_on', else 'mixed'",
+        "analyze_identity_signals(profile: dict) extracts is_claimed, owner.x_verified, karma/(post_count+comment_count) ratio from Moltbook agent profile dict",
+        "compute_authenticity(temporal, burst, activity, identity, num_timestamps: int) combines sub-scores with weights (temporal=0.35, burst=0.25, activity=0.25, identity=0.15) into authenticity_score 0.0-1.0. Score>0.7='likely_autonomous', <0.3='likely_human', burst_bot classification overrides to 'bot_farm'. Computes confidence based on data volume: <5 timestamps=0.1, 5-20=0.5, 20-50=0.7, 50+=0.9"
+      ],
+      "errorHandling": [
+        "Empty timestamps list → return default sub-result with 'indeterminate' classification",
+        "Invalid timestamp strings → skip with warning, continue with valid ones",
+        "Profile missing expected keys → return default IdentitySignals"
+      ],
+      "testing": {
+        "types": ["unit"],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": ["tests/test_authenticity.py"]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_authenticity.py -v",
+        "uv run pytest -v --tb=short -q 2>&1 | tail -5",
+        "uv run python -c \"from ethos.evaluation.authenticity import analyze_temporal_signature, analyze_burst_rate, analyze_activity_pattern, analyze_identity_signals, compute_authenticity; from datetime import datetime, timedelta; ts = [(datetime(2026,1,1) + timedelta(hours=i)).isoformat() for i in range(20)]; sig = analyze_temporal_signature(ts); assert sig.classification == 'autonomous', f'Expected autonomous, got {sig.classification}'; burst = analyze_burst_rate(ts); assert burst.classification == 'organic'; activity = analyze_activity_pattern(ts); assert activity.classification in ('always_on','mixed'); empty = analyze_temporal_signature([]); assert empty.classification == 'indeterminate'; identity = analyze_identity_signals({'is_claimed': False, 'owner': {'x_verified': False}, 'karma': 100}); result = compute_authenticity(sig, burst, activity, identity, num_timestamps=20); assert 0.0 <= result.authenticity_score <= 1.0; assert result.confidence == 0.7; print(f'PASS: all 5 functions work, score={result.authenticity_score:.3f}, class={result.classification}, confidence={result.confidence}')\""
+      ],
+      "contextFiles": [
+        "ethos/shared/models.py",
+        "data/moltbook/agents/a-dao.json"
+      ],
+      "notes": "These are pure computation functions inspired by research: (1) Temporal Fingerprint from arXiv:2602.07432 — coefficient of variation of inter-post intervals. Perfectly regular posting (e.g. every 3600s) gives CV≈0, human-like random timing gives CV>1.0. (2) Burst rate from SimulaMet Observatory — bot farms post hundreds of messages within seconds. (3) Activity pattern — real AI agents run 24/7, human-operated accounts show sleep gaps. (4) Identity signals from Moltbook API data — is_claimed means a human verified ownership, x_verified adds credibility. For compute_authenticity: convert each sub-classification to a numeric score (autonomous/organic/always_on/not_claimed = 1.0, human_influenced/automated/human_schedule/claimed+verified = 0.0, indeterminate/mixed = 0.5), then weighted average. The burst_bot override is important — if >50% of posts are within 10-second windows, it's a bot farm regardless of other signals. compute_authenticity() takes a num_timestamps int to compute confidence: <5=0.1, 5-20=0.5, 20-50=0.7, 50+=0.9. Timestamp format is ISO 8601 (e.g. '2026-02-12T04:07:38.285118+00:00') — use datetime.fromisoformat() to parse. TESTING: tests/test_authenticity.py MUST cover ALL 5 functions with at minimum these cases: (a) empty timestamps → default/indeterminate, (b) regular intervals → autonomous, (c) random intervals → human_influenced, (d) burst timestamps (within 10s) → burst_bot, (e) 24-hour coverage → always_on, (f) 8-hour gap → human_schedule, (g) profile with is_claimed=True → IdentitySignals.is_claimed=True, (h) compute_authenticity with burst_bot override → classification='bot_farm'. Each function returns a Pydantic model so test model_dump() roundtrip too.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-022",
+      "type": "backend",
+      "title": "Create batch analysis script and run on scraped agents",
+      "priority": 22,
+      "passes": false,
+      "batch": 12,
+      "dependsOn": ["TASK-021"],
+      "techStack": {
+        "backend": "Python 3.11+",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "Reads from data/moltbook/agents/*.json (1,010 profiles) — DO NOT read these files with the Read tool, they are large",
+        "Writes output to data/moltbook/authenticity_results.json",
+        "Uses ethos.evaluation.authenticity functions for analysis — no duplicate logic",
+        "Print progress to stdout every 50 agents"
+      ],
+      "files": {
+        "create": [
+          "scripts/analyze_agents.py"
+        ],
+        "modify": [],
+        "reuse": [
+          "ethos/evaluation/authenticity.py",
+          "data/moltbook/agents/"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Script reads all agent profiles from data/moltbook/agents/*.json, extracts timestamps from posts + comments, runs authenticity analysis, saves results to data/moltbook/authenticity_results.json",
+        "Output JSON is a dict keyed by agent_name, each value is an AuthenticityResult dict with temporal, burst, activity, identity sub-results, authenticity_score, classification, confidence",
+        "Results file contains entries for at least 900 agents (some may have insufficient data)",
+        "Script prints summary: total analyzed, distribution of classifications (likely_autonomous, likely_human, bot_farm, indeterminate)"
+      ],
+      "errorHandling": [
+        "Malformed agent profile JSON → skip with warning, continue",
+        "Agent with 0 posts/comments → store with default 'indeterminate' classification",
+        "File write failure → raise with clear error message"
+      ],
+      "testing": {
+        "types": ["integration"],
+        "approach": "test-after",
+        "runner": "pytest",
+        "files": {
+          "integration": []
+        }
+      },
+      "testSteps": [
+        "uv run python scripts/analyze_agents.py",
+        "python3 -c \"import json; d=json.load(open('data/moltbook/authenticity_results.json')); assert len(d) >= 900, f'Expected >=900 agents, got {len(d)}'; classes = {}; [classes.__setitem__(v['classification'], classes.get(v['classification'],0)+1) for v in d.values()]; assert len(classes) >= 2, f'Only {len(classes)} classifications, expected variety'; scores = [v['authenticity_score'] for v in d.values()]; assert all(0.0 <= s <= 1.0 for s in scores), 'Score out of range'; assert any(v.get('temporal',{}).get('cv_score',0) > 0 for v in d.values()), 'No temporal analysis computed'; print(f'PASS: {len(d)} agents, distribution: {classes}, score range: [{min(scores):.3f}, {max(scores):.3f}]')\"",
+        "uv run pytest -v --tb=short -q 2>&1 | tail -5"
+      ],
+      "prerequisites": [
+        "data/moltbook/agents/ directory exists with scraped agent profiles"
+      ],
+      "contextFiles": [
+        "scripts/scrape_moltbook.py",
+        "data/moltbook/agents/a-dao.json"
+      ],
+      "notes": "This is the data prep step — runs once to produce demo data. Agent profile structure: {'agent': {name, is_claimed, owner: {x_verified, ...}, karma, ...}, 'posts': [{created_at, ...}, ...], 'comments': [{created_at, ...}, ...]}. For each agent: (1) Collect all timestamps from posts[].created_at + comments[].created_at, (2) Sort chronologically, (3) Call analyze_temporal_signature(timestamps), analyze_burst_rate(timestamps), analyze_activity_pattern(timestamps), (4) Build profile dict from agent data for analyze_identity_signals(), (5) compute_authenticity() to get final result, (6) Store as {agent_name: result.model_dump()}. The output file is read by the API endpoint in TASK-023. Confidence is computed by compute_authenticity() based on num_timestamps (passed from the script) — do NOT duplicate confidence logic here. Use glob.glob('data/moltbook/agents/*.json') to find all profiles. Script should be runnable as 'uv run python scripts/analyze_agents.py' (use __name__ == '__main__' guard).",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-023",
+      "type": "backend",
+      "title": "Wire authenticity API endpoint, export, and graph storage",
+      "priority": 23,
+      "passes": false,
+      "batch": 13,
+      "dependsOn": ["TASK-022"],
+      "techStack": {
+        "backend": "Python 3.11+, FastAPI, Pydantic v2, neo4j sync driver",
+        "testing": "pytest, FastAPI TestClient"
+      },
+      "constraints": [
+        "All code is SYNC — no async/await",
+        "API is a thin layer — NO business logic in route handlers",
+        "DDD layering: api/main.py → ethos/authenticity.py (domain) → ethos/evaluation/authenticity.py (pure functions). Domain loads pre-computed data, API just calls domain",
+        "Graph owns all Cypher — new store_authenticity() function in ethos/graph/write.py with its OWN Cypher query (do NOT modify _STORE_EVALUATION_QUERY — authenticity is per-agent, not per-evaluation)",
+        "Graph is optional — never crash if Neo4j is down",
+        "ethos/models.py re-exports already handled by TASK-020 — do NOT duplicate"
+      ],
+      "files": {
+        "create": [
+          "ethos/authenticity.py",
+          "tests/test_authenticity_api.py"
+        ],
+        "modify": [
+          "ethos/__init__.py",
+          "api/main.py",
+          "ethos/graph/write.py"
+        ],
+        "reuse": [
+          "ethos/evaluation/authenticity.py",
+          "ethos/shared/models.py",
+          "ethos/graph/service.py",
+          "data/moltbook/authenticity_results.json"
+        ]
+      },
+      "acceptanceCriteria": [
+        "ethos/authenticity.py contains analyze_authenticity(agent_name: str) -> AuthenticityResult that loads from pre-computed data/moltbook/authenticity_results.json (cached in module-level dict) or computes on the fly from agent profile, returning defaults for unknown agents",
+        "analyze_authenticity exported from ethos/__init__.py and imported in api/main.py. GET /agents/{agent_name}/authenticity endpoint uses response_model=AuthenticityResult — handler is one line: return analyze_authenticity(agent_name)",
+        "New store_authenticity(service, agent_name, result) function in graph/write.py with its OWN Cypher query using MATCH (a:Agent) WHERE a.agent_name = $agent_name to SET a.authenticity_score and a.authenticity_classification — do NOT use MERGE on agent_name (existing Agent nodes are keyed by agent_id hash, MERGE on agent_name would create duplicates)",
+        "analyze_authenticity() calls store_authenticity() after loading/computing results (wrapped in try/except, non-fatal if graph down)",
+        "FastAPI TestClient integration tests (from fastapi.testclient import TestClient, matching existing test_api_endpoints.py pattern) verify: (1) known agent returns valid AuthenticityResult with score 0.0-1.0, (2) unknown agent returns default AuthenticityResult with classification='indeterminate', (3) response matches Pydantic schema exactly"
+      ],
+      "errorHandling": [
+        "Agent not found in pre-computed results AND no profile file → return AuthenticityResult with defaults and classification='indeterminate'",
+        "Pre-computed results file missing → compute on the fly from agent profile, or return defaults if profile also missing",
+        "Graph write for authenticity properties fails → log warning, continue (non-fatal)"
+      ],
+      "testing": {
+        "types": ["unit", "integration"],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": ["tests/test_authenticity_api.py"],
+          "integration": ["tests/test_authenticity_api.py"]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_authenticity_api.py -v",
+        "uv run pytest -v --tb=short -q 2>&1 | tail -5",
+        "uv run uvicorn api.main:app --port 8917 & sleep 3 && curl -s {config.urls.backend}/agents/a-dao/authenticity | python3 -c \"import sys, json; r=json.load(sys.stdin); assert 'authenticity_score' in r and 0.0 <= r['authenticity_score'] <= 1.0, f'Bad score: {r.get(\\\"authenticity_score\\\")}'; assert r['classification'] in ('likely_autonomous','likely_human','bot_farm','indeterminate'), f'Bad class: {r[\\\"classification\\\"]}'; assert 'temporal' in r and 'cv_score' in r['temporal']; assert 'burst' in r and 'burst_rate' in r['burst']; print(f'PASS: score={r[\\\"authenticity_score\\\"]:.3f}, class={r[\\\"classification\\\"]}, cv={r[\\\"temporal\\\"][\\\"cv_score\\\"]:.3f}')\" && curl -s {config.urls.backend}/agents/NONEXISTENT_AGENT_XYZ/authenticity | python3 -c \"import sys, json; r=json.load(sys.stdin); assert r['classification'] == 'indeterminate', f'Unknown agent should be indeterminate, got {r[\\\"classification\\\"]}'; print('PASS: unknown agent returns indeterminate')\" ; kill %1 2>/dev/null"
+      ],
+      "apiContract": {
+        "endpoint": "GET /agents/{agent_name}/authenticity",
+        "response_model": "AuthenticityResult",
+        "response": {
+          "agent_name": "string",
+          "temporal": {"cv_score": "float", "mean_interval_seconds": "float", "classification": "string"},
+          "burst": {"burst_rate": "float", "classification": "string"},
+          "activity": {"classification": "string", "active_hours": "int", "has_sleep_gap": "bool"},
+          "identity": {"is_claimed": "bool", "owner_verified": "bool", "karma_post_ratio": "float"},
+          "authenticity_score": "float",
+          "classification": "string",
+          "confidence": "float"
+        }
+      },
+      "contextFiles": [
+        "api/main.py",
+        "ethos/__init__.py",
+        "ethos/graph/write.py",
+        "ethos/agents.py",
+        "tests/test_api_endpoints.py"
+      ],
+      "notes": "DDD LAYERING: api/main.py handler is ONE line → ethos/authenticity.py domain function → loads data. Domain function caches pre-computed results in a module-level dict (_RESULTS_CACHE: dict | None = None) loaded lazily on first call from data/moltbook/authenticity_results.json. If agent not in cache, falls back to computing from data/moltbook/agents/{agent_name}.json using evaluation/authenticity.py pure functions. If neither exists, returns default AuthenticityResult(agent_name=agent_name). GRAPH STORAGE: Create a NEW store_authenticity(service, agent_name, result) function in graph/write.py — do NOT modify _STORE_EVALUATION_QUERY. CRITICAL: Existing Agent nodes are keyed by {agent_id: $agent_id} (SHA-256 hash) — do NOT use MERGE on agent_name as that would create duplicate Agent nodes. Instead use: MATCH (a:Agent) WHERE a.agent_name = $agent_name SET a.authenticity_score = $score, a.authenticity_classification = $classification. If no Agent node matches (agent hasn't been evaluated yet), log a warning and skip. This function is called by analyze_authenticity() in ethos/authenticity.py after loading results (wrapped in try/except with graph_context, non-fatal). INTEGRATION TESTS: Use FastAPI TestClient pattern from existing tests/test_api_endpoints.py — 'from fastapi.testclient import TestClient' (NOT raw httpx), create TestClient(app) from api.main:app, test GET /agents/a-dao/authenticity returns 200 with valid AuthenticityResult, test GET /agents/UNKNOWN/authenticity returns 200 with defaults (not 404 — graceful degradation). Test Pydantic validation by asserting response JSON can be parsed into AuthenticityResult model. IMPORTANT: ethos/models.py re-exports already handled by TASK-020 — do NOT modify models.py here (DRY). Only modify __init__.py to add analyze_authenticity to imports and __all__.",
+      "retryCount": 0
+    }
+  ]
+}

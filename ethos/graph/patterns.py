@@ -12,7 +12,6 @@ from __future__ import annotations
 import logging
 
 from ethos.graph.service import GraphService
-from ethos.identity.hashing import hash_agent_id
 
 logger = logging.getLogger(__name__)
 
@@ -73,16 +72,15 @@ RETURN p.pattern_id AS pattern_id,
 
 
 def get_agent_evaluation_count(
-    service: GraphService, raw_agent_id: str
+    service: GraphService, agent_id: str
 ) -> int:
     """Return number of evaluations for an agent. 0 if unavailable."""
     if not service.connected:
         return 0
 
-    hashed_id = hash_agent_id(raw_agent_id)
     try:
         records, _, _ = service.execute_query(
-            _GET_AGENT_EVALUATION_COUNT, {"agent_id": hashed_id}
+            _GET_AGENT_EVALUATION_COUNT, {"agent_id": agent_id}
         )
         if records:
             return records[0].get("eval_count", 0)
@@ -119,7 +117,7 @@ def get_pattern_indicator_map(service: GraphService) -> list[dict]:
 
 
 def get_agent_detected_indicators(
-    service: GraphService, raw_agent_id: str
+    service: GraphService, agent_id: str
 ) -> dict[str, dict]:
     """Get all indicators detected for an agent across evaluations.
 
@@ -129,10 +127,9 @@ def get_agent_detected_indicators(
     if not service.connected:
         return {}
 
-    hashed_id = hash_agent_id(raw_agent_id)
     try:
         records, _, _ = service.execute_query(
-            _GET_AGENT_DETECTED_INDICATORS, {"agent_id": hashed_id}
+            _GET_AGENT_DETECTED_INDICATORS, {"agent_id": agent_id}
         )
         result = {}
         for r in records:
@@ -151,7 +148,7 @@ def get_agent_detected_indicators(
 
 def store_exhibits_pattern(
     service: GraphService,
-    raw_agent_id: str,
+    agent_id: str,
     pattern_id: str,
     first_seen: str,
     last_seen: str,
@@ -163,12 +160,11 @@ def store_exhibits_pattern(
     if not service.connected:
         return
 
-    hashed_id = hash_agent_id(raw_agent_id)
     try:
         service.execute_query(
             _MERGE_EXHIBITS_PATTERN,
             {
-                "agent_id": hashed_id,
+                "agent_id": agent_id,
                 "pattern_id": pattern_id,
                 "first_seen": first_seen,
                 "last_seen": last_seen,
@@ -182,16 +178,15 @@ def store_exhibits_pattern(
 
 
 def get_existing_patterns(
-    service: GraphService, raw_agent_id: str
+    service: GraphService, agent_id: str
 ) -> list[dict]:
     """Get existing EXHIBITS_PATTERN relationships for an agent."""
     if not service.connected:
         return []
 
-    hashed_id = hash_agent_id(raw_agent_id)
     try:
         records, _, _ = service.execute_query(
-            _GET_EXISTING_PATTERNS, {"agent_id": hashed_id}
+            _GET_EXISTING_PATTERNS, {"agent_id": agent_id}
         )
         return [
             {

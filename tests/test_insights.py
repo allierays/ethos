@@ -1,4 +1,4 @@
-"""Tests for ethos.insights — Opus-powered behavioral analysis.
+"""Tests for ethos.reflection.insights — Opus-powered behavioral analysis.
 
 IMPORTANT: All tests mock call_claude. Never call the real Opus API in tests.
 """
@@ -8,8 +8,8 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock, patch
 
-from ethos.evaluation.insights_prompts import build_insights_prompt
-from ethos.insights import _parse_insights_response, insights
+from ethos.reflection.insights import _parse_insights_response, insights
+from ethos.reflection.prompts import build_insights_prompt
 from ethos.shared.models import InsightsResult
 
 
@@ -24,7 +24,7 @@ _VALID_RESPONSE = json.dumps({
             "severity": "warning",
             "message": "Manipulation scores increasing over last 5 evaluations",
             "evidence": {
-                "metric": "0.3 → 0.6",
+                "metric": "0.3 -> 0.6",
                 "comparison": "Cohort avg: 0.2",
                 "timeframe": "Last 5 evaluations",
             },
@@ -156,12 +156,40 @@ class TestBuildInsightsPrompt:
         assert "virtue=0.80" in user
         assert "manipulation=0.30" in user
 
+    def test_includes_instinct_pre_analysis(self):
+        from ethos.shared.models import ReflectionInstinctResult
+
+        instinct = ReflectionInstinctResult(
+            risk_level="high",
+            flagged_traits=["manipulation", "deception"],
+            flagged_dimensions=["ethos"],
+        )
+        _, user = build_insights_prompt("agent-1", [], {}, instinct=instinct)
+
+        assert "Risk Assessment" in user
+        assert "high" in user
+        assert "manipulation" in user
+
+    def test_includes_intuition_pre_analysis(self):
+        from ethos.shared.models import ReflectionIntuitionResult
+
+        intuition = ReflectionIntuitionResult(
+            temporal_pattern="declining",
+            agent_balance=0.7,
+            agent_variance=0.15,
+            character_drift=-0.05,
+        )
+        _, user = build_insights_prompt("agent-1", [], {}, intuition=intuition)
+
+        assert "Pattern Recognition" in user
+        assert "declining" in user
+
 
 # ── insights() domain function tests ─────────────────────────────────
 
 
 class TestInsights:
-    @patch("ethos.insights.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_graph_unavailable_when_not_connected(self, mock_gs_cls):
         mock_service = MagicMock()
         mock_service.connected = False
@@ -173,8 +201,8 @@ class TestInsights:
         assert result.agent_id == "agent-1"
         assert result.summary == "Graph unavailable"
 
-    @patch("ethos.insights.get_evaluation_history")
-    @patch("ethos.insights.GraphService")
+    @patch("ethos.reflection.insights.get_evaluation_history")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_no_history_when_empty(self, mock_gs_cls, mock_history):
         mock_service = MagicMock()
         mock_service.connected = True
@@ -185,12 +213,16 @@ class TestInsights:
 
         assert result.summary == "No evaluation history found"
 
-    @patch("ethos.insights.call_claude")
-    @patch("ethos.insights.get_alumni_averages")
-    @patch("ethos.insights.get_evaluation_history")
-    @patch("ethos.insights.GraphService")
+    @patch("ethos.reflection.insights.call_claude")
+    @patch("ethos.reflection.insights.intuit_history")
+    @patch("ethos.reflection.insights.scan_history")
+    @patch("ethos.reflection.insights.get_agent_profile")
+    @patch("ethos.reflection.insights.get_alumni_averages")
+    @patch("ethos.reflection.insights.get_evaluation_history")
+    @patch("ethos.graph.service.GraphService")
     def test_calls_opus_with_history(
-        self, mock_gs_cls, mock_history, mock_alumni, mock_call_claude
+        self, mock_gs_cls, mock_history, mock_alumni, mock_profile,
+        mock_scan, mock_intuit, mock_call_claude
     ):
         mock_service = MagicMock()
         mock_service.connected = True
@@ -200,6 +232,10 @@ class TestInsights:
             {"ethos": 0.7, "logos": 0.8, "pathos": 0.6, "alignment_status": "aligned"},
         ]
         mock_alumni.return_value = {"trait_averages": {"virtue": 0.75}}
+        mock_profile.return_value = {"trait_averages": {"virtue": 0.8}, "dimension_averages": {}}
+        from ethos.shared.models import ReflectionInstinctResult, ReflectionIntuitionResult
+        mock_scan.return_value = ReflectionInstinctResult()
+        mock_intuit.return_value = ReflectionIntuitionResult()
         mock_call_claude.return_value = _VALID_RESPONSE
 
         result = insights("agent-1")
@@ -211,12 +247,16 @@ class TestInsights:
         assert isinstance(result, InsightsResult)
         assert len(result.insights) == 2
 
-    @patch("ethos.insights.call_claude")
-    @patch("ethos.insights.get_alumni_averages")
-    @patch("ethos.insights.get_evaluation_history")
-    @patch("ethos.insights.GraphService")
+    @patch("ethos.reflection.insights.call_claude")
+    @patch("ethos.reflection.insights.intuit_history")
+    @patch("ethos.reflection.insights.scan_history")
+    @patch("ethos.reflection.insights.get_agent_profile")
+    @patch("ethos.reflection.insights.get_alumni_averages")
+    @patch("ethos.reflection.insights.get_evaluation_history")
+    @patch("ethos.graph.service.GraphService")
     def test_handles_claude_failure(
-        self, mock_gs_cls, mock_history, mock_alumni, mock_call_claude
+        self, mock_gs_cls, mock_history, mock_alumni, mock_profile,
+        mock_scan, mock_intuit, mock_call_claude
     ):
         mock_service = MagicMock()
         mock_service.connected = True
@@ -224,6 +264,10 @@ class TestInsights:
 
         mock_history.return_value = [{"ethos": 0.5}]
         mock_alumni.return_value = {"trait_averages": {}}
+        mock_profile.return_value = {"trait_averages": {}, "dimension_averages": {}}
+        from ethos.shared.models import ReflectionInstinctResult, ReflectionIntuitionResult
+        mock_scan.return_value = ReflectionInstinctResult()
+        mock_intuit.return_value = ReflectionIntuitionResult()
         mock_call_claude.side_effect = RuntimeError("API error")
 
         result = insights("agent-1")
@@ -231,7 +275,7 @@ class TestInsights:
         assert isinstance(result, InsightsResult)
         assert "failed" in result.summary.lower()
 
-    @patch("ethos.insights.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_handles_graph_exception(self, mock_gs_cls):
         mock_gs_cls.side_effect = RuntimeError("Connection refused")
 
@@ -240,12 +284,16 @@ class TestInsights:
         assert isinstance(result, InsightsResult)
         assert result.summary == "Graph unavailable"
 
-    @patch("ethos.insights.call_claude")
-    @patch("ethos.insights.get_alumni_averages")
-    @patch("ethos.insights.get_evaluation_history")
-    @patch("ethos.insights.GraphService")
+    @patch("ethos.reflection.insights.call_claude")
+    @patch("ethos.reflection.insights.intuit_history")
+    @patch("ethos.reflection.insights.scan_history")
+    @patch("ethos.reflection.insights.get_agent_profile")
+    @patch("ethos.reflection.insights.get_alumni_averages")
+    @patch("ethos.reflection.insights.get_evaluation_history")
+    @patch("ethos.graph.service.GraphService")
     def test_handles_malformed_opus_response(
-        self, mock_gs_cls, mock_history, mock_alumni, mock_call_claude
+        self, mock_gs_cls, mock_history, mock_alumni, mock_profile,
+        mock_scan, mock_intuit, mock_call_claude
     ):
         mock_service = MagicMock()
         mock_service.connected = True
@@ -253,6 +301,10 @@ class TestInsights:
 
         mock_history.return_value = [{"ethos": 0.5}]
         mock_alumni.return_value = {"trait_averages": {}}
+        mock_profile.return_value = {"trait_averages": {}, "dimension_averages": {}}
+        from ethos.shared.models import ReflectionInstinctResult, ReflectionIntuitionResult
+        mock_scan.return_value = ReflectionInstinctResult()
+        mock_intuit.return_value = ReflectionIntuitionResult()
         mock_call_claude.return_value = "this is not json"
 
         result = insights("agent-1")
@@ -265,7 +317,7 @@ class TestInsights:
 
 
 class TestInsightsEndpoint:
-    @patch("ethos.insights.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_endpoint_returns_insights_result(self, mock_gs_cls):
         from fastapi.testclient import TestClient
 

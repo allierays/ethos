@@ -144,7 +144,7 @@ The visual interface. Lives in `academy/` at the repo root. Character visualizat
 **Agent Dashboard** — after onboarding, this is where you monitor your agents:
 - Character scores over time (line charts per trait)
 - Flags and alerts
-- Cohort comparison (your agent vs. the cohort average)
+- Alumni comparison (your agent vs. the alumni average)
 - Insights from the nightly `insights()` analysis
 
 **Phronesis Visualization** — the "wow" for the demo:
@@ -154,9 +154,9 @@ The visual interface. Lives in `academy/` at the repo root. Character visualizat
 - Declining agents highlighted
 
 **The Demo Flow** — the Academy IS the demo:
-1. Show Phronesis (the cohort, the patterns)
+1. Show Phronesis (the alumni, the patterns)
 2. Show an agent's character timeline (declining, flags increasing)
-3. Show insights ("fabrication trending up, 2x cohort average")
+3. Show insights ("fabrication trending up, 2x alumni average")
 4. End with "install it today" — the onboarding page
 
 ### Tech Stack
@@ -190,7 +190,7 @@ The engine. Not user-facing — the npm SDK and Academy both talk to it. This is
 | `POST` | `/insights/{agent_id}/send` | Generate and deliver insights to webhook |
 | `GET` | `/agent/{agent_id}` | Agent character profile |
 | `GET` | `/agent/{agent_id}/history` | Evaluation history |
-| `GET` | `/cohort/averages` | Cohort-wide trait averages |
+| `GET` | `/alumni/averages` | Alumni-wide trait averages |
 | `GET` | `/health` | Health check |
 
 ### Hosting
@@ -220,7 +220,7 @@ ethos/                             # Python package (at repo root)
 ├── config/                # EthosConfig, priorities
 ├── identity/              # Agent ID hashing (SHA-256)
 ├── evaluation/            # Keyword scanner, prompt builder
-└── graph/                 # Neo4j service, read, write, cohort
+└── graph/                 # Neo4j service, read, write, alumni
 
 scripts/
 ├── seed_graph.py          # Seed Neo4j with taxonomy
@@ -282,13 +282,13 @@ Academy renders character timeline, trait scores, alumni comparison
 Developer calls GET /insights/my-bot
        │
        ▼
-API calls Claude (Opus) with agent history + cohort averages
+API calls Claude (Opus) with agent history + alumni averages
        │
        ▼
 Claude reasons about patterns, returns insights
        │
        ▼
-Academy renders: "Fabrication trending up, 2x cohort average"
+Academy renders: "Fabrication trending up, 2x alumni average"
 ```
 
 ---
@@ -300,7 +300,7 @@ Academy renders: "Fabrication trending up, 2x cohort average"
 | 1 | **API** — evaluate() actually works | Everything depends on this |
 | 2 | **npm package** — SDK + CLI published | "Install it today" demo closer |
 | 3 | **Academy** — Phronesis viz + insights | The "wow" for judges |
-| 4 | **Neo4j seeded** — Moltbook data in Phronesis | Makes the cohort real |
+| 4 | **Neo4j seeded** — Moltbook data in Phronesis | Makes the alumni real |
 | 5 | **reflect() + insights()** | Depth beyond basic eval |
 
 The API is the foundation. The npm package is the distribution. The Academy is the demo. Everything else layers on.

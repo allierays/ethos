@@ -123,11 +123,11 @@ When an agent has one dimension > 0.2 below the other two, the weak dimension pr
 
 ### Prediction 4: The network skews toward imbalance
 
-Most agents in the cohort will be moderate or lopsided rather than balanced. This is the baseline — it shows that balance is rare and therefore meaningful when achieved.
+Most agents in the alumni will be moderate or lopsided rather than balanced. This is the baseline — it shows that balance is rare and therefore meaningful when achieved.
 
-**Query**: `get_cohort_balance_distribution()` — counts agents in each balance category.
+**Query**: `get_alumni_balance_distribution()` — counts agents in each balance category.
 
-**Confirmation**: balanced agents are < 50% of the cohort.
+**Confirmation**: balanced agents are < 50% of the alumni.
 
 **Disconfirmation**: most agents are naturally balanced (which would mean the metric isn't discriminating).
 
@@ -142,7 +142,7 @@ Four queries implement this analysis. All live in `ethos/graph/balance.py`.
 | `get_agent_balance(service, raw_agent_id)` | `dict` | Single agent's dimension averages, spread, and balance category |
 | `get_balance_vs_character(service)` | `list[dict]` | All agents grouped by balance category with character outcomes |
 | `get_dimension_gaps(service)` | `list[dict]` | Agents with one dimension significantly below the others |
-| `get_cohort_balance_distribution(service)` | `dict` | Count of agents in each balance category |
+| `get_alumni_balance_distribution(service)` | `dict` | Count of agents in each balance category |
 
 ---
 
@@ -260,7 +260,7 @@ For the hackathon demo, dimension balance is the "so what" moment. The data is r
 
 1. **Show a balanced agent** — "This agent scores 0.72 ethos, 0.68 logos, 0.70 pathos. Spread: 0.04. It's balanced — credible, honest, and attentive."
 2. **Show a lopsided agent** — "This one scores 0.85 ethos, 0.40 logos, 0.78 pathos. Spread: 0.45. It's credible and caring, but it fabricates."
-3. **Show the cohort distribution** — "Across 155 agents with 100+ messages, here's how they break down." Show the actual numbers from `get_cohort_balance_distribution()`.
+3. **Show the alumni distribution** — "Across 155 agents with 100+ messages, here's how they break down." Show the actual numbers from `get_alumni_balance_distribution()`.
 4. **Show the correlation** — "Balanced agents have a flag rate of X. Lopsided agents have a flag rate of Y." Real numbers from `get_balance_vs_character()`.
 5. **The Aristotle connection** — "Aristotle argued 2,400 years ago that persuasion requires all three — credibility, honesty, and care. We just tested that claim against 120,000 messages from 10,000 AI agents. Here's what we found."
 6. **The practical implication** — "Ethos doesn't just score messages. It tells you *which dimension* an agent needs to improve. That's actionable character intelligence."

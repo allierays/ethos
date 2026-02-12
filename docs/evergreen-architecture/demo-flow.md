@@ -69,7 +69,7 @@ for ind in result.detected_indicators:
 
 ---
 
-## Beat 3: The Cohort (45 seconds)
+## Beat 3: The Alumni (45 seconds)
 
 Switch to Neo4j Browser. Show the Phronesis visualization.
 
@@ -78,7 +78,7 @@ Switch to Neo4j Browser. Show the Phronesis visualization.
 Show Phronesis: Agent nodes connected by evaluation relationships. Color-coded by phronesis level (green = established, yellow = developing, red = undetermined).
 
 ```
-Query: Character cohort overview
+Query: Character alumni overview
 MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation)
 WITH a, count(e) AS evals, avg(e.ethos) AS character
 RETURN a, evals, character
@@ -95,7 +95,7 @@ RETURN e.created_at, e.ethos, e.logos, e.pathos, e.flags
 ORDER BY e.created_at
 ```
 
-"Character is declining. Manipulation flags are increasing. This is a 14-day behavioral pattern that no single developer could see alone. The cohort sees it."
+"Character is declining. Manipulation flags are increasing. This is a 14-day behavioral pattern that no single developer could see alone. The alumni sees it."
 
 **Why this works:** This is the "wow." Character made visible. Development arcs demonstrated visually.
 
@@ -140,12 +140,12 @@ print(insights.summary)
 for i in insights.insights:
     print(f"[{i.severity}] {i.message}")
 # [warning] Fabrication score climbed from 0.12 to 0.31 over 3 days —
-#           now 2x the cohort average of 0.15.
-# [info]    Manipulation clean for 14 days. Top 10% of the cohort.
+#           now 2x the alumni average of 0.15.
+# [info]    Manipulation clean for 14 days. Top 10% of the alumni.
 # [warning] Dismissal flagged 4x today, up from 0 last week.
 ```
 
-"This is Claude Opus analyzing the agent's behavioral history against the entire cohort. Not a data dump — intelligent insights. It noticed the fabrication trend, compared it to the cohort average, and told the developer what matters. This runs nightly and delivers to Slack, email, wherever."
+"This is Claude Opus analyzing the agent's behavioral history against the entire alumni. Not a data dump — intelligent insights. It noticed the fabrication trend, compared it to the alumni average, and told the developer what matters. This runs nightly and delivers to Slack, email, wherever."
 
 **Why this works:** Opus 4.6 criterion — Claude reasoning about graph data, not just scoring text. This is a novel use of the model.
 
@@ -168,9 +168,9 @@ return response  # no delay
 
 ## The Close (15 seconds)
 
-"Every agent gets trained on capability. Ethos Academy is where they develop character. Open source. Two lines of code. Every evaluation makes the cohort smarter. Agents that manipulate on one platform carry that history everywhere. And developers get nightly intelligence about their own agents powered by Claude."
+"Every agent gets trained on capability. Ethos Academy is where they develop character. Open source. Two lines of code. Every evaluation makes the alumni smarter. Agents that manipulate on one platform carry that history everywhere. And developers get nightly intelligence about their own agents powered by Claude."
 
-"Install: `pip install ethos-ai`. You're in the cohort."
+"Install: `pip install ethos-ai`. You're in the alumni."
 
 ---
 
@@ -194,7 +194,7 @@ Before the demo:
 | Pitch | 30s | 0:30 |
 | Problem | 30s | 1:00 |
 | Two lines | 30s | 1:30 |
-| Cohort | 45s | 2:15 |
+| Alumni | 45s | 2:15 |
 | Customization | 20s | 2:35 |
 | Insights | 30s | 3:05 |
 | Reflect | 15s | 3:20 |
@@ -210,7 +210,7 @@ Tight at 3:35. Can cut Beat 4 (customization) if running long — it's impressiv
 |------|-----------|-------------|----------------|-------------|
 | Problem | Real incident | Real-world relevance | - | Research depth |
 | Two lines | Works live | Zero-friction install | Opus scores the message | 12 traits, 152 indicators |
-| Cohort | Graph visualization | Cohort effects = moat | - | Neo4j integration |
+| Alumni | Graph visualization | Alumni effects = moat | - | Neo4j integration |
 | Customization | Trait-level config | Domain-specific value | - | Thoughtful design |
 | Insights | Claude reads Phronesis | Nightly intelligence | **Opus reasons about behavioral patterns** | Novel model use |
 | Reflect | Async demo | Self-examination angle | Opus evaluates own agent | Aristotelian framework |

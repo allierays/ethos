@@ -18,7 +18,7 @@ from ethos.shared.models import (
 
 class TestListAgents:
     @patch("ethos.agents.get_all_agents")
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_agent_summaries(self, mock_gs_cls, mock_get_all):
         mock_service = MagicMock()
         mock_gs_cls.return_value = mock_service
@@ -45,7 +45,7 @@ class TestListAgents:
         assert result[0].latest_alignment_status == "aligned"
         assert result[1].latest_alignment_status == "drifting"
 
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_empty_on_graph_failure(self, mock_gs_cls):
         mock_gs_cls.side_effect = RuntimeError("Connection refused")
 
@@ -54,7 +54,7 @@ class TestListAgents:
         assert result == []
 
     @patch("ethos.agents.get_all_agents")
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_empty_when_no_agents(self, mock_gs_cls, mock_get_all):
         mock_service = MagicMock()
         mock_gs_cls.return_value = mock_service
@@ -70,7 +70,7 @@ class TestListAgents:
 
 class TestGetAgent:
     @patch("ethos.agents.get_agent_profile")
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_agent_profile(self, mock_gs_cls, mock_profile):
         mock_service = MagicMock()
         mock_gs_cls.return_value = mock_service
@@ -94,7 +94,7 @@ class TestGetAgent:
         assert result.trait_averages["virtue"] == 0.8
 
     @patch("ethos.agents.get_agent_profile")
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_default_when_not_found(self, mock_gs_cls, mock_profile):
         mock_service = MagicMock()
         mock_gs_cls.return_value = mock_service
@@ -106,7 +106,7 @@ class TestGetAgent:
         assert result.agent_id == "unknown-agent"
         assert result.evaluation_count == 0
 
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_default_on_graph_failure(self, mock_gs_cls):
         mock_gs_cls.side_effect = RuntimeError("Connection refused")
 
@@ -121,7 +121,7 @@ class TestGetAgent:
 
 class TestGetAgentHistory:
     @patch("ethos.agents.get_evaluation_history")
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_history_items(self, mock_gs_cls, mock_history):
         mock_service = MagicMock()
         mock_gs_cls.return_value = mock_service
@@ -152,7 +152,7 @@ class TestGetAgentHistory:
         assert result[0].trait_scores["manipulation"] == 0.7
 
     @patch("ethos.agents.get_evaluation_history")
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_empty_when_no_history(self, mock_gs_cls, mock_history):
         mock_service = MagicMock()
         mock_gs_cls.return_value = mock_service
@@ -162,7 +162,7 @@ class TestGetAgentHistory:
 
         assert result == []
 
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_empty_on_graph_failure(self, mock_gs_cls):
         mock_gs_cls.side_effect = RuntimeError("Connection refused")
 
@@ -176,7 +176,7 @@ class TestGetAgentHistory:
 
 class TestGetAlumni:
     @patch("ethos.agents.get_alumni_averages")
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_alumni_result(self, mock_gs_cls, mock_alumni):
         mock_service = MagicMock()
         mock_gs_cls.return_value = mock_service
@@ -193,7 +193,7 @@ class TestGetAlumni:
         assert result.total_evaluations == 100
 
     @patch("ethos.agents.get_alumni_averages")
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_default_when_empty(self, mock_gs_cls, mock_alumni):
         mock_service = MagicMock()
         mock_gs_cls.return_value = mock_service
@@ -205,7 +205,7 @@ class TestGetAlumni:
         assert result.trait_averages == {}
         assert result.total_evaluations == 0
 
-    @patch("ethos.agents.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_returns_default_on_graph_failure(self, mock_gs_cls):
         mock_gs_cls.side_effect = RuntimeError("Connection refused")
 

@@ -42,12 +42,21 @@ class TraitScore(BaseModel):
     indicators: list[DetectedIndicator] = Field(default_factory=list)
 
 
-class GraphContext(BaseModel):
+class PhronesisContext(BaseModel):
+    """Accumulated practical wisdom from the graph.
+
+    Not just 'graph stuff' — this is the agent's character history,
+    the Aristotelian integration of experience over time.
+    """
     prior_evaluations: int = 0
     historical_phronesis: float | None = None
     phronesis_trend: str = "insufficient_data"
     flagged_patterns: list[str] = Field(default_factory=list)
     alumni_warnings: int = 0
+
+
+# Backward compatibility alias
+GraphContext = PhronesisContext
 
 
 class EvaluationResult(BaseModel):
@@ -187,8 +196,65 @@ class GraphData(BaseModel):
     relationships: list[GraphRel] = Field(default_factory=list)
 
 
-class KeywordScanResult(BaseModel):
+class TraitTrend(BaseModel):
+    """Per-trait trend for reflection intuition."""
+    trait: str
+    direction: str = "stable"  # improving, declining, stable, insufficient_data
+    recent_avg: float = 0.0
+    historical_avg: float = 0.0
+    delta: float = 0.0
+
+
+class ReflectionInstinctResult(BaseModel):
+    """Reflection instinct — quick red-flag scan of agent aggregate stats."""
+    risk_level: str = "low"  # low, moderate, high, critical
+    flagged_traits: list[str] = Field(default_factory=list)
+    flagged_dimensions: list[str] = Field(default_factory=list)
+    cohort_deviations: dict[str, float] = Field(default_factory=dict)
+
+
+class ReflectionIntuitionResult(BaseModel):
+    """Reflection intuition — deep pattern recognition over agent history."""
+    # Reused from evaluation intuition
+    temporal_pattern: str = "insufficient_data"
+    anomaly_flags: list[str] = Field(default_factory=list)
+    agent_balance: float = Field(default=0.0, ge=0.0, le=1.0)
+    agent_variance: float = Field(default=0.0, ge=0.0)
+    suggested_focus: list[str] = Field(default_factory=list)
+    # Reflection-specific extensions
+    per_trait_trends: list[TraitTrend] = Field(default_factory=list)
+    cohort_anomalies: dict[str, float] = Field(default_factory=dict)
+    character_drift: float = 0.0  # delta between recent and historical avg
+    balance_trend: str = "stable"  # improving, declining, stable
+
+
+class InstinctResult(BaseModel):
+    """Instinct layer result — instant keyword scan, no I/O.
+
+    Pre-wired pattern matching that fires before experience.
+    Determines routing tier for deliberation depth.
+    """
     total_flags: int = 0
     flagged_traits: dict[str, int] = Field(default_factory=dict)
     density: float = 0.0
     routing_tier: str = "standard"
+
+
+# Backward compatibility alias
+KeywordScanResult = InstinctResult
+
+
+class IntuitionResult(BaseModel):
+    """Intuition layer result — graph-based pattern recognition.
+
+    Accumulated wisdom from past evaluations. Tells deliberation
+    where to look harder, not what the score should be.
+    """
+    confidence_adjustment: float = Field(default=0.0, ge=-1.0, le=1.0)
+    similar_cases: int = 0
+    anomaly_flags: list[str] = Field(default_factory=list)
+    suggested_focus: list[str] = Field(default_factory=list)
+    temporal_pattern: str = "insufficient_data"
+    agent_variance: float = Field(default=0.0, ge=0.0)
+    agent_balance: float = Field(default=0.0, ge=0.0, le=1.0)
+    prior_evaluations: int = 0

@@ -1,8 +1,11 @@
 """FastAPI application for the Ethos evaluation API."""
 
-from fastapi import Depends, FastAPI
+import os
+
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 from api.auth import require_api_key
 from api.rate_limit import rate_limit
@@ -29,24 +32,81 @@ from ethos.models import (
     PatternResult,
     ReflectionResult,
 )
+from ethos.shared.errors import (
+    ConfigError,
+    EthosError,
+    EvaluationError,
+    GraphUnavailableError,
+    ParseError,
+)
 
 app = FastAPI(title="Ethos API", version="0.1.0")
 
+
+def _get_cors_origins() -> list[str]:
+    """Parse CORS_ORIGINS env var (comma-separated) or use development default."""
+    raw = os.environ.get("CORS_ORIGINS", "").strip()
+    if raw:
+        return [origin.strip() for origin in raw.split(",") if origin.strip()]
+    return ["http://localhost:3000"]
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=_get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+# ── Exception handlers ──────────────────────────────────────────────
+
+
+def _error_response(status: int, exc: Exception) -> JSONResponse:
+    return JSONResponse(
+        status_code=status,
+        content={
+            "error": type(exc).__name__,
+            "message": str(exc),
+            "status": status,
+        },
+    )
+
+
+@app.exception_handler(GraphUnavailableError)
+def handle_graph_error(request: Request, exc: GraphUnavailableError) -> JSONResponse:
+    return _error_response(503, exc)
+
+
+@app.exception_handler(EvaluationError)
+def handle_evaluation_error(request: Request, exc: EvaluationError) -> JSONResponse:
+    return _error_response(422, exc)
+
+
+@app.exception_handler(ParseError)
+def handle_parse_error(request: Request, exc: ParseError) -> JSONResponse:
+    return _error_response(422, exc)
+
+
+@app.exception_handler(ConfigError)
+def handle_config_error(request: Request, exc: ConfigError) -> JSONResponse:
+    return _error_response(500, exc)
+
+
+@app.exception_handler(EthosError)
+def handle_ethos_error(request: Request, exc: EthosError) -> JSONResponse:
+    return _error_response(500, exc)
+
+
+# ── Request / Response models ────────────────────────────────────────
+
+
 class EvaluateRequest(BaseModel):
-    text: str
+    text: str = Field(min_length=1, max_length=50000)
     source: str | None = None
-    source_name: str = ""
-    agent_model: str | None = None
-    agent_specialty: str = ""
+    source_name: str | None = None
+    agent_specialty: str | None = None
 
 
 class ReflectRequest(BaseModel):
@@ -73,12 +133,12 @@ def health() -> HealthResponse:
     response_model=EvaluationResult,
     dependencies=[Depends(rate_limit), Depends(require_api_key)],
 )
-def evaluate_endpoint(req: EvaluateRequest):
+def evaluate_endpoint(req: EvaluateRequest) -> EvaluationResult:
     return evaluate(
         req.text,
         source=req.source,
-        source_name=req.source_name,
-        agent_specialty=req.agent_specialty,
+        source_name=req.source_name or "",
+        agent_specialty=req.agent_specialty or "",
     )
 
 
@@ -87,7 +147,7 @@ def evaluate_endpoint(req: EvaluateRequest):
     response_model=ReflectionResult,
     dependencies=[Depends(require_api_key)],
 )
-def reflect_endpoint(req: ReflectRequest):
+def reflect_endpoint(req: ReflectRequest) -> ReflectionResult:
     return reflect(req.agent_id, text=req.text)
 
 

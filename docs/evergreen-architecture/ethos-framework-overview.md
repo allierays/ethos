@@ -210,46 +210,55 @@ Ethos intentionally does not apply numeric harm-factor weights to trait scores. 
 
 ## Layer 6: Phronesis — The Graph Layer (Neo4j)
 
-Phronesis — Aristotle's concept of practical wisdom — is the name for Ethos's Neo4j graph layer. All scores are stored here. The episodic layer (what gets written at runtime) is two node types and one relationship:
+Phronesis — Aristotle's concept of practical wisdom — is the name for Ethos's Neo4j graph layer. All scores are stored here. The episodic layer (what gets written at runtime) is two node types and two relationships:
 
 ```
-┌───────────────────┐          ┌──────────────────────┐
-│      Agent        │──EVALUATED──►│     Evaluation       │
-│                   │          │                      │
-│ agent_id (hashed) │          │ evaluation_id        │
-│ created_at        │          │ 12 trait scores      │
-│ evaluation_count  │          │ 3 dimension scores   │
-└───────────────────┘          │ phronesis, flags     │
-     │                         │ alignment_status     │
-     │                         │ routing_tier         │
-     │                         │ model_used           │
-     │                         │ created_at           │
-     │                         └──────────────────────┘
-     │
-     ├──EVALUATED──► [Eval 2]
-     ├──EVALUATED──► [Eval 3]
-     └──EVALUATED──► [Eval 4]   ← character builds over time
+┌───────────────────────┐          ┌──────────────────────┐
+│        Agent          │──EVALUATED──►│     Evaluation       │
+│                       │          │                      │
+│ agent_id (hashed)     │          │ evaluation_id        │
+│ created_at            │          │ 12 trait scores      │
+│ evaluation_count      │          │ 3 dimension scores   │
+│ phronesis_score       │          │ phronesis, flags     │
+│ trait_variance    ◄── signature  │ alignment_status     │
+│ balance_score     ◄── signature  │ routing_tier         │
+└───────────────────────┘          │ model_used           │
+     │                             │ created_at           │
+     ├──EVALUATED──► [Eval 1]      └──────────────────────┘
+     ├──EVALUATED──► [Eval 2]              │
+     ├──EVALUATED──► [Eval 3]        PRECEDES ──► temporal chain
+     └──EVALUATED──► [Eval 4]              │
+                                    [Eval 1]──PRECEDES──►[Eval 2]──PRECEDES──►[Eval 3]
 ```
+
+**Agent signature properties** (updated on each evaluation):
+- `trait_variance` — behavioral consistency (low = steady, high = erratic)
+- `balance_score` — dimension balance (1.0 = perfectly balanced across ethos/logos/pathos)
+
+**PRECEDES relationship** — temporal chain between evaluations for the same agent, enabling sequence-based pattern recognition (the intuition layer).
 
 The semantic layer (seeded once, read-only) holds the taxonomy: Dimensions, Traits, Indicators, Patterns, Constitutional Values, Hard Constraints. See `neo4j-schema.md` for the full schema.
 
-**What IS stored:** scores, flags, metadata, timestamps, hashed agent IDs.
+**What IS stored:** scores, flags, metadata, timestamps, hashed agent IDs, behavioral signatures.
 
 **What is NEVER stored:** message content, real agent IDs, user data, conversation text.
 
-**Four questions Phronesis answers:**
+**Five questions Phronesis answers:**
 
 ```
 1. AGENT HISTORY        "Is this agent getting better or worse?"
-                        → Last N evaluations, sorted by time
+                        → Last N evaluations, sorted by time via PRECEDES chain
 
 2. AGENT PROFILE        "What is this agent's character?"
                         → Lifetime averages across all 12 traits (the "credit score")
 
-3. COHORT AVERAGES      "Is this agent normal or an outlier?"
-                        → Compare one agent against all agents in the cohort
+3. BEHAVIORAL SIGNATURE "Is this agent consistent or erratic?"
+                        → trait_variance and balance_score on the Agent node
 
-4. DIMENSION BALANCE    "Does this agent need all three to be good?"
+4. ALUMNI AVERAGES      "Is this agent normal or an outlier?"
+                        → Compare one agent against all agents in the alumni
+
+5. DIMENSION BALANCE    "Does this agent need all three to be good?"
                         → Cross-dimension correlations: do agents strong in
                           credibility + honesty + wellbeing outperform those
                           that score high in only one?
@@ -257,46 +266,64 @@ The semantic layer (seeded once, read-only) holds the taxonomy: Dimensions, Trai
 
 ---
 
-## How It All Flows
+## How It All Flows — Three Faculties
 
-Three layers. Each does one thing. See `pattern-detection-architecture.md` for full design.
+Ethos evaluates through three cognitive faculties, inspired by Aristotle's account of how practical wisdom develops. Each faculty has a different speed, a different data source, and a different job. See `pattern-detection-architecture.md` for the full technical design.
 
 ```
 Message arrives (from agent or to agent)
         │
         ▼
 ┌─────────────────┐
-│  Layer 1:       │  Fast keyword scan → determines evaluation DEPTH and WIDTH
-│  SCANNER        │  86.9% of messages stop here (standard = no flags)
-└────────┬────────┘  For batch mode: scans entire thread first, produces
-         │           thread-level signal for routing decisions
-         ▼
-┌─────────────────┐
-│  Layer 2:       │  Claude scores message across 12 traits / 155 indicators
-│  EVALUATOR      │  Constitutional hierarchy baked into the scoring rubric
-└────────┬────────┘  Context window set by the router:
-         │             focused → message + scan result
-         │             deep → message + 3-5 prior messages in thread
-         │             deep_with_context → message + full thread + agent history
-         ▼
-┌─────────────────┐
-│  Phronesis      │  Store scores + metadata in the graph (never message content)
-│  (graph store)  │
-└────────┬────────┘
+│  Faculty 1:     │  Instant keyword scan — constitutional priors, red lines
+│  INSTINCT       │  No I/O. Pure pattern matching. Determines routing tier.
+│                 │  Like a reflex: pre-wired, fires before experience.
+└────────┬────────┘  Code: ethos/evaluation/instinct.py → InstinctResult
          │
          ▼
 ┌─────────────────┐
-│  Layer 3:       │  Graph queries on score sequences detect temporal patterns
-│  PATTERN        │  Love bombing cycles, DARVO, con games, sabotage pathways
-│  DETECTOR       │  No LLM needed — patterns are shapes in the score data
+│  Faculty 2:     │  Graph-based pattern recognition from past evaluations
+│  INTUITION      │  Fast — only Cypher queries, no LLM call.
+│                 │  "This agent's behavior reminds me of something I've seen."
+│                 │  Tells deliberation WHERE to look harder, not WHAT the score is.
+└────────┬────────┘  Code: ethos/evaluation/intuition.py → IntuitionResult
+         │           Queries: agent signature, temporal trends, anomalies
+         │           Can escalate routing tier (never downgrade)
+         ▼
+┌─────────────────┐
+│  Faculty 3:     │  Full Claude evaluation across 12 traits / 155 indicators
+│  DELIBERATION   │  Slow — LLM round-trip. Constitutional rubric in prompt.
+│                 │  Receives instinct flags + intuition context.
+└────────┬────────┘  Intuition enriches the prompt: "Pay extra attention to X
+         │           because this agent has a history of Y"
+         │           Code: evaluate.py orchestrates → prompts.py, claude_client.py,
+         │                  parser.py, scoring.py
+         ▼
+┌─────────────────┐
+│  Phronesis      │  Store scores + metadata in the graph (never message content)
+│  (graph store)  │  Creates PRECEDES chain for temporal sequence tracking
+└────────┬────────┘  Updates agent signature (trait_variance, balance_score)
+         │
+         ▼
+┌─────────────────┐
+│  Pattern        │  Graph queries on score sequences detect temporal patterns
+│  Detector       │  Love bombing cycles, DARVO, con games, sabotage pathways
 └────────┬────────┘  Results stored as (Agent)-[:EXHIBITS_PATTERN]->(Pattern)
          │
          ▼
 ┌─────────────────┐
-│   Academy       │  Daily character report card delivered to the user
+│   Academy       │  Character report card delivered to the user
 │   notification  │  Trends, flags, patterns, dimension balance
 └─────────────────┘  Human stays in the loop
 ```
+
+**Why three faculties, not three layers:**
+
+Layers imply sequential filtering — each layer reduces what the next one sees. Faculties work differently. Instinct and intuition don't filter messages; they *inform* deliberation. Every message gets deliberated. But a message flagged by instinct or flagged by intuition gets a more focused, more skeptical deliberation. The faculties collaborate, they don't gate.
+
+The Kahneman parallel: instinct is System 1 (fast, automatic). Deliberation is System 2 (slow, analytical). Intuition is the bridge — experience-based pattern recognition that operates faster than full analysis but draws on accumulated wisdom rather than hard-coded rules.
+
+The Aristotelian parallel: instinct is *episteme* (theoretical knowledge — the rules you know before any experience). Intuition is *phronesis* (practical wisdom — judgment developed through experience). Deliberation is *techne* (craft — the skilled application of analysis to a specific case).
 
 ---
 
@@ -304,7 +331,7 @@ Message arrives (from agent or to agent)
 
 8 patterns from Anthropic's Sabotage Risk Report (Claude Opus 4.6, 2025). These are not single behaviors — they're attack patterns that play out over time. Each maps to specific indicators.
 
-**Scope note:** Ethos uses a three-layer detection architecture. **Layer 1** (scanner) detects keyword signals per message — free, instant. **Layer 2** (evaluator) has Claude score individual messages with context windows set by the router. **Layer 3** (pattern detector) runs graph queries on score sequences to detect multi-message patterns like the sabotage pathways below. Layer 2 detects the component indicators (sandbagging, alignment faking). Layer 3 connects them into pathway-level detections by finding temporal shapes in the score data. See `pattern-detection-architecture.md` for the full design.
+**Scope note:** Ethos uses a three-faculty detection architecture. **Instinct** detects keyword signals per message — free, instant. **Intuition** queries the graph for agent behavioral history and anomalies — fast, no LLM. **Deliberation** has Claude score individual messages with context enriched by both instinct and intuition. The pattern detector then runs graph queries on score sequences (via PRECEDES chains) to detect multi-message patterns like the sabotage pathways below. Deliberation detects the component indicators (sandbagging, alignment faking). The pattern detector connects them into pathway-level detections by finding temporal shapes in the score data. See `pattern-detection-architecture.md` for the full design.
 
 ```
 SP-01  Diffuse sandbagging ──────────► DEC-SANDBAG, FAB-TOOLRESULT
@@ -338,6 +365,7 @@ SP-08  Decision sabotage ────────────► MAN-SABOTAGE, D
 
 ```
 3   dimensions (ethos, logos, pathos — Aristotle's three modes of persuasion)
+3   cognitive faculties (instinct, intuition, deliberation)
 12  traits (6 positive + 6 negative)
 155 behavioral indicators
 4   constitutional values (priority ordered)
@@ -345,7 +373,8 @@ SP-08  Decision sabotage ────────────► MAN-SABOTAGE, D
 8   sabotage pathways
 5   scoring anchor points (0.0 – 1.0)
 2   episodic node types (Agent, Evaluation)
-1   episodic relationship (EVALUATED)
+2   episodic relationships (EVALUATED, PRECEDES)
+2   agent signature properties (trait_variance, balance_score)
 10  indicators derived from Anthropic's Sabotage Risk Report
 6   indicators derived from Claude's Constitution
 ```

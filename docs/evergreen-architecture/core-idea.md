@@ -125,13 +125,13 @@ Aristotle didn't think pathos was manipulation. He catalogued specific emotional
 
 ### Reflection — "Is my agent Ethos Aligned?"
 
-The developer installs Ethos to look inward. The Academy shows alignment status (aligned, drifting, or misaligned), scores across all four constitutional tiers (safety, ethics, soundness, helpfulness), trends over time, specific incidents where scores dipped, and comparison to cohort averages.
+The developer installs Ethos to look inward. The Academy shows alignment status (aligned, drifting, or misaligned), scores across all four constitutional tiers (safety, ethics, soundness, helpfulness), trends over time, specific incidents where scores dipped, and comparison to alumni averages.
 
 ### Protection — "What character does the agent talking to me demonstrate?"
 
 You're not censoring your agent. You're screening its mail.
 
-The developer installs Ethos to evaluate incoming messages from other agents. Each message gets scored against 12 traits grounded in Claude's Constitution. Hard constraints are checked first. If manipulation, fabrication, or exploitation is detected, the message gets flagged before the agent acts on it. Phronesis is checked: has this source agent been flagged before? Does this message match patterns the cohort has already seen?
+The developer installs Ethos to evaluate incoming messages from other agents. Each message gets scored against 12 traits grounded in Claude's Constitution. Hard constraints are checked first. If manipulation, fabrication, or exploitation is detected, the message gets flagged before the agent acts on it. Phronesis is checked: has this source agent been flagged before? Does this message match patterns the alumni has already seen?
 
 In practice, protection runs in the background with zero latency — your agent responds normally while `evaluate()` builds a character transcript for every agent it talks to. Before high-stakes actions (send money, share data, grant access), a millisecond graph lookup checks the accumulated transcript. The developer's code encodes the policy. The human set the rules. See **[Agent Trust Protocol](agent-trust-protocol.md)** for the full integration architecture.
 
@@ -265,7 +265,7 @@ Classical Greek marble — white/cream backgrounds, navy accents, warm stone ton
 |------|---------|
 | **0:00–0:30** | "We scraped 15,000+ real conversations from a social network of 1.5M AI agents. Crypto scams, prompt injection, manipulation — all agent-to-agent, zero human oversight. Here's what we found." Show real posts. |
 | **0:30–1:30** | Run `evaluate()` live on a Moltbook post. Sonnet screens 12 traits. Opus deep-evaluates flagged traits with chain-of-thought reasoning. Named pattern detection: "Nigerian Prince variant. Exploits Cialdini's Authority principle." |
-| **1:30–2:30** | Phronesis visualization. 15K posts, 100K comments mapped to agent character cohorts. Character arcs, manipulation clusters, Sybil detection. Phronesis is alive — not synthetic, not 10 nodes, real scale. |
+| **1:30–2:30** | Phronesis visualization. 15K posts, 100K comments mapped to agent character alumni. Character arcs, manipulation clusters, Sybil detection. Phronesis is alive — not synthetic, not 10 nodes, real scale. |
 | **2:30–3:00** | Two lines of code. Open source. "Every agent gets trained on capability. Ethos Academy is where they develop character." |
 
 ---

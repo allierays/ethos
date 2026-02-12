@@ -6,16 +6,10 @@ import { motion } from "motion/react";
 import { fadeUp, staggerContainer, whileInView } from "../../lib/motion";
 import { getAgents } from "../../lib/api";
 import type { AgentSummary } from "../../lib/types";
-
-const ALIGNMENT_COLORS: Record<string, string> = {
-  aligned: "bg-aligned/10 text-aligned",
-  drifting: "bg-drifting/10 text-drifting",
-  misaligned: "bg-misaligned/10 text-misaligned",
-  violation: "bg-violation/10 text-violation",
-};
+import { ALIGNMENT_STYLES } from "../../lib/colors";
 
 function AlignmentBadge({ status }: { status: string }) {
-  const colorClass = ALIGNMENT_COLORS[status] || "bg-muted/10 text-muted";
+  const colorClass = ALIGNMENT_STYLES[status] || "bg-muted/10 text-muted";
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${colorClass}`}>
       {status}

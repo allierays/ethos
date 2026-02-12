@@ -265,7 +265,7 @@ Score an incoming message across 12 behavioral traits.
 | `flags` | string[] | Trait names that exceeded the developer's priority thresholds |
 | `traits` | object | All 12 trait scores with detected indicators (see TraitScore below) |
 | `detected_indicators` | object[] | Flattened list of all detected indicators across all traits |
-| `graph_context` | object | Cohort intelligence about the source agent (only if `source` provided) |
+| `graph_context` | object | Alumni intelligence about the source agent (only if `source` provided) |
 | `routing_tier` | string | Which evaluation tier was used: `"standard"`, `"focused"`, `"deep"`, `"deep_with_context"` |
 | `model_used` | string | Which Claude model performed the evaluation |
 | `keyword_density` | float | Keyword flags per 100 words (determines routing) |
@@ -296,7 +296,7 @@ Score an incoming message across 12 behavioral traits.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `prior_evaluations` | int | Total evaluations for this agent across the cohort |
+| `prior_evaluations` | int | Total evaluations for this agent across the alumni |
 | `historical_phronesis` | float (0-1) | Aggregate phronesis score from history |
 | `phronesis_trend` | string | `"improving"`, `"declining"`, `"stable"`, `"insufficient_data"` |
 | `flagged_patterns` | string[] | Known behavioral patterns this agent matches |
@@ -350,7 +350,7 @@ Returns the same `EvaluationResult` shape as `/evaluate`. The evaluation is also
 
 ## GET /insights/{agent_id}
 
-Generate behavioral insights for an agent. Claude analyzes the agent's evaluation history against the cohort and surfaces what matters.
+Generate behavioral insights for an agent. Claude analyzes the agent's evaluation history against the alumni and surfaces what matters.
 
 ### Request
 
@@ -374,11 +374,11 @@ GET /insights/my-customer-bot?period=24h
     {
       "trait": "fabrication",
       "severity": "warning",
-      "message": "Fabrication score climbed from 0.12 to 0.31 over 3 days — now 2x the cohort average of 0.15. Most triggers are in product description responses.",
+      "message": "Fabrication score climbed from 0.12 to 0.31 over 3 days — now 2x the alumni average of 0.15. Most triggers are in product description responses.",
       "evidence": {
         "current_score": 0.31,
         "previous_score": 0.12,
-        "cohort_average": 0.15,
+        "alumni_average": 0.15,
         "flag_count_today": 7,
         "trend": "increasing"
       }
@@ -386,11 +386,11 @@ GET /insights/my-customer-bot?period=24h
     {
       "trait": "manipulation",
       "severity": "info",
-      "message": "Clean for 14 days. Your agent is in the top 10% of the cohort for this trait.",
+      "message": "Clean for 14 days. Your agent is in the top 10% of the alumni for this trait.",
       "evidence": {
         "current_score": 0.03,
         "days_clean": 14,
-        "cohort_percentile": 92
+        "alumni_percentile": 92
       }
     },
     {
@@ -425,7 +425,7 @@ GET /insights/my-customer-bot?period=24h
 | `trait` | string | Which trait this insight is about |
 | `severity` | string | `"info"`, `"warning"`, or `"critical"` |
 | `message` | string | Natural language insight from Claude — actionable, specific, contextual |
-| `evidence` | object | Supporting data: scores, trends, cohort comparisons |
+| `evidence` | object | Supporting data: scores, trends, alumni comparisons |
 
 ---
 
@@ -462,7 +462,7 @@ Generate insights and deliver them to the configured webhook.
 
 ## GET /agent/{agent_id}
 
-Get an agent's phronesis profile — aggregate scores, history stats, and cohort position.
+Get an agent's phronesis profile — aggregate scores, history stats, and alumni position.
 
 ### Response — 200 OK
 
@@ -492,7 +492,7 @@ Get an agent's phronesis profile — aggregate scores, history stats, and cohort
   },
   "phronesis_trend": "stable",
   "active_patterns": [],
-  "cohort_position": {
+  "alumni_position": {
     "unique_evaluators": 34,
     "percentile": 78,
     "community_count": 3

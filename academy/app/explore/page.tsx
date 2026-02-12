@@ -3,9 +3,9 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import PhronesisGraph from "../../components/PhronesisGraph";
-import AlumniPanel from "../../components/AlumniPanel";
-import DimensionBalance from "../../components/DimensionBalance";
+import PhronesisGraph from "../../components/graph/PhronesisGraph";
+import AlumniPanel from "../../components/alumni/AlumniPanel";
+import DimensionBalance from "../../components/shared/DimensionBalance";
 import { fadeUp, whileInView } from "../../lib/motion";
 import { useEffect } from "react";
 import { getAlumni } from "../../lib/api";

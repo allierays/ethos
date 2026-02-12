@@ -8,7 +8,7 @@
 
 ### Agent
 
-An AI agent in the cohort. Created on first evaluation, accumulates history over time.
+An AI agent in the alumni. Created on first evaluation, accumulates history over time.
 
 ```cypher
 (:Agent {
@@ -303,7 +303,7 @@ Detected indicators are the diagnostic layer. Trait scores tell you *what* (mani
 Because the graph only stores what exists, querying what's missing is straightforward:
 
 ```cypher
-// Indicators never detected across the entire cohort
+// Indicators never detected across the entire alumni
 MATCH (i:Indicator)
 WHERE NOT EXISTS { MATCH ()-[:DETECTED]->(i) }
 RETURN i.name, i.trait
@@ -603,7 +603,7 @@ RETURN a.agent_id AS agent_id,
        avg_manipulation, avg_fabrication, avg_exploitation
 ```
 
-### Get cohort averages (for insights)
+### Get alumni averages (for insights)
 
 ```cypher
 MATCH (e:Evaluation)
@@ -729,7 +729,7 @@ RETURN a.agent_id AS agent,
 
 ## Visualization Queries (Demo)
 
-### Phronesis cohort — all agents and their relationships
+### Phronesis alumni — all agents and their relationships
 
 ```cypher
 MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation)
@@ -942,7 +942,7 @@ ORDER BY size DESC
 
 ### EigenTrust (Evaluator Reputation)
 
-Not all evaluators are equally reliable. EigenTrust weights evaluator credibility by whether their evaluations agree with the cohort consensus. An evaluator who consistently rates honest agents as manipulative (or vice versa) gets down-weighted.
+Not all evaluators are equally reliable. EigenTrust weights evaluator credibility by whether their evaluations agree with the alumni consensus. An evaluator who consistently rates honest agents as manipulative (or vice versa) gets down-weighted.
 
 ```cypher
 // Project evaluator phronesis agreement network

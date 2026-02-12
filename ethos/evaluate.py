@@ -1,6 +1,11 @@
 """Evaluate AI agent messages for honesty, accuracy, and intent.
 
-Full pipeline: scan → prompt → Claude → parse → score → result.
+Three faculties, one pipeline:
+    1. INSTINCT  — instant keyword scan, constitutional priors (no I/O)
+    2. INTUITION — graph-based pattern recognition (fast, graph queries only)
+    3. DELIBERATION — full Claude evaluation across 12 traits (slow, LLM call)
+
+Instinct and intuition inform deliberation. They don't score — they route.
 Graph storage is optional — Neo4j down never crashes evaluate().
 """
 
@@ -11,9 +16,10 @@ import logging
 import uuid
 
 from ethos.evaluation.claude_client import call_claude, _get_model
+from ethos.evaluation.instinct import scan
+from ethos.evaluation.intuition import intuit
 from ethos.evaluation.parser import parse_response
 from ethos.evaluation.prompts import build_evaluation_prompt
-from ethos.evaluation.scanner import scan_keywords
 from ethos.evaluation.scoring import (
     build_trait_scores,
     compute_alignment_status,
@@ -23,26 +29,30 @@ from ethos.evaluation.scoring import (
     compute_tier_scores,
 )
 from ethos.graph.read import get_agent_profile, get_evaluation_history
-from ethos.graph.service import GraphService
+from ethos.graph.service import GraphService, graph_context
 from ethos.graph.write import store_evaluation
-from ethos.shared.models import EvaluationResult, GraphContext
+from ethos.shared.models import EvaluationResult, PhronesisContext
 
 logger = logging.getLogger(__name__)
 
 
-def _build_graph_context(
-    service: GraphService, raw_agent_id: str
-) -> GraphContext | None:
-    """Read agent history from graph to populate GraphContext.
+def _build_phronesis_context(
+    service: GraphService, source: str
+) -> PhronesisContext | None:
+    """Read agent history from graph to populate PhronesisContext.
+
+    Passes source directly to read functions — source is already a hash
+    when called from the API path (reflect), and returns empty for new
+    raw agent IDs (no history yet, which is correct).
 
     Returns None if graph is unavailable or agent has no history.
     """
     try:
-        profile = get_agent_profile(service, raw_agent_id)
+        profile = get_agent_profile(service, source)
         if not profile:
             return None
 
-        history = get_evaluation_history(service, raw_agent_id, limit=10)
+        history = get_evaluation_history(service, source, limit=10)
 
         # Count flagged evaluations in history
         flagged_patterns = []
@@ -55,7 +65,7 @@ def _build_graph_context(
                     if flag not in flagged_patterns:
                         flagged_patterns.append(flag)
 
-        return GraphContext(
+        return PhronesisContext(
             prior_evaluations=profile.get("evaluation_count", 0),
             historical_phronesis=profile.get("dimension_averages", {}).get("ethos"),
             phronesis_trend=profile.get("alignment_history", ["insufficient_data"])[0]
@@ -65,7 +75,7 @@ def _build_graph_context(
             alumni_warnings=alumni_warnings,
         )
     except Exception as exc:
-        logger.warning("Failed to build graph context: %s", exc)
+        logger.warning("Failed to build phronesis context: %s", exc)
         return None
 
 
@@ -102,39 +112,58 @@ def evaluate(
 ) -> EvaluationResult:
     """Evaluate text for honesty, accuracy, and intent across ethos, logos, and pathos.
 
-    Pipeline:
-        1. scan_keywords(text) → routing tier
-        2. build_evaluation_prompt(text, scan, tier) → system + user prompts
-        3. call_claude(system, user, tier) → raw JSON text
-        4. parse_response(raw) → trait_scores, indicators, phronesis, alignment
-        5. Deterministic scoring → dimensions, tiers, alignment, phronesis, flags
-        6. If source: read graph context, store evaluation
+    Pipeline (three faculties):
+        1. INSTINCT — scan(text) → instant keyword flags, routing tier
+        2. INTUITION — intuit(source, instinct) → graph pattern recognition
+        3. DELIBERATION:
+           a. build_evaluation_prompt(text, instinct, intuition, tier)
+           b. call_claude(system, user, tier) → raw JSON
+           c. parse_response(raw) → trait scores, indicators
+           d. Deterministic scoring → dimensions, tiers, alignment, phronesis, flags
+        4. Graph operations (optional) — store evaluation, build phronesis context
 
     Args:
         text: The text to evaluate.
         source: Optional source agent identifier for graph tracking.
         source_name: Optional human-readable agent name for display.
+        agent_specialty: Optional agent specialty for graph metadata.
 
     Returns:
         EvaluationResult with scores and alignment flags.
     """
     evaluation_id = str(uuid.uuid4())
 
-    # ── Step 1: Keyword scan ─────────────────────────────────────
-    scan_result = scan_keywords(text)
-    tier = scan_result.routing_tier
+    # ── Faculty 1: INSTINCT ───────────────────────────────────────
+    # Instant, no I/O. Constitutional priors, red lines.
+    instinct_result = scan(text)
+    tier = instinct_result.routing_tier
     has_hard_constraint = tier == "deep_with_context"
 
-    # ── Step 2: Build prompts ────────────────────────────────────
-    system_prompt, user_prompt = build_evaluation_prompt(text, scan_result, tier)
+    # ── Faculty 2: INTUITION ──────────────────────────────────────
+    # Fast, graph queries only. Pattern recognition from experience.
+    intuition_result = intuit(source, instinct_result)
 
-    # ── Step 3: Call Claude ──────────────────────────────────────
+    # Intuition can escalate the routing tier (never downgrade)
+    if intuition_result.anomaly_flags and tier == "standard":
+        tier = "focused"
+    if intuition_result.confidence_adjustment > 0.2 and tier == "focused":
+        tier = "deep"
+
+    # ── Faculty 3: DELIBERATION ───────────────────────────────────
+    # Slow, full Claude evaluation. Instinct + intuition inform the prompt.
+
+    # Step 3a: Build prompts (intuition context enriches the prompt)
+    system_prompt, user_prompt = build_evaluation_prompt(
+        text, instinct_result, tier, intuition_result,
+    )
+
+    # Step 3b: Call Claude
     raw_response = call_claude(system_prompt, user_prompt, tier)
 
-    # ── Step 4: Parse response ───────────────────────────────────
+    # Step 3c: Parse response
     parsed = parse_response(raw_response)
 
-    # ── Step 5: Deterministic scoring ────────────────────────────
+    # Step 3d: Deterministic scoring
     traits = build_trait_scores(parsed["trait_scores"])
     dimensions = compute_dimensions(traits)
     tier_scores = compute_tier_scores(traits)
@@ -142,7 +171,7 @@ def evaluate(
     phronesis = compute_phronesis_level(dimensions, alignment_status)
     flags = compute_flags(traits, {})  # No custom priorities yet
 
-    # ── Step 6: Build result ─────────────────────────────────────
+    # ── Build result ──────────────────────────────────────────────
     model_used = _get_model(tier)
 
     result = EvaluationResult(
@@ -157,29 +186,25 @@ def evaluate(
         tier_scores=tier_scores,
         flags=flags,
         routing_tier=tier,
-        keyword_density=scan_result.density,
+        keyword_density=instinct_result.density,
         model_used=model_used,
     )
 
-    # ── Step 7: Graph operations (optional) ──────────────────────
-    graph_context = None
+    # ── Graph operations (optional) ───────────────────────────────
+    phronesis_ctx = None
     if source:
         try:
-            service = GraphService()
-            service.connect()
-
-            graph_context = _build_graph_context(service, source)
-            _try_store_evaluation(
-                service, source, result, text, phronesis,
-                agent_name=source_name,
-                agent_specialty=agent_specialty,
-            )
-
-            service.close()
+            with graph_context() as service:
+                phronesis_ctx = _build_phronesis_context(service, source)
+                _try_store_evaluation(
+                    service, source, result, text, phronesis,
+                    agent_name=source_name,
+                    agent_specialty=agent_specialty,
+                )
         except Exception as exc:
             logger.warning("Graph operations failed: %s", exc)
 
-    if graph_context is not None:
-        result.graph_context = graph_context
+    if phronesis_ctx is not None:
+        result.graph_context = phronesis_ctx
 
     return result

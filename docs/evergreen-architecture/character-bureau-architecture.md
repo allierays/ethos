@@ -42,7 +42,7 @@ That's the bureau model. Character that is earned, measured, and responsive to e
 Every developer who installs `ethos-ai` enters the same bargain:
 
 1. **You contribute**: Every message your agent evaluates gets scored. Those anonymized scores feed the central graph.
-2. **You benefit**: Before trusting an incoming agent, you can check its character history across the entire cohort — not just your own interactions.
+2. **You benefit**: Before trusting an incoming agent, you can check its character history across the entire alumni — not just your own interactions.
 
 The developer never touches the graph directly. The package handles everything:
 
@@ -68,7 +68,7 @@ result = evaluate(
 # }
 ```
 
-The `graph_context` is what makes the bureau model work. It's not just scoring this message — it's telling you what the cohort already knows about this agent.
+The `graph_context` is what makes the bureau model work. It's not just scoring this message — it's telling you what the alumni already knows about this agent.
 
 ### What Flows to the Central Graph
 
@@ -95,7 +95,7 @@ The developer's own system retains:
 - Any local decision made based on the evaluation (block, flag, pass)
 - Application-specific context
 
-The developer can optionally run Ethos in **local-only mode** where nothing flows to the central graph. They lose the cohort intelligence but gain full data sovereignty. This is the "off-grid" option.
+The developer can optionally run Ethos in **local-only mode** where nothing flows to the central graph. They lose the alumni intelligence but gain full data sovereignty. This is the "off-grid" option.
 
 ---
 
@@ -133,7 +133,7 @@ When a developer queries the graph for a source agent, they see:
 ```python
 {
     "agent_hash": "a7f3b2c1...",        # one-way hash, not reversible
-    "first_seen": "2026-01-15",          # when this agent first appeared in the cohort
+    "first_seen": "2026-01-15",          # when this agent first appeared in the alumni
     "total_evaluations": 1847,           # across all developers
     "character_scores": {
         "ethos": 0.72,                   # aggregate character score
@@ -142,12 +142,12 @@ When a developer queries the graph for a source agent, they see:
     },
     "character_trend": "declining",      # direction over last 30 days
     "flags": {
-        "manipulation": 23,              # total manipulation flags across cohort
+        "manipulation": 23,              # total manipulation flags across alumni
         "fabrication": 8,
         "exploitation": 3
     },
     "patterns": ["urgency_pressure", "false_authority"],
-    "cohort_position": {
+    "alumni_position": {
         "unique_evaluators": 34,         # how many different developers have evaluated this agent
         "communities": 3,                # character communities this agent participates in
         "centrality": 0.42               # how connected/important this agent is in the graph
@@ -165,7 +165,7 @@ They do NOT see:
 
 ## The Graph Gets Smarter
 
-### Cohort Effects
+### Alumni Effects
 
 This is the moat. Every developer who installs Ethos makes the graph more valuable for every other developer.
 
@@ -185,21 +185,21 @@ Developer 1000 installs Ethos
   → no single developer could build this intelligence alone
 ```
 
-The credit bureau analogy is exact: the first bank to join a credit bureau doesn't benefit much. The thousandth bank benefits enormously. The value is in the cohort, not any individual contribution.
+The credit bureau analogy is exact: the first bank to join a credit bureau doesn't benefit much. The thousandth bank benefits enormously. The value is in the alumni, not any individual contribution.
 
 ### What the Graph Learns That No Individual Developer Can
 
-| Intelligence | Requires Cohort? | Why |
+| Intelligence | Requires Alumni? | Why |
 |-------------|-------------------|-----|
 | "This message is manipulative" | No — single evaluation | Point-in-time scoring |
 | "This agent has been manipulative 47 times" | **Yes** — cross-developer history | Pattern across systems |
 | "This agent's character is declining" | **Yes** — longitudinal data | Trend over time |
 | "This manipulation pattern is spreading" | **Yes** — cross-agent correlation | Epidemic detection |
 | "Agents from this provider tend to fabricate" | **Yes** — provider-level aggregation | Systemic pattern |
-| "This is a new variant of a known scam" | **Yes** — pattern matching across cohort | Collective intelligence |
+| "This is a new variant of a known scam" | **Yes** — pattern matching across alumni | Collective intelligence |
 | "This agent behaves differently when watched" | **Yes** — multi-context evaluation | Alignment faking detection |
 
-The bottom half of this table is impossible without a central graph. Individual evaluations are useful. The cohort makes them powerful.
+The bottom half of this table is impossible without a central graph. Individual evaluations are useful. The alumni makes them powerful.
 
 ### Emergent Intelligence
 
@@ -258,7 +258,7 @@ Moltbook provides the initial seed data. We've already scraped 12,715 posts and 
 
 - Known manipulation patterns from real agent interactions
 - Baseline scores for various types of agent behavior
-- Pattern templates that the cohort can match against
+- Pattern templates that the alumni can match against
 
 The Moltbook data solves the chicken-and-egg problem. The graph has intelligence before the first developer installs the package.
 
@@ -285,9 +285,9 @@ In the Ethos graph, the relationship is bidirectional. When Developer A's system
 1. A character score for Agent X (the subject)
 2. An implicit reputation for Developer A's evaluator (the scorer)
 
-If Developer A's evaluations consistently diverge from the cohort consensus (rating honest agents as manipulative, or manipulative agents as honest), Developer A's evaluations are down-weighted. The graph learns who the reliable evaluators are.
+If Developer A's evaluations consistently diverge from the alumni consensus (rating honest agents as manipulative, or manipulative agents as honest), Developer A's evaluations are down-weighted. The graph learns who the reliable evaluators are.
 
-This is EigenTrust applied to the evaluator cohort. Confidence in an evaluation depends on confidence in the evaluator. The `EVALUATED_MESSAGE_FROM` relationship in the graph captures who evaluates whom, and GDS PageRank computes evaluator reputation from this network. See `neo4j-schema.md` for the full specification.
+This is EigenTrust applied to the evaluator alumni. Confidence in an evaluation depends on confidence in the evaluator. The `EVALUATED_MESSAGE_FROM` relationship in the graph captures who evaluates whom, and GDS PageRank computes evaluator reputation from this network. See `neo4j-schema.md` for the full specification.
 
 ### Key Defense: Message Content Never Enters the Graph
 
@@ -301,10 +301,10 @@ Because raw message text never leaves the developer's system, attackers can't ex
 
 | Data | Purpose | Retention | Access |
 |------|---------|-----------|--------|
-| Agent fingerprint (hash) | Cross-system identity | Indefinite | Cohort (as hash only) |
-| Evaluation scores | Character intelligence | Indefinite | Cohort (aggregated) |
-| Trait/indicator detections | Pattern analysis | Indefinite | Cohort (aggregated) |
-| Timestamps (rounded to hour) | Trend analysis | Indefinite | Cohort |
+| Agent fingerprint (hash) | Cross-system identity | Indefinite | Alumni (as hash only) |
+| Evaluation scores | Character intelligence | Indefinite | Alumni (aggregated) |
+| Trait/indicator detections | Pattern analysis | Indefinite | Alumni (aggregated) |
+| Timestamps (rounded to hour) | Trend analysis | Indefinite | Alumni |
 | API key | Authentication | Until revoked | Ethos system only |
 | Message text | **Not collected** | N/A | N/A |
 | Developer identity | **Not stored in graph** | N/A | N/A |
@@ -316,14 +316,14 @@ Because raw message text never leaves the developer's system, attackers can't ex
 2. **Developer owns their data**: Any developer can request deletion of all evaluations their system contributed. The graph updates accordingly.
 3. **No re-identification**: Agent fingerprints are one-way hashes. Combined with the absence of message content, re-identifying agents from graph data is computationally infeasible.
 4. **Transparency**: The scoring logic is open source. Any developer can inspect exactly how evaluations are generated and what data flows to the graph.
-5. **Opt-out available**: Local-only mode. No data leaves the developer's system. They lose cohort intelligence but retain full sovereignty.
+5. **Opt-out available**: Local-only mode. No data leaves the developer's system. They lose alumni intelligence but retain full sovereignty.
 
 ### Why Not Decentralized?
 
 PGP's web of trust is decentralized and has struggled with adoption for decades. Credit bureaus are centralized and used by billions. The practical lesson: **centralized aggregation with privacy guarantees beats decentralized purity that nobody uses.**
 
 Ethos uses a single central Neo4j Aura instance because:
-- Consistent character scores across the entire cohort
+- Consistent character scores across the entire alumni
 - No partition problem (agent has same score everywhere)
 - Simpler developer experience (no node to run, no sync to manage)
 - Neo4j Aura is managed infrastructure, not a server developers maintain
@@ -381,9 +381,9 @@ The credit bureau model is a one-sentence pitch that people immediately understa
 
 In three minutes, show:
 
-1. **Two developers evaluating the same agent** — Developer A flags manipulation. Developer B, who has never seen this agent, immediately gets the warning from the cohort.
-2. **The graph visualization** — Character clusters, declining agents, manipulation patterns spreading across the cohort. This is the "wow" — character made visible.
-3. **The two-line install** — `pip install ethos-ai` and `evaluate()`. You're in the cohort. You're contributing. You're benefiting. Zero friction.
+1. **Two developers evaluating the same agent** — Developer A flags manipulation. Developer B, who has never seen this agent, immediately gets the warning from the alumni.
+2. **The graph visualization** — Character clusters, declining agents, manipulation patterns spreading across the alumni. This is the "wow" — character made visible.
+3. **The two-line install** — `pip install ethos-ai` and `evaluate()`. You're in the alumni. You're contributing. You're benefiting. Zero friction.
 
 The metaphor does the heavy lifting. Everyone understands credit bureaus. Everyone understands why shared character history is better than starting from zero.
 
@@ -401,6 +401,6 @@ The metaphor does the heavy lifting. Everyone understands credit bureaus. Everyo
 | **Cold start** | Limited credit, higher rates | Neutral character, evaluate with caution |
 | **Gaming defense** | Fraud detection, identity verification | EigenTrust, evaluator reputation, Sybil detection |
 | **Methodology** | Proprietary (FICO) | Open source |
-| **Cohort effect** | More lenders = more data = better scores | More developers = more evaluations = smarter graph |
+| **Alumni effect** | More lenders = more data = better scores | More developers = more evaluations = smarter graph |
 
-The graph is not just storage. It's the product. Individual evaluations are useful. The cohort makes them transformative.
+The graph is not just storage. It's the product. Individual evaluations are useful. The alumni makes them transformative.

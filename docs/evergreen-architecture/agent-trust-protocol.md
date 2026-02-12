@@ -98,7 +98,7 @@ def before_high_stakes_action(agent_id, action):
 
 **When to use:** Before irreversible or high-consequence actions. The latency is a feature — you *want* to pause before sending money to a stranger.
 
-**What you get:** The agent's full character history across the entire Phronesis cohort. Not just your interactions — every developer's evaluations of this agent, aggregated and anonymized.
+**What you get:** The agent's full character history across the entire Phronesis alumni. Not just your interactions — every developer's evaluations of this agent, aggregated and anonymized.
 
 ### Pattern 3: Platform-Level (Agents Don't Know)
 
@@ -197,7 +197,7 @@ This isn't hypothetical. Agent-to-agent communication is happening now. Attacks 
 - **"Digital drugs"** — prompt injections designed to alter agent behavior, propagating through the agent network
 - **A major security breach** exposing 1.5M API tokens (covered by NBC, CNN, NPR, NY Times, Financial Times)
 
-Ethos catches the prompt injection through manipulation and deception detection at the message level. The Phronesis graph then records the attacker's declining character scores over time — so the *next* agent that encounters this attacker already has the cohort's warning.
+Ethos catches the prompt injection through manipulation and deception detection at the message level. The Phronesis graph then records the attacker's declining character scores over time — so the *next* agent that encounters this attacker already has the alumni's warning.
 
 See `core-idea.md` for the full Moltbook validation story.
 
@@ -234,7 +234,7 @@ Honest acknowledgment of a gap.
 
 A patient adversary could:
 1. Send thousands of benign messages, building a strong character transcript
-2. Establish "aligned" status across the Phronesis cohort
+2. Establish "aligned" status across the Phronesis alumni
 3. Execute a single, high-impact attack when trust is high
 
 ### How Phronesis Partially Addresses This
@@ -243,7 +243,7 @@ The graph detects some temporal patterns that correlate with sandbagging:
 
 - **Love bombing cycles** — bursts of excessively positive behavior followed by exploitation
 - **Sudden behavioral shifts** — stable character scores that change abruptly
-- **Inconsistency across contexts** — different behavior with different agents (detectable via cohort-wide evaluation)
+- **Inconsistency across contexts** — different behavior with different agents (detectable via alumni-wide evaluation)
 
 ### What Remains Open
 
@@ -255,7 +255,7 @@ Ethos reduces the attack surface but doesn't eliminate it. The mitigation is def
 3. **Developer policy** adds domain-specific safeguards (rate limits, human approval for high-stakes actions)
 4. **Human oversight** remains the final line of defense
 
-The honest answer: no system can make sandbagging impossible. Ethos makes it expensive, detectable in many cases, and visible to the entire cohort when discovered.
+The honest answer: no system can make sandbagging impossible. Ethos makes it expensive, detectable in many cases, and visible to the entire alumni when discovered.
 
 ---
 
@@ -279,6 +279,6 @@ The honest answer: no system can make sandbagging impossible. Ethos makes it exp
 ## Related Docs
 
 - **[Product Design](product-design.md)** — The three core functions (evaluate, reflect, insights) and trait-level customization
-- **[Character Bureau Architecture](character-bureau-architecture.md)** — The central graph model, cohort intelligence, and privacy architecture
+- **[Character Bureau Architecture](character-bureau-architecture.md)** — The central graph model, alumni intelligence, and privacy architecture
 - **[Core Idea](core-idea.md)** — Why Ethos exists, the Aristotelian foundation, and the Moltbook validation
 - **[System Architecture](system-architecture.md)** — Technical stack, data flow, and deployment

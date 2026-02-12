@@ -6,11 +6,17 @@ from ethos.shared.models import (
     GraphContext,
     Insight,
     InsightsResult,
+    InstinctResult,
+    IntuitionResult,
     KeywordScanResult,
+    PhronesisContext,
     Priority,
+    ReflectionInstinctResult,
+    ReflectionIntuitionResult,
     ReflectionResult,
     RoutingTier,
     TraitScore,
+    TraitTrend,
 )
 
 from ethos.shared.errors import (
@@ -27,12 +33,19 @@ __all__ = [
     "Priority",
     "DetectedIndicator",
     "TraitScore",
-    "GraphContext",
+    "InstinctResult",
+    "IntuitionResult",
+    "PhronesisContext",
     "EvaluationResult",
     "ReflectionResult",
+    "ReflectionInstinctResult",
+    "ReflectionIntuitionResult",
+    "TraitTrend",
     "Insight",
     "InsightsResult",
+    # Backward compat aliases
     "KeywordScanResult",
+    "GraphContext",
     # Errors
     "EthosError",
     "GraphUnavailableError",

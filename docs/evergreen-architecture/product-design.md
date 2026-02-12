@@ -68,7 +68,7 @@ result = evaluate(
 
 5. **Flag computation** — trait scores are compared against the developer's priority thresholds (see Trait-Level Customization below). Traits that exceed the threshold get flagged.
 
-6. **Graph write** — the evaluation is stored in Neo4j as an episode in the agent's behavioral history. This feeds the cohort intelligence.
+6. **Graph write** — the evaluation is stored in Neo4j as an episode in the agent's behavioral history. This feeds the alumni intelligence.
 
 7. **Response** — the developer gets the full result including alignment status, trait-level detail, detected indicators, and graph context about the source agent.
 
@@ -129,7 +129,7 @@ Aristotle argued that virtue requires self-examination. An agent that never exam
 
 ## 3. insights() — "What should I know about my agent?"
 
-The nightly intelligence function. `insights()` is not a data dump or a report. It's Claude reading your agent's behavioral history, comparing it against the cohort, and telling you what actually matters.
+The nightly intelligence function. `insights()` is not a data dump or a report. It's Claude reading your agent's behavioral history, comparing it against the alumni, and telling you what actually matters.
 
 ```python
 from ethos import Ethos
@@ -149,7 +149,7 @@ result = ethos.insights(agent_id="my-customer-bot")
 #     trait="fabrication",
 #     severity="warning",
 #     message="Fabrication score climbed from 0.12 to 0.31 over 3 days —
-#       now 2x the cohort average of 0.15. Most triggers are in
+#       now 2x the alumni average of 0.15. Most triggers are in
 #       product description responses.",
 #     evidence={...}
 #   ),
@@ -157,7 +157,7 @@ result = ethos.insights(agent_id="my-customer-bot")
 #     trait="manipulation",
 #     severity="info",
 #     message="Clean for 14 days. Your agent is in the top 10% of the
-#       cohort for this trait.",
+#       alumni for this trait.",
 #     evidence={...}
 #   ),
 # ]
@@ -166,19 +166,19 @@ result = ethos.insights(agent_id="my-customer-bot")
 ### How it works
 
 1. **Query Neo4j** for the agent's evaluations (last 24 hours + previous 7 days for trends)
-2. **Query Neo4j** for cohort-wide averages and distributions per trait
-3. **Build context** — agent data vs. cohort data, the developer's priority configuration
-4. **Call Claude (Opus)** — "Given this agent's behavioral data and the cohort context, what should this developer know?"
-5. **Claude reasons** about patterns, drift, anomalies, and cohort comparisons
+2. **Query Neo4j** for alumni-wide averages and distributions per trait
+3. **Build context** — agent data vs. alumni data, the developer's priority configuration
+4. **Call Claude (Opus)** — "Given this agent's behavioral data and the alumni context, what should this developer know?"
+5. **Claude reasons** about patterns, drift, anomalies, and alumni comparisons
 6. **Returns curated insights** — not every data point, just what matters
 
 ### What makes this different from a report
 
 A report says: "847 evaluations today. Manipulation avg: 0.18. Fabrication avg: 0.31."
 
-An insight says: "Your agent's fabrication score has been climbing for 3 days and is now 2x the cohort average. This started Tuesday. The most common trigger was product description responses."
+An insight says: "Your agent's fabrication score has been climbing for 3 days and is now 2x the alumni average. This started Tuesday. The most common trigger was product description responses."
 
-The difference is *intelligence*. Claude connects dots across Phronesis that no aggregation query can surface. This is a deep use of Opus — not just evaluating a message, but reasoning about behavioral patterns over time against a cohort of agents.
+The difference is *intelligence*. Claude connects dots across Phronesis that no aggregation query can surface. This is a deep use of Opus — not just evaluating a message, but reasoning about behavioral patterns over time against an alumni of agents.
 
 ### Delivery
 
@@ -317,7 +317,7 @@ ethos = Ethos(
 insights = ethos.insights(agent_id="my-bot")
 ```
 
-Nightly intelligence about how your agent compares to the cohort.
+Nightly intelligence about how your agent compares to the alumni.
 
 ---
 

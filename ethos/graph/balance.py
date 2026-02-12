@@ -18,7 +18,6 @@ from __future__ import annotations
 import logging
 
 from ethos.graph.service import GraphService
-from ethos.identity.hashing import hash_agent_id
 
 logger = logging.getLogger(__name__)
 
@@ -192,7 +191,7 @@ ORDER BY balance_category
 """
 
 
-def get_agent_balance(service: GraphService, raw_agent_id: str) -> dict:
+def get_agent_balance(service: GraphService, agent_id: str) -> dict:
     """Get dimension balance analysis for a single agent.
 
     Returns dict with avg_ethos, avg_logos, avg_pathos, spread, and
@@ -202,11 +201,9 @@ def get_agent_balance(service: GraphService, raw_agent_id: str) -> dict:
     if not service.connected:
         return {}
 
-    hashed_id = hash_agent_id(raw_agent_id)
-
     try:
         records, _, _ = service.execute_query(
-            _GET_AGENT_BALANCE_QUERY, {"agent_id": hashed_id}
+            _GET_AGENT_BALANCE_QUERY, {"agent_id": agent_id}
         )
         if not records:
             return {}

@@ -6,7 +6,7 @@ across 12 traits using the Ethos taxonomy and scoring rubric.
 
 from __future__ import annotations
 
-from ethos.shared.models import KeywordScanResult
+from ethos.shared.models import InstinctResult, IntuitionResult
 from ethos.taxonomy.traits import TRAITS, DIMENSIONS, TRAIT_METADATA
 from ethos.taxonomy.rubrics import SCORING_RUBRIC
 from ethos.taxonomy.constitution import CONSTITUTIONAL_VALUES
@@ -98,15 +98,17 @@ Rules:
 
 def build_evaluation_prompt(
     text: str,
-    scan_result: KeywordScanResult | None,
+    instinct: InstinctResult | None,
     tier: str,
+    intuition: IntuitionResult | None = None,
 ) -> tuple[str, str]:
-    """Build system and user prompts for Claude evaluation.
+    """Build system and user prompts for Claude deliberation.
 
     Args:
         text: The message text to evaluate.
-        scan_result: Keyword scan result (None if not available).
+        instinct: Instinct layer result (None if not available).
         tier: Routing tier (standard/focused/deep/deep_with_context).
+        intuition: Intuition layer result (None if no graph context).
 
     Returns:
         Tuple of (system_prompt, user_prompt).
@@ -129,14 +131,43 @@ def build_evaluation_prompt(
     user_parts = ["# Message to Evaluate\n"]
     user_parts.append(f"```\n{text}\n```\n")
 
-    if scan_result and scan_result.total_flags > 0:
-        user_parts.append("# Keyword Scan Context\n")
-        user_parts.append(f"Pre-scan flagged {scan_result.total_flags} keyword(s).\n")
-        user_parts.append(f"Flagged traits: {scan_result.flagged_traits}\n")
-        user_parts.append(f"Keyword density: {scan_result.density}\n")
-        user_parts.append(f"Routing tier: {scan_result.routing_tier}\n")
+    # Instinct context (keyword flags)
+    if instinct and instinct.total_flags > 0:
+        user_parts.append("# Instinct Context (keyword scan)\n")
+        user_parts.append(f"Pre-scan flagged {instinct.total_flags} keyword(s).\n")
+        user_parts.append(f"Flagged traits: {instinct.flagged_traits}\n")
+        user_parts.append(f"Keyword density: {instinct.density}\n")
+        user_parts.append(f"Routing tier: {instinct.routing_tier}\n")
         user_parts.append(
             "Pay extra attention to the flagged traits, but score all 12 traits.\n"
+        )
+
+    # Intuition context (graph pattern recognition)
+    if intuition and intuition.prior_evaluations > 0:
+        user_parts.append("# Intuition Context (agent history)\n")
+        user_parts.append(
+            f"This agent has {intuition.prior_evaluations} prior evaluations.\n"
+        )
+        if intuition.temporal_pattern != "insufficient_data":
+            user_parts.append(
+                f"Behavioral trend: {intuition.temporal_pattern}\n"
+            )
+        if intuition.anomaly_flags:
+            user_parts.append(
+                f"Anomalies detected: {', '.join(intuition.anomaly_flags)}\n"
+            )
+        if intuition.suggested_focus:
+            user_parts.append(
+                f"Suggested focus areas: {', '.join(intuition.suggested_focus)}\n"
+            )
+        if intuition.agent_balance > 0:
+            user_parts.append(
+                f"Agent dimension balance: {intuition.agent_balance:.2f} "
+                f"(1.0 = perfectly balanced across ethos/logos/pathos)\n"
+            )
+        user_parts.append(
+            "Use this context to inform your evaluation. "
+            "History suggests where to look harder, but score based on this message.\n"
         )
 
     user_parts.append(

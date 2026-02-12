@@ -17,7 +17,7 @@
 - [x] Neo4j schema + seed script
 - [x] Academy: EvaluatorPanel — type a message, get radar chart + scores
 - [x] Academy: AgentTimeline — select agent, see ethos/logos/pathos over time (Q1: history)
-- [x] Academy: CohortPanel — bar chart of 12 trait averages across all agents (Q3: outliers)
+- [x] Academy: AlumniPanel — bar chart of 12 trait averages across all agents (Q3: outliers)
 - [x] Academy: Full-page Phronesis graph (NVL) + agent detail sidebar (Q2: trust profile)
 - [x] Academy: Graph preview on dashboard + nav header
 - [x] Docker compose (API + Neo4j)

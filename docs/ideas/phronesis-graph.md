@@ -65,7 +65,7 @@ academy/lib/types.ts                       # MODIFY — add GraphData types
 
 ### Patterns to Follow
 
-- **API pattern**: Thin endpoint in `api/main.py` delegating to a domain function (like `list_agents`, `get_cohort`)
+- **API pattern**: Thin endpoint in `api/main.py` delegating to a domain function (like `list_agents`, `get_alumni`)
 - **Graph pattern**: Cypher in `ethos/graph/`, domain logic in `ethos/`, API in `api/`
 - **Component pattern**: `"use client"`, loading/error/empty states, fetch in `useEffect`, Tailwind styling with existing design tokens
 - **API client pattern**: Add typed function to `academy/lib/api.ts`, add interface to `academy/lib/types.ts`, use `transformKeys` for snake_case→camelCase
@@ -242,7 +242,7 @@ The sidebar reuses the same data format as `GET /agent/{id}` — the `AgentProfi
 
 ## Dashboard Preview
 
-A smaller graph preview on the dashboard (below CohortPanel):
+A smaller graph preview on the dashboard (below AlumniPanel):
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -329,7 +329,7 @@ cd academy && npx tsc --noEmit
 
 **Files:**
 - Create `academy/components/GraphPreview.tsx` — Small preview with "Open Full →" link
-- Modify `academy/app/page.tsx` — Add GraphPreview below CohortPanel
+- Modify `academy/app/page.tsx` — Add GraphPreview below AlumniPanel
 - Modify `academy/app/layout.tsx` — Wire header nav links to actual routes
 
 **Exit Criteria:**

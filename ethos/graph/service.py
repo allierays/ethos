@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+from contextlib import contextmanager
 
 from neo4j import GraphDatabase
 
@@ -64,3 +65,21 @@ class GraphService:
     @property
     def connected(self) -> bool:
         return self._driver is not None
+
+
+@contextmanager
+def graph_context():
+    """Context manager for GraphService — connects and auto-closes.
+
+    Usage:
+        with graph_context() as service:
+            if not service.connected:
+                return default
+            # use service...
+    """
+    service = GraphService()
+    service.connect()
+    try:
+        yield service
+    finally:
+        service.close()

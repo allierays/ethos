@@ -191,7 +191,7 @@ class TestGraphContext:
         assert result.graph_context is None
 
     @patch("ethos.evaluate.call_claude")
-    @patch("ethos.evaluate.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_with_source_attempts_graph_read(self, mock_graph_cls, mock_claude):
         """When source is provided, should attempt to read graph context."""
         mock_claude.return_value = _mock_claude_response()
@@ -203,7 +203,7 @@ class TestGraphContext:
         assert isinstance(result, EvaluationResult)
 
     @patch("ethos.evaluate.call_claude")
-    @patch("ethos.evaluate.GraphService")
+    @patch("ethos.graph.service.GraphService")
     def test_graph_down_returns_result_no_crash(self, mock_graph_cls, mock_claude):
         """Neo4j being down should not crash evaluate()."""
         mock_claude.return_value = _mock_claude_response()
