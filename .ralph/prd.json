@@ -1339,7 +1339,7 @@
       "type": "frontend",
       "title": "Add graph preview to dashboard and wire header navigation",
       "priority": 17,
-      "passes": false,
+      "passes": true,
       "batch": 8,
       "dependsOn": [
         "TASK-015",

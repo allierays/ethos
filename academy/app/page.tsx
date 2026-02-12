@@ -1,6 +1,7 @@
 import EvaluatorPanel from "../components/EvaluatorPanel";
 import AgentTimeline from "../components/AgentTimeline";
 import CohortPanel from "../components/CohortPanel";
+import GraphPreview from "../components/GraphPreview";
 
 export default function Home() {
   return (
@@ -23,6 +24,8 @@ export default function Home() {
       <AgentTimeline />
 
       <CohortPanel />
+
+      <GraphPreview />
     </div>
   );
 }

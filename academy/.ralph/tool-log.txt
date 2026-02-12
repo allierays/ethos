@@ -114,3 +114,5 @@ API_PID=$(l
 [20:25:39] BASH: echo "$(date): TASK-015 retry fix (attempt 6) - Started API (8917) and Next.js (
 [20:27:20] BASH: cd /Users/allierays/Sites/ethos/academy && npx tsc --noEmit 2>&1
 [20:27:31] BASH: npm run build 2>&1
+[20:29:19] BASH: cd /Users/allierays/Sites/ethos/academy && npx tsc --noEmit 2>&1
+[20:29:30] BASH: npm run build 2>&1
