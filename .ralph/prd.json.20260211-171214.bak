@@ -82,7 +82,7 @@
       "type": "backend",
       "title": "Create Claude client — sync Anthropic SDK wrapper",
       "priority": 2,
-      "passes": true,
+      "passes": false,
       "batch": 1,
       "dependsOn": [],
       "techStack": {
@@ -134,7 +134,7 @@
         "ethos/evaluation/prompts.py"
       ],
       "notes": "Mock the Anthropic client in tests. Test that correct model is selected per tier. Test that system_prompt goes in the system parameter and user_prompt in messages. Max tokens: 2048.",
-      "retryCount": 0
+      "retryCount": 1
     },
     {
       "id": "TASK-003",
