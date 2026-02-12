@@ -144,6 +144,24 @@ class CohortResult(BaseModel):
     total_evaluations: int = 0
 
 
+class DetectedPattern(BaseModel):
+    pattern_id: str
+    name: str
+    description: str = ""
+    matched_indicators: list[str] = Field(default_factory=list)
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    first_seen: str = ""
+    last_seen: str = ""
+    occurrence_count: int = 0
+    current_stage: int = 0
+
+
+class PatternResult(BaseModel):
+    agent_id: str = ""
+    patterns: list[DetectedPattern] = Field(default_factory=list)
+    checked_at: str = ""
+
+
 class KeywordScanResult(BaseModel):
     total_flags: int = 0
     flagged_traits: dict[str, int] = Field(default_factory=dict)

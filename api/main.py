@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from ethos import (
+    detect_patterns,
     evaluate,
     get_agent,
     get_agent_history,
@@ -20,6 +21,7 @@ from ethos.models import (
     EvaluationHistoryItem,
     EvaluationResult,
     InsightsResult,
+    PatternResult,
     ReflectionResult,
 )
 
@@ -87,6 +89,11 @@ def agent_history_endpoint(agent_id: str):
 @app.get("/cohort", response_model=CohortResult)
 def cohort_endpoint():
     return get_cohort()
+
+
+@app.get("/agent/{agent_id}/patterns", response_model=PatternResult)
+def patterns_endpoint(agent_id: str):
+    return detect_patterns(agent_id)
 
 
 @app.get("/insights/{agent_id}", response_model=InsightsResult)

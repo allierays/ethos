@@ -9,17 +9,21 @@ from ethos.models import (
     AgentProfile,
     AgentSummary,
     CohortResult,
+    DetectedPattern,
     EvaluationHistoryItem,
     EvaluationResult,
     InsightsResult,
+    PatternResult,
     ReflectionResult,
 )
+from ethos.patterns import detect_patterns
 from ethos.reflect import reflect
 
 __all__ = [
     "evaluate",
     "reflect",
     "insights",
+    "detect_patterns",
     "list_agents",
     "get_agent",
     "get_agent_history",
@@ -27,6 +31,8 @@ __all__ = [
     "EvaluationResult",
     "ReflectionResult",
     "InsightsResult",
+    "PatternResult",
+    "DetectedPattern",
     "AgentProfile",
     "AgentSummary",
     "CohortResult",

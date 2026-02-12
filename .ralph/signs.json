@@ -72,6 +72,14 @@
       "learnedFrom": "TASK-010",
       "autoPromoted": true,
       "createdAt": "2026-02-11T18:46:35-08:00"
+    },
+    {
+      "id": "sign-011",
+      "pattern": "PRD test steps that start a server on a specific port must first kill any existing process on that port (`lsof -ti:<port> | xargs kill -9 2>/dev/null;`) before launching, otherwise the test fails with \"address already in use\" even when the code is correct.",
+      "category": "testing",
+      "learnedFrom": "TASK-013",
+      "autoPromoted": true,
+      "createdAt": "2026-02-11T19:07:24-08:00"
     }
   ]
 }

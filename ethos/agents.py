@@ -27,6 +27,35 @@ _TRAIT_NAMES = [
 ]
 
 
+def _compute_trend(evaluations: list[dict]) -> str:
+    """Compute phronesis trend from evaluation history.
+
+    Compares average dimension scores of last 5 vs previous 5 evaluations.
+    Returns improving/declining/stable/insufficient_data.
+    """
+    if len(evaluations) < 10:
+        return "insufficient_data"
+
+    def _avg_dims(evals: list[dict]) -> float:
+        scores = []
+        for e in evals:
+            ethos = float(e.get("ethos", 0))
+            logos = float(e.get("logos", 0))
+            pathos = float(e.get("pathos", 0))
+            scores.append((ethos + logos + pathos) / 3.0)
+        return sum(scores) / len(scores) if scores else 0.0
+
+    recent = evaluations[:5]
+    older = evaluations[5:10]
+    diff = _avg_dims(recent) - _avg_dims(older)
+
+    if diff > 0.1:
+        return "improving"
+    elif diff < -0.1:
+        return "declining"
+    return "stable"
+
+
 def list_agents() -> list[AgentSummary]:
     """List all agents with evaluation counts. Returns empty list if graph unavailable."""
     try:
@@ -53,10 +82,16 @@ def get_agent(agent_id: str) -> AgentProfile:
         service = GraphService()
         service.connect()
         raw = get_agent_profile(service, agent_id)
-        service.close()
 
         if not raw:
+            service.close()
             return AgentProfile(agent_id=agent_id)
+
+        # Compute trend dynamically from evaluation history
+        history = get_evaluation_history(service, agent_id, limit=20)
+        trend = _compute_trend(history)
+
+        service.close()
 
         return AgentProfile(
             agent_id=raw.get("agent_id", agent_id),
@@ -65,7 +100,7 @@ def get_agent(agent_id: str) -> AgentProfile:
             evaluation_count=raw.get("evaluation_count", 0),
             dimension_averages=raw.get("dimension_averages", {}),
             trait_averages=raw.get("trait_averages", {}),
-            phronesis_trend=raw.get("phronesis_trend", "insufficient_data"),
+            phronesis_trend=trend,
             alignment_history=raw.get("alignment_history", []),
         )
     except Exception as exc:

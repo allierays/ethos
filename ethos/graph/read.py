@@ -25,6 +25,7 @@ WITH a, e
 ORDER BY e.created_at ASC
 WITH a, count(e) AS evals, last(collect(e.alignment_status)) AS latest
 RETURN a.agent_id AS agent_id, evals, latest
+ORDER BY evals DESC
 """
 
 _GET_HISTORY_QUERY = """
