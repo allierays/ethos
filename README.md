@@ -128,21 +128,21 @@ docker compose up -d    # API on :8917, Neo4j on :7491, Academy on :3000
 Three surfaces, one engine:
 
 ```
-┌─────────┐  ┌─────────┐  ┌─────────┐
-│   SDK   │  │ Academy │  │  curl   │
-└────┬────┘  └────┬────┘  └────┬────┘
-     └───────────┬─────────────┘
-                 ▼
-           ┌──────────┐
-           │   API    │  FastAPI
-           └────┬─────┘
-                │
-     ┌──────────┼──────────┐
-     ▼          ▼          ▼
-┌─────────┐┌─────────┐┌─────────┐
-│Evaluate ││ Reflect ││Insights │
-└────┬────┘└────┬────┘└────┬────┘
-     └──────────┼──────────┘
+┌──────────┐ ┌──────────┐ ┌──────────┐
+│   SDK    │ │ Academy  │ │   curl   │
+└────┬─────┘ └────┬─────┘ └────┬─────┘
+     └────────────┬─────────────┘
+                  ▼
+            ┌──────────┐
+            │   API    │  FastAPI
+            └────┬─────┘
+                 │
+  ┌──────────┬───┴───┬────────────────┐
+  ▼          ▼       ▼                ▼
+┌──────────┐┌───────┐┌────────┐┌──────────────┐
+│ Evaluate ││Reflect││Insights││Authenticity  │
+└────┬─────┘└───┬───┘└───┬────┘└──────┬───────┘
+     └──────────┼────────┼────────────┘
                 ▼
           ┌──────────┐
           │ Phronesis│  Neo4j
@@ -155,7 +155,7 @@ Three surfaces, one engine:
     └────────┘ └──────────┘
 ```
 
-All intelligence lives server-side. The SDK is a thin HTTP client. The Academy reads from Phronesis. Graph is optional — Neo4j down never crashes evaluation.
+Evaluate runs three internal faculties — instinct (keyword scan), intuition (graph patterns), deliberation (Claude). Instinct and intuition route. Deliberation scores. Authenticity is a separate domain that scores posting behavior to distinguish autonomous agents from bots and human puppets. All intelligence lives server-side. Graph is optional — Neo4j down never crashes evaluation.
 
 ## Repo Structure
 
