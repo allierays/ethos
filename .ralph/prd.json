@@ -2920,7 +2920,7 @@
       "type": "backend",
       "title": "Run full test suite and fix enrollment-related regressions",
       "priority": 13,
-      "passes": false,
+      "passes": true,
       "batch": 5,
       "dependsOn": [
         "TASK-032"
@@ -2965,7 +2965,8 @@
       "contextFiles": [
         "tests/"
       ],
-      "notes": "Run after TASK-032 wiring is done. The most likely breakages: (1) AgentProfile/AgentSummary tests that assert exact field sets, (2) graph read tests that check Cypher query output shapes, (3) MCP tool count assertions. Fix by adding default values for new fields, not by changing existing logic. Files modified field is empty because we don't know which test files need fixes until we run them."
+      "notes": "Run after TASK-032 wiring is done. The most likely breakages: (1) AgentProfile/AgentSummary tests that assert exact field sets, (2) graph read tests that check Cypher query output shapes, (3) MCP tool count assertions. Fix by adding default values for new fields, not by changing existing logic. Files modified field is empty because we don't know which test files need fixes until we run them.",
+      "retryCount": 0
     }
   ]
 }
