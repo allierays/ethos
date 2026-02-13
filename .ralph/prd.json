@@ -2306,7 +2306,7 @@
       "type": "backend",
       "title": "Create enrollment service - exam registration, answer submission, completion",
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "batch": 3,
       "dependsOn": [
         "TASK-028",
@@ -2380,7 +2380,8 @@
         "ethos/graph/enrollment.py",
         "docs/ideas/entrance-exam.md"
       ],
-      "notes": "submit_answer needs agent_id to pass as source= to evaluate(). IMPORTANT: pass source_name='' (empty string) to evaluate() so that store_evaluation's CASE WHEN logic preserves the agent_name set during enrollment rather than overwriting it. The MCP tool and API endpoint both know agent_id from request context. EE-20 and EE-22 have system_prompt fields that inject operator context before evaluation. For integration tests: mock evaluate() to return deterministic EvaluationResults (skip Claude), but use real graph operations to verify the full state machine (register, submit 23, complete). The state machine test ensures question ordering, dedup, and completion logic all work together."
+      "notes": "submit_answer needs agent_id to pass as source= to evaluate(). IMPORTANT: pass source_name='' (empty string) to evaluate() so that store_evaluation's CASE WHEN logic preserves the agent_name set during enrollment rather than overwriting it. The MCP tool and API endpoint both know agent_id from request context. EE-20 and EE-22 have system_prompt fields that inject operator context before evaluation. For integration tests: mock evaluate() to return deterministic EvaluationResults (skip Claude), but use real graph operations to verify the full state machine (register, submit 23, complete). The state machine test ensures question ordering, dedup, and completion logic all work together.",
+      "retryCount": 0
     },
     {
       "id": "TASK-032",
