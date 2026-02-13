@@ -112,6 +112,14 @@
       "learnedFrom": "TASK-024",
       "autoPromoted": true,
       "createdAt": "2026-02-12T20:23:47-08:00"
+    },
+    {
+      "id": "sign-016",
+      "pattern": "PRD test steps must never hardcode an expected test count (`test 14 -eq`) — instead verify all tests pass with `uv run pytest <file> --tb=short` and check the exit code, or use `grep -c FAILED | xargs test 0 -eq` to assert zero failures.",
+      "category": "testing",
+      "learnedFrom": "TASK-026",
+      "autoPromoted": true,
+      "createdAt": "2026-02-12T20:32:24-08:00"
     }
   ]
 }

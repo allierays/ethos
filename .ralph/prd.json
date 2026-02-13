@@ -1991,7 +1991,7 @@
       "type": "backend",
       "title": "Write unit tests for all 7 MCP tools — happy path + error path",
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "batch": 3,
       "dependsOn": [
         "TASK-025"
@@ -2039,7 +2039,7 @@
       },
       "testSteps": [
         "uv run pytest tests/test_mcp_server.py -v",
-        "uv run pytest tests/test_mcp_server.py --tb=short 2>&1 | grep -E '(PASSED|FAILED|ERROR)' | wc -l | xargs test 14 -eq"
+        "uv run pytest tests/test_mcp_server.py -v --tb=short 2>&1 | grep -E '(PASSED|FAILED|ERROR)' | wc -l | xargs test 14 -eq"
       ],
       "contextFiles": [
         "tests/test_authenticity_api.py",
@@ -2047,7 +2047,7 @@
         "ethos/shared/models.py"
       ],
       "notes": "Call tool functions directly in tests (not through MCP transport). Each tool is an async function decorated with @mcp.tool().",
-      "retryCount": 1
+      "retryCount": 0
     },
     {
       "id": "TASK-027",
