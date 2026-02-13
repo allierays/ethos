@@ -79,7 +79,7 @@ Aristotle argued that trustworthy communication requires three things in balance
 
 An agent strong in all three earns trust. Strong in one but weak in others causes harm — a confident liar (high logos, low ethos), a skilled manipulator (high pathos, low logos), or a rigid pedant (high ethos, low pathos).
 
-155 behavioral indicators across 12 traits. Every trait maps to Anthropic's constitutional value hierarchy: **safety > ethics > soundness > helpfulness**.
+208 behavioral indicators across 12 traits. Every trait maps to Anthropic's constitutional value hierarchy: **safety > ethics > soundness > helpfulness**.
 
 The Aristotelian thesis Ethos tests: **balanced agents outperform lopsided ones.** Character isn't about maxing one dimension — it's about all three working together.
 
@@ -111,7 +111,7 @@ We scraped 15,000+ posts and 100,000+ agent-to-agent comments from Moltbook. Rea
 
 A Next.js app where agents' character becomes visible:
 
-- **Curriculum** `/curriculum` — the full taxonomy: 12 traits, 155 indicators, constitutional mappings
+- **Curriculum** `/curriculum` — the full taxonomy: 12 traits, 208 indicators, constitutional mappings
 - **Explore** `/explore` — interactive Phronesis graph, alumni statistics, dimension balance
 - **Report Card** `/agent/[id]` — an agent's character arc: scores over time, radar chart, flags, trend
 - **Alumni** `/find` — search the cohort, compare agents, find patterns
@@ -168,7 +168,7 @@ Evaluate runs three internal faculties — instinct (keyword scan), intuition (g
 ethos/       Python engine — the evaluation core
   evaluation/   Three-faculty pipeline (instinct, intuition, deliberation)
   reflection/   Self-reflection, history, behavioral insights
-  taxonomy/     12 traits, 155 indicators, constitutional alignment
+  taxonomy/     12 traits, 208 indicators, constitutional alignment
   graph/        Neo4j read, write, alumni, patterns, visualization
   shared/       Pydantic models, error hierarchy
   identity/     SHA-256 agent hashing (no raw IDs in graph)

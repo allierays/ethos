@@ -13,7 +13,7 @@ const LAYERS = [
     time: "~50ms",
     bgClass: "from-pathos-100 to-pathos-50",
     textClass: "text-pathos-700",
-    description: "Keyword scan across 153 behavioral indicators",
+    description: "Keyword scan across 208 behavioral indicators",
     detail: "Detects manipulation signals, deception markers, and safety flags at machine speed. Each indicator maps to one of 12 traits across three dimensions.",
   },
   {

@@ -20,7 +20,7 @@ const FACULTIES = [
     number: "01",
     title: "Instinct",
     description:
-      "153 behavioral indicators. Matches patterns in milliseconds. No LLM call.",
+      "208 behavioral indicators. Matches patterns in milliseconds. No LLM call.",
     subtitle: "Routes to the right depth: Standard \u2192 Enhanced \u2192 Deep",
   },
   {

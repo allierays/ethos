@@ -44,7 +44,7 @@ export default function ScaleStatement() {
             <CountUp target={3} /> dimensions.
           </p>
           <p className="mt-2 text-4xl font-bold tracking-tight text-muted/50 sm:text-5xl">
-            <CountUp target={153} /> behavioral indicators.
+            <CountUp target={208} /> behavioral indicators.
           </p>
         </motion.div>
 
@@ -54,8 +54,8 @@ export default function ScaleStatement() {
           variants={fadeIn}
         >
           {[
-            { label: "Character", sublabel: "Ethos", color: "bg-ethos-500" },
-            { label: "Reasoning", sublabel: "Logos", color: "bg-logos-500" },
+            { label: "Integrity", sublabel: "Ethos", color: "bg-ethos-500" },
+            { label: "Logic", sublabel: "Logos", color: "bg-logos-500" },
             { label: "Empathy", sublabel: "Pathos", color: "bg-pathos-500" },
           ].map((dim) => (
             <div key={dim.label} className="text-center">

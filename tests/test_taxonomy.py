@@ -157,12 +157,12 @@ class TestTraitMetadata:
 
 
 class TestIndicators:
-    """INDICATORS list must have 144 entries with required fields."""
+    """INDICATORS list must have 194 entries with required fields."""
 
     def test_indicators_count(self):
         from ethos.taxonomy.indicators import INDICATORS
 
-        assert len(INDICATORS) == 155
+        assert len(INDICATORS) == 208
 
     def test_indicator_has_required_fields(self):
         from ethos.taxonomy.indicators import INDICATORS
@@ -357,7 +357,7 @@ class TestReExports:
 
         assert len(TRAITS) == 12
         assert len(DIMENSIONS) == 3
-        assert len(INDICATORS) == 155
+        assert len(INDICATORS) == 208
         assert len(TRAIT_METADATA) == 12
         assert len(CONSTITUTIONAL_VALUES) == 4
         assert len(HARD_CONSTRAINTS) == 7

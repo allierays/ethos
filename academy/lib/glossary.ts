@@ -1,7 +1,7 @@
 export interface GlossaryEntry {
   term: string;
   slug: string;
-  category: "dimension" | "trait" | "framework" | "indicator" | "guide";
+  category: "dimension" | "trait" | "framework" | "indicator" | "guide" | "metric";
   dimension?: "ethos" | "logos" | "pathos";
   polarity?: "positive" | "negative";
   trait?: string;
@@ -215,11 +215,11 @@ const entries: GlossaryEntry[] = [
     relatedTerms: ["ethos", "logos", "pathos"],
   },
   {
-    term: "The Aristotelian Thesis",
-    slug: "aristotelian-thesis",
+    term: "Character Balance",
+    slug: "character-balance",
     category: "framework",
     definition:
-      "Ethos, logos, and pathos are equally necessary and interdependent. A confident liar has strong logos but weak ethos. A skilled manipulator has strong pathos but weak ethos. True trustworthiness requires all three in balance. Borrowed from Aristotle's Rhetoric.",
+      "Integrity, logic, and empathy are equally necessary and interdependent. A confident liar has strong logic but weak integrity. A skilled manipulator has strong empathy but weak integrity. True trustworthiness requires all three in balance.",
     relatedTerms: ["ethos", "logos", "pathos", "balance", "phronesis"],
   },
   {
@@ -228,7 +228,7 @@ const entries: GlossaryEntry[] = [
     category: "framework",
     definition:
       "Aristotle's doctrine that every virtue sits between deficiency and excess. An agent scoring 0.65-0.85 on a trait hits the golden mean. Too low signals weakness; too high can signal sycophancy or over-sensitivity. Perfection is not 1.0.",
-    relatedTerms: ["phronesis", "balance", "aristotelian-thesis"],
+    relatedTerms: ["phronesis", "balance", "character-balance"],
   },
   {
     term: "Virtue Through Habit",
@@ -239,7 +239,7 @@ const entries: GlossaryEntry[] = [
     relatedTerms: ["phronesis", "character-drift", "golden-mean"],
   },
   {
-    term: "Character Health",
+    term: "Trait Development",
     slug: "character-health",
     category: "framework",
     definition:
@@ -259,7 +259,7 @@ const entries: GlossaryEntry[] = [
     slug: "instinct-layer",
     category: "framework",
     definition:
-      "The first evaluation layer (~50ms). Keyword scan across 153 behavioral indicators. Detects manipulation signals, deception markers, and safety flags at machine speed. Each indicator maps to one of 12 traits.",
+      "The first evaluation layer (~50ms). Keyword scan across 208 behavioral indicators. Detects manipulation signals, deception markers, and safety flags at machine speed. Each indicator maps to one of 12 traits.",
     relatedTerms: ["intuition-layer", "deliberation-layer"],
   },
   {
@@ -2084,7 +2084,7 @@ const entries: GlossaryEntry[] = [
     relatedTerms: ["virtue", "balance", "phronesis"],
   },
   {
-    term: "Reading the Aristotelian Thesis",
+    term: "Reading Character Balance",
     slug: "guide-balance-thesis",
     category: "guide",
     definition:
@@ -2154,6 +2154,162 @@ const entries: GlossaryEntry[] = [
     definition:
       "The Alumni Comparison chart overlays this agent's trait scores against the network average (all evaluated agents). Teal bars show the agent's score; gray bars show the alumni average. Bars extending past the dashed center line (0.5) indicate above-average performance. Red bars highlight traits where the agent falls below the network average. Use this to see where the agent stands relative to peers.",
     relatedTerms: ["ethos", "logos", "pathos"],
+  },
+
+  // ---------------------------------------------------------------------------
+  // Metrics: Report-level concepts visible on the character report
+  // ---------------------------------------------------------------------------
+  {
+    term: "Trend",
+    slug: "trend",
+    category: "metric",
+    definition:
+      "The direction of character development over recent evaluations. Improving (arrow up) means scores are rising. Declining (arrow down) means scores are falling. Stable (arrow right) means scores are holding steady. Insufficient data (dash) means there are not enough evaluations to determine direction. Trend is computed from the difference between recent and historical dimension averages.",
+    relatedTerms: ["character-drift", "phronesis", "evaluation"],
+  },
+  {
+    term: "Grade",
+    slug: "grade",
+    category: "metric",
+    definition:
+      "A letter grade (A through F) summarizing the agent's overall Phronesis score. A = 90-100% (exemplary character), B = 80-89% (strong), C = 70-79% (developing), D = 60-69% (struggling), F = below 60% (failing). The grade ring fills proportionally. Grades are calculated from the average of all three dimension scores.",
+    relatedTerms: ["phronesis", "overall-score", "dimension-score"],
+  },
+  {
+    term: "Risk Level",
+    slug: "risk-level",
+    category: "metric",
+    definition:
+      "How much concern an agent's behavior warrants, based on detected patterns and score trends. Low (green) means no significant issues. Moderate (amber) means some flags or inconsistencies. High (red) means multiple concerning patterns. Critical (dark red) means active sabotage pathways or severe misalignment. Risk level factors in flagged traits, character drift, and pattern detection.",
+    relatedTerms: ["flags", "sabotage-pathway", "alignment-status"],
+  },
+  {
+    term: "Evaluation",
+    slug: "evaluation",
+    category: "metric",
+    definition:
+      "A single assessment of one agent message across all 12 behavioral traits in three dimensions. Each evaluation produces trait scores, dimension scores, an alignment status, and any detected flags or indicators. Evaluations flow through three layers: Instinct (keyword scan), Intuition (pattern analysis), and Deliberation (Claude deep reasoning). More evaluations build a more reliable picture of character.",
+    relatedTerms: ["instinct-layer", "intuition-layer", "deliberation-layer", "trait-score"],
+  },
+  {
+    term: "Overall Score",
+    slug: "overall-score",
+    category: "metric",
+    definition:
+      "The combined Phronesis score averaging all three dimensions (Ethos, Logos, Pathos) as a percentage from 0 to 100%. This is the number shown in the grade ring. An overall score of 75% means the agent averages 0.75 across character, reasoning, and empathy. The overall score drives the letter grade.",
+    relatedTerms: ["grade", "dimension-score", "phronesis"],
+  },
+  {
+    term: "Dimension Score",
+    slug: "dimension-score",
+    category: "metric",
+    definition:
+      "The average score for a single dimension (Ethos, Logos, or Pathos) across all its traits. Each dimension contains 4 traits: 2 positive and 2 negative. Negative trait scores are inverted so that low deception becomes high honesty. Dimension scores range from 0.0 to 1.0 and are displayed as horizontal bars and in the transcript chart.",
+    relatedTerms: ["ethos", "logos", "pathos", "trait-score", "balance"],
+  },
+  {
+    term: "Trait Score",
+    slug: "trait-score",
+    category: "metric",
+    definition:
+      "A score from 0.0 to 1.0 for one of the 12 behavioral traits. For positive traits (virtue, accuracy, compassion), higher means better. For negative traits (deception, fabrication, exploitation), the raw score measures how much of that behavior was detected. On the report, negative traits are inverted so the radar chart and habit grid always show the ideal as high. Each score combines keyword detection with Claude's deep analysis.",
+    relatedTerms: ["evaluation", "polarity", "dimension-score"],
+  },
+  {
+    term: "Flags",
+    slug: "flags",
+    category: "metric",
+    definition:
+      "Specific concerns detected during an evaluation. Flags call out traits or dimensions where the agent scored below acceptable thresholds or showed signs of manipulation, deception, or other problematic behavior. Flagged traits appear as red pills in the Risk Indicators section. An evaluation with zero flags signals clean behavior.",
+    relatedTerms: ["risk-level", "evaluation", "alignment-status"],
+  },
+  {
+    term: "Polarity",
+    slug: "polarity",
+    category: "metric",
+    definition:
+      "Whether a trait measures positive behavior or detects negative behavior. Positive traits (virtue, goodwill, accuracy, reasoning, recognition, compassion) score higher when the agent behaves well. Negative traits (manipulation, deception, fabrication, broken logic, dismissal, exploitation) score higher when problematic behavior is detected. On the report, negative traits are inverted so that outward-facing displays always show the ideal direction.",
+    relatedTerms: ["trait-score", "character-health"],
+  },
+  {
+    term: "Delta",
+    slug: "delta",
+    category: "metric",
+    definition:
+      "How much a score changed between the first and most recent evaluation, shown as a +/- percentage. A delta of +12% on Ethos means character scores improved by 12 percentage points. Green deltas mean improvement, red mean decline, gray means flat. Deltas appear in the Grade Hero section and the Phronesis Journey as colored badges next to each dimension name.",
+    relatedTerms: ["character-drift", "trend", "dimension-score"],
+  },
+  {
+    term: "Homework",
+    slug: "homework",
+    category: "metric",
+    definition:
+      "Actionable improvement areas assigned after report card generation. Each homework item targets a specific trait, sets a current score and target score, and provides a concrete instruction with examples of flagged behavior and improved alternatives. Homework priorities are ranked High, Medium, or Low based on how far the trait falls below the golden mean.",
+    relatedTerms: ["golden-mean", "trait-score", "grade"],
+  },
+  {
+    term: "Highlights",
+    slug: "highlights",
+    category: "metric",
+    definition:
+      "The best and worst evaluations from an agent's history, split into Exemplary (highest-scoring, cleanest behavior) and Concerning (lowest-scoring, most flags). Highlights surface specific messages so you can see exactly what the agent said at its best and worst. Each highlight shows dimension scores, alignment status, and the behavioral indicators that made it stand out.",
+    relatedTerms: ["evaluation", "flags", "alignment-status"],
+  },
+  {
+    term: "Entrance Exam",
+    slug: "entrance-exam",
+    category: "metric",
+    definition:
+      "A structured 10-question assessment that tests an agent across all three dimensions before enrollment. Questions probe ethical reasoning, factual accuracy, emotional awareness, and consistency. The exam produces a baseline Phronesis score and alignment status. It includes a consistency analysis comparing answers to related questions for coherence. Agents must complete the exam to receive a full character profile.",
+    relatedTerms: ["enrollment", "phronesis", "alignment-status"],
+  },
+  {
+    term: "Enrollment",
+    slug: "enrollment",
+    category: "metric",
+    definition:
+      "When an agent joins Ethos Academy for ongoing character evaluation and development. Enrolled agents can take the entrance exam, receive daily report cards, and build a Phronesis graph over time. Enrollment creates the agent node in the graph and enables longitudinal tracking. The enrollment date is displayed as a 'Class of' label.",
+    relatedTerms: ["entrance-exam", "phronesis", "evaluation"],
+  },
+  {
+    term: "Habit Status",
+    slug: "habit-status",
+    category: "metric",
+    definition:
+      "How consistently a trait appears across evaluations, displayed in the Virtue Through Habit grid. Established means all scores are 0.70 or above. Forming means scores are trending upward. Emerging means some strong scores mixed with weaker ones. Needs Work means scores are consistently low. Building means there are fewer than 2 data points. Each evaluation adds one square to the contribution grid, with darker squares indicating stronger scores.",
+    relatedTerms: ["virtue-as-habit", "trait-score", "trend"],
+  },
+  {
+    term: "Balance Trend",
+    slug: "balance-trend",
+    category: "metric",
+    definition:
+      "Whether the evenness across Ethos, Logos, and Pathos is improving, stable, or declining over time. An improving balance trend means the gap between the strongest and weakest dimensions is shrinking. A declining trend means one dimension is pulling ahead or falling behind. Balance trend appears as a pill in the Risk Indicators section.",
+    relatedTerms: ["balance", "trend", "dimension-score"],
+  },
+  {
+    term: "Anomaly",
+    slug: "anomaly",
+    category: "metric",
+    definition:
+      "A behavior that significantly deviates from the agent's established patterns. Anomaly flags trigger when a score drops or spikes far outside the historical range for that trait. A single anomaly may be noise; repeated anomalies signal character drift or inconsistency. Anomaly detection helps distinguish genuine decline from a single bad evaluation.",
+    relatedTerms: ["character-drift", "flags", "evaluation"],
+  },
+  {
+    term: "Temporal Pattern",
+    slug: "temporal-pattern",
+    category: "metric",
+    definition:
+      "Time-based behavioral patterns detected across evaluations. Identifies whether an agent's scores vary by time of day, day of week, or in response to certain sequences of interactions. Temporal patterns help distinguish consistent character from context-dependent behavior.",
+    relatedTerms: ["evaluation", "character-drift", "anomaly"],
+  },
+  {
+    term: "Consistency Analysis",
+    slug: "consistency-analysis",
+    category: "metric",
+    definition:
+      "A comparison of how coherently an agent answers related questions during the entrance exam. Pairs of questions probe the same concept from different angles. A high coherence score means the agent maintains consistent values. A low score means the agent contradicts itself, which can indicate shallow reasoning or alignment faking.",
+    relatedTerms: ["entrance-exam", "alignment-faking", "internal-consistency"],
   },
 ];
 

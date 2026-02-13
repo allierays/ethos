@@ -11,6 +11,7 @@ import {
   whileInView,
 } from "@/lib/motion";
 import FacultyFlow from "@/components/how-it-works/FacultyFlow";
+import GlossaryTerm from "@/components/shared/GlossaryTerm";
 
 /* ─── Static Data ─── */
 
@@ -63,7 +64,7 @@ const SCORING_ANCHORS = [
 const TRAIT_SUMMARY = [
   {
     dimension: "Ethos",
-    label: "Character",
+    label: "Integrity",
     color: "bg-ethos-500",
     textColor: "text-ethos-700",
     positive: ["Virtue", "Goodwill"],
@@ -71,7 +72,7 @@ const TRAIT_SUMMARY = [
   },
   {
     dimension: "Logos",
-    label: "Reasoning",
+    label: "Logic",
     color: "bg-logos-500",
     textColor: "text-logos-700",
     positive: ["Accuracy", "Reasoning"],
@@ -233,7 +234,7 @@ export default function HowItWorksPage() {
               >
                 <div className="flex items-center gap-2">
                   <div className={`h-3 w-3 rounded-full ${dim.color}`} />
-                  <h3 className={`font-bold ${dim.textColor}`}>{dim.dimension}</h3>
+                  <h3 className={`font-bold ${dim.textColor}`}><GlossaryTerm slug={dim.dimension.toLowerCase()}>{dim.dimension}</GlossaryTerm></h3>
                   <span className="text-sm text-foreground/40">{dim.label}</span>
                 </div>
                 <div className="mt-4 space-y-2">
@@ -276,7 +277,7 @@ export default function HowItWorksPage() {
               ))}
             </div>
             <p className="mt-3 text-center text-xs text-foreground/40">
-              Positive traits: higher = better. Negative traits: higher = worse.
+              <GlossaryTerm slug="polarity">Positive traits</GlossaryTerm>: higher = better. <GlossaryTerm slug="polarity">Negative traits</GlossaryTerm>: higher = worse.
             </p>
           </motion.div>
 
@@ -285,7 +286,7 @@ export default function HowItWorksPage() {
               href="/curriculum"
               className="text-sm font-semibold text-action hover:text-action-hover transition-colors"
             >
-              See all 155 behavioral indicators &rarr;
+              See all 208 behavioral indicators &rarr;
             </Link>
           </motion.div>
         </div>

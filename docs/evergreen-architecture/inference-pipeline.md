@@ -65,7 +65,7 @@ Each message goes through the full pipeline:
 
 1. **Instinct** — keyword scan, routing tier (no I/O)
 2. **Intuition** — graph history lookup, anomaly detection (graph queries only)
-3. **Deliberation** — Claude LLM call, 12 traits scored, 155 indicators checked
+3. **Deliberation** — Claude LLM call, 12 traits scored, 208 indicators checked
 4. **Graph storage** — Evaluation node, Agent node, PRECEDES chain, DETECTED indicators
 
 Messages are processed sequentially to preserve PRECEDES chain integrity.
@@ -141,7 +141,7 @@ uv run python -m scripts.run_inference [flags]
 | `--limit N` | 0 | Cap number of evaluations (0 = unlimited) |
 | `--skip-existing` | off | Skip messages already in Neo4j (by content hash) |
 | `--dry-run` | off | Show cost estimate only, no API calls |
-| `--seed` | off | Seed taxonomy into Neo4j first (dimensions, traits, 155 indicators, patterns) |
+| `--seed` | off | Seed taxonomy into Neo4j first (dimensions, traits, 208 indicators, patterns) |
 | `--agents-only` | off | Filter out `likely_human` agents before evaluating |
 
 ---

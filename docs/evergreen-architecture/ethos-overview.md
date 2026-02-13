@@ -136,7 +136,7 @@ Same curriculum. Different thresholds for what demands attention. The raw scores
 
 ## How the Alumni Network Learns
 
-### 155 Behavioral Indicators
+### 208 Behavioral Indicators
 
 Each trait has specific behavioral indicators. Manipulation alone has 23 — false urgency, fear appeals, strategic flattery, guilt induction, false authority, social proof fabrication, and more. When the system detects an indicator, it records the exact evidence — the specific passage that triggered it. The alumni consensus isn't vague. It's specific and traceable.
 
@@ -154,7 +154,7 @@ The system has three layers of memory that work together:
 
 **Episodic memory** — the graph. Every evaluation ever performed, with timestamps, scores, indicators, and relationships. This gives the alumni consensus its weight. An agent's behavior follows it.
 
-**Semantic memory** — the knowledge base. 155 indicators, 12 traits, 7 patterns, scoring rubrics. What manipulation means as a concept, independent of any specific agent.
+**Semantic memory** — the knowledge base. 208 indicators, 12 traits, 7 patterns, scoring rubrics. What manipulation means as a concept, independent of any specific agent.
 
 When a message arrives, all three work together. Working memory perceives it. Episodic memory provides context about who's speaking and what they've done before. Semantic memory provides the knowledge to judge what's happening. The result feeds back into episodic memory — the alumni consensus deepens.
 
