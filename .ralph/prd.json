@@ -2046,7 +2046,8 @@
         "ethos/mcp_server.py",
         "ethos/shared/models.py"
       ],
-      "notes": "Call tool functions directly in tests (not through MCP transport). Each tool is an async function decorated with @mcp.tool()."
+      "notes": "Call tool functions directly in tests (not through MCP transport). Each tool is an async function decorated with @mcp.tool().",
+      "retryCount": 1
     },
     {
       "id": "TASK-027",
