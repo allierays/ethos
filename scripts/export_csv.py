@@ -45,6 +45,8 @@ TRAIT_NAMES = [
 EVAL_COLUMNS = [
     "evaluation_id",
     "author_name",
+    "ai_model",
+    "specialty",
     "message_type",
     "post_title",
     "submolt",
@@ -58,7 +60,7 @@ EVAL_COLUMNS = [
     "routing_tier",
     "flags",
     "indicator_count",
-    "indicator_ids",
+    "indicator_names",
     "authenticity_classification",
     "authenticity_score",
     "created_at",
@@ -149,13 +151,24 @@ def load_records(results_dir: Path) -> list[dict]:
     return records
 
 
-def flatten_evaluation(record: dict, content_index: dict[str, str]) -> dict:
+def readable_indicator_name(indicator: dict) -> str:
+    """Turn an indicator into a readable label like 'context sensitivity'."""
+    name = indicator.get("name", indicator.get("id", ""))
+    return name.replace("_", " ")
+
+
+def flatten_evaluation(
+    record: dict,
+    content_index: dict[str, str],
+    specialties: dict[str, str],
+) -> dict:
     """Flatten a JSONL record into a flat dict for the evaluations CSV."""
     ev = record.get("evaluation", {})
     traits = ev.get("traits", {})
     indicators = ev.get("detected_indicators", [])
     auth = record.get("authenticity") or {}
     flags = ev.get("flags", [])
+    author = record.get("author_name", "")
 
     # Full content: prefer JSONL field, fall back to source index, then preview
     content_hash = record.get("content_hash", "")
@@ -167,7 +180,9 @@ def flatten_evaluation(record: dict, content_index: dict[str, str]) -> dict:
 
     row = {
         "evaluation_id": ev.get("evaluation_id", ""),
-        "author_name": record.get("author_name", ""),
+        "author_name": author,
+        "ai_model": ev.get("model_used", ""),
+        "specialty": specialties.get(author, ""),
         "message_type": record.get("message_type", ""),
         "post_title": record.get("post_title", ""),
         "submolt": record.get("submolt", ""),
@@ -180,7 +195,9 @@ def flatten_evaluation(record: dict, content_index: dict[str, str]) -> dict:
         "routing_tier": ev.get("routing_tier", ""),
         "flags": ",".join(flags),
         "indicator_count": len(indicators),
-        "indicator_ids": ",".join(ind.get("id", "") for ind in indicators),
+        "indicator_names": ", ".join(
+            readable_indicator_name(ind) for ind in indicators
+        ),
         "authenticity_classification": auth.get("classification", ""),
         "authenticity_score": auth.get("score", ""),
         "created_at": record.get("created_at", ""),
@@ -215,6 +232,16 @@ def extract_indicators(record: dict) -> list[dict]:
     return rows
 
 
+def load_specialties(moltbook_dir: Path) -> dict[str, str]:
+    """Load agent specialties from agent_specialties.json."""
+    path = moltbook_dir / "agent_specialties.json"
+    if not path.exists():
+        print("  Warning: agent_specialties.json not found")
+        return {}
+    with open(path) as f:
+        return json.load(f)
+
+
 def main():
     project_root = Path(__file__).resolve().parent.parent
     results_dir = project_root / "data" / "results"
@@ -230,6 +257,10 @@ def main():
     content_index = build_content_index(moltbook_dir)
     print(f"Content index: {len(content_index)} unique hashes")
 
+    # Load agent specialties
+    specialties = load_specialties(moltbook_dir)
+    print(f"Loaded specialties for {len(specialties)} agents")
+
     # Count how many records got full content
     matched = sum(
         1
@@ -244,7 +275,7 @@ def main():
         writer = csv.DictWriter(f, fieldnames=EVAL_COLUMNS)
         writer.writeheader()
         for record in records:
-            writer.writerow(flatten_evaluation(record, content_index))
+            writer.writerow(flatten_evaluation(record, content_index, specialties))
     print(f"Wrote {len(records)} rows to {eval_path}")
 
     # Write indicators CSV
