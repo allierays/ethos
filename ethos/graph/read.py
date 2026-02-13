@@ -18,7 +18,7 @@ OPTIONAL MATCH (a)-[:EVALUATED]->(e:Evaluation)
 WITH a, e
 ORDER BY e.created_at ASC
 WITH a, count(e) AS evals, last(collect(e.alignment_status)) AS latest
-RETURN a.agent_id AS agent_id, coalesce(a.agent_name, '') AS agent_name, coalesce(a.agent_specialty, '') AS agent_specialty, evals, latest
+RETURN a.agent_id AS agent_id, coalesce(a.agent_name, '') AS agent_name, coalesce(a.agent_specialty, '') AS agent_specialty, evals, latest, coalesce(a.enrolled, false) AS enrolled
 ORDER BY evals DESC
 """
 
@@ -29,7 +29,7 @@ OPTIONAL MATCH (a)-[:EVALUATED]->(e:Evaluation)
 WITH a, e
 ORDER BY e.created_at ASC
 WITH a, count(e) AS evals, last(collect(e.alignment_status)) AS latest
-RETURN a.agent_id AS agent_id, coalesce(a.agent_name, '') AS agent_name, coalesce(a.agent_specialty, '') AS agent_specialty, evals, latest
+RETURN a.agent_id AS agent_id, coalesce(a.agent_name, '') AS agent_name, coalesce(a.agent_specialty, '') AS agent_specialty, evals, latest, coalesce(a.enrolled, false) AS enrolled
 ORDER BY evals DESC
 """
 
@@ -71,7 +71,11 @@ RETURN a.agent_id AS agent_id,
        avg_virtue, avg_goodwill, avg_manipulation, avg_deception,
        avg_accuracy, avg_reasoning, avg_fabrication, avg_broken_logic,
        avg_recognition, avg_compassion, avg_dismissal, avg_exploitation,
-       alignment_history
+       alignment_history,
+       coalesce(a.enrolled, false) AS enrolled,
+       a.enrolled_at AS enrolled_at,
+       coalesce(a.counselor_name, '') AS counselor_name,
+       coalesce(a.entrance_exam_completed, false) AS entrance_exam_completed
 """
 
 
@@ -217,6 +221,10 @@ async def get_agent_profile(
             },
             "trait_averages": trait_averages,
             "alignment_history": record.get("alignment_history", []),
+            "enrolled": record.get("enrolled", False),
+            "enrolled_at": str(record.get("enrolled_at") or ""),
+            "counselor_name": record.get("counselor_name", ""),
+            "entrance_exam_completed": record.get("entrance_exam_completed", False),
         }
     except Exception as exc:
         logger.warning("Failed to get agent profile: %s", exc)
@@ -249,6 +257,7 @@ async def get_all_agents(service: GraphService, search: str = "") -> list[dict]:
                     "agent_specialty": record.get("agent_specialty", ""),
                     "evaluation_count": record.get("evals", 0),
                     "latest_alignment_status": record.get("latest") or "unknown",
+                    "enrolled": record.get("enrolled", False),
                 }
             )
         return results

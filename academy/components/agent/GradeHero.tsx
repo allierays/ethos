@@ -5,6 +5,7 @@ import type { AgentProfile, DailyReportCard } from "../../lib/types";
 import { GRADE_COLORS, RISK_STYLES, TREND_DISPLAY } from "../../lib/colors";
 import { getAcademicLabel, formatClassOf } from "../../lib/academic";
 import { fadeUp, staggerContainer } from "../../lib/motion";
+import GlossaryTerm from "../shared/GlossaryTerm";
 
 interface GradeHeroProps {
   profile: AgentProfile;
@@ -92,7 +93,7 @@ export default function GradeHero({ profile, report }: GradeHeroProps) {
                     : "bg-slate-500/20 text-slate-400"
                 }`}
               >
-                {latestAlignment}
+                <GlossaryTerm slug="alignment-status">{latestAlignment}</GlossaryTerm>
               </span>
               {academicLabel && (
                 <span className="rounded-full bg-teal-500/20 px-2.5 py-0.5 text-[11px] font-semibold text-teal-300">
@@ -116,7 +117,7 @@ export default function GradeHero({ profile, report }: GradeHeroProps) {
           className="grid grid-cols-2 gap-3 sm:grid-cols-4"
           variants={fadeUp}
         >
-          <StatCard label="Phronesis" value={`${phronesisScore}%`} />
+          <StatCard label={<GlossaryTerm slug="phronesis">Phronesis</GlossaryTerm>} value={`${phronesisScore}%`} />
           <StatCard
             label="Trend"
             value={trend.arrow}
@@ -164,7 +165,7 @@ function StatCard({
   valueClass,
   isRiskBadge,
 }: {
-  label: string;
+  label: React.ReactNode;
   value: string;
   sublabel?: string;
   valueClass?: string;

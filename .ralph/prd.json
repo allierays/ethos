@@ -2388,7 +2388,7 @@
       "type": "backend",
       "title": "Wire enrollment into package exports and update graph reads",
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "batch": 4,
       "dependsOn": [
         "TASK-031"
@@ -2447,7 +2447,8 @@
         "ethos/agents.py",
         "ethos/graph/read.py"
       ],
-      "notes": "Simple wiring story. Add imports and re-exports. The Cypher changes happen in ethos/graph/read.py (which is the correct DDD location for graph queries). Map new fields in agents.py with safe .get() defaults."
+      "notes": "Simple wiring story. Add imports and re-exports. The Cypher changes happen in ethos/graph/read.py (which is the correct DDD location for graph queries). Map new fields in agents.py with safe .get() defaults.",
+      "retryCount": 0
     },
     {
       "id": "TASK-033",

@@ -17,6 +17,11 @@ import RiskIndicators from "../../../components/agent/RiskIndicators";
 import HomeworkSection from "../../../components/agent/HomeworkSection";
 import PatternsPanel from "../../../components/agent/PatternsPanel";
 import TranscriptChart from "../../../components/agent/TranscriptChart";
+import PhronesisJourney from "../../../components/agent/PhronesisJourney";
+import EvaluationDepth from "../../../components/agent/EvaluationDepth";
+import GoldenMean from "../../../components/agent/GoldenMean";
+import VirtueHabits from "../../../components/agent/VirtueHabits";
+import BalanceThesis from "../../../components/agent/BalanceThesis";
 import { fadeUp, staggerContainer } from "../../../lib/motion";
 
 /* ─── Timeline data point ─── */
@@ -39,6 +44,7 @@ export default function AgentReportCard() {
 
   const [profile, setProfile] = useState<AgentProfile | null>(null);
   const [timeline, setTimeline] = useState<TimelineDataPoint[]>([]);
+  const [history, setHistory] = useState<EvaluationHistoryItem[]>([]);
   const [report, setReport] = useState<DailyReportCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +72,7 @@ export default function AgentReportCard() {
         setProfile(profileResult.value);
 
         if (historyResult.status === "fulfilled") {
+          setHistory(historyResult.value);
           const points: TimelineDataPoint[] = historyResult.value
             .slice()
             .reverse()
@@ -155,7 +162,21 @@ export default function AgentReportCard() {
           <GradeHero profile={profile} report={report} />
         </motion.section>
 
-        {/* 2. Profile + Balance (moved to top) */}
+        {/* 2. Phronesis Journey (character arc narrative) */}
+        <motion.section variants={fadeUp}>
+          <PhronesisJourney
+            profile={profile}
+            report={report}
+            timeline={timeline}
+          />
+        </motion.section>
+
+        {/* 3. Three-Layer Evaluation (technical depth) */}
+        <motion.section variants={fadeUp}>
+          <EvaluationDepth />
+        </motion.section>
+
+        {/* 4. Character Health + Dimension Balance */}
         <motion.section variants={fadeUp}>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div className="rounded-xl glass-strong p-6">
@@ -185,7 +206,12 @@ export default function AgentReportCard() {
           </div>
         </motion.section>
 
-        {/* 3. Strengths + Avoid (standalone) */}
+        {/* 5. Golden Mean (Aristotelian trait spectrums) */}
+        <motion.section variants={fadeUp}>
+          <GoldenMean traitAverages={profile.traitAverages} />
+        </motion.section>
+
+        {/* 6. Strengths + Avoid */}
         {(strengths.length > 0 || avoidPatterns.length > 0) && (
           <motion.section variants={fadeUp}>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -247,33 +273,48 @@ export default function AgentReportCard() {
           </motion.section>
         )}
 
-        {/* 4. Risk Indicators */}
+        {/* 7. Risk Indicators */}
         {report && (
           <motion.section variants={fadeUp}>
             <RiskIndicators report={report} />
           </motion.section>
         )}
 
-        {/* 5. Homework (accordion) */}
+        {/* 8. Homework (accordion) */}
         {report?.homework && (
           <motion.section variants={fadeUp}>
             <HomeworkSection homework={report.homework} />
           </motion.section>
         )}
 
-        {/* 6. Sabotage Pathways */}
+        {/* 9. Virtue Through Habit (habit formation) */}
+        {history.length > 0 && (
+          <motion.section variants={fadeUp}>
+            <VirtueHabits history={history} />
+          </motion.section>
+        )}
+
+        {/* 10. Sabotage Pathways */}
         <motion.section variants={fadeUp}>
           <PatternsPanel agentId={agentId} />
         </motion.section>
 
-        {/* 7. Transcript */}
+        {/* 11. Transcript */}
         <motion.section variants={fadeUp}>
           <TranscriptChart timeline={timeline} />
         </motion.section>
 
-        {/* 8. Alumni Comparison */}
+        {/* 12. Alumni Comparison */}
         <motion.section variants={fadeUp}>
           <AlumniComparison agentTraitAverages={profile.traitAverages} />
+        </motion.section>
+
+        {/* 13. Balance Thesis (closing) */}
+        <motion.section variants={fadeUp}>
+          <BalanceThesis
+            dimensionAverages={profile.dimensionAverages}
+            evaluationCount={profile.evaluationCount}
+          />
         </motion.section>
       </motion.div>
     </main>

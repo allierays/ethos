@@ -38,6 +38,7 @@ async def list_agents(search: str = "") -> list[AgentSummary]:
                     agent_specialty=a.get("agent_specialty", ""),
                     evaluation_count=a.get("evaluation_count", 0),
                     latest_alignment_status=a.get("latest_alignment_status", "unknown"),
+                    enrolled=a.get("enrolled", False),
                 )
                 for a in raw
             ]
@@ -70,6 +71,10 @@ async def get_agent(agent_id: str) -> AgentProfile:
                 trait_averages=raw.get("trait_averages") or {},
                 phronesis_trend=trend,
                 alignment_history=raw.get("alignment_history") or [],
+                enrolled=raw.get("enrolled", False),
+                enrolled_at=str(raw.get("enrolled_at") or ""),
+                counselor_name=raw.get("counselor_name", ""),
+                entrance_exam_completed=raw.get("entrance_exam_completed", False),
             )
     except Exception as exc:
         logger.warning("Failed to get agent: %s", exc)

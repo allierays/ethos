@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from "recharts";
 import type { TraitScore } from "../../lib/types";
+import GlossaryTerm from "./GlossaryTerm";
 
 /* ─── Trait metadata ─── */
 
@@ -190,13 +191,13 @@ export default function RadarChart({ traits, alumni }: RadarChartProps) {
       {/* Legend */}
       <div className="mt-1 flex items-center justify-center gap-4 text-[10px] text-muted">
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-4 rounded" style={{ backgroundColor: "#3b8a98" }} /> Ethos
+          <span className="inline-block h-2 w-4 rounded" style={{ backgroundColor: "#3b8a98" }} /> <GlossaryTerm slug="ethos">Ethos</GlossaryTerm>
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-4 rounded" style={{ backgroundColor: "#2e4a6e" }} /> Logos
+          <span className="inline-block h-2 w-4 rounded" style={{ backgroundColor: "#2e4a6e" }} /> <GlossaryTerm slug="logos">Logos</GlossaryTerm>
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-4 rounded" style={{ backgroundColor: "#e0a53c" }} /> Pathos
+          <span className="inline-block h-2 w-4 rounded" style={{ backgroundColor: "#e0a53c" }} /> <GlossaryTerm slug="pathos">Pathos</GlossaryTerm>
         </span>
         {alumni && (
           <span className="flex items-center gap-1">

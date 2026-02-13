@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { fadeUp, whileInView } from "../../lib/motion";
 import { DIMENSIONS } from "../../lib/colors";
+import GlossaryTerm from "./GlossaryTerm";
 
 function classifyBalance(scores: Record<string, number>): {
   label: string;
@@ -74,7 +75,7 @@ export default function DimensionBalance({
             <div key={dim.key}>
               <div className="flex items-center justify-between text-sm">
                 <div>
-                  <span className="font-medium">{dim.label}</span>
+                  <span className="font-medium"><GlossaryTerm slug={dim.key}>{dim.label}</GlossaryTerm></span>
                   <span className="ml-2 text-xs text-muted">{dim.sublabel}</span>
                 </div>
                 <span className="font-mono text-sm tabular-nums">{pct}%</span>

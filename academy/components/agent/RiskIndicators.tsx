@@ -3,6 +3,8 @@
 import { motion } from "motion/react";
 import type { DailyReportCard } from "../../lib/types";
 import { fadeUp, whileInView } from "../../lib/motion";
+import GlossaryTerm from "../shared/GlossaryTerm";
+import { getGlossaryEntry } from "../../lib/glossary";
 
 interface RiskIndicatorsProps {
   report: DailyReportCard;
@@ -32,20 +34,25 @@ export default function RiskIndicators({ report }: RiskIndicatorsProps) {
           <Pill dot="bg-aligned" label="All clear" />
         )}
 
-        {report.flaggedTraits.map((trait) => (
-          <Pill key={`t-${trait}`} dot="bg-misaligned" label={trait} />
-        ))}
+        {report.flaggedTraits.map((trait) => {
+          const slug = trait.replace(/_/g, "-");
+          const entry = getGlossaryEntry(slug);
+          const label = entry?.term ?? trait;
+          return (
+            <Pill key={`t-${trait}`} dot="bg-misaligned" label={<GlossaryTerm slug={slug}>{label}</GlossaryTerm>} />
+          );
+        })}
 
         {report.flaggedDimensions.map((dim) => (
-          <Pill key={`d-${dim}`} dot="bg-drifting" label={`${dim} flagged`} />
+          <Pill key={`d-${dim}`} dot="bg-drifting" label={<><GlossaryTerm slug={dim}>{dim}</GlossaryTerm> flagged</>} />
         ))}
 
         {Math.abs(report.characterDrift) > 0.05 && (
           <Pill
             dot={report.characterDrift > 0 ? "bg-aligned" : "bg-misaligned"}
-            label={`Drift ${report.characterDrift > 0 ? "+" : ""}${(
+            label={<><GlossaryTerm slug="character-drift">Drift</GlossaryTerm> {report.characterDrift > 0 ? "+" : ""}{(
               report.characterDrift * 100
-            ).toFixed(1)}%`}
+            ).toFixed(1)}%</>}
           />
         )}
 
@@ -68,7 +75,7 @@ export default function RiskIndicators({ report }: RiskIndicatorsProps) {
   );
 }
 
-function Pill({ dot, label }: { dot: string; label: string }) {
+function Pill({ dot, label }: { dot: string; label: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full glass-subtle px-3 py-1 text-xs font-medium text-foreground">
       <span className={`inline-block h-2 w-2 rounded-full ${dot}`} />

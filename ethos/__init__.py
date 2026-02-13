@@ -5,6 +5,12 @@ __version__ = "0.1.0"
 from ethos.agents import get_agent, get_agent_history, get_alumni, list_agents
 from ethos.authenticity import analyze_authenticity
 from ethos.daily_reports import get_daily_report, get_daily_report_history
+from ethos.enrollment.service import (
+    complete_exam,
+    get_exam_report,
+    register_for_exam,
+    submit_answer,
+)
 from ethos.models import (
     AgentProfile,
     AgentSummary,
@@ -38,6 +44,10 @@ __all__ = [
     "get_alumni",
     "get_daily_report",
     "get_daily_report_history",
+    "register_for_exam",
+    "submit_answer",
+    "complete_exam",
+    "get_exam_report",
     "EvaluationResult",
     "InsightsResult",
     "DailyReportCard",

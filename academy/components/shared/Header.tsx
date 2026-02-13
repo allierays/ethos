@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useGlossary } from "../../lib/GlossaryContext";
 
 const NAV_ITEMS = [
   { label: "Explore", href: "/explore" },
@@ -12,6 +13,7 @@ const NAV_ITEMS = [
 
 export default function Header() {
   const pathname = usePathname();
+  const { openGlossary } = useGlossary();
 
   return (
     <header className="border-b border-border bg-white">
@@ -41,6 +43,16 @@ export default function Header() {
               </Link>
             );
           })}
+          <button
+            onClick={() => openGlossary()}
+            aria-label="Open glossary"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-[#1a2538] hover:bg-border/40 hover:text-foreground transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 2h4.5c.8 0 1.5.7 1.5 1.5V14l-1-1H2V2z" />
+              <path d="M14 2H9.5C8.7 2 8 2.7 8 3.5V14l1-1H14V2z" />
+            </svg>
+          </button>
         </nav>
       </div>
     </header>
