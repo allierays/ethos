@@ -273,7 +273,7 @@ def backfill_comments(api_key: str, posts: dict[str, dict]):
             continue
         to_process.append(p)
 
-    to_process.sort(key=lambda p: (p.get("comment_count") or 0), reverse=True)
+    to_process.sort(key=lambda p: p.get("comment_count") or 0, reverse=True)
     total = len(to_process)
     start_messages = count_messages(posts)
 
