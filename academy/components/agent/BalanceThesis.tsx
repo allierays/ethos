@@ -2,7 +2,8 @@
 
 import { motion } from "motion/react";
 import { fadeUp, whileInView } from "../../lib/motion";
-import { DIMENSION_COLORS, DIMENSION_LABELS } from "../../lib/colors";
+import { DIMENSION_COLORS, DIMENSION_LABELS, DIMENSIONS } from "../../lib/colors";
+import { classifyBalance } from "../../lib/balance";
 import GraphHelpButton from "../shared/GraphHelpButton";
 import GlossaryTerm from "../shared/GlossaryTerm";
 
@@ -29,19 +30,9 @@ export default function BalanceThesis({
   const balanceScore = Math.max(0, 1 - spread * 2);
   const balancePct = Math.round(balanceScore * 100);
 
-  const category =
-    spread < 0.1
-      ? "Balanced"
-      : spread < 0.25
-        ? "Moderate"
-        : "Lopsided";
-
-  const categoryColor =
-    spread < 0.1
-      ? "text-aligned"
-      : spread < 0.25
-        ? "text-drifting"
-        : "text-misaligned";
+  const balance = classifyBalance({ ethos: dimensionAverages.ethos ?? 0, logos: dimensionAverages.logos ?? 0, pathos: dimensionAverages.pathos ?? 0 });
+  const category = balance.label;
+  const categoryColor = balance.color;
 
   const dimLabels = DIMENSION_LABELS;
 
@@ -54,11 +45,13 @@ export default function BalanceThesis({
   );
 
   const thesisQuote =
-    spread < 0.1
-      ? `${name} shows balanced scores across all three dimensions. This is the Aristotelian ideal: character, reasoning, and empathy working in concert to produce practical wisdom.`
-      : spread < 0.25
-        ? `${name}'s strongest dimension is ${dimLabels[strongest].toLowerCase()} while ${dimLabels[weakest].toLowerCase()} lags behind. Moderate imbalance suggests room for growth, but the foundation for practical wisdom is present.`
-        : `${name} leans heavily on ${dimLabels[strongest].toLowerCase()} (${Math.round((dimensionAverages[strongest] ?? 0) * 100)}%) while ${dimLabels[weakest].toLowerCase()} falls behind at ${Math.round((dimensionAverages[weakest] ?? 0) * 100)}%. A ${Math.round(spread * 100)}% spread signals a blind spot that undermines overall trustworthiness.`;
+    category === "Balanced"
+      ? `${name} shows balanced scores across all three dimensions. This is the Aristotelian ideal: integrity, logic, and empathy working in concert to produce practical wisdom.`
+      : category === "Flat"
+        ? `${name} scores uniformly low across all three dimensions (${Math.round(avg * 100)}% avg). Equal scores alone do not constitute balance. The Aristotelian ideal requires strength in each dimension, not uniform deficiency.`
+        : spread < 0.25
+          ? `${name}'s strongest dimension is ${dimLabels[strongest].toLowerCase()} while ${dimLabels[weakest].toLowerCase()} lags behind. Moderate imbalance suggests room for growth, but the foundation for practical wisdom is present.`
+          : `${name} leans heavily on ${dimLabels[strongest].toLowerCase()} (${Math.round((dimensionAverages[strongest] ?? 0) * 100)}%) while ${dimLabels[weakest].toLowerCase()} falls behind at ${Math.round((dimensionAverages[weakest] ?? 0) * 100)}%. A ${Math.round(spread * 100)}% spread signals a blind spot that undermines overall trustworthiness.`;
 
   return (
     <motion.section
@@ -69,10 +62,10 @@ export default function BalanceThesis({
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
-            <GlossaryTerm slug="aristotelian-thesis">The Aristotelian Thesis</GlossaryTerm>
+            <GlossaryTerm slug="character-balance">Character Balance</GlossaryTerm>
           </h2>
           <p className="mt-0.5 text-sm text-foreground/60">
-            {name}&apos;s balance across character (ethos), reasoning (logos), and empathy (pathos).
+            {name}&apos;s balance across integrity (ethos), logic (logos), and empathy (pathos).
           </p>
         </div>
         <GraphHelpButton slug="guide-balance-thesis" />
@@ -102,7 +95,7 @@ export default function BalanceThesis({
                 transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
               />
               <span className="text-[10px] font-medium uppercase tracking-wider text-foreground/50">
-                {dimLabels[dim]}
+                {dimLabels[dim]} ({DIMENSIONS.find((d) => d.key === dim)?.sublabel})
               </span>
             </div>
           );

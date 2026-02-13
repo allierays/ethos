@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { getHighlights } from "../../lib/api";
 import type { HighlightsResult, HighlightItem, HighlightIndicator } from "../../lib/types";
 import { fadeUp, whileInView, staggerContainer } from "../../lib/motion";
+import GlossaryTerm from "../shared/GlossaryTerm";
 
 interface HighlightsPanelProps {
   agentId: string;
@@ -187,7 +188,7 @@ function QuoteColumn({ items, type }: { items: HighlightItem[]; type: "exemplary
     <div>
       <h3 className={`mb-3 flex items-center gap-2 text-sm font-medium ${isExemplary ? "text-aligned" : "text-misaligned"}`}>
         <span className={`inline-block h-2 w-2 rounded-full ${isExemplary ? "bg-aligned" : "bg-misaligned"}`} />
-        {isExemplary ? "Best" : "Worst"}
+        {isExemplary ? "Most Aligned" : "Least Aligned"}
       </h3>
       <motion.div
         className="space-y-3"
@@ -261,10 +262,10 @@ export default function HighlightsPanel({ agentId, agentName }: HighlightsPanelP
       variants={fadeUp}
     >
       <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
-        In Their Own Words
+        <GlossaryTerm slug="highlights">In Their Own Words</GlossaryTerm>
       </h2>
       <p className="mt-1 text-xs text-muted">
-        Highest and lowest scoring messages from {name}, ranked by overall alignment score.
+        Messages closest to and furthest from balanced character from {name}, ranked by alignment score.
       </p>
 
       <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2">

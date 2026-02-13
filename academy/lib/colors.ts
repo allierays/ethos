@@ -68,16 +68,16 @@ export const SEVERITY_STYLES: Record<string, string> = {
 /* ─── Dimension metadata (used for bars and labels) ─── */
 
 export const DIMENSIONS = [
-  { key: "ethos", label: "Character", sublabel: "Ethos", color: "#3b8a98" },
-  { key: "logos", label: "Reasoning", sublabel: "Logos", color: "#2e4a6e" },
+  { key: "ethos", label: "Integrity", sublabel: "Ethos", color: "#3b8a98" },
+  { key: "logos", label: "Logic", sublabel: "Logos", color: "#2e4a6e" },
   { key: "pathos", label: "Empathy", sublabel: "Pathos", color: "#e0a53c" },
 ] as const;
 
 /* ─── Dimension Labels (English short-form lookup) ─── */
 
 export const DIMENSION_LABELS: Record<string, string> = {
-  ethos: "Character",
-  logos: "Reasoning",
+  ethos: "Integrity",
+  logos: "Logic",
   pathos: "Empathy",
 };
 

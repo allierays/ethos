@@ -10,6 +10,7 @@ import {
   staggerContainerFast,
   whileInView,
 } from "../../lib/motion";
+import GlossaryTerm from "../../components/shared/GlossaryTerm";
 
 /* ─── Taxonomy Data ─── */
 
@@ -40,7 +41,7 @@ type Dimension = {
 const DIMENSIONS: Dimension[] = [
   {
     key: "ethos",
-    name: "Character",
+    name: "Integrity",
     greek: "\u1F26\u03B8\u03BF\u03C2",
     label: "Ethos",
     traits: [
@@ -155,7 +156,7 @@ const DIMENSIONS: Dimension[] = [
   },
   {
     key: "logos",
-    name: "Reasoning",
+    name: "Logic",
     greek: "\u03BB\u03CC\u03B3\u03BF\u03C2",
     label: "Logos",
     traits: [
@@ -454,7 +455,7 @@ function DimensionOverviewCard({ dim }: { dim: Dimension }) {
         <div className="flex items-center gap-3">
           <span className={`h-3 w-3 rounded-full ${colors.dot}`} />
           <h3 className="text-xl font-bold text-foreground">
-            {dim.label}{" "}
+            <GlossaryTerm slug={dim.key}>{dim.label}</GlossaryTerm>{" "}
             <span className="font-normal text-muted">({dim.greek})</span>
           </h3>
         </div>
@@ -516,7 +517,7 @@ function TraitCard({ trait }: { trait: Trait }) {
       >
         <div className="flex items-start justify-between gap-3">
           <h3 className="text-lg font-semibold text-foreground">
-            {trait.name}
+            <GlossaryTerm slug={trait.key.replace(/_/g, "-")}>{trait.name}</GlossaryTerm>
           </h3>
           <div className="flex flex-shrink-0 items-center gap-2">
             <span

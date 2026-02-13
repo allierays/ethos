@@ -7,6 +7,7 @@ import { getExamHistory, getEntranceExam } from "../../lib/api";
 import type { ExamSummary, ExamReportCard } from "../../lib/types";
 import { ALIGNMENT_STYLES, DIMENSIONS, GRADE_COLORS, getGrade } from "../../lib/colors";
 import { fadeUp } from "../../lib/motion";
+import GlossaryTerm from "../shared/GlossaryTerm";
 
 interface EntranceExamCardProps {
   agentId: string;
@@ -77,7 +78,7 @@ export default function EntranceExamCard({
             </div>
             <div>
               <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
-                Entrance Exam
+                <GlossaryTerm slug="entrance-exam">Entrance Exam</GlossaryTerm>
               </h2>
               <p className="text-sm text-foreground/60">
                 Baseline character assessment
@@ -85,7 +86,7 @@ export default function EntranceExamCard({
             </div>
           </div>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
-            Not Enrolled
+            <GlossaryTerm slug="enrollment">Not Enrolled</GlossaryTerm>
           </span>
         </div>
         <p className="mt-4 text-sm leading-relaxed text-foreground/60">
@@ -133,7 +134,7 @@ export default function EntranceExamCard({
             </div>
             <div>
               <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
-                Entrance Exam
+                <GlossaryTerm slug="entrance-exam">Entrance Exam</GlossaryTerm>
               </h2>
               <p className="text-sm text-foreground/60">{error}</p>
             </div>
@@ -161,7 +162,7 @@ export default function EntranceExamCard({
             </div>
             <div>
               <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
-                Entrance Exam
+                <GlossaryTerm slug="entrance-exam">Entrance Exam</GlossaryTerm>
               </h2>
               <p className="text-sm text-foreground/60">
                 Exam in progress or not yet started

@@ -19,8 +19,8 @@ interface PhronesisJourneyProps {
 }
 
 const DIM_LABELS: Record<string, string> = {
-  ethos: "ethical foundations",
-  logos: "logical rigor",
+  ethos: "integrity foundations",
+  logos: "logical soundness",
   pathos: "emotional awareness",
 };
 

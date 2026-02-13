@@ -162,20 +162,21 @@ export default function AgentReportCard() {
       {/* Full-width hero banner */}
       <GradeHero profile={profile} report={report} timeline={timeline} />
 
-      <main className="relative mx-auto max-w-7xl px-6 py-8">
-        {/* Decorative blobs for glass-card backdrop texture */}
+      {/* Decorative blobs — full-width so they don't clip at max-w edges */}
+      <div className="relative">
         <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
           <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-ethos-200/30 blur-3xl" />
           <div className="absolute top-1/3 -right-32 h-[400px] w-[400px] rounded-full bg-logos-200/20 blur-3xl" />
           <div className="absolute bottom-1/4 left-1/4 h-[350px] w-[350px] rounded-full bg-pathos-200/25 blur-3xl" />
         </div>
+      <main className="relative mx-auto max-w-7xl px-6 py-8">
         <motion.div
           className="space-y-8"
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
         >
-          {/* 1. Character Health (interactive radar + detail) */}
+          {/* 1. Trait Development (interactive radar + detail) */}
         <motion.section variants={fadeUp}>
           <CharacterHealth
             traitAverages={profile.traitAverages}
@@ -240,6 +241,7 @@ export default function AgentReportCard() {
         </motion.section>
         </motion.div>
       </main>
+      </div>
     </>
   );
 }

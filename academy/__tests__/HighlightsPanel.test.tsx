@@ -89,8 +89,8 @@ describe("HighlightsPanel", () => {
     vi.mocked(getHighlights).mockResolvedValue(MOCK_HIGHLIGHTS);
     render(<HighlightsPanel agentId="test-agent" />);
     await waitFor(() => {
-      expect(screen.getByText("Best")).toBeInTheDocument();
-      expect(screen.getByText("Worst")).toBeInTheDocument();
+      expect(screen.getByText("Most Aligned")).toBeInTheDocument();
+      expect(screen.getByText("Least Aligned")).toBeInTheDocument();
     });
   });
 

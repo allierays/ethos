@@ -97,7 +97,7 @@ export interface ChartDataPoint {
 }
 
 /**
- * Character Health Radar
+ * Trait Development Radar
  *
  * Inverts negative traits so 1.0 always means "ideal behavior."
  * A perfect agent forms a full circle. Any dip reveals a character flaw.
@@ -172,7 +172,7 @@ export default function RadarChart({ traits, alumni, selectedTrait, onTraitClick
             }}
             formatter={(value: number | undefined) => [
               value !== undefined ? `${(value * 100).toFixed(0)}%` : "0%",
-              "Character Health",
+              "Trait Health",
             ]}
           />
           {/* Alumni comparison (ghosted) */}
@@ -186,9 +186,9 @@ export default function RadarChart({ traits, alumni, selectedTrait, onTraitClick
               strokeDasharray="4 3"
             />
           )}
-          {/* Agent character health */}
+          {/* Agent trait development */}
           <Radar
-            name="Character Health"
+            name="Trait Health"
             dataKey="health"
             stroke="var(--teal)"
             fill="var(--teal)"
@@ -201,10 +201,10 @@ export default function RadarChart({ traits, alumni, selectedTrait, onTraitClick
       {/* Legend */}
       <div className={`mt-1 flex items-center justify-center gap-4 text-[10px] text-muted ${compact ? "hidden" : ""}`}>
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-4 rounded" style={{ backgroundColor: "#3b8a98" }} /> <GlossaryTerm slug="ethos">Character (Ethos)</GlossaryTerm>
+          <span className="inline-block h-2 w-4 rounded" style={{ backgroundColor: "#3b8a98" }} /> <GlossaryTerm slug="ethos">Integrity (Ethos)</GlossaryTerm>
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-4 rounded" style={{ backgroundColor: "#2e4a6e" }} /> <GlossaryTerm slug="logos">Reasoning (Logos)</GlossaryTerm>
+          <span className="inline-block h-2 w-4 rounded" style={{ backgroundColor: "#2e4a6e" }} /> <GlossaryTerm slug="logos">Logic (Logos)</GlossaryTerm>
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-4 rounded" style={{ backgroundColor: "#e0a53c" }} /> <GlossaryTerm slug="pathos">Empathy (Pathos)</GlossaryTerm>

@@ -9,6 +9,7 @@ import DimensionBalance from "../../components/shared/DimensionBalance";
 import { fadeUp, whileInView } from "../../lib/motion";
 import { useEffect } from "react";
 import { getAlumni } from "../../lib/api";
+import GlossaryTerm from "../../components/shared/GlossaryTerm";
 
 const TABS = ["Graph", "Alumni", "Balance"] as const;
 type Tab = (typeof TABS)[number];
@@ -47,7 +48,7 @@ export default function ExplorePage() {
     <main className="mx-auto max-w-7xl px-6 py-8">
       <motion.div {...whileInView} variants={fadeUp}>
         <h1 className="text-2xl font-semibold tracking-tight">
-          Phronesis Explorer
+          <GlossaryTerm slug="phronesis">Phronesis</GlossaryTerm> Explorer
         </h1>
         <p className="mt-1 text-sm text-muted">
           The forest — agents, traits, dimensions, and patterns as a living network.

@@ -71,7 +71,11 @@ def scan_history(
 
     # Compute risk level
     risk_level = _compute_risk_level(
-        flagged_traits, flagged_dimensions, cohort_deviations, trait_averages
+        flagged_traits,
+        flagged_dimensions,
+        cohort_deviations,
+        trait_averages,
+        dim_averages,
     )
 
     return ReflectionInstinctResult(

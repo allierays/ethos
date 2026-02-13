@@ -9,6 +9,7 @@ import { getAgents } from "../../lib/api";
 import type { AgentSummary, TraitScore } from "../../lib/types";
 import { ALIGNMENT_STYLES } from "../../lib/colors";
 import RadarChart, { NEGATIVE_TRAITS, DIMENSION_MAP } from "../../components/shared/RadarChart";
+import GlossaryTerm from "../../components/shared/GlossaryTerm";
 
 function getInitials(name: string): string {
   return name
@@ -408,7 +409,7 @@ function AgentCard({ agent, globalFlip }: { agent: AgentSummary; globalFlip: boo
                     agent.latestAlignmentStatus === "misaligned" ? "bg-misaligned" : "bg-muted"
                   }`} />
                 </span>
-                {alignmentLabel}
+                <GlossaryTerm slug="alignment-status">{alignmentLabel}</GlossaryTerm>
               </span>
             </div>
 
@@ -416,7 +417,7 @@ function AgentCard({ agent, globalFlip }: { agent: AgentSummary; globalFlip: boo
             <div className="mt-4 flex items-center gap-3">
               <div className="rounded-xl bg-background/80 px-3.5 py-2 backdrop-blur-sm">
                 <p className="text-sm font-bold text-foreground">{agent.evaluationCount}</p>
-                <p className="text-[10px] text-muted">Evaluations</p>
+                <p className="text-[10px] text-muted"><GlossaryTerm slug="evaluation">Evaluations</GlossaryTerm></p>
               </div>
               {agent.agentSpecialty && (
                 <div className="rounded-xl bg-background/80 px-3.5 py-2 backdrop-blur-sm">

@@ -20,6 +20,7 @@ const DIM_COLORS: Record<string, string> = {
 
 const CATEGORIES: { key: GlossaryEntry["category"]; label: string }[] = [
   { key: "guide", label: "How to Read" },
+  { key: "metric", label: "Report Metrics" },
   { key: "dimension", label: "Dimensions" },
   { key: "trait", label: "Traits" },
   { key: "framework", label: "Framework" },

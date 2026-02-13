@@ -39,7 +39,7 @@ const LAYERS = [
 const METHODOLOGY = [
   {
     heading: "12 Traits, 3 Dimensions",
-    slug: "aristotelian-thesis",
+    slug: "character-balance",
     body: "Every message is scored across 12 behavioral traits organized into three Aristotelian dimensions: ethos (character), logos (reasoning), and pathos (empathy). Each dimension contains 2 positive traits and 2 negative traits.",
   },
   {

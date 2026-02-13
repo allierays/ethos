@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import type { Homework, HomeworkFocus } from "../../lib/types";
 import { PRIORITY_STYLES } from "../../lib/colors";
 import { fadeUp, staggerContainer, whileInView } from "../../lib/motion";
+import GlossaryTerm from "../shared/GlossaryTerm";
 
 interface HomeworkSectionProps {
   homework: Homework;
@@ -24,7 +25,7 @@ export default function HomeworkSection({ homework, agentName }: HomeworkSection
       variants={fadeUp}
     >
       <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
-        {name}&apos;s Homework
+        {name}&apos;s <GlossaryTerm slug="homework">Homework</GlossaryTerm>
       </h2>
       <p className="mt-0.5 text-sm text-foreground/60">
         Targeted growth areas and reflection based on {name}&apos;s evaluation history.

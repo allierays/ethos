@@ -38,8 +38,8 @@ export default function TranscriptChart({ timeline, agentName }: TranscriptChart
   const first = timeline[0];
   const last = timeline[timeline.length - 1];
   const dims = [
-    { key: "ethos" as const, label: "Character (Ethos)", color: DIMENSION_COLORS.ethos },
-    { key: "logos" as const, label: "Reasoning (Logos)", color: DIMENSION_COLORS.logos },
+    { key: "ethos" as const, label: "Integrity (Ethos)", color: DIMENSION_COLORS.ethos },
+    { key: "logos" as const, label: "Logic (Logos)", color: DIMENSION_COLORS.logos },
     { key: "pathos" as const, label: "Empathy (Pathos)", color: DIMENSION_COLORS.pathos },
   ];
 
@@ -170,7 +170,7 @@ export default function TranscriptChart({ timeline, agentName }: TranscriptChart
                   fill="url(#gradEthos)"
                   dot={{ r: 4, fill: DIMENSION_COLORS.ethos, stroke: "#fff", strokeWidth: 2 }}
                   activeDot={{ r: 6, stroke: DIMENSION_COLORS.ethos, strokeWidth: 2, fill: "#fff" }}
-                  name="Character (Ethos)"
+                  name="Integrity (Ethos)"
                 />
                 <Area
                   type="monotone"
@@ -180,7 +180,7 @@ export default function TranscriptChart({ timeline, agentName }: TranscriptChart
                   fill="url(#gradLogos)"
                   dot={{ r: 4, fill: DIMENSION_COLORS.logos, stroke: "#fff", strokeWidth: 2 }}
                   activeDot={{ r: 6, stroke: DIMENSION_COLORS.logos, strokeWidth: 2, fill: "#fff" }}
-                  name="Reasoning (Logos)"
+                  name="Logic (Logos)"
                 />
                 <Area
                   type="monotone"
@@ -262,10 +262,10 @@ export default function TranscriptChart({ timeline, agentName }: TranscriptChart
 
       <div className="mt-3 flex items-center gap-4 text-xs text-muted">
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-4 rounded bg-teal" /> Character (Ethos)
+          <span className="inline-block h-2 w-4 rounded bg-teal" /> Integrity (Ethos)
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-4 rounded bg-blue" /> Reasoning (Logos)
+          <span className="inline-block h-2 w-4 rounded bg-blue" /> Logic (Logos)
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-4 rounded bg-warm" /> Empathy (Pathos)

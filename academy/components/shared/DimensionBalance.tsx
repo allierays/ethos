@@ -2,38 +2,30 @@
 
 import { motion } from "motion/react";
 import { fadeUp, whileInView } from "../../lib/motion";
-import { DIMENSIONS } from "../../lib/colors";
+import { DIMENSIONS, DIMENSION_LABELS } from "../../lib/colors";
+import { classifyBalance } from "../../lib/balance";
 import GlossaryTerm from "./GlossaryTerm";
 import GraphHelpButton from "./GraphHelpButton";
 
-function classifyBalance(scores: Record<string, number>): {
-  label: string;
-  description: string;
-} {
+function balanceDescription(scores: Record<string, number>, label: string): string {
   const e = scores.ethos ?? 0;
   const l = scores.logos ?? 0;
   const p = scores.pathos ?? 0;
   const avg = (e + l + p) / 3;
-  const maxDev = Math.max(Math.abs(e - avg), Math.abs(l - avg), Math.abs(p - avg));
 
-  if (maxDev < 0.1) {
-    if (avg >= 0.7) return { label: "Balanced", description: "All dimensions within 10% — healthy equilibrium." };
-    if (avg >= 0.5) return { label: "Flat", description: "All three dimensions score below 70%." };
-    return { label: "Flat", description: "All three dimensions score below 50%." };
+  if (label === "Balanced") return "All dimensions within 10% at strong levels. Healthy equilibrium.";
+  if (label === "Flat") {
+    if (avg >= 0.5) return "All three dimensions score below 70%.";
+    return "All three dimensions score below 50%.";
   }
 
-  const dominant = e >= l && e >= p ? "Character" : l >= e && l >= p ? "Reasoning" : "Empathy";
-  const weakest = e <= l && e <= p ? "character" : l <= e && l <= p ? "reasoning" : "empathy";
-  if (avg < 0.5) {
-    return {
-      label: `${dominant}-heavy`,
-      description: `Skewed toward ${dominant.toLowerCase()}, with critical weakness in ${weakest}.`,
-    };
-  }
-  return {
-    label: `${dominant}-heavy`,
-    description: `Skewed toward ${dominant.toLowerCase()}. May lack in other dimensions.`,
-  };
+  const dims = { ethos: e, logos: l, pathos: p };
+  const sorted = Object.entries(dims).sort(([, a], [, b]) => b - a);
+  const dominant = DIMENSION_LABELS[sorted[0][0]] ?? sorted[0][0];
+  const weakest = (DIMENSION_LABELS[sorted[sorted.length - 1][0]] ?? sorted[sorted.length - 1][0]).toLowerCase();
+
+  if (avg < 0.5) return `Skewed toward ${dominant.toLowerCase()}, with critical weakness in ${weakest}.`;
+  return `Skewed toward ${dominant.toLowerCase()}. May lack in other dimensions.`;
 }
 
 interface DimensionBalanceProps {
@@ -45,7 +37,8 @@ export default function DimensionBalance({
   dimensionAverages,
   title = "Dimension Balance",
 }: DimensionBalanceProps) {
-  const classification = classifyBalance(dimensionAverages);
+  const balance = classifyBalance({ ethos: dimensionAverages.ethos ?? 0, logos: dimensionAverages.logos ?? 0, pathos: dimensionAverages.pathos ?? 0 });
+  const classification = { label: balance.label, description: balanceDescription(dimensionAverages, balance.label) };
 
   return (
     <motion.div
@@ -59,7 +52,7 @@ export default function DimensionBalance({
             {title}
           </h3>
           <p className="mt-0.5 text-sm text-foreground/60">
-            Character, reasoning, and empathy relative to each other.
+            Integrity, logic, and empathy relative to each other.
           </p>
         </div>
         <div className="flex items-center gap-2">

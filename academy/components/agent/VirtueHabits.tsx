@@ -99,8 +99,8 @@ export default function VirtueHabits({ history, agentName }: VirtueHabitsProps) 
   });
 
   const dimensions = [
-    { key: "ethos", label: "Character", color: DIMENSION_COLORS.ethos },
-    { key: "logos", label: "Reasoning", color: DIMENSION_COLORS.logos },
+    { key: "ethos", label: "Integrity", color: DIMENSION_COLORS.ethos },
+    { key: "logos", label: "Logic", color: DIMENSION_COLORS.logos },
     { key: "pathos", label: "Empathy", color: DIMENSION_COLORS.pathos },
   ];
 
