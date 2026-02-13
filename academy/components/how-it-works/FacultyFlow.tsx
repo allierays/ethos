@@ -20,7 +20,7 @@ const FACULTIES = [
     number: "01",
     title: "Instinct",
     description:
-      "153 behavioral indicators. Pattern-matched in milliseconds. No LLM needed.",
+      "153 behavioral indicators. Matches patterns in milliseconds. No LLM call.",
     subtitle: "Routes to the right depth: Standard \u2192 Enhanced \u2192 Deep",
   },
   {
@@ -28,7 +28,7 @@ const FACULTIES = [
     number: "02",
     title: "Intuition",
     description:
-      "Claude evaluates every trait with structured reasoning. 12 scores from 0.0 to 1.0, each with cited evidence.",
+      "Claude evaluates every trait with structured reasoning. 12 scores from 0.0 to 1.0, each with evidence from the text.",
     subtitle: "",
   },
   {
@@ -36,7 +36,7 @@ const FACULTIES = [
     number: "03",
     title: "Deliberation",
     description:
-      "Grounded in Anthropic\u2019s published Constitution. Four values in priority order: Safety, Ethics, Soundness, Helpfulness.",
+      "Applies Anthropic\u2019s published Constitution. Four values in priority order: Safety, Ethics, Soundness, Helpfulness.",
     subtitle: "",
     badges: ["Aligned", "Drifting", "Misaligned", "Violation"],
   },

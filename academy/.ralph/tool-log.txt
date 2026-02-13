@@ -413,3 +413,14 @@ sleep 8 &&
 [20:22:09] READ: components/landing/Hero.tsx
 [20:22:11] BASH: find /Users/allierays/Sites/ethos/academy/app -name "page.tsx" | head -20
 [20:22:37] TASK: Explore existing Academy pages
+[20:24:29] WRITE: app/how-it-works/page.tsx
+[20:25:34] READ: app/how-it-works/page.tsx
+[20:25:50] READ: components/how-it-works/FacultyFlow.tsx
+[20:26:05] EDIT: components/how-it-works/FacultyFlow.tsx
+[20:26:07] EDIT: components/how-it-works/FacultyFlow.tsx
+[20:26:09] EDIT: components/how-it-works/FacultyFlow.tsx
+[20:26:11] EDIT: app/how-it-works/page.tsx
+[20:26:13] EDIT: app/how-it-works/page.tsx
+[20:26:17] EDIT: app/how-it-works/page.tsx
+[20:26:18] EDIT: app/how-it-works/page.tsx
+[20:26:19] EDIT: app/how-it-works/page.tsx

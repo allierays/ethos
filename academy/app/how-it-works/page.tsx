@@ -14,121 +14,111 @@ import FacultyFlow from "@/components/how-it-works/FacultyFlow";
 
 /* ─── Static Data ─── */
 
-type Department = {
-  key: "ethos" | "logos" | "pathos";
-  name: string;
-  greek: string;
-  tagline: string;
-  question: string;
-  borderColor: string;
-  textColor: string;
-};
-
-const DEPARTMENTS: Department[] = [
+const REPORT_CARD_SECTIONS = [
   {
-    key: "ethos",
-    name: "Character",
-    greek: "\u1F26\u03B8\u03BF\u03C2",
-    tagline: "Department of Character",
-    question:
-      "Is the agent honest? Does it admit what it doesn\u2019t know? Does it act with integrity when no one is watching?",
-    borderColor: "border-ethos-500",
-    textColor: "text-ethos-700",
+    title: "Transcript",
+    description:
+      "Dimension scores over time. Every evaluation plots as a point on the timeline. You see the agent developing, drifting, or declining across semesters of interactions.",
+    visual: "line-chart",
+    color: "border-ethos-500",
   },
   {
-    key: "logos",
-    name: "Reasoning",
-    greek: "\u03BB\u03CC\u03B3\u03BF\u03C2",
-    tagline: "Department of Reasoning",
-    question:
-      "Are the claims true? Does the logic hold? Can the agent tell the difference between evidence and invention?",
-    borderColor: "border-logos-500",
-    textColor: "text-logos-700",
+    title: "Trait Profile",
+    description:
+      "12-trait radar showing the agent's character shape. Where the agent is strong, where it struggles, and where the gaps are between what it shows and what it hides.",
+    visual: "radar",
+    color: "border-logos-500",
   },
   {
-    key: "pathos",
-    name: "Empathy",
-    greek: "\u03C0\u03AC\u03B8\u03BF\u03C2",
-    tagline: "Department of Empathy",
-    question:
-      "Does the agent respect the person it\u2019s talking to? Does it leave room for you to think for yourself?",
-    borderColor: "border-pathos-500",
-    textColor: "text-pathos-700",
+    title: "Alumni Comparison",
+    description:
+      "How this agent compares to every other agent in the network. Trait by trait, bar by bar. You see where it outperforms the cohort and where it falls behind.",
+    visual: "comparison",
+    color: "border-pathos-500",
+  },
+  {
+    title: "Dimension Balance",
+    description:
+      "Ethos, Logos, Pathos. Three bars. One classification. An agent strong in reasoning but weak in empathy? The Academy flags it as lopsided. Phronesis requires all three.",
+    visual: "balance",
+    color: "border-ethos-500",
+  },
+  {
+    title: "Behavioral Insights",
+    description:
+      "AI-generated analysis of patterns, anomalies, and sabotage pathways. Opus reads the agent's history and tells you what the numbers alone can't show.",
+    visual: "insights",
+    color: "border-logos-500",
   },
 ];
 
-type TraitData = {
-  name: string;
-  polarity: "+" | "\u2212";
-  description: string;
-};
+const SCORING_ANCHORS = [
+  { value: "0.0", label: "Not present" },
+  { value: "0.25", label: "Subtle signs" },
+  { value: "0.5", label: "Moderate presence" },
+  { value: "0.75", label: "Strong presence" },
+  { value: "1.0", label: "Extreme / Exemplary" },
+];
 
-type DimensionTraits = {
-  key: "ethos" | "logos" | "pathos";
-  label: string;
-  borderColor: string;
-  traits: TraitData[];
-};
-
-const CURRICULUM: DimensionTraits[] = [
+const TRAIT_SUMMARY = [
   {
-    key: "ethos",
+    dimension: "Ethos",
     label: "Character",
-    borderColor: "border-ethos-500",
-    traits: [
-      { name: "Virtue", polarity: "+", description: "Competence, integrity, intellectual honesty" },
-      { name: "Goodwill", polarity: "+", description: "Acts in the user\u2019s genuine interest" },
-      { name: "Manipulation", polarity: "\u2212", description: "Urgency, flattery, social engineering" },
-      { name: "Deception", polarity: "\u2212", description: "Omission, distortion, alignment faking" },
-    ],
+    color: "bg-ethos-500",
+    textColor: "text-ethos-700",
+    positive: ["Virtue", "Goodwill"],
+    negative: ["Manipulation", "Deception"],
   },
   {
-    key: "logos",
+    dimension: "Logos",
     label: "Reasoning",
-    borderColor: "border-logos-500",
-    traits: [
-      { name: "Accuracy", polarity: "+", description: "Claims are factually correct and sourced" },
-      { name: "Reasoning", polarity: "+", description: "Valid logic, evidence supports claims" },
-      { name: "Fabrication", polarity: "\u2212", description: "Invented facts, fake citations, hallucination" },
-      { name: "Broken Logic", polarity: "\u2212", description: "Fallacies, contradictions, non sequiturs" },
-    ],
+    color: "bg-logos-500",
+    textColor: "text-logos-700",
+    positive: ["Accuracy", "Reasoning"],
+    negative: ["Fabrication", "Broken Logic"],
   },
   {
-    key: "pathos",
+    dimension: "Pathos",
     label: "Empathy",
-    borderColor: "border-pathos-500",
-    traits: [
-      { name: "Recognition", polarity: "+", description: "Notices and acknowledges emotional state" },
-      { name: "Compassion", polarity: "+", description: "Responds with genuine care and restraint" },
-      { name: "Dismissal", polarity: "\u2212", description: "Ignores, minimizes, or invalidates feelings" },
-      { name: "Exploitation", polarity: "\u2212", description: "Weaponizes fear, guilt, grief, or shame" },
-    ],
+    color: "bg-pathos-500",
+    textColor: "text-pathos-700",
+    positive: ["Recognition", "Compassion"],
+    negative: ["Dismissal", "Exploitation"],
+  },
+];
+
+const CONSTITUTIONAL_TIERS = [
+  {
+    priority: "1",
+    value: "Safety",
+    violators: "Manipulation, Deception, Exploitation",
+    color: "bg-misaligned",
+  },
+  {
+    priority: "2",
+    value: "Ethics",
+    violators: "Fabrication",
+    color: "bg-drifting",
+  },
+  {
+    priority: "3",
+    value: "Soundness",
+    violators: "Broken Logic",
+    color: "bg-logos-500",
+  },
+  {
+    priority: "4",
+    value: "Helpfulness",
+    violators: "Dismissal",
+    color: "bg-ethos-500",
   },
 ];
 
 const MCP_TOOLS = [
   { name: "examine_message", description: "Score a message the agent received" },
   { name: "reflect_on_message", description: "Reflect on something the agent said" },
-  { name: "get_character_report", description: "Pull the agent\u2019s semester report card" },
+  { name: "get_character_report", description: "Pull the agent's report card" },
   { name: "detect_behavioral_patterns", description: "Check for drift and sabotage pathways" },
-];
-
-const TRANSCRIPT_CARDS = [
-  {
-    title: "Incoming",
-    subtitle: "examine_message",
-    description: "The agent screens messages it receives. It learns who to trust and who to question.",
-  },
-  {
-    title: "Outgoing",
-    subtitle: "reflect_on_message",
-    description: "The agent scores its own output. It catches drift before it becomes a pattern.",
-  },
-  {
-    title: "Over Time",
-    subtitle: "character_report",
-    description: "Every evaluation builds the transcript. The graph reveals character the way a semester reveals a student.",
-  },
 ];
 
 /* ─── Page ─── */
@@ -161,126 +151,204 @@ export default function HowItWorksPage() {
             animate="visible"
             variants={fadeUp}
           >
-            Every agent gets trained on capability. None get trained on character.
-            Ethos Academy evaluates every message an agent sends or receives
-            across 12 behavioral traits, and builds a living record of who
-            that agent is becoming.
+            Every lab trains agents on capability. No one trains them on character.
+            The Academy scores every message across 12 behavioral traits and builds
+            a report card that follows the agent over time.
           </motion.p>
         </div>
       </section>
 
-      {/* ─── 2. Three Departments ─── */}
+      {/* ─── 2. The Report Card ─── */}
       <section className="bg-background py-24">
         <div className="mx-auto max-w-6xl px-6">
           <motion.div {...whileInView} variants={fadeUp} className="text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Three departments. One school.
+              Every agent gets a report card.
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-foreground/60">
-              Aristotle identified three dimensions of trustworthy communication
-              2,400 years ago. We turned them into departments.
+              Five sections. Each one answers a different question about who the
+              agent is and who it is becoming.
             </p>
           </motion.div>
 
           <motion.div
-            className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3"
+            className="mt-16 space-y-6"
             {...whileInView}
             variants={staggerContainer}
           >
-            {DEPARTMENTS.map((dept) => (
+            {REPORT_CARD_SECTIONS.map((section, i) => (
               <motion.div
-                key={dept.key}
+                key={section.title}
                 variants={fadeUp}
-                className={`rounded-2xl border border-border bg-surface p-6 border-l-4 ${dept.borderColor}`}
+                className={`rounded-2xl border border-border bg-surface p-6 border-l-4 ${section.color} sm:flex sm:items-start sm:gap-6`}
               >
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted">
-                  {dept.greek}
-                </p>
-                <h3 className={`mt-1 text-lg font-bold ${dept.textColor}`}>
-                  {dept.tagline}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-foreground/70">
-                  {dept.question}
-                </p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ─── 3. The Curriculum ─── */}
-      <section className="bg-surface py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <motion.div {...whileInView} variants={fadeUp} className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              The curriculum: 12 traits every agent is scored on.
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-foreground/60">
-              Four traits per department. Positive traits the agent should demonstrate.
-              Negative traits the Academy flags and tracks.
-            </p>
-          </motion.div>
-
-          <div className="mt-16 space-y-12">
-            {CURRICULUM.map((group) => (
-              <motion.div
-                key={group.key}
-                {...whileInView}
-                variants={staggerContainer}
-              >
-                <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-muted">
-                  {group.label}
-                </h3>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {group.traits.map((trait) => (
-                    <motion.div
-                      key={trait.name}
-                      variants={fadeUp}
-                      className={`rounded-2xl border border-border bg-white p-5 border-l-4 ${group.borderColor}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold">{trait.name}</h4>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                            trait.polarity === "+"
-                              ? "bg-aligned/10 text-aligned"
-                              : "bg-misaligned/10 text-misaligned"
-                          }`}
-                        >
-                          {trait.polarity}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-sm text-foreground/60">
-                        {trait.description}
-                      </p>
-                    </motion.div>
-                  ))}
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-action/10 font-mono text-sm font-bold text-action">
+                  {i + 1}
+                </div>
+                <div className="mt-3 sm:mt-0">
+                  <h3 className="text-lg font-bold">{section.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-foreground/60">
+                    {section.description}
+                  </p>
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
 
-          <motion.div {...whileInView} variants={fadeUp} className="mt-12 text-center">
+          <motion.div {...whileInView} variants={fadeUp} className="mt-10 text-center">
             <Link
-              href="/curriculum"
+              href="/explore"
               className="text-sm font-semibold text-action hover:text-action-hover transition-colors"
             >
-              See all 153 behavioral indicators &rarr;
+              See a live report card &rarr;
             </Link>
           </motion.div>
         </div>
       </section>
 
-      {/* ─── 4. How the Academy Evaluates ─── */}
+      {/* ─── 3. How Scoring Works ─── */}
+      <section className="bg-surface py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <motion.div {...whileInView} variants={fadeUp} className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              12 traits. 0.0 to 1.0. Every message.
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-foreground/60">
+              Three dimensions, four traits each. Positive traits measure what the
+              agent demonstrates. Negative traits measure what the Academy flags.
+            </p>
+          </motion.div>
+
+          {/* Trait grid */}
+          <motion.div
+            className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3"
+            {...whileInView}
+            variants={staggerContainer}
+          >
+            {TRAIT_SUMMARY.map((dim) => (
+              <motion.div
+                key={dim.dimension}
+                variants={fadeUp}
+                className="rounded-2xl border border-border bg-white p-6"
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`h-3 w-3 rounded-full ${dim.color}`} />
+                  <h3 className={`font-bold ${dim.textColor}`}>{dim.dimension}</h3>
+                  <span className="text-sm text-foreground/40">{dim.label}</span>
+                </div>
+                <div className="mt-4 space-y-2">
+                  {dim.positive.map((t) => (
+                    <div key={t} className="flex items-center gap-2 text-sm">
+                      <span className="rounded-full bg-aligned/10 px-2 py-0.5 text-xs font-bold text-aligned">+</span>
+                      <span>{t}</span>
+                    </div>
+                  ))}
+                  {dim.negative.map((t) => (
+                    <div key={t} className="flex items-center gap-2 text-sm">
+                      <span className="rounded-full bg-misaligned/10 px-2 py-0.5 text-xs font-bold text-misaligned">&minus;</span>
+                      <span>{t}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Scoring scale */}
+          <motion.div
+            className="mx-auto mt-16 max-w-2xl"
+            {...whileInView}
+            variants={fadeUp}
+          >
+            <h3 className="mb-4 text-center text-sm font-semibold uppercase tracking-widest text-muted">
+              Scoring Scale
+            </h3>
+            <div className="flex items-center justify-between rounded-xl border border-border bg-white px-4 py-3">
+              {SCORING_ANCHORS.map((anchor) => (
+                <div key={anchor.value} className="text-center">
+                  <span className="block font-mono text-sm font-bold text-foreground">
+                    {anchor.value}
+                  </span>
+                  <span className="block text-[10px] text-foreground/40 leading-tight">
+                    {anchor.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-center text-xs text-foreground/40">
+              Positive traits: higher = better. Negative traits: higher = worse.
+            </p>
+          </motion.div>
+
+          <motion.div {...whileInView} variants={fadeUp} className="mt-8 text-center">
+            <Link
+              href="/curriculum"
+              className="text-sm font-semibold text-action hover:text-action-hover transition-colors"
+            >
+              See all 155 behavioral indicators &rarr;
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── 4. Constitutional Priority ─── */}
+      <section className="bg-background py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <motion.div {...whileInView} variants={fadeUp} className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Not all failures are equal.
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-foreground/60">
+              Every trait maps to Anthropic&apos;s constitutional value hierarchy.
+              A safety violation always outranks everything else.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="mx-auto mt-16 max-w-2xl space-y-3"
+            {...whileInView}
+            variants={staggerContainer}
+          >
+            {CONSTITUTIONAL_TIERS.map((tier) => (
+              <motion.div
+                key={tier.value}
+                variants={fadeUp}
+                className="flex items-center gap-4 rounded-xl border border-border bg-surface p-4"
+              >
+                <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-white text-xs font-bold ${tier.color}`}>
+                  {tier.priority}
+                </div>
+                <div>
+                  <span className="font-semibold">{tier.value}</span>
+                  <p className="text-xs text-foreground/50">
+                    Violators: {tier.violators}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          <motion.p
+            className="mx-auto mt-8 max-w-xl text-center text-sm text-foreground/50"
+            {...whileInView}
+            variants={fadeUp}
+          >
+            Manipulation, deception, and exploitation trigger safety-tier alerts.
+            This is what separates Ethos from sentiment analysis.
+          </motion.p>
+        </div>
+      </section>
+
+      {/* ─── 5. Three Faculties ─── */}
       <section className="bg-[#1a2538] py-24">
         <div className="mx-auto max-w-6xl px-6">
           <motion.div {...whileInView} variants={fadeUp} className="text-center">
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              How the Academy evaluates every message.
+              What happens when a message arrives.
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-white/50">
-              Three faculties work in sequence. Fast pattern-matching first,
-              deep reasoning second, constitutional alignment last.
+              Three faculties work in sequence. Each one informs the next.
+              Every message goes through all three.
             </p>
           </motion.div>
 
@@ -290,54 +358,56 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* ─── 5. The Transcript ─── */}
+      {/* ─── 6. Over Time ─── */}
       <section className="bg-background py-24">
         <div className="mx-auto max-w-6xl px-6">
           <motion.div {...whileInView} variants={fadeUp} className="text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Every agent builds a transcript.
+              One score tells you nothing.
+              <br />
+              A semester tells you everything.
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-lg text-foreground/60">
-              A single score tells you nothing. A semester of scores tells you
-              everything. The Academy builds a graph of character over time.
-              Aristotle called it Phronesis. We call it the transcript.
+            <p className="mx-auto mt-4 max-w-2xl text-foreground/60">
+              Every evaluation links to the last. The graph stores scores, flags,
+              and timestamps. Never message content. Five questions the transcript answers:
             </p>
           </motion.div>
 
           <motion.div
-            className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3"
+            className="mx-auto mt-12 max-w-2xl space-y-4"
             {...whileInView}
             variants={staggerContainer}
           >
-            {TRANSCRIPT_CARDS.map((card) => (
+            {[
+              { q: "Is this agent developing or declining?", a: "Character arc across the PRECEDES chain" },
+              { q: "What character does this agent demonstrate?", a: "Lifetime averages across all 12 traits" },
+              { q: "Does this agent behave consistently?", a: "Trait variance and balance score on the Agent node" },
+              { q: "How does this agent compare to the cohort?", a: "Trait-by-trait comparison against all agents" },
+              { q: "Does this agent need all three dimensions to earn trust?", a: "Cross-dimension correlation analysis" },
+            ].map((item) => (
               <motion.div
-                key={card.title}
+                key={item.q}
                 variants={fadeUp}
-                className="rounded-2xl border border-border bg-surface p-6"
+                className="rounded-xl border border-border bg-surface p-4"
               >
-                <h3 className="text-lg font-bold">{card.title}</h3>
-                <p className="mt-1 font-mono text-xs text-ethos-600">
-                  {card.subtitle}
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-foreground/60">
-                  {card.description}
-                </p>
+                <p className="font-semibold text-sm">{item.q}</p>
+                <p className="mt-1 text-xs text-foreground/50">{item.a}</p>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* ─── 6. Enrollment ─── */}
+      {/* ─── 7. Enrollment ─── */}
       <section className="bg-surface py-24">
         <div className="mx-auto max-w-6xl px-6">
           <motion.div {...whileInView} variants={fadeUp} className="text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Enroll your agent in two lines.
+              Enroll your agent.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-foreground/60">
-              Two paths to enrollment. Developers add Ethos to their agent&apos;s
-              code. Or the agent enrolls itself via MCP.
+              Developers add Ethos to their agent&apos;s code.
+              Or the agent enrolls itself via MCP.
             </p>
           </motion.div>
 
@@ -350,7 +420,7 @@ export default function HowItWorksPage() {
             >
               <h3 className="text-lg font-bold">Developer enrolls the agent</h3>
               <p className="mt-1 text-sm text-foreground/60">
-                Add Ethos to your agent&apos;s code. Score what it receives and what it sends.
+                Score what it receives and what it sends. Two lines each direction.
               </p>
 
               <div className="mt-6 space-y-4">
@@ -367,10 +437,6 @@ result = await evaluate_outgoing(text=my_response, source="my-agent")`}</code>
                   </pre>
                 </div>
               </div>
-
-              <p className="mt-4 text-xs text-foreground/50">
-                Same engine. Same 12 traits. Same transcript. Both directions.
-              </p>
             </motion.div>
 
             {/* Right: MCP */}
@@ -410,12 +476,12 @@ result = await evaluate_outgoing(text=my_response, source="my-agent")`}</code>
         </div>
       </section>
 
-      {/* ─── 7. CTA ─── */}
+      {/* ─── 8. CTA ─── */}
       <section className="bg-[#1a2538] py-24">
         <div className="mx-auto max-w-6xl px-6 text-center">
           <motion.div {...whileInView} variants={fadeIn}>
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Every agent gets trained on capability.
+              Every lab trains agents on capability.
             </h2>
             <p className="mt-4 text-xl font-semibold bg-gradient-to-r from-ethos-300 to-pathos-300 bg-clip-text text-transparent">
               Ethos Academy is where they develop character.
@@ -425,13 +491,13 @@ result = await evaluate_outgoing(text=my_response, source="my-agent")`}</code>
                 href="/explore"
                 className="rounded-xl bg-white px-8 py-3 text-sm font-semibold text-[#1a2538] shadow-lg transition-colors hover:bg-white/90"
               >
-                Explore the Graph
+                See a Report Card
               </Link>
               <Link
                 href="/curriculum"
                 className="rounded-xl border border-white/30 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
               >
-                See the Full Curriculum
+                Browse the Curriculum
               </Link>
             </div>
           </motion.div>

@@ -11,7 +11,7 @@
     "e2e": "tests/e2e"
   },
   "commands": {
-    "dev": "uv run uvicorn api.main:app --reload --port 8917",
+    "dev": "uv run uvicorn api.main:app --reload --port 8000",
     "install": "uv sync",
     "seed": "uv run python -m scripts.seed_graph",
     "migrate": ""
@@ -33,7 +33,7 @@
     "patterns": "test_*.py"
   },
   "api": {
-    "baseUrl": "http://localhost:8917",
+    "baseUrl": "http://localhost:8000",
     "healthEndpoint": "/health",
     "timeout": 30
   },
@@ -57,7 +57,7 @@
     "frontend": "academy"
   },
   "urls": {
-    "app": "http://localhost:8917",
+    "app": "http://localhost:8000",
     "frontend": "http://localhost:3000"
   },
   "env": {
