@@ -57,17 +57,25 @@ function transformKeys<T>(obj: unknown, preserveKeys = false): T {
 }
 
 async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
 
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status} ${res.statusText}`);
+  try {
+    const res = await fetch(`${API_URL}${path}`, {
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      ...options,
+    });
+
+    if (!res.ok) {
+      throw new Error(`API error: ${res.status} ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return transformKeys<T>(data);
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data = await res.json();
-  return transformKeys<T>(data);
 }
 
 /**

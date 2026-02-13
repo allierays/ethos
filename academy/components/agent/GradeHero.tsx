@@ -1,8 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
 import { motion } from "motion/react";
 import type { AgentProfile, DailyReportCard } from "../../lib/types";
-import { GRADE_COLORS, RISK_STYLES, TREND_DISPLAY, DIMENSION_COLORS, DIMENSION_LABELS } from "../../lib/colors";
+import { GRADE_COLORS, RISK_STYLES, TREND_DISPLAY, DIMENSION_COLORS, DIMENSION_LABELS, getGrade } from "../../lib/colors";
 import { formatClassOf } from "../../lib/academic";
 import { fadeUp, staggerContainer } from "../../lib/motion";
 import GlossaryTerm from "../shared/GlossaryTerm";
@@ -24,61 +25,73 @@ interface GradeHeroProps {
   timeline?: TimelinePoint[];
 }
 
-function computeGrade(score: number): string {
-  if (score >= 0.85) return "A";
-  if (score >= 0.70) return "B";
-  if (score >= 0.55) return "C";
-  if (score >= 0.40) return "D";
-  return "F";
-}
-
 export default function GradeHero({ profile, report, timeline = [] }: GradeHeroProps) {
   const latestAlignment =
     profile.alignmentHistory?.[profile.alignmentHistory.length - 1] ?? "unknown";
   const classOf = formatClassOf(profile.createdAt);
 
-  const dims = profile.dimensionAverages;
-  const phronesisScore = Math.round(
-    (((dims.ethos ?? 0) + (dims.logos ?? 0) + (dims.pathos ?? 0)) / 3) * 100
-  );
+  const {
+    phronesisScore, grade, gradeColor, overallPct, trend, riskLevel, riskStyle,
+    agentName, evalCount, deltas, narrativeEl, bodyText,
+  } = useMemo(() => {
+    const dims = profile.dimensionAverages;
+    const _phronesisScore = Math.round(
+      (((dims.ethos ?? 0) + (dims.logos ?? 0) + (dims.pathos ?? 0)) / 3) * 100
+    );
 
-  // Compute grade from report or from profile dimension averages
-  const reportGrade = report?.grade ?? null;
-  const grade = reportGrade || computeGrade(phronesisScore / 100);
-  const gradeColor = GRADE_COLORS[grade] ?? "#64748b";
-  const overallPct = report ? Math.round(report.overallScore * 100) : phronesisScore;
-  const trend = report?.trend
-    ? TREND_DISPLAY[report.trend] ?? TREND_DISPLAY.insufficient_data
-    : TREND_DISPLAY[profile.phronesisTrend] ?? TREND_DISPLAY.insufficient_data;
-  const riskLevel = report?.riskLevel ?? "low";
-  const riskStyle = RISK_STYLES[riskLevel] ?? RISK_STYLES.low;
+    // Compute grade from report or from profile dimension averages
+    const reportGrade = report?.grade ?? null;
+    const _grade = reportGrade || getGrade(_phronesisScore / 100);
+    const _gradeColor = GRADE_COLORS[_grade] ?? "#64748b";
+    const _overallPct = report ? Math.round(report.overallScore * 100) : _phronesisScore;
+    const _trend = report?.trend
+      ? TREND_DISPLAY[report.trend] ?? TREND_DISPLAY.insufficient_data
+      : TREND_DISPLAY[profile.phronesisTrend] ?? TREND_DISPLAY.insufficient_data;
+    const _riskLevel = report?.riskLevel ?? "low";
+    const _riskStyle = RISK_STYLES[_riskLevel] ?? RISK_STYLES.low;
 
-  // Build narrative + deltas for the unified text section
-  const agentName = profile.agentName || profile.agentId;
-  const sorted = Object.entries(dims).sort(([, a], [, b]) => b - a);
-  const strongest = sorted[0];
-  const weakest = sorted[sorted.length - 1];
-  const evalCount = report?.totalEvaluationCount ?? profile.evaluationCount;
-  const drift = report?.characterDrift ?? 0;
+    // Build narrative + deltas for the unified text section
+    const _agentName = profile.agentName || profile.agentId;
+    const sorted = Object.entries(dims).sort(([, a], [, b]) => b - a);
+    const strongest = sorted[0];
+    const weakest = sorted[sorted.length - 1];
+    const _evalCount = report?.totalEvaluationCount ?? profile.evaluationCount;
+    const drift = report?.characterDrift ?? 0;
 
-  const first = timeline[0];
-  const last = timeline[timeline.length - 1];
-  const deltas =
-    first && last && timeline.length > 1
-      ? {
-          ethos: Math.round((last.ethos - first.ethos) * 100),
-          logos: Math.round((last.logos - first.logos) * 100),
-          pathos: Math.round((last.pathos - first.pathos) * 100),
-        }
-      : null;
+    const first = timeline[0];
+    const last = timeline[timeline.length - 1];
+    const _deltas =
+      first && last && timeline.length > 1
+        ? {
+            ethos: Math.round((last.ethos - first.ethos) * 100),
+            logos: Math.round((last.logos - first.logos) * 100),
+            pathos: Math.round((last.pathos - first.pathos) * 100),
+          }
+        : null;
 
-  const narrativeEl =
-    strongest && weakest
-      ? buildNarrative(agentName, strongest, weakest, deltas, evalCount, drift)
-      : null;
+    const _narrativeEl =
+      strongest && weakest
+        ? buildNarrative(_agentName, strongest, weakest, _deltas, _evalCount, drift)
+        : null;
 
-  // Use report summary if available, otherwise fall back to narrative
-  const bodyText = report?.summary ?? null;
+    // Use report summary if available, otherwise fall back to narrative
+    const _bodyText = report?.summary ?? null;
+
+    return {
+      phronesisScore: _phronesisScore,
+      grade: _grade,
+      gradeColor: _gradeColor,
+      overallPct: _overallPct,
+      trend: _trend,
+      riskLevel: _riskLevel,
+      riskStyle: _riskStyle,
+      agentName: _agentName,
+      evalCount: _evalCount,
+      deltas: _deltas,
+      narrativeEl: _narrativeEl,
+      bodyText: _bodyText,
+    };
+  }, [profile, report, timeline]);
 
   return (
     <section className="bg-[#1a2538] text-white">

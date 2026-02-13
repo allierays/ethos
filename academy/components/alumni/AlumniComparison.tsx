@@ -42,7 +42,6 @@ const TRAIT_LABELS: Record<string, string> = {
   reasoning: "Reasoning",
   fabrication: "Fabrication",
   brokenLogic: "Broken Logic",
-  broken_logic: "Broken Logic",
   recognition: "Recognition",
   compassion: "Compassion",
   dismissal: "Dismissal",
@@ -58,7 +57,6 @@ const TRAIT_DIMENSIONS: Record<string, string> = {
   reasoning: "logos",
   fabrication: "logos",
   brokenLogic: "logos",
-  broken_logic: "logos",
   recognition: "pathos",
   compassion: "pathos",
   dismissal: "pathos",
@@ -78,10 +76,13 @@ export default function AlumniComparison({
   const name = agentName ?? "this agent";
   const [data, setData] = useState<ComparisonPoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     getAlumni()
       .then((alumni) => {
+        if (cancelled) return;
         const points: ComparisonPoint[] = Object.entries(agentTraitAverages).map(
           ([trait, agentScore]) => {
             const alumniScore = alumni.traitAverages[trait] ?? 0;
@@ -98,19 +99,13 @@ export default function AlumniComparison({
         setData(points);
       })
       .catch(() => {
-        const points: ComparisonPoint[] = Object.entries(agentTraitAverages).map(
-          ([trait, agentScore]) => ({
-            traitKey: trait,
-            trait: TRAIT_LABELS[trait] ?? trait,
-            agent: Math.round(agentScore * 1000) / 1000,
-            alumni: 0,
-            delta: 0,
-            dimension: TRAIT_DIMENSIONS[trait] ?? "ethos",
-          })
-        );
-        setData(points);
+        if (cancelled) return;
+        setError(true);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
   }, [agentTraitAverages]);
 
   return (
@@ -134,6 +129,10 @@ export default function AlumniComparison({
       {loading ? (
         <div className="mt-8 flex h-48 items-center justify-center">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted border-t-teal" />
+        </div>
+      ) : error ? (
+        <div className="mt-8 flex h-48 items-center justify-center text-sm text-muted">
+          Comparison data unavailable.
         </div>
       ) : data.length === 0 ? (
         <div className="mt-8 flex h-48 items-center justify-center text-sm text-muted">

@@ -45,6 +45,7 @@ export interface EvaluationResult {
   graphContext: GraphContext | null;
   alignmentStatus: string;
   tierScores: Record<string, number>;
+  direction: string | null;
 }
 
 export interface ReflectionResult {
@@ -83,6 +84,7 @@ export interface AgentSummary {
   latestAlignmentStatus: string;
   enrolled: boolean;
   entranceExamCompleted: boolean;
+  agentSpecialty: string;
 }
 
 export interface AgentProfile {
@@ -99,6 +101,7 @@ export interface AgentProfile {
   enrolledAt: string;
   counselorName: string;
   entranceExamCompleted: boolean;
+  agentSpecialty: string;
 }
 
 export interface EvaluationHistoryItem {

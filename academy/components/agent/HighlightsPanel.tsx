@@ -137,6 +137,7 @@ function QuoteCard({ item, type }: { item: HighlightItem; type: "exemplary" | "c
             <button
               onClick={() => setExpanded(!expanded)}
               className="mt-1 text-xs text-action hover:underline"
+              aria-label={expanded ? "Show less of this quote" : "Show more of this quote"}
             >
               {expanded ? "Show less" : "Show more"}
             </button>
@@ -217,6 +218,7 @@ function QuoteColumn({ items, type }: { items: HighlightItem[]; type: "exemplary
 export default function HighlightsPanel({ agentId, agentName }: HighlightsPanelProps) {
   const [data, setData] = useState<HighlightsResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -224,7 +226,10 @@ export default function HighlightsPanel({ agentId, agentName }: HighlightsPanelP
       .then((result) => {
         if (!cancelled) setData(result);
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.error("HighlightsPanel failed to load:", err);
+        if (!cancelled) setError("Failed to load highlights");
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
@@ -235,6 +240,13 @@ export default function HighlightsPanel({ agentId, agentName }: HighlightsPanelP
 
   // Don't render if no data or no quotes
   if (loading) return null;
+  if (error) {
+    return (
+      <section className="rounded-xl glass-strong px-6 py-5">
+        <p className="text-xs text-muted">{error}</p>
+      </section>
+    );
+  }
   if (!data) return null;
   const hasExemplary = data.exemplary.some((e) => e.messageContent);
   const hasConcerning = data.concerning.some((e) => e.messageContent);

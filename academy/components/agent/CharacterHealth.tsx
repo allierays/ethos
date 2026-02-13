@@ -246,7 +246,7 @@ function getTraitDetail(
     label,
     dimColor,
     dimLabel,
-    polarity: isNegative ? "Negative trait" : "Positive trait",
+    polarity: isNegative ? `Detects ${traitKey.replace("_", " ")}` : "Positive trait",
     isNegative,
     healthPct,
     rawPct,

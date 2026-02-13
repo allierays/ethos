@@ -7,7 +7,7 @@ No business logic, no I/O, no dependencies beyond pydantic.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -112,7 +112,7 @@ class Insight(BaseModel):
     trait: str
     severity: str = "info"  # info, warning, critical
     message: str = ""
-    evidence: dict = Field(default_factory=dict)
+    evidence: dict[str, Any] = Field(default_factory=dict)
 
 
 class InsightsResult(BaseModel):
@@ -121,7 +121,7 @@ class InsightsResult(BaseModel):
     generated_at: str = ""
     summary: str = ""
     insights: list[Insight] = Field(default_factory=list)
-    stats: dict = Field(default_factory=dict)
+    stats: dict[str, Any] = Field(default_factory=dict)
 
 
 class HomeworkFocus(BaseModel):
@@ -443,7 +443,7 @@ class ExamSummary(BaseModel):
     exam_id: str
     exam_type: str
     completed: bool
-    completed_at: str
+    completed_at: str | None = None
     phronesis_score: float = Field(ge=0.0, le=1.0)
 
 

@@ -85,7 +85,7 @@ export default function FindPage() {
           </search>
 
           {/* Results */}
-          <section aria-label="Search results" className="mt-8">
+          <section aria-label="Search results" aria-live="polite" className="mt-8">
             {loading && (
               <div className="py-12 text-center text-muted">
                 Loading agents...
