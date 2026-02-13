@@ -113,10 +113,14 @@ TS_EVALUATION_RESULT = {
 TS_AGENT_SUMMARY = {
     "agentId",
     "agentName",
+    "agentModel",
+    "agentSpecialty",
     "evaluationCount",
     "latestAlignmentStatus",
     "enrolled",
     "entranceExamCompleted",
+    "dimensionAverages",
+    "traitAverages",
 }
 
 TS_AGENT_PROFILE = {
@@ -301,12 +305,10 @@ class TestEvaluationModelContract:
 
 class TestAgentModelContract:
     def test_agent_summary_matches_ts(self):
-        # agent_specialty is extra on backend (not yet in TS type)
         _assert_types_match(
             AgentSummary,
             TS_AGENT_SUMMARY,
             "AgentSummary",
-            backend_extras={"agentSpecialty"},
         )
 
     def test_agent_profile_matches_ts(self):
