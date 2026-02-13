@@ -7,10 +7,12 @@ import type {
   AgentProfile,
   AgentSummary,
   AlumniResult,
+  DailyReportCard,
   EvaluationHistoryItem,
   EvaluationResult,
   GraphData,
   InsightsResult,
+  PatternResult,
   ReflectionResult,
 } from "./types";
 
@@ -116,6 +118,26 @@ export async function getAlumni(): Promise<AlumniResult> {
 export async function getInsights(agentId: string): Promise<InsightsResult> {
   return fetchApi<InsightsResult>(
     `/insights/${encodeURIComponent(agentId)}`
+  );
+}
+
+/**
+ * Get the daily report card (grade, summary, homework) for an agent.
+ */
+export async function getCharacterReport(
+  agentId: string
+): Promise<DailyReportCard> {
+  return fetchApi<DailyReportCard>(
+    `/agent/${encodeURIComponent(agentId)}/character`
+  );
+}
+
+/**
+ * Get detected sabotage pathways for an agent.
+ */
+export async function getPatterns(agentId: string): Promise<PatternResult> {
+  return fetchApi<PatternResult>(
+    `/agent/${encodeURIComponent(agentId)}/patterns`
   );
 }
 

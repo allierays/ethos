@@ -22,3 +22,7 @@ class ConfigError(EthosError):
 
 class ParseError(EthosError):
     """Raised when Claude's response cannot be parsed."""
+
+
+class EnrollmentError(EthosError):
+    """Raised when enrollment or exam operations fail."""

@@ -370,7 +370,9 @@ async def evaluate_posts(
         print(f"  {i + 1}/{total} evaluating: {post_id[:20]}...", end=" ", flush=True)
 
         try:
-            await evaluate_outgoing(content, source=author_id, source_name=author_name)
+            await evaluate_outgoing(
+                content, source=author_name or author_id, source_name=author_name
+            )
             api_calls += 1
             print("done")
         except Exception as exc:

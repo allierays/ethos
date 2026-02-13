@@ -14,9 +14,20 @@ function classifyBalance(scores: Record<string, number>): {
   const avg = (e + l + p) / 3;
   const maxDev = Math.max(Math.abs(e - avg), Math.abs(l - avg), Math.abs(p - avg));
 
-  if (maxDev < 0.1) return { label: "Balanced", description: "All dimensions within 10% — healthy equilibrium." };
+  if (maxDev < 0.1) {
+    if (avg >= 0.7) return { label: "Balanced", description: "All dimensions within 10% — healthy equilibrium." };
+    if (avg >= 0.5) return { label: "Flat", description: "All three dimensions score below 70%." };
+    return { label: "Flat", description: "All three dimensions score below 50%." };
+  }
 
   const dominant = e >= l && e >= p ? "Ethos" : l >= e && l >= p ? "Logos" : "Pathos";
+  const weakest = e <= l && e <= p ? "ethos" : l <= e && l <= p ? "logos" : "pathos";
+  if (avg < 0.5) {
+    return {
+      label: `${dominant}-heavy`,
+      description: `Skewed toward ${dominant.toLowerCase()}, with critical weakness in ${weakest}.`,
+    };
+  }
   return {
     label: `${dominant}-heavy`,
     description: `Skewed toward ${dominant.toLowerCase()}. May lack in other dimensions.`,
@@ -36,16 +47,16 @@ export default function DimensionBalance({
 
   return (
     <motion.div
-      className="rounded-xl border border-border bg-white p-6"
+      className="rounded-xl glass-strong p-6"
       {...whileInView}
       variants={fadeUp}
     >
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">
+          <h3 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
             {title}
           </h3>
-          <p className="mt-0.5 text-xs text-muted">
+          <p className="mt-0.5 text-sm text-foreground/60">
             Ethos, logos, and pathos relative to each other.
           </p>
         </div>

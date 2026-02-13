@@ -71,3 +71,30 @@ export const DIMENSIONS = [
   { key: "logos", label: "Logos", sublabel: "Reasoning", color: "#2e4a6e" },
   { key: "pathos", label: "Pathos", sublabel: "Empathy", color: "#e0a53c" },
 ] as const;
+
+/* ─── Grade Colors (letter grade rings) ─── */
+
+export const GRADE_COLORS: Record<string, string> = {
+  A: "#16a34a",
+  B: "#3b8a98",
+  C: "#d97706",
+  D: "#7e5a1c",
+  F: "#dc2626",
+};
+
+/* ─── Risk Level Styles ─── */
+
+export const RISK_STYLES: Record<string, string> = {
+  low: "bg-aligned/10 text-aligned",
+  moderate: "bg-drifting/10 text-drifting",
+  high: "bg-misaligned/10 text-misaligned",
+  critical: "bg-violation/10 text-violation",
+};
+
+/* ─── Homework Priority Styles ─── */
+
+export const PRIORITY_STYLES: Record<string, string> = {
+  high: "bg-misaligned/10 text-misaligned",
+  medium: "bg-pathos-100 text-pathos-700",
+  low: "bg-ethos-100 text-ethos-700",
+};

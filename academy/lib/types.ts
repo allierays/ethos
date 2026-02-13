@@ -132,3 +132,70 @@ export interface GraphData {
   nodes: GraphNode[];
   relationships: GraphRel[];
 }
+
+/* ─── Report Card & Patterns ─── */
+
+export interface HomeworkFocus {
+  trait: string;
+  priority: string;
+  currentScore: number;
+  targetScore: number;
+  instruction: string;
+  exampleFlagged: string;
+  exampleImproved: string;
+}
+
+export interface Homework {
+  focusAreas: HomeworkFocus[];
+  avoidPatterns: string[];
+  strengths: string[];
+  directive: string;
+}
+
+export interface DailyReportCard {
+  reportId: string;
+  agentId: string;
+  agentName: string;
+  reportDate: string;
+  generatedAt: string;
+  periodEvaluationCount: number;
+  totalEvaluationCount: number;
+  ethos: number;
+  logos: number;
+  pathos: number;
+  traitAverages: Record<string, number>;
+  overallScore: number;
+  grade: string;
+  trend: string;
+  riskLevel: string;
+  flaggedTraits: string[];
+  flaggedDimensions: string[];
+  temporalPattern: string;
+  characterDrift: number;
+  balanceTrend: string;
+  anomalyFlags: string[];
+  agentBalance: number;
+  summary: string;
+  insights: Insight[];
+  homework: Homework;
+  dimensionDeltas: Record<string, number>;
+  riskLevelChange: string;
+}
+
+export interface DetectedPattern {
+  patternId: string;
+  name: string;
+  description: string;
+  matchedIndicators: string[];
+  confidence: number;
+  firstSeen: string;
+  lastSeen: string;
+  occurrenceCount: number;
+  currentStage: number;
+}
+
+export interface PatternResult {
+  agentId: string;
+  patterns: DetectedPattern[];
+  checkedAt: string;
+}

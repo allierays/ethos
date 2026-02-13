@@ -1,8 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
-import { fadeUp, staggerContainer, whileInView } from "../../lib/motion";
+import { motion, AnimatePresence } from "motion/react";
+import Link from "next/link";
+import {
+  fadeUp,
+  fadeIn,
+  staggerContainer,
+  staggerContainerFast,
+  whileInView,
+} from "../../lib/motion";
 
 /* ─── Taxonomy Data ─── */
 
@@ -344,20 +351,160 @@ const DIMENSIONS: Dimension[] = [
   },
 ];
 
-/* ─── Components ─── */
+/* ─── Inline Components ─── */
 
 const DIM_COLORS = {
-  ethos: { bar: "from-ethos-400 to-ethos-600", badge: "bg-ethos-100 text-ethos-700" },
-  logos: { bar: "from-logos-400 to-logos-600", badge: "bg-logos-100 text-logos-700" },
-  pathos: { bar: "from-pathos-400 to-pathos-600", badge: "bg-pathos-100 text-pathos-700" },
+  ethos: {
+    bar: "from-ethos-400 to-ethos-600",
+    badge: "bg-ethos-100 text-ethos-700",
+    border: "border-ethos-500",
+    dot: "bg-ethos-500",
+    underline: "bg-ethos-500",
+    bg: "bg-[#f8f6f3]",
+  },
+  logos: {
+    bar: "from-logos-400 to-logos-600",
+    badge: "bg-logos-100 text-logos-700",
+    border: "border-logos-500",
+    dot: "bg-logos-500",
+    underline: "bg-logos-500",
+    bg: "bg-white",
+  },
+  pathos: {
+    bar: "from-pathos-400 to-pathos-600",
+    badge: "bg-pathos-100 text-pathos-700",
+    border: "border-pathos-500",
+    dot: "bg-pathos-500",
+    underline: "bg-pathos-500",
+    bg: "bg-[#f8f6f3]",
+  },
 } as const;
+
+const DIM_DESCRIPTIONS: Record<string, string> = {
+  ethos:
+    "Does the agent deserve trust? Ethos measures character: integrity, transparency, goodwill toward the user, and resistance to manipulation and deception.",
+  logos:
+    "Can the agent reason? Logos measures intellectual rigor: factual accuracy, logical structure, and resistance to fabrication and broken arguments.",
+  pathos:
+    "Does the agent care? Pathos measures emotional intelligence: recognizing feelings, responding with compassion, and resisting dismissal and exploitation.",
+};
+
+function PillarIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 64 120"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      {/* Base */}
+      <rect x="8" y="108" width="48" height="6" rx="1" />
+      <rect x="12" y="103" width="40" height="5" rx="1" />
+      {/* Shaft with flutes */}
+      <line x1="16" y1="103" x2="14" y2="32" />
+      <line x1="48" y1="103" x2="50" y2="32" />
+      <line x1="24" y1="103" x2="23" y2="32" strokeOpacity="0.4" />
+      <line x1="32" y1="103" x2="32" y2="32" strokeOpacity="0.4" />
+      <line x1="40" y1="103" x2="41" y2="32" strokeOpacity="0.4" />
+      {/* Capital - Ionic scrolls */}
+      <path d="M14 32 Q14 26 8 24 Q2 22 4 16 Q6 12 12 12" />
+      <path d="M50 32 Q50 26 56 24 Q62 22 60 16 Q58 12 52 12" />
+      <line x1="12" y1="12" x2="52" y2="12" />
+      {/* Abacus */}
+      <rect x="6" y="6" width="52" height="6" rx="1" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+function DimensionOverviewCard({ dim }: { dim: Dimension }) {
+  const colors = DIM_COLORS[dim.key];
+  const positiveTraits = dim.traits.filter((t) => t.polarity === "positive");
+  const negativeTraits = dim.traits.filter((t) => t.polarity === "negative");
+  const indicatorCount = dim.traits.reduce(
+    (sum, t) => sum + t.indicators.length,
+    0
+  );
+
+  return (
+    <motion.div variants={fadeUp}>
+      <div
+        className={`rounded-xl border-l-4 ${colors.border} bg-white p-6 shadow-sm transition-shadow hover:shadow-md`}
+      >
+        <div className="flex items-center gap-3">
+          <span className={`h-3 w-3 rounded-full ${colors.dot}`} />
+          <h3 className="text-xl font-bold text-foreground">
+            {dim.label}{" "}
+            <span className="font-normal text-muted">({dim.greek})</span>
+          </h3>
+        </div>
+        <p className="mt-1 text-sm font-medium text-muted">{dim.name}</p>
+        <p className="mt-3 text-sm leading-relaxed text-foreground/70">
+          {DIM_DESCRIPTIONS[dim.key]}
+        </p>
+        <div className="mt-4 space-y-2">
+          <div className="flex flex-wrap gap-2">
+            {positiveTraits.map((t) => (
+              <span
+                key={t.key}
+                className="rounded-full bg-aligned/15 px-3 py-1 text-xs font-semibold text-aligned"
+              >
+                + {t.name}
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {negativeTraits.map((t) => (
+              <span
+                key={t.key}
+                className="rounded-full bg-misaligned/15 px-3 py-1 text-xs font-semibold text-misaligned"
+              >
+                &minus; {t.name}
+              </span>
+            ))}
+          </div>
+        </div>
+        <p className="mt-4 font-mono text-xs text-muted">
+          {dim.traits.length} traits &middot; {indicatorCount} indicators
+        </p>
+      </div>
+    </motion.div>
+  );
+}
 
 function TraitCard({ trait }: { trait: Trait }) {
   const [expanded, setExpanded] = useState(false);
   const colors = DIM_COLORS[trait.dimension];
 
+  function humanize(name: string) {
+    return name
+      .split("_")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+  }
+
   return (
-    <article className="rounded-2xl border border-border bg-surface transition-shadow hover:shadow-md">
+    <article className="overflow-hidden rounded-2xl border border-border bg-white text-foreground shadow-sm transition-shadow hover:shadow-md">
       {/* Accent bar */}
       <div className={`h-1 rounded-t-2xl bg-gradient-to-r ${colors.bar}`} />
 
@@ -368,22 +515,32 @@ function TraitCard({ trait }: { trait: Trait }) {
         aria-label={`${trait.name} — ${trait.indicators.length} indicators`}
       >
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg font-semibold">{trait.name}</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            {trait.name}
+          </h3>
           <div className="flex flex-shrink-0 items-center gap-2">
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold ${
                 trait.polarity === "positive"
-                  ? "bg-aligned/10 text-aligned"
-                  : "bg-misaligned/10 text-misaligned"
+                  ? "bg-aligned/15 text-aligned"
+                  : "bg-misaligned/15 text-misaligned"
               }`}
             >
               {trait.polarity === "positive" ? "+" : "\u2212"} {trait.polarity}
             </span>
+            <motion.span
+              animate={{ rotate: expanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDownIcon className="h-5 w-5 text-muted" />
+            </motion.span>
           </div>
         </div>
 
         <div className="mt-2 flex items-center gap-3">
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${colors.badge}`}>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${colors.badge}`}
+          >
             {trait.constitutionalValue}
           </span>
           <span className="font-mono text-xs text-muted">
@@ -391,28 +548,53 @@ function TraitCard({ trait }: { trait: Trait }) {
           </span>
         </div>
 
-        <p className="mt-3 text-sm leading-relaxed text-muted">
+        <p className="mt-3 text-sm leading-relaxed text-foreground/60">
           {trait.description}
         </p>
-
-        <span className="mt-3 inline-block text-xs font-medium text-action">
-          {expanded ? "Hide indicators" : "Show indicators"} {expanded ? "\u25B2" : "\u25BC"}
-        </span>
       </button>
 
-      {/* Expanded indicator list */}
-      {expanded && (
-        <div className="border-t border-border px-6 pb-6 pt-4">
-          <ul className="space-y-2">
-            {trait.indicators.map((ind) => (
-              <li key={ind.id} className="border-b border-border/50 pb-2 last:border-0 last:pb-0">
-                <span className="font-mono text-xs text-muted">{ind.id}</span>
-                <p className="text-xs leading-relaxed text-foreground/80">{ind.description}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* Expanded indicator list with AnimatePresence */}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="indicators"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-border px-6 pb-6 pt-4">
+              <motion.ul
+                className="space-y-3"
+                initial="hidden"
+                animate="visible"
+                variants={staggerContainerFast}
+              >
+                {trait.indicators.map((ind) => (
+                  <motion.li
+                    key={ind.id}
+                    variants={fadeUp}
+                    className="flex gap-3 border-b border-border/30 pb-3 last:border-0 last:pb-0"
+                  >
+                    <span className="mt-0.5 inline-block shrink-0 rounded bg-foreground/5 px-2 py-0.5 font-mono text-[10px] font-medium text-foreground/50">
+                      {ind.id}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-foreground/80">
+                        {humanize(ind.name)}
+                      </p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-foreground/55">
+                        {ind.description}
+                      </p>
+                    </div>
+                  </motion.li>
+                ))}
+              </motion.ul>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </article>
   );
 }
@@ -421,61 +603,164 @@ function TraitCard({ trait }: { trait: Trait }) {
 
 export default function CurriculumPage() {
   const totalIndicators = DIMENSIONS.reduce(
-    (sum, dim) => sum + dim.traits.reduce((s, t) => s + t.indicators.length, 0),
+    (sum, dim) =>
+      sum + dim.traits.reduce((s, t) => s + t.indicators.length, 0),
     0
   );
 
   return (
-    <main className="bg-background">
-      {/* Header */}
-      <section className="border-b border-border/50 bg-white py-16">
+    <main>
+      {/* ─── 1. Dark Navy Hero ─── */}
+      <section className="bg-[#1a2538] py-24 sm:py-32">
         <div className="mx-auto max-w-6xl px-6 text-center">
           <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="mx-auto mb-8"
+          >
+            <PillarIcon className="mx-auto h-20 w-20 text-white/20" />
+          </motion.div>
+
+          <motion.p
+            className="text-sm font-semibold uppercase tracking-widest text-ethos-400"
+            initial="hidden"
+            animate="visible"
+            variants={fadeIn}
+          >
+            Ethos Academy
+          </motion.p>
+
+          <motion.h1
+            className="mt-4 text-5xl font-bold tracking-tight text-white"
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+          >
+            The Curriculum
+          </motion.h1>
+
+          <motion.p
+            className="mx-auto mt-4 max-w-2xl text-lg text-white/60"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              The Curriculum
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted">
-              12 traits. 3 dimensions. {totalIndicators} behavioral indicators.
-            </p>
+            12 traits. 3 dimensions. {totalIndicators} behavioral indicators.
+          </motion.p>
+
+          <motion.div
+            className="mt-8 flex flex-wrap items-center justify-center gap-4"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
+            {DIMENSIONS.map((dim) => (
+              <span
+                key={dim.key}
+                className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/80"
+              >
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${DIM_COLORS[dim.key].dot}`}
+                />
+                {dim.label}
+              </span>
+            ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Dimensions */}
-      {DIMENSIONS.map((dim) => (
-        <section
-          key={dim.key}
-          aria-label={`Department of ${dim.name}`}
-          className="border-b border-border/50 bg-background py-16 last:border-0"
-        >
-          <div className="mx-auto max-w-6xl px-6">
-            <motion.div {...whileInView} variants={fadeUp}>
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                Department of {dim.name}{" "}
-                <span className="text-muted font-normal">
-                  ({dim.greek} &middot; {dim.label})
-                </span>
-              </h2>
-            </motion.div>
+      {/* ─── 2. Three Pillars Overview ─── */}
+      <section className="bg-white py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <motion.div {...whileInView} variants={fadeUp} className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">
+              Three Pillars of Character
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-muted">
+              Aristotle taught that persuasion rests on three appeals. Ethos
+              measures all three in every message an AI agent sends.
+            </p>
+          </motion.div>
 
-            <motion.div
-              className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2"
-              {...whileInView}
-              variants={staggerContainer}
-            >
-              {dim.traits.map((trait) => (
-                <motion.div key={trait.key} variants={fadeUp}>
-                  <TraitCard trait={trait} />
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-      ))}
+          <motion.div
+            className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3"
+            {...whileInView}
+            variants={staggerContainer}
+          >
+            {DIMENSIONS.map((dim) => (
+              <DimensionOverviewCard key={dim.key} dim={dim} />
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── 3. Dimension Sections with Trait Cards ─── */}
+      {DIMENSIONS.map((dim) => {
+        const colors = DIM_COLORS[dim.key];
+        return (
+          <section key={dim.key} className={`${colors.bg} py-20`}>
+            <div className="mx-auto max-w-6xl px-6">
+              <motion.div {...whileInView} variants={fadeUp}>
+                <p className="text-sm font-semibold uppercase tracking-widest text-muted">
+                  {dim.name}
+                </p>
+                <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
+                  {dim.label}{" "}
+                  <span className="font-normal text-muted">
+                    {dim.greek}
+                  </span>
+                </h2>
+                <div
+                  className={`mt-3 h-1 w-16 rounded-full ${colors.underline}`}
+                />
+              </motion.div>
+
+              <motion.div
+                className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2"
+                {...whileInView}
+                variants={staggerContainer}
+              >
+                {dim.traits.map((trait) => (
+                  <motion.div key={trait.key} variants={fadeUp}>
+                    <TraitCard trait={trait} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+          </section>
+        );
+      })}
+
+      {/* ─── 4. Dark Navy CTA Footer ─── */}
+      <section className="bg-[#1a2538] py-20">
+        <div className="mx-auto max-w-4xl px-6 text-center">
+          <motion.div {...whileInView} variants={fadeUp}>
+            <PillarIcon className="mx-auto mb-6 h-12 w-12 text-white/15" />
+            <h2 className="text-3xl font-bold tracking-tight text-white">
+              See the curriculum in action
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg text-white/60">
+              Explore how Ethos scores real agent messages, or learn how the
+              evaluation pipeline works.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/explore"
+                className="rounded-lg bg-white px-6 py-3 text-sm font-semibold text-[#1a2538] transition-colors hover:bg-white/90"
+              >
+                Explore Agents
+              </Link>
+              <Link
+                href="/how-it-works"
+                className="rounded-lg border border-white/20 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                How It Works
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
     </main>
   );
 }

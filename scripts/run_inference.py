@@ -1,16 +1,17 @@
-"""Small-batch Moltbook inference pipeline.
+"""Moltbook inference pipeline.
 
 Evaluates Moltbook posts through the full evaluate() pipeline,
 stores results in Neo4j, and writes JSONL output for analysis.
 
-Handles two data formats:
-  - sample_posts.json: 10 posts with comments/replies, submolt=object, has created_at
-  - curated_posts.json: 500 posts, submolt=string, no comments, no created_at
+Handles three data sources:
+  - sample: 10 posts with comments/replies (test data)
+  - curated: 500 keyword-filtered posts (no comments)
+  - all: 266k posts + 712k comments (full dataset)
 
 Usage:
     uv run python -m scripts.run_inference --source sample --dry-run
-    uv run python -m scripts.run_inference --source sample --include-comments --seed
-    uv run python -m scripts.run_inference --source curated --agents-only --dry-run
+    uv run python -m scripts.run_inference --source all --include-comments --limit 10000
+    uv run python -m scripts.run_inference --source all --skip-existing --agents-only
 """
 
 from __future__ import annotations
@@ -60,6 +61,7 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "moltbook"
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "data" / "results"
 SAMPLE_FILE = DATA_DIR / "sample_posts.json"
 CURATED_FILE = DATA_DIR / "curated_posts.json"
+ALL_FILE = DATA_DIR / "all_posts.json"
 AUTHENTICITY_FILE = DATA_DIR / "authenticity_results.json"
 
 # Graceful shutdown
@@ -117,12 +119,15 @@ def flatten_messages(
 
     for post in posts:
         post_id = post.get("id", "")
-        content = post.get("content", "")
-        title = post.get("title", "")
+        content = post.get("content") or ""
+        if not content.strip():
+            continue  # Skip empty posts
+
+        title = post.get("title") or ""
         author = post.get("author") or {}
         author_id = author.get("id", post_id)
-        author_name = author.get("name", "")
-        created_at = post.get("created_at", "")
+        author_name = author.get("name") or ""
+        created_at = post.get("created_at") or ""
 
         # Normalize submolt
         submolt_raw = post.get("submolt", "")
@@ -168,7 +173,13 @@ def _flatten_comment(
     msg_type: str,
 ) -> None:
     """Recursively flatten a comment and its replies."""
-    content = comment.get("content", "")
+    content = comment.get("content") or ""
+    if not content.strip():
+        # Still recurse into replies even if this comment is empty
+        for reply in comment.get("replies", []):
+            _flatten_comment(reply, post_title, submolt, messages, "reply")
+        return
+
     author = comment.get("author") or {}
     comment_id = comment.get("id", "")
 
@@ -301,7 +312,7 @@ async def run_batch(
         try:
             result = await evaluate_outgoing(
                 msg.content,
-                source=msg.author_id,
+                source=msg.author_name or msg.author_id,
                 source_name=msg.author_name,
                 agent_specialty="openclaw",
                 message_timestamp=msg.created_at,
@@ -503,9 +514,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--source",
-        choices=["sample", "curated"],
+        choices=["sample", "curated", "all"],
         default="sample",
-        help="Data source (default: sample)",
+        help="Data source: sample (10 posts), curated (500), all (266k+) (default: sample)",
     )
     parser.add_argument(
         "--include-comments",
@@ -547,16 +558,23 @@ async def main() -> None:
     logging.basicConfig(level=logging.WARNING)
 
     # ── Load data ───────────────────────────────────────────────────
-    input_file = SAMPLE_FILE if args.source == "sample" else CURATED_FILE
+    source_files = {"sample": SAMPLE_FILE, "curated": CURATED_FILE, "all": ALL_FILE}
+    input_file = source_files[args.source]
     if not input_file.exists():
         print(f"ERROR: {input_file} not found", file=sys.stderr)
         sys.exit(1)
 
+    print(f"Loading {input_file.name}...", end=" ", flush=True)
     with open(input_file) as f:
         posts = json.load(f)
+    print(f"{len(posts)} posts loaded")
 
-    messages = flatten_messages(posts, args.include_comments)
-    print(f"Loaded {len(posts)} posts → {len(messages)} messages")
+    include_comments = args.include_comments
+    if args.source == "all" and include_comments:
+        print("NOTE: --include-comments with --source all includes 712k+ comments")
+
+    messages = flatten_messages(posts, include_comments)
+    print(f"Flattened → {len(messages)} messages")
 
     # ── Load authenticity filter ────────────────────────────────────
     authenticity = load_authenticity_filter()

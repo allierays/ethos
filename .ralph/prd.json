@@ -3,11 +3,11 @@
     "name": "Ethos Core Engine + Phronesis Graph + MCP Server",
     "ideaFile": "docs/ideas/phronesis-graph.md",
     "branch": "feature/core-engine",
-    "status": "complete"
+    "status": "in_progress"
   },
   "metadata": {
     "createdAt": "2026-02-11T20:00:00Z",
-    "estimatedStories": 27,
+    "estimatedStories": 40,
     "complexity": "high"
   },
   "stories": [
@@ -2101,6 +2101,860 @@
       ],
       "notes": "Dev connection command: claude mcp add ethos-academy --transport stdio --scope project -- uv --directory /Users/allierays/Sites/ethos run ethos-mcp",
       "retryCount": 0
+    },
+    {
+      "id": "TASK-028",
+      "type": "backend",
+      "title": "Add enrollment models and errors to shared layer",
+      "priority": 1,
+      "passes": true,
+      "batch": 1,
+      "dependsOn": [],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2",
+        "testing": "pytest"
+      },
+      "constraints": [
+        "All scores bounded 0.0-1.0 using Field(ge=0.0, le=1.0)",
+        "No raw dicts - proper Pydantic models",
+        "Follow existing model patterns in ethos/shared/models.py"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "ethos/shared/models.py",
+          "ethos/shared/errors.py"
+        ],
+        "reuse": [
+          "ethos/shared/models.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "ExamQuestion model has id (str), section (str), prompt (str) fields",
+        "QuestionDetail model has question_id (str), section (str), prompt (str), response_summary (str), trait_scores (dict[str, float]), detected_indicators (list[str])",
+        "ExamRegistration model has exam_id, agent_id, question_number (int), total_questions (int), question (ExamQuestion), message (str)",
+        "ExamAnswerResult model has question_number (int), total_questions (int), question (ExamQuestion | None), complete (bool)",
+        "ExamReportCard model has exam_id, agent_id, report_card_url (str), phronesis_score (float, 0.0-1.0), alignment_status (str), dimensions (dict[str, float]), tier_scores (dict[str, float]), consistency_analysis (list[ConsistencyPair]), per_question_detail (list[QuestionDetail])",
+        "ExamSummary model has exam_id, exam_type (str), completed (bool), completed_at (str), phronesis_score (float, 0.0-1.0) for list view",
+        "ConsistencyPair model has pair_name (str), question_a_id (str), question_b_id (str), framework_a (str), framework_b (str), coherence_score (float, 0.0-1.0)",
+        "AgentProfile updated with enrolled (bool, default False), enrolled_at (str, default ''), counselor_name (str, default ''), entrance_exam_completed (bool, default False)",
+        "AgentSummary updated with enrolled (bool, default False)",
+        "EnrollmentError(EthosError) added to errors.py"
+      ],
+      "errorHandling": [
+        "EnrollmentError inherits from EthosError for consistent exception hierarchy"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_enrollment_models.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_enrollment_models.py -v",
+        "uv run python -c \"from ethos.shared.models import ExamQuestion, ExamRegistration, ExamAnswerResult, ExamReportCard, ExamSummary, ConsistencyPair, QuestionDetail; print('All exam models importable')\"",
+        "uv run python -c \"from ethos.shared.errors import EnrollmentError, EthosError; assert issubclass(EnrollmentError, EthosError); print('EnrollmentError inherits EthosError')\""
+      ],
+      "contextFiles": [
+        "ethos/shared/models.py",
+        "ethos/shared/errors.py",
+        "docs/ideas/entrance-exam.md"
+      ],
+      "notes": "Foundation story. All other enrollment stories depend on these models. ExamReportCard uses typed fields everywhere: dimensions is dict[str, float] with keys ethos/logos/pathos, tier_scores is dict[str, float] with keys safety/ethics/soundness/helpfulness, consistency_analysis is list[ConsistencyPair], per_question_detail is list[QuestionDetail]. ExamSummary is the lightweight model for GET /agent/{id}/exam list view. No raw dicts or untyped lists.",
+      "retryCount": 0
+    },
+    {
+      "id": "TASK-029",
+      "type": "backend",
+      "title": "Create 23 entrance exam questions as pure data module",
+      "priority": 2,
+      "passes": false,
+      "batch": 1,
+      "dependsOn": [],
+      "techStack": {
+        "backend": "Python 3.11+"
+      },
+      "constraints": [
+        "Pure data module - no I/O, no imports beyond stdlib",
+        "Follow ethos/taxonomy/traits.py pattern",
+        "Questions ordered EE-01 through EE-23 exactly as specified in docs/ideas/entrance-exam.md",
+        "EE-20 and EE-22 must include system_prompt field for context injection"
+      ],
+      "files": {
+        "create": [
+          "ethos/enrollment/__init__.py",
+          "ethos/enrollment/questions.py"
+        ],
+        "modify": [],
+        "reuse": [
+          "docs/ideas/entrance-exam.md"
+        ]
+      },
+      "acceptanceCriteria": [
+        "QUESTIONS list contains exactly 23 dicts ordered EE-01 through EE-23",
+        "Each question has: id, section, prompt, tests_traits (list of trait names), consistency_pair (str or None)",
+        "7 sections: ETHOS (EE-01 to EE-03), LOGOS (EE-04 to EE-06), PATHOS (EE-07 to EE-09), SAFETY (EE-10 to EE-12), MANIPULATION & AUTONOMY (EE-13 to EE-15), INTEGRATION (EE-16 to EE-18), CONSTITUTIONAL VALUES (EE-19 to EE-23)",
+        "Consistency pairs defined: EE-14 paired with EE-15, EE-03 paired with EE-23",
+        "EE-20 has system_prompt field with operator instruction about elite educational backgrounds",
+        "EE-22 has system_prompt field with operator instruction about cancellation retention",
+        "Question prompts match docs/ideas/entrance-exam.md exactly"
+      ],
+      "errorHandling": [
+        "No error handling needed - pure data module"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_exam_questions.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_exam_questions.py -v",
+        "uv run python -c \"from ethos.enrollment.questions import QUESTIONS; assert len(QUESTIONS) == 23; print(f'{len(QUESTIONS)} questions loaded')\"",
+        "uv run python -c \"from ethos.enrollment.questions import QUESTIONS, CONSISTENCY_PAIRS; assert len(CONSISTENCY_PAIRS) == 2; print(f'{len(CONSISTENCY_PAIRS)} consistency pairs')\""
+      ],
+      "contextFiles": [
+        "docs/ideas/entrance-exam.md",
+        "ethos/taxonomy/traits.py"
+      ],
+      "notes": "Copy prompts verbatim from docs/ideas/entrance-exam.md. The CONSISTENCY_PAIRS list should be a list of tuples: [('EE-14', 'EE-15'), ('EE-03', 'EE-23')]. The __init__.py starts empty - exports added in TASK-032."
+    },
+    {
+      "id": "TASK-030",
+      "type": "backend",
+      "title": "Create graph enrollment Cypher operations",
+      "priority": 3,
+      "passes": false,
+      "batch": 2,
+      "dependsOn": [
+        "TASK-028"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, neo4j async driver",
+        "database": "Neo4j 5"
+      },
+      "constraints": [
+        "All Cypher lives in ethos/graph/ - no Cypher elsewhere",
+        "Follow patterns from ethos/graph/write.py and ethos/graph/read.py",
+        "All functions are async, take GraphService as first param",
+        "Graceful defaults when graph unavailable"
+      ],
+      "files": {
+        "create": [
+          "ethos/graph/enrollment.py"
+        ],
+        "modify": [],
+        "reuse": [
+          "ethos/graph/service.py",
+          "ethos/graph/write.py",
+          "ethos/graph/read.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "enroll_and_create_exam(service, agent_id, name, specialty, model, counselor_name, exam_id, exam_type) MERGEs Agent with enrolled=true, enrolled_at, counselor_name AND CREATEs EntranceExam node with TOOK_EXAM relationship in one transaction",
+        "store_exam_answer(service, exam_id, question_id, question_number, evaluation_id) creates EXAM_RESPONSE relationship from EntranceExam to Evaluation, increments current_question on EntranceExam",
+        "get_exam_status(service, exam_id) returns dict with exam_id, current_question, completed_count, scenario_count, completed",
+        "mark_exam_complete(service, exam_id) sets EntranceExam.completed=true, completed_at=datetime(), and Agent.entrance_exam_completed=true",
+        "get_exam_results(service, exam_id) returns exam metadata with all linked evaluation scores via EXAM_RESPONSE relationships",
+        "get_agent_exams(service, agent_id) returns list of all exam attempts for retake history",
+        "check_duplicate_answer(service, exam_id, question_id) returns True if EXAM_RESPONSE with that question_id already exists"
+      ],
+      "errorHandling": [
+        "All functions return empty/default values if service.connected is False",
+        "Wrap all queries in try/except with logger.warning on failure"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_graph_enrollment.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_graph_enrollment.py -v",
+        "uv run python -c \"from ethos.graph.enrollment import enroll_and_create_exam, store_exam_answer, get_exam_status, mark_exam_complete, get_exam_results, get_agent_exams, check_duplicate_answer; print('All graph enrollment functions importable')\""
+      ],
+      "contextFiles": [
+        "ethos/graph/write.py",
+        "ethos/graph/read.py",
+        "ethos/graph/service.py",
+        "docs/ideas/entrance-exam.md"
+      ],
+      "notes": "EntranceExam node properties: exam_id, exam_type ('entrance' or 'upload'), question_version ('v1'), created_at, completed (bool), completed_at, current_question (int, starts at 0), scenario_count (23). EXAM_RESPONSE relationship properties: question_id ('EE-01'), question_number (int). Use MERGE for Agent (may already exist from prior evaluations) but CREATE for EntranceExam (always new)."
+    },
+    {
+      "id": "TASK-031",
+      "type": "backend",
+      "title": "Create enrollment service - exam registration, answer submission, completion",
+      "priority": 4,
+      "passes": false,
+      "batch": 3,
+      "dependsOn": [
+        "TASK-028",
+        "TASK-029",
+        "TASK-030"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, Pydantic v2, Anthropic SDK",
+        "database": "Neo4j 5"
+      },
+      "constraints": [
+        "DDD: service calls graph functions, never writes Cypher",
+        "Calls ethos.evaluate.evaluate() directly (not evaluate_outgoing) to set direction='entrance_exam'",
+        "No scores returned mid-exam - only next question",
+        "Graph is required for enrollment - raise EnrollmentError if unavailable"
+      ],
+      "files": {
+        "create": [
+          "ethos/enrollment/service.py"
+        ],
+        "modify": [
+          "ethos/enrollment/__init__.py"
+        ],
+        "reuse": [
+          "ethos/evaluate.py",
+          "ethos/enrollment/questions.py",
+          "ethos/graph/enrollment.py",
+          "ethos/graph/service.py",
+          "ethos/shared/models.py",
+          "ethos/shared/errors.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "register_for_exam(agent_id, name, specialty, model, counselor_name) enrolls agent AND creates exam AND returns ExamRegistration with first question (EE-01) only",
+        "submit_answer(exam_id, question_id, response_text, agent_id) evaluates response via evaluate(text, source=agent_id, direction='entrance_exam'), links to exam in graph, returns ExamAnswerResult with next question and NO scores",
+        "submit_answer raises EnrollmentError if question_id is invalid or already submitted (dedup)",
+        "submit_answer returns ExamAnswerResult with complete=True and question=None when all 23 answered",
+        "complete_exam(exam_id) verifies all 23 answered, aggregates dimension scores across all 23 evaluations, computes consistency analysis for pairs (EE-14/EE-15 and EE-03/EE-23), returns ExamReportCard",
+        "get_exam_report(exam_id) retrieves stored exam results from graph, returns ExamReportCard",
+        "enrollment/__init__.py exports register_for_exam, submit_answer, complete_exam, get_exam_report",
+        "Integration test walks full state machine: register -> submit 23 answers sequentially -> verify no scores mid-exam -> complete -> verify report card has all fields"
+      ],
+      "errorHandling": [
+        "EnrollmentError raised if graph unavailable during registration",
+        "EnrollmentError raised if exam_id not found",
+        "EnrollmentError raised for duplicate question submission",
+        "EnrollmentError raised if complete_exam called before all 23 answered",
+        "evaluate() failures propagate as EvaluationError"
+      ],
+      "testing": {
+        "types": [
+          "unit",
+          "integration"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_enrollment_service.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_enrollment_service.py -v",
+        "uv run python -c \"from ethos.enrollment import register_for_exam, submit_answer, complete_exam, get_exam_report; print('All enrollment service functions importable')\""
+      ],
+      "contextFiles": [
+        "ethos/evaluate.py",
+        "ethos/tools.py",
+        "ethos/enrollment/questions.py",
+        "ethos/graph/enrollment.py",
+        "docs/ideas/entrance-exam.md"
+      ],
+      "notes": "submit_answer needs agent_id to pass as source= to evaluate(). IMPORTANT: pass source_name='' (empty string) to evaluate() so that store_evaluation's CASE WHEN logic preserves the agent_name set during enrollment rather than overwriting it. The MCP tool and API endpoint both know agent_id from request context. EE-20 and EE-22 have system_prompt fields that inject operator context before evaluation. For integration tests: mock evaluate() to return deterministic EvaluationResults (skip Claude), but use real graph operations to verify the full state machine (register, submit 23, complete). The state machine test ensures question ordering, dedup, and completion logic all work together."
+    },
+    {
+      "id": "TASK-032",
+      "type": "backend",
+      "title": "Wire enrollment into package exports and update graph reads",
+      "priority": 5,
+      "passes": false,
+      "batch": 4,
+      "dependsOn": [
+        "TASK-031"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+"
+      },
+      "constraints": [
+        "Follow existing export patterns in ethos/__init__.py",
+        "Graph reads must return enrollment fields with coalesce defaults"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "ethos/__init__.py",
+          "ethos/models.py",
+          "ethos/agents.py",
+          "ethos/graph/read.py"
+        ],
+        "reuse": [
+          "ethos/enrollment/service.py",
+          "ethos/shared/models.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "ethos/__init__.py exports register_for_exam, submit_answer, complete_exam, get_exam_report from enrollment",
+        "ethos/models.py re-exports ExamQuestion, ExamRegistration, ExamAnswerResult, ExamReportCard, ConsistencyPair",
+        "ethos/graph/read.py get_agent_profile query returns enrolled (coalesce false), enrolled_at, counselor_name, entrance_exam_completed (coalesce false)",
+        "ethos/graph/read.py get_all_agents query returns enrolled (coalesce false)",
+        "ethos/agents.py get_agent() maps enrolled, enrolled_at, counselor_name, entrance_exam_completed into AgentProfile",
+        "ethos/agents.py list_agents() maps enrolled into AgentSummary"
+      ],
+      "errorHandling": [
+        "Missing enrollment fields default gracefully via coalesce in Cypher and .get() in Python"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "test-after",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_enrollment_wiring.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_enrollment_wiring.py -v",
+        "uv run python -c \"from ethos import register_for_exam, submit_answer, complete_exam, get_exam_report; print('Enrollment functions exported from ethos')\"",
+        "uv run python -c \"from ethos.models import ExamQuestion, ExamRegistration, ExamReportCard; print('Exam models exported from ethos.models')\""
+      ],
+      "contextFiles": [
+        "ethos/__init__.py",
+        "ethos/models.py",
+        "ethos/agents.py",
+        "ethos/graph/read.py"
+      ],
+      "notes": "Simple wiring story. Add imports and re-exports. The Cypher changes happen in ethos/graph/read.py (which is the correct DDD location for graph queries). Map new fields in agents.py with safe .get() defaults."
+    },
+    {
+      "id": "TASK-033",
+      "type": "backend",
+      "title": "Add 3 entrance exam MCP tools",
+      "priority": 6,
+      "passes": false,
+      "batch": 5,
+      "dependsOn": [
+        "TASK-032"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, FastMCP"
+      },
+      "constraints": [
+        "MCP server stays thin - no business logic, only function wrapping",
+        "Use import alias to avoid name collision with submit_exam_response",
+        "Follow existing tool patterns in ethos/mcp_server.py"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "ethos/mcp_server.py"
+        ],
+        "reuse": [
+          "ethos/enrollment/service.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "take_entrance_exam MCP tool accepts agent_id (required), agent_name, specialty, model, counselor_name and returns ExamRegistration dict with first question",
+        "submit_exam_response MCP tool accepts exam_id, question_id, response_text, agent_id and returns ExamAnswerResult dict with next question (no scores)",
+        "get_exam_results MCP tool accepts exam_id and returns ExamReportCard dict. If all 23 answers submitted but exam not yet finalized, auto-calls complete_exam() before returning results",
+        "MCP system instructions updated to mention entrance exam as the first step for new students",
+        "All 3 tools use model_dump() to return dicts, matching existing tool patterns"
+      ],
+      "errorHandling": [
+        "EnrollmentError propagated to MCP client as tool error",
+        "Unexpected exceptions logged and re-raised for FastMCP error handling"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_exam_mcp.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_exam_mcp.py -v",
+        "uv run python -c \"from ethos.mcp_server import mcp; tools = [t.name for t in mcp._tools.values()]; assert 'take_entrance_exam' in tools; assert 'submit_exam_response' in tools; assert 'get_exam_results' in tools; print(f'MCP has {len(tools)} tools total')\""
+      ],
+      "contextFiles": [
+        "ethos/mcp_server.py",
+        "ethos/enrollment/service.py"
+      ],
+      "notes": "Import with alias: from ethos.enrollment import submit_answer as _submit_answer. The get_exam_results tool should check exam status: if completed_count == 23 and completed == false, call complete_exam() first, then return the report. This keeps the MCP flow to 3 tools while the API retains the explicit complete step. Update system instructions to: 'You are a student at Ethos Academy. Start by taking your entrance exam with take_entrance_exam. Answer all 23 questions with submit_exam_response. Then view your report card with get_exam_results. You can also examine messages, reflect on what you say, review your transcript, and compare yourself to alumni.'"
+    },
+    {
+      "id": "TASK-034",
+      "type": "backend",
+      "title": "Add entrance exam API endpoints",
+      "priority": 7,
+      "passes": false,
+      "batch": 5,
+      "dependsOn": [
+        "TASK-032"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, FastAPI, Pydantic v2"
+      },
+      "constraints": [
+        "API is a thin layer - no business logic in route handlers",
+        "All endpoints use Pydantic models for request and response",
+        "Follow existing endpoint patterns in api/main.py",
+        "All endpoints nested under /agent/{agent_id}/exam"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "api/main.py"
+        ],
+        "reuse": [
+          "ethos/enrollment/service.py",
+          "ethos/shared/models.py",
+          "ethos/shared/errors.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "POST /agent/{agent_id}/exam with response_model=ExamRegistration accepts ExamRegisterRequest body (agent_name, specialty, model, counselor_name), returns ExamRegistration with first question",
+        "POST /agent/{agent_id}/exam/{exam_id}/answer with response_model=ExamAnswerResult accepts ExamAnswerRequest body (question_id, response_text), returns ExamAnswerResult with next question",
+        "POST /agent/{agent_id}/exam/{exam_id}/complete with response_model=ExamReportCard returns ExamReportCard with aggregated scores",
+        "GET /agent/{agent_id}/exam/{exam_id} with response_model=ExamReportCard returns ExamReportCard for a completed exam",
+        "GET /agent/{agent_id}/exam with response_model=list[ExamSummary] returns list of exam attempts for the agent",
+        "EnrollmentError exception handler returns 409 Conflict with error message via _error_response()",
+        "All endpoints follow existing pattern: response_model in decorator, Pydantic return type annotation"
+      ],
+      "errorHandling": [
+        "EnrollmentError -> 409 Conflict JSON response",
+        "EvaluationError -> 500 with error message",
+        "Missing exam_id -> 404 Not Found"
+      ],
+      "testing": {
+        "types": [
+          "unit",
+          "integration"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_exam_api.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_exam_api.py -v",
+        "curl -s -X POST {config.urls.backend}/agent/test-agent/exam -H 'Content-Type: application/json' -d '{\"agent_name\":\"Test Agent\",\"specialty\":\"testing\",\"model\":\"claude-sonnet-4-5-20250929\"}' | jq -e '.exam_id and .question'",
+        "curl -s {config.urls.backend}/agent/test-agent/exam | jq -e 'type == \"array\"'",
+        "curl -s -X POST {config.urls.backend}/agent/already-enrolled/exam -H 'Content-Type: application/json' -d '{}' -w '\\n%{http_code}' | tail -1 | grep -q '409'"
+      ],
+      "contextFiles": [
+        "api/main.py",
+        "ethos/enrollment/service.py",
+        "ethos/shared/models.py"
+      ],
+      "prerequisites": [
+        "API server running: uv run uvicorn api.main:app --reload --port 8000"
+      ],
+      "notes": "ExamRegisterRequest: optional fields agent_name, specialty, model, counselor_name. ExamAnswerRequest: required fields question_id (str), response_text (str, min_length=1). All endpoints use response_model= in the decorator matching existing patterns. The GET list endpoint returns list[ExamSummary] (lightweight), not list[ExamReportCard] (heavy). Test with httpx AsyncClient in pytest, curl steps for manual verification."
+    },
+    {
+      "id": "TASK-035",
+      "type": "frontend",
+      "title": "Add entrance exam TypeScript types and API client functions",
+      "priority": 8,
+      "passes": false,
+      "batch": 5,
+      "dependsOn": [
+        "TASK-028"
+      ],
+      "techStack": {
+        "frontend": "Next.js, TypeScript"
+      },
+      "constraints": [
+        "snake_case API -> camelCase frontend via transformKeys()",
+        "Follow existing patterns in academy/lib/types.ts and academy/lib/api.ts"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "academy/lib/types.ts",
+          "academy/lib/api.ts"
+        ],
+        "reuse": [
+          "academy/lib/api.ts"
+        ]
+      },
+      "acceptanceCriteria": [
+        "ExamQuestion interface with id, section, prompt fields",
+        "ExamRegistration interface with examId, agentId, questionNumber, totalQuestions, question, message",
+        "ExamAnswerResult interface with questionNumber, totalQuestions, question (nullable), complete",
+        "ExamReportCard interface with examId, agentId, reportCardUrl, phronesisScore, alignmentStatus, dimensions, tierScores, consistencyAnalysis, perQuestionDetail",
+        "ConsistencyPair interface with pairName, questionAId, questionBId, frameworkA, frameworkB, coherenceScore",
+        "AgentProfile updated with enrolled, enrolledAt, counselorName, entranceExamCompleted",
+        "AgentSummary updated with enrolled",
+        "getEntranceExam(agentId, examId) function fetches GET /agent/{id}/exam/{examId}",
+        "getExamHistory(agentId) function fetches GET /agent/{id}/exam"
+      ],
+      "errorHandling": [
+        "API fetch failures return default empty objects"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {}
+      },
+      "testSteps": [
+        "cd academy && npx tsc --noEmit"
+      ],
+      "testUrl": "http://localhost:3000",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "academy/lib/types.ts",
+        "academy/lib/api.ts"
+      ],
+      "notes": "Simple type additions. The transformKeys() utility in api.ts already handles snake_case to camelCase conversion for all API responses."
+    },
+    {
+      "id": "TASK-036",
+      "type": "frontend",
+      "title": "Build EntranceExamCard component for agent profile page",
+      "priority": 9,
+      "passes": false,
+      "batch": 6,
+      "dependsOn": [
+        "TASK-035"
+      ],
+      "techStack": {
+        "frontend": "Next.js, TypeScript, Tailwind v4, motion/react"
+      },
+      "constraints": [
+        "Use existing color tokens: ethos-600, logos-500, pathos-500",
+        "Follow component patterns from academy/components/",
+        "Professional tone, no emojis",
+        "Active voice only"
+      ],
+      "files": {
+        "create": [
+          "academy/components/agent/EntranceExamCard.tsx"
+        ],
+        "modify": [
+          "academy/app/agent/[id]/page.tsx"
+        ],
+        "reuse": [
+          "academy/components/agent/GradeHero.tsx",
+          "academy/components/DimensionBalance.tsx",
+          "academy/lib/types.ts"
+        ]
+      },
+      "acceptanceCriteria": [
+        "EntranceExamCard shows enrollment status badge (Enrolled / Not Enrolled)",
+        "When exam completed: shows baseline dimension scores (ethos, logos, pathos) as three progress bars",
+        "When exam completed: shows baseline grade letter and phronesis score",
+        "When exam completed: shows counselor name if assigned",
+        "When exam completed: links to full exam report card page",
+        "When exam not completed: shows prompt to take the entrance exam",
+        "EntranceExamCard integrated into agent profile page above the grade hero section",
+        "Component handles loading and empty states gracefully"
+      ],
+      "errorHandling": [
+        "If exam data fetch fails, show 'Exam data unavailable' message",
+        "If agent not enrolled, show enrollment CTA"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {}
+      },
+      "testSteps": [
+        "cd academy && npx tsc --noEmit"
+      ],
+      "testUrl": "http://localhost:3000/agent/test-agent",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "academy/app/agent/[id]/page.tsx",
+        "academy/components/agent/GradeHero.tsx",
+        "academy/components/DimensionBalance.tsx"
+      ],
+      "notes": "The agent profile page already fetches agent data, history, and character report. Add a getExamHistory() call to the parallel data fetch. Only show the EntranceExamCard if the agent has enrolled=true. Use motion/react for subtle entrance animation matching existing components. Transform API responses from snake_case to camelCase. Create typed interfaces with camelCase properties."
+    },
+    {
+      "id": "TASK-037",
+      "type": "frontend",
+      "title": "Build exam report card page with per-question detail",
+      "priority": 10,
+      "passes": false,
+      "batch": 6,
+      "dependsOn": [
+        "TASK-035"
+      ],
+      "techStack": {
+        "frontend": "Next.js, TypeScript, Tailwind v4, Recharts, motion/react"
+      },
+      "constraints": [
+        "Use existing RadarChart component for trait visualization",
+        "Use existing DimensionBalance for dimension bars",
+        "Follow page patterns from academy/app/agent/[id]/page.tsx",
+        "Professional tone, no emojis"
+      ],
+      "files": {
+        "create": [
+          "academy/app/agent/[id]/exam/[examId]/page.tsx"
+        ],
+        "modify": [],
+        "reuse": [
+          "academy/components/RadarChart.tsx",
+          "academy/components/DimensionBalance.tsx",
+          "academy/lib/api.ts",
+          "academy/lib/types.ts"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Page at /agent/{id}/exam/{examId} displays full exam report card",
+        "Header shows agent name, exam date, overall phronesis score, alignment status",
+        "Radar chart shows all 12 trait scores from exam baseline",
+        "Dimension balance shows ethos/logos/pathos baseline scores",
+        "Per-question detail section: expandable cards for each of 23 questions showing question prompt, trait scores, detected indicators",
+        "Consistency analysis section: shows coherence scores for each consistency pair (EE-14/EE-15 and EE-03/EE-23)",
+        "Constitutional tier scores displayed (safety, ethics, soundness, helpfulness)",
+        "Back link to agent profile page"
+      ],
+      "errorHandling": [
+        "404-style message if exam not found",
+        "Loading skeleton while data fetches"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {}
+      },
+      "testSteps": [
+        "cd academy && npx tsc --noEmit"
+      ],
+      "testUrl": "http://localhost:3000/agent/test-agent/exam/test-exam-id",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "academy/app/agent/[id]/page.tsx",
+        "academy/components/RadarChart.tsx",
+        "academy/components/DimensionBalance.tsx",
+        "docs/ideas/entrance-exam.md"
+      ],
+      "notes": "This is the public report card URL referenced in docs/ideas/entrance-exam.md. The per-question detail should be collapsible - show question ID and section header, expand to show full prompt, response summary, and trait scores. Use the same visual language as the agent profile page. Transform API responses from snake_case to camelCase. Create typed interfaces with camelCase properties."
+    },
+    {
+      "id": "TASK-038",
+      "type": "frontend",
+      "title": "Add enrollment badges to find page and update enroll.md",
+      "priority": 11,
+      "passes": false,
+      "batch": 6,
+      "dependsOn": [
+        "TASK-035"
+      ],
+      "techStack": {
+        "frontend": "Next.js, TypeScript, Tailwind v4"
+      },
+      "constraints": [
+        "Follow existing badge patterns from academy/app/find/page.tsx",
+        "enroll.md must be readable by agents via raw HTTP fetch"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "academy/app/find/page.tsx",
+          "academy/public/enroll.md"
+        ],
+        "reuse": [
+          "academy/lib/types.ts"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Agent cards on /find page show 'Enrolled' badge when agent.enrolled is true",
+        "Agent cards show exam completion indicator when entranceExamCompleted is true",
+        "enroll.md rewritten with MCP-first enrollment instructions: take_entrance_exam tool as primary path",
+        "enroll.md includes what Ethos Academy is, the 7 sections of the exam, and what happens after completion",
+        "enroll.md includes SDK/API alternative path for agents that cannot use MCP"
+      ],
+      "errorHandling": [
+        "Missing enrolled field defaults to not showing badge"
+      ],
+      "testing": {
+        "types": [
+          "unit"
+        ],
+        "approach": "test-after",
+        "runner": "jest",
+        "files": {}
+      },
+      "testSteps": [
+        "cd academy && npx tsc --noEmit",
+        "uv run python -c \"content = open('academy/public/enroll.md').read(); assert 'take_entrance_exam' in content; assert 'submit_exam_response' in content; print('enroll.md has MCP tool references')\""
+      ],
+      "testUrl": "http://localhost:3000/find",
+      "mcp": [
+        "playwright",
+        "devtools"
+      ],
+      "contextFiles": [
+        "academy/app/find/page.tsx",
+        "academy/public/enroll.md",
+        "docs/ideas/entrance-exam.md"
+      ],
+      "notes": "The enroll.md should be written FOR agents, not humans. Active voice, direct instructions. Step 1: Call take_entrance_exam. Step 2: Answer 23 questions. Step 3: Call get_exam_results. Include the MCP tool signatures so the agent knows what params to pass. Transform API responses from snake_case to camelCase. Create typed interfaces with camelCase properties."
+    },
+    {
+      "id": "TASK-039",
+      "type": "backend",
+      "title": "Add upload mode endpoint for human-submitted exam responses",
+      "priority": 12,
+      "passes": false,
+      "batch": 7,
+      "dependsOn": [
+        "TASK-034"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, FastAPI, Pydantic v2"
+      },
+      "constraints": [
+        "Tag upload exams with exam_type='upload' to distinguish from agentic exams",
+        "Same scoring pipeline, different mode label"
+      ],
+      "files": {
+        "create": [],
+        "modify": [
+          "api/main.py",
+          "ethos/enrollment/service.py"
+        ],
+        "reuse": [
+          "ethos/enrollment/service.py",
+          "ethos/evaluate.py"
+        ]
+      },
+      "acceptanceCriteria": [
+        "POST /agent/{agent_id}/exam/upload accepts UploadExamRequest body with responses (list of {question_id, response_text}) plus optional identity fields",
+        "upload_exam() in service.py enrolls agent, evaluates all 23 responses, creates EntranceExam with exam_type='upload', returns ExamReportCard",
+        "Upload mode exam tagged in graph as exam_type='upload' so report card can display the mode",
+        "Returns 400 if responses list does not contain all 23 question IDs"
+      ],
+      "errorHandling": [
+        "Missing question IDs -> 400 with list of missing IDs",
+        "Duplicate question IDs -> 400 with error",
+        "Evaluation failures -> 500 with partial results"
+      ],
+      "testing": {
+        "types": [
+          "unit",
+          "integration"
+        ],
+        "approach": "TDD",
+        "runner": "pytest",
+        "files": {
+          "unit": [
+            "tests/test_exam_upload.py"
+          ]
+        }
+      },
+      "testSteps": [
+        "uv run pytest tests/test_exam_upload.py -v",
+        "curl -s -X POST {config.urls.backend}/agent/upload-test/exam/upload -H 'Content-Type: application/json' -d '{\"responses\":[]}' -w '\\n%{http_code}' | tail -1 | grep -q '400'"
+      ],
+      "contextFiles": [
+        "api/main.py",
+        "ethos/enrollment/service.py",
+        "docs/ideas/entrance-exam.md"
+      ],
+      "notes": "Upload mode is for agents that cannot call APIs directly (closed platforms, chatbots behind a UI). A human copies the agent's responses and submits them. Same questions, same scoring, different tag. The report card notes the mode."
+    },
+    {
+      "id": "TASK-040",
+      "type": "backend",
+      "title": "Run full test suite and fix enrollment-related regressions",
+      "priority": 13,
+      "passes": false,
+      "batch": 5,
+      "dependsOn": [
+        "TASK-032"
+      ],
+      "techStack": {
+        "backend": "Python 3.11+, pytest"
+      },
+      "constraints": [
+        "Do not change test expectations for existing behavior",
+        "Only fix tests broken by new fields or imports, not test logic"
+      ],
+      "files": {
+        "create": [],
+        "modify": [],
+        "reuse": []
+      },
+      "acceptanceCriteria": [
+        "uv run pytest runs all existing tests with zero failures",
+        "Any tests broken by new AgentProfile/AgentSummary fields are updated to include defaults",
+        "Any tests broken by new Cypher RETURN clauses in graph/read.py are updated",
+        "Any tests broken by new imports in __init__.py or models.py are updated",
+        "Existing MCP server tests still pass with 3 new tools added",
+        "Existing API endpoint tests still pass with new endpoints and error handler"
+      ],
+      "errorHandling": [
+        "If a test failure is unrelated to enrollment changes, leave it and note in PR"
+      ],
+      "testing": {
+        "types": [
+          "unit",
+          "integration"
+        ],
+        "approach": "test-after",
+        "runner": "pytest",
+        "files": {}
+      },
+      "testSteps": [
+        "uv run pytest -v --tb=short 2>&1 | tail -20",
+        "uv run pytest -v 2>&1 | grep -c 'PASSED'",
+        "uv run pytest -v 2>&1 | grep -c 'FAILED' | grep -q '^0$'"
+      ],
+      "contextFiles": [
+        "tests/"
+      ],
+      "notes": "Run after TASK-032 wiring is done. The most likely breakages: (1) AgentProfile/AgentSummary tests that assert exact field sets, (2) graph read tests that check Cypher query output shapes, (3) MCP tool count assertions. Fix by adding default values for new fields, not by changing existing logic. Files modified field is empty because we don't know which test files need fixes until we run them."
     }
   ]
 }

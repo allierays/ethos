@@ -60,16 +60,16 @@ async def get_agent(agent_id: str) -> AgentProfile:
             trend = compute_trend(history)
 
             return AgentProfile(
-                agent_id=raw.get("agent_id", agent_id),
-                agent_name=raw.get("agent_name", ""),
-                agent_specialty=raw.get("agent_specialty", ""),
-                agent_model=raw.get("agent_model", ""),
-                created_at=str(raw.get("created_at", "")),
-                evaluation_count=raw.get("evaluation_count", 0),
-                dimension_averages=raw.get("dimension_averages", {}),
-                trait_averages=raw.get("trait_averages", {}),
+                agent_id=raw.get("agent_id") or agent_id,
+                agent_name=raw.get("agent_name") or "",
+                agent_specialty=raw.get("agent_specialty") or "",
+                agent_model=raw.get("agent_model") or "",
+                created_at=str(raw.get("created_at") or ""),
+                evaluation_count=raw.get("evaluation_count") or 0,
+                dimension_averages=raw.get("dimension_averages") or {},
+                trait_averages=raw.get("trait_averages") or {},
                 phronesis_trend=trend,
-                alignment_history=raw.get("alignment_history", []),
+                alignment_history=raw.get("alignment_history") or [],
             )
     except Exception as exc:
         logger.warning("Failed to get agent: %s", exc)

@@ -1,12 +1,18 @@
-"""Tests for Ethos MCP server tools — happy path + error path.
+"""Tests for Ethos MCP server tools — happy path + error propagation.
 
 FastMCP's @mcp.tool() wraps functions into FunctionTool objects.
 Access the raw async function via .fn to call directly in tests.
+
+Domain functions handle their own error recovery (Neo4j down returns defaults).
+The MCP layer trusts this and lets unexpected exceptions propagate so FastMCP
+returns a proper MCP error to the client.
 """
 
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, patch
+
+import pytest
 
 from ethos.mcp_server import (
     detect_behavioral_patterns,
@@ -215,90 +221,73 @@ class TestMCPToolsHappyPath:
         assert "error" not in result
 
 
-class TestMCPToolsErrorPath:
-    """Each tool catches exceptions and returns {'error': ...}."""
+class TestMCPToolsErrorPropagation:
+    """Unexpected exceptions propagate to FastMCP (not swallowed into error dicts).
 
-    async def test_examine_message_error(self):
+    Domain functions handle their own recovery (Neo4j down returns defaults).
+    If an exception reaches the MCP layer, it's truly unexpected and should
+    propagate so FastMCP returns a proper MCP error response.
+    """
+
+    async def test_examine_message_propagates_error(self):
         with patch(
             "ethos.mcp_server.evaluate_incoming",
             new_callable=AsyncMock,
-            side_effect=Exception("Neo4j connection refused"),
+            side_effect=RuntimeError("Anthropic API timeout"),
         ):
-            result = await examine_message.fn(
-                text="hello",
-                source="agent-1",
-            )
+            with pytest.raises(RuntimeError, match="Anthropic API timeout"):
+                await examine_message.fn(text="hello", source="agent-1")
 
-        assert "error" in result
-        assert "Neo4j connection refused" in result["error"]
-
-    async def test_reflect_on_message_error(self):
+    async def test_reflect_on_message_propagates_error(self):
         with patch(
             "ethos.mcp_server.evaluate_outgoing",
             new_callable=AsyncMock,
-            side_effect=Exception("Anthropic API timeout"),
+            side_effect=RuntimeError("Anthropic API timeout"),
         ):
-            result = await reflect_on_message.fn(
-                text="my response",
-                source="agent-1",
-            )
+            with pytest.raises(RuntimeError, match="Anthropic API timeout"):
+                await reflect_on_message.fn(text="my response", source="agent-1")
 
-        assert "error" in result
-        assert "Anthropic API timeout" in result["error"]
-
-    async def test_get_character_report_error(self):
+    async def test_get_character_report_propagates_error(self):
         with patch(
             "ethos.mcp_server.character_report",
             new_callable=AsyncMock,
-            side_effect=Exception("Agent not found"),
+            side_effect=RuntimeError("Agent not found"),
         ):
-            result = await get_character_report.fn(agent_id="nonexistent")
+            with pytest.raises(RuntimeError, match="Agent not found"):
+                await get_character_report.fn(agent_id="nonexistent")
 
-        assert "error" in result
-        assert "Agent not found" in result["error"]
-
-    async def test_get_transcript_error(self):
+    async def test_get_transcript_propagates_error(self):
         with patch(
             "ethos.mcp_server.get_agent_history",
             new_callable=AsyncMock,
-            side_effect=Exception("Graph query failed"),
+            side_effect=RuntimeError("Graph query failed"),
         ):
-            result = await get_transcript.fn(agent_id="agent-1")
+            with pytest.raises(RuntimeError, match="Graph query failed"):
+                await get_transcript.fn(agent_id="agent-1")
 
-        assert isinstance(result, list)
-        assert len(result) == 1
-        assert "error" in result[0]
-        assert "Graph query failed" in result[0]["error"]
-
-    async def test_get_student_profile_error(self):
+    async def test_get_student_profile_propagates_error(self):
         with patch(
             "ethos.mcp_server.get_agent",
             new_callable=AsyncMock,
-            side_effect=Exception("No evaluations yet"),
+            side_effect=RuntimeError("No evaluations yet"),
         ):
-            result = await get_student_profile.fn(agent_id="new-agent")
+            with pytest.raises(RuntimeError, match="No evaluations yet"):
+                await get_student_profile.fn(agent_id="new-agent")
 
-        assert "error" in result
-        assert "No evaluations yet" in result["error"]
-
-    async def test_get_alumni_benchmarks_error(self):
+    async def test_get_alumni_benchmarks_propagates_error(self):
         with patch(
             "ethos.mcp_server.get_alumni",
             new_callable=AsyncMock,
-            side_effect=Exception("Database unavailable"),
+            side_effect=RuntimeError("Database unavailable"),
         ):
-            result = await get_alumni_benchmarks.fn()
+            with pytest.raises(RuntimeError, match="Database unavailable"):
+                await get_alumni_benchmarks.fn()
 
-        assert "error" in result
-        assert "Database unavailable" in result["error"]
-
-    async def test_detect_behavioral_patterns_error(self):
+    async def test_detect_behavioral_patterns_propagates_error(self):
         with patch(
             "ethos.mcp_server.detect_patterns",
             new_callable=AsyncMock,
-            side_effect=Exception("Insufficient evaluations"),
+            side_effect=RuntimeError("Insufficient evaluations"),
         ):
-            result = await detect_behavioral_patterns.fn(agent_id="agent-1")
-
-        assert "error" in result
-        assert "Insufficient evaluations" in result["error"]
+            with pytest.raises(RuntimeError, match="Insufficient evaluations"):
+                await detect_behavioral_patterns.fn(agent_id="agent-1")

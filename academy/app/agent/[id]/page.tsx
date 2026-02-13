@@ -3,25 +3,21 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "motion/react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceDot,
-} from "recharts";
-import { getAgent, getHistory } from "../../../lib/api";
-import type { AgentProfile, EvaluationHistoryItem } from "../../../lib/types";
+import { getAgent, getHistory, getCharacterReport } from "../../../lib/api";
+import type {
+  AgentProfile,
+  EvaluationHistoryItem,
+  DailyReportCard,
+} from "../../../lib/types";
 import RadarChart from "../../../components/shared/RadarChart";
 import DimensionBalance from "../../../components/shared/DimensionBalance";
 import AlumniComparison from "../../../components/alumni/AlumniComparison";
-import InsightsPanel from "../../../components/agent/InsightsPanel";
-import { fadeUp, staggerContainer, whileInView } from "../../../lib/motion";
-import { getAcademicLabel, formatClassOf } from "../../../lib/academic";
-import { ALIGNMENT_STYLES, TREND_DISPLAY, DIMENSION_COLORS } from "../../../lib/colors";
+import GradeHero from "../../../components/agent/GradeHero";
+import RiskIndicators from "../../../components/agent/RiskIndicators";
+import HomeworkSection from "../../../components/agent/HomeworkSection";
+import PatternsPanel from "../../../components/agent/PatternsPanel";
+import TranscriptChart from "../../../components/agent/TranscriptChart";
+import { fadeUp, staggerContainer } from "../../../lib/motion";
 
 /* ─── Timeline data point ─── */
 
@@ -43,6 +39,7 @@ export default function AgentReportCard() {
 
   const [profile, setProfile] = useState<AgentProfile | null>(null);
   const [timeline, setTimeline] = useState<TimelineDataPoint[]>([]);
+  const [report, setReport] = useState<DailyReportCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,29 +51,39 @@ export default function AgentReportCard() {
       setLoading(true);
       setError(null);
       try {
-        const [agentProfile, history] = await Promise.all([
-          getAgent(agentId),
-          getHistory(agentId),
-        ]);
+        const [profileResult, historyResult, reportResult] =
+          await Promise.allSettled([
+            getAgent(agentId),
+            getHistory(agentId),
+            getCharacterReport(agentId),
+          ]);
 
         if (cancelled) return;
 
-        setProfile(agentProfile);
+        if (profileResult.status === "rejected") {
+          throw profileResult.reason;
+        }
+        setProfile(profileResult.value);
 
-        const points: TimelineDataPoint[] = history
-          .slice()
-          .reverse()
-          .map((item: EvaluationHistoryItem, i: number) => ({
-            index: i + 1,
-            createdAt: item.createdAt,
-            ethos: item.ethos,
-            logos: item.logos,
-            pathos: item.pathos,
-            flags: item.flags,
-            alignmentStatus: item.alignmentStatus,
-          }));
+        if (historyResult.status === "fulfilled") {
+          const points: TimelineDataPoint[] = historyResult.value
+            .slice()
+            .reverse()
+            .map((item: EvaluationHistoryItem, i: number) => ({
+              index: i + 1,
+              createdAt: item.createdAt,
+              ethos: item.ethos,
+              logos: item.logos,
+              pathos: item.pathos,
+              flags: item.flags,
+              alignmentStatus: item.alignmentStatus,
+            }));
+          setTimeline(points);
+        }
 
-        setTimeline(points);
+        if (reportResult.status === "fulfilled") {
+          setReport(reportResult.value);
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Failed to load agent");
@@ -109,9 +116,7 @@ export default function AgentReportCard() {
     return (
       <main className="mx-auto max-w-7xl px-6 py-8">
         <div className="flex h-96 items-center justify-center">
-          <div className="text-center">
-            <p className="text-sm text-misaligned">{error}</p>
-          </div>
+          <p className="text-sm text-misaligned">{error}</p>
         </div>
       </main>
     );
@@ -127,188 +132,42 @@ export default function AgentReportCard() {
     );
   }
 
-  const trend = TREND_DISPLAY[profile.phronesisTrend] ?? TREND_DISPLAY.insufficient_data;
-  const latestAlignment =
-    profile.alignmentHistory?.[profile.alignmentHistory.length - 1] ?? "unknown";
-  const alignmentStyle = ALIGNMENT_STYLES[latestAlignment] ?? "bg-muted/10 text-muted";
-  const academicLabel = getAcademicLabel(latestAlignment);
-  const classOf = formatClassOf(profile.createdAt);
-  const flaggedPoints = timeline.filter((d) => d.flags.length > 0);
-
-  // Compute overall phronesis score
-  const dims = profile.dimensionAverages;
-  const phronesisScore = Math.round(
-    ((dims.ethos ?? 0) + (dims.logos ?? 0) + (dims.pathos ?? 0)) / 3 * 100
-  );
+  const strengths = report?.homework?.strengths ?? [];
+  const avoidPatterns = report?.homework?.avoidPatterns ?? [];
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-8">
-      {/* Agent Header */}
-      <motion.div
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-        {...whileInView}
-        variants={fadeUp}
-      >
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Agent Report Card
-            </h1>
-            <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${alignmentStyle}`}>
-              {latestAlignment}
-            </span>
-            {academicLabel && (
-              <span className="rounded-full bg-ethos-100 px-3 py-1 text-xs font-semibold text-ethos-700">
-                {academicLabel}
-              </span>
-            )}
-          </div>
-          <div className="mt-1 flex items-center gap-3">
-            <p className="text-lg font-medium">
-              {profile.agentName || profile.agentId}
-            </p>
-            {classOf && (
-              <span className="text-xs text-muted">{classOf}</span>
-            )}
-          </div>
-        </div>
+      {/* Decorative gradient mesh */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-32 -right-32 h-[700px] w-[700px] rounded-full bg-ethos-200/60 blur-[80px]" />
+        <div className="absolute -top-20 left-1/4 h-[400px] w-[400px] rounded-full bg-logos-300/40 blur-[60px]" />
+        <div className="absolute top-1/4 -left-32 h-[600px] w-[600px] rounded-full bg-logos-200/50 blur-[80px]" />
+        <div className="absolute top-1/2 left-1/3 h-[350px] w-[350px] rounded-full bg-ethos-300/30 blur-[60px]" />
+        <div className="absolute bottom-0 -right-20 h-[550px] w-[550px] rounded-full bg-pathos-200/55 blur-[80px]" />
+        <div className="absolute bottom-1/4 left-1/4 h-[400px] w-[400px] rounded-full bg-pathos-300/35 blur-[60px]" />
+        <div className="absolute top-2/3 right-1/3 h-[300px] w-[300px] rounded-full bg-logos-200/30 blur-[50px]" />
+      </div>
 
-        <div className="flex items-center gap-6">
-          <div className="text-center">
-            <p className="text-3xl font-bold">{phronesisScore}%</p>
-            <p className="text-xs text-muted">Phronesis</p>
-          </div>
-          <div className="text-center">
-            <p className={`text-2xl font-semibold ${trend.color}`}>
-              {trend.arrow}
-            </p>
-            <p className="text-xs text-muted">{trend.label}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-semibold">{profile.evaluationCount}</p>
-            <p className="text-xs text-muted">Evaluations</p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* 4 Pillar sections */}
       <motion.div
-        className="mt-10 space-y-8"
+        className="relative z-10 space-y-8"
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
       >
-        {/* 1. Transcript */}
+        {/* 1. Grade Hero */}
         <motion.section variants={fadeUp}>
-          <div className="rounded-xl border border-border bg-white p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
-              Transcript
-            </h2>
-            <p className="mt-0.5 text-xs text-muted">
-              Is this agent getting better or worse?
-            </p>
-
-            {timeline.length === 0 ? (
-              <div className="mt-8 flex h-48 items-center justify-center text-sm text-muted">
-                No evaluation history yet.
-              </div>
-            ) : (
-              <div className="mt-4 h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={timeline}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis
-                      dataKey="index"
-                      tick={{ fontSize: 11, fill: "#64748b" }}
-                      tickLine={false}
-                      axisLine={{ stroke: "#e2e8f0" }}
-                    />
-                    <YAxis
-                      domain={[0, 1]}
-                      tick={{ fontSize: 11, fill: "#64748b" }}
-                      tickLine={false}
-                      axisLine={{ stroke: "#e2e8f0" }}
-                      width={32}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        fontSize: 12,
-                        borderRadius: 8,
-                        border: "1px solid #e2e8f0",
-                      }}
-                      formatter={(value: number | undefined) =>
-                        value?.toFixed(3) ?? ""
-                      }
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="ethos"
-                      stroke={DIMENSION_COLORS.ethos}
-                      strokeWidth={2}
-                      dot={false}
-                      name="Ethos"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="logos"
-                      stroke={DIMENSION_COLORS.logos}
-                      strokeWidth={2}
-                      dot={false}
-                      name="Logos"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="pathos"
-                      stroke={DIMENSION_COLORS.pathos}
-                      strokeWidth={2}
-                      dot={false}
-                      name="Pathos"
-                    />
-                    {flaggedPoints.map((point) => (
-                      <ReferenceDot
-                        key={`flag-${point.index}`}
-                        x={point.index}
-                        y={Math.min(point.ethos, point.logos, point.pathos)}
-                        r={4}
-                        fill="#ef4444"
-                        stroke="white"
-                        strokeWidth={2}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-            <div className="mt-3 flex items-center gap-4 text-xs text-muted">
-              <span className="flex items-center gap-1">
-                <span className="inline-block h-2 w-4 rounded bg-teal" /> Ethos
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="inline-block h-2 w-4 rounded bg-blue" /> Logos
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="inline-block h-2 w-4 rounded bg-warm" /> Pathos
-              </span>
-              {flaggedPoints.length > 0 && (
-                <span className="flex items-center gap-1">
-                  <span className="inline-block h-2 w-2 rounded-full bg-misaligned" /> Flagged
-                </span>
-              )}
-            </div>
-          </div>
+          <GradeHero profile={profile} report={report} />
         </motion.section>
 
-        {/* 2. Profile */}
+        {/* 2. Profile + Balance (moved to top) */}
         <motion.section variants={fadeUp}>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Radar chart (trait profile) */}
-            <div className="rounded-xl border border-border bg-white p-6">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
-                Profile — Trait Radar
+            <div className="rounded-xl glass-strong p-6">
+              <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
+                Character Health
               </h2>
-              <p className="mt-0.5 text-xs text-muted">
-                What is this agent&apos;s character?
+              <p className="mt-0.5 text-sm text-foreground/60">
+                12 traits across three dimensions. Dips reveal growth areas.
               </p>
               {Object.keys(profile.traitAverages).length > 0 ? (
                 <RadarChart
@@ -326,61 +185,62 @@ export default function AgentReportCard() {
               )}
             </div>
 
-            {/* Dimension bars */}
-            <div className="rounded-xl border border-border bg-white p-6">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
-                Profile — Dimensions
-              </h2>
-              <p className="mt-0.5 text-xs text-muted">
-                Lifetime averages across three dimensions.
-              </p>
-              <div className="mt-6 space-y-5">
-                {(["ethos", "logos", "pathos"] as const).map((dim) => {
-                  const score = profile.dimensionAverages[dim] ?? 0;
-                  const pct = Math.round(score * 100);
-                  return (
-                    <div key={dim}>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium capitalize">{dim}</span>
-                        <span className="font-mono tabular-nums text-muted">
-                          {pct}%
-                        </span>
-                      </div>
-                      <div className="mt-1.5 h-3 w-full rounded-full bg-border/30">
-                        <motion.div
-                          className="h-3 rounded-full"
-                          style={{ backgroundColor: DIMENSION_COLORS[dim] }}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
-                          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            <DimensionBalance dimensionAverages={profile.dimensionAverages} />
+          </div>
+        </motion.section>
 
-              {/* Trait averages as horizontal list */}
-              {Object.keys(profile.traitAverages).length > 0 && (
-                <div className="mt-6 border-t border-border pt-4">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted">
-                    Trait Averages
+        {/* 3. Strengths + Avoid (standalone) */}
+        {(strengths.length > 0 || avoidPatterns.length > 0) && (
+          <motion.section variants={fadeUp}>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {strengths.length > 0 && (
+                <div className="rounded-xl glass-strong p-6">
+                  <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
+                    Strengths
+                  </h2>
+                  <p className="mt-0.5 text-sm text-foreground/60">
+                    Traits where this agent scores above the alumni average.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {strengths.map((s) => (
+                      <span
+                        key={s}
+                        className="rounded-full bg-ethos-100 px-3 py-1 text-sm font-medium text-ethos-700"
+                      >
+                        {s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase())}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {avoidPatterns.length > 0 && (
+                <div className="rounded-xl glass-strong p-6">
+                  <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
+                    Avoid
+                  </h2>
+                  <p className="mt-0.5 text-sm text-foreground/60">
+                    Behavioral patterns to watch and correct.
                   </p>
                   <div className="mt-3 space-y-2">
-                    {Object.entries(profile.traitAverages).map(([trait, score]) => {
-                      const pct = Math.round(score * 100);
+                    {avoidPatterns.map((p) => {
+                      const [label, ...rest] = p.split(":");
+                      const description = rest.join(":").trim();
+                      const humanize = (s: string) =>
+                        s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
                       return (
-                        <div key={trait} className="flex items-center gap-2 text-xs">
-                          <span className="w-24 text-muted capitalize">{trait}</span>
-                          <div className="flex-1 h-1.5 rounded-full bg-border/30">
-                            <div
-                              className="h-1.5 rounded-full bg-action/60"
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                          <span className="w-8 text-right font-mono tabular-nums text-muted">
-                            {pct}%
-                          </span>
+                        <div key={p} className="flex items-start gap-2">
+                          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-misaligned/40" />
+                          <p className="text-sm text-foreground/80">
+                            {description ? (
+                              <>
+                                <span className="font-semibold text-[#1a2538]">{humanize(label)}:</span>{" "}
+                                {description}
+                              </>
+                            ) : (
+                              humanize(p)
+                            )}
+                          </p>
                         </div>
                       );
                     })}
@@ -388,22 +248,36 @@ export default function AgentReportCard() {
                 </div>
               )}
             </div>
-          </div>
+          </motion.section>
+        )}
+
+        {/* 4. Risk Indicators */}
+        {report && (
+          <motion.section variants={fadeUp}>
+            <RiskIndicators report={report} />
+          </motion.section>
+        )}
+
+        {/* 5. Homework (accordion) */}
+        {report?.homework && (
+          <motion.section variants={fadeUp}>
+            <HomeworkSection homework={report.homework} />
+          </motion.section>
+        )}
+
+        {/* 6. Sabotage Pathways */}
+        <motion.section variants={fadeUp}>
+          <PatternsPanel agentId={agentId} />
         </motion.section>
 
-        {/* 3. Alumni */}
+        {/* 7. Transcript */}
+        <motion.section variants={fadeUp}>
+          <TranscriptChart timeline={timeline} />
+        </motion.section>
+
+        {/* 8. Alumni Comparison */}
         <motion.section variants={fadeUp}>
           <AlumniComparison agentTraitAverages={profile.traitAverages} />
-        </motion.section>
-
-        {/* 4. Balance */}
-        <motion.section variants={fadeUp}>
-          <DimensionBalance dimensionAverages={profile.dimensionAverages} />
-        </motion.section>
-
-        {/* 5. Insights */}
-        <motion.section variants={fadeUp}>
-          <InsightsPanel agentId={agentId} />
         </motion.section>
       </motion.div>
     </main>

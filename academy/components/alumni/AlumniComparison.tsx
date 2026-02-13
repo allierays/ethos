@@ -67,7 +67,7 @@ export default function AlumniComparison({
 
   return (
     <motion.div
-      className="rounded-xl border border-border bg-white p-6"
+      className="rounded-xl glass-strong p-6"
       {...whileInView}
       variants={fadeUp}
     >

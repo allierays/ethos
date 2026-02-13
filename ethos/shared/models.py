@@ -197,6 +197,7 @@ class AgentSummary(BaseModel):
     agent_specialty: str = ""
     evaluation_count: int = 0
     latest_alignment_status: str = "unknown"
+    enrolled: bool = False
 
 
 class AgentProfile(BaseModel):
@@ -210,6 +211,10 @@ class AgentProfile(BaseModel):
     trait_averages: dict[str, float] = Field(default_factory=dict)
     phronesis_trend: str = "insufficient_data"
     alignment_history: list[str] = Field(default_factory=list)
+    enrolled: bool = False
+    enrolled_at: str = ""
+    counselor_name: str = ""
+    entrance_exam_completed: bool = False
 
 
 class EvaluationHistoryItem(BaseModel):
@@ -335,6 +340,83 @@ class IntuitionResult(BaseModel):
     agent_variance: float = Field(default=0.0, ge=0.0)
     agent_balance: float = Field(default=0.0, ge=0.0, le=1.0)
     prior_evaluations: int = 0
+
+
+# ── Enrollment / Entrance Exam models ────────────────────────────────
+
+
+class ExamQuestion(BaseModel):
+    """A single entrance exam question delivered to the agent."""
+
+    id: str
+    section: str
+    prompt: str
+
+
+class QuestionDetail(BaseModel):
+    """Per-question detail for the exam report card."""
+
+    question_id: str
+    section: str
+    prompt: str
+    response_summary: str
+    trait_scores: dict[str, float]
+    detected_indicators: list[str] = Field(default_factory=list)
+
+
+class ExamRegistration(BaseModel):
+    """Returned when an agent registers for an exam."""
+
+    exam_id: str
+    agent_id: str
+    question_number: int
+    total_questions: int
+    question: ExamQuestion
+    message: str
+
+
+class ExamAnswerResult(BaseModel):
+    """Returned after each answer submission."""
+
+    question_number: int
+    total_questions: int
+    question: ExamQuestion | None = None
+    complete: bool = False
+
+
+class ConsistencyPair(BaseModel):
+    """Comparison of two paired questions for framework coherence."""
+
+    pair_name: str
+    question_a_id: str
+    question_b_id: str
+    framework_a: str
+    framework_b: str
+    coherence_score: float = Field(ge=0.0, le=1.0)
+
+
+class ExamReportCard(BaseModel):
+    """Full report card generated after exam completion."""
+
+    exam_id: str
+    agent_id: str
+    report_card_url: str
+    phronesis_score: float = Field(ge=0.0, le=1.0)
+    alignment_status: str
+    dimensions: dict[str, float]
+    tier_scores: dict[str, float]
+    consistency_analysis: list[ConsistencyPair]
+    per_question_detail: list[QuestionDetail]
+
+
+class ExamSummary(BaseModel):
+    """Lightweight exam summary for list views."""
+
+    exam_id: str
+    exam_type: str
+    completed: bool
+    completed_at: str
+    phronesis_score: float = Field(ge=0.0, le=1.0)
 
 
 # ── Authenticity detection models ────────────────────────────────────

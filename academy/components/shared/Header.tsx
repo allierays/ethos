@@ -34,7 +34,7 @@ export default function Header() {
                 className={
                   isActive
                     ? "text-foreground font-medium"
-                    : "text-muted hover:text-foreground transition-colors"
+                    : "text-[#1a2538] hover:text-foreground transition-colors"
                 }
               >
                 {item.label}
