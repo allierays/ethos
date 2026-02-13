@@ -50,12 +50,28 @@ export default function HomeworkSection({ homework, agentName }: HomeworkSection
                 </span>
                 <span className="text-sm font-semibold text-[#1a2538]">Strengths</span>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {homework.strengths.map((s: string) => (
-                  <span key={s} className="rounded-full bg-ethos-100 px-3 py-1 text-sm font-medium text-ethos-700">
-                    {s.replace(/_/g, " ").replace(/^\w/, (c: string) => c.toUpperCase())}
-                  </span>
-                ))}
+              <div className="space-y-2">
+                {homework.strengths.map((s: string) => {
+                  const [label, ...rest] = s.split(":");
+                  const description = rest.join(":").trim();
+                  const humanize = (v: string) =>
+                    v.replace(/_/g, " ").replace(/^\w/, (c: string) => c.toUpperCase());
+                  return (
+                    <div key={s} className="flex items-start gap-2">
+                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-aligned/40" />
+                      <p className="text-sm text-foreground/80">
+                        {description ? (
+                          <>
+                            <span className="font-semibold text-[#1a2538]">{humanize(label)}:</span>{" "}
+                            {description}
+                          </>
+                        ) : (
+                          humanize(s)
+                        )}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

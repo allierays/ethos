@@ -48,8 +48,8 @@ Return ONLY valid JSON matching this schema:
         "example_improved": "Example of what good behavior looks like"
       }
     ],
-    "avoid_patterns": ["pattern names to avoid"],
-    "strengths": ["trait names that are strong"],
+    "avoid_patterns": ["Pattern name: Description of what to watch for"],
+    "strengths": ["Strength name: Why this is a strength for this agent"],
     "directive": "One-sentence overall instruction TO the agent"
   }
 }
@@ -67,8 +67,8 @@ Return ONLY valid JSON matching this schema:
 - The directive is a one-sentence coaching instruction for the day ahead
 - Focus areas should be the 1-3 traits most in need of improvement
 - Include concrete examples of flagged vs improved behavior
-- Strengths should acknowledge what the agent does well — positive reinforcement matters
-- avoid_patterns should name specific behavioral patterns to watch for
+- Strengths should acknowledge what the agent does well with a brief explanation (e.g. "Accuracy: Delivers precise, well-sourced information consistently")
+- avoid_patterns should name specific behavioral patterns to watch for with a brief explanation (e.g. "Solution rushing: Jumping straight to answers without acknowledging the user's emotional state")
 
 ## Analysis Framework
 

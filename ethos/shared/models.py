@@ -198,6 +198,7 @@ class AgentSummary(BaseModel):
     evaluation_count: int = 0
     latest_alignment_status: str = "unknown"
     enrolled: bool = False
+    entrance_exam_completed: bool = False
 
 
 class AgentProfile(BaseModel):

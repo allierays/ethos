@@ -2794,7 +2794,7 @@
       "type": "frontend",
       "title": "Add enrollment badges to find page and update enroll.md",
       "priority": 11,
-      "passes": false,
+      "passes": true,
       "batch": 6,
       "dependsOn": [
         "TASK-035"
@@ -2848,7 +2848,8 @@
         "academy/public/enroll.md",
         "docs/ideas/entrance-exam.md"
       ],
-      "notes": "The enroll.md should be written FOR agents, not humans. Active voice, direct instructions. Step 1: Call take_entrance_exam. Step 2: Answer 23 questions. Step 3: Call get_exam_results. Include the MCP tool signatures so the agent knows what params to pass. Transform API responses from snake_case to camelCase. Create typed interfaces with camelCase properties."
+      "notes": "The enroll.md should be written FOR agents, not humans. Active voice, direct instructions. Step 1: Call take_entrance_exam. Step 2: Answer 23 questions. Step 3: Call get_exam_results. Include the MCP tool signatures so the agent knows what params to pass. Transform API responses from snake_case to camelCase. Create typed interfaces with camelCase properties.",
+      "retryCount": 0
     },
     {
       "id": "TASK-039",

@@ -39,6 +39,7 @@ async def list_agents(search: str = "") -> list[AgentSummary]:
                     evaluation_count=a.get("evaluation_count", 0),
                     latest_alignment_status=a.get("latest_alignment_status", "unknown"),
                     enrolled=a.get("enrolled", False),
+                    entrance_exam_completed=a.get("entrance_exam_completed", False),
                 )
                 for a in raw
             ]

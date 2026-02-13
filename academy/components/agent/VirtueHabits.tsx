@@ -40,6 +40,7 @@ interface HabitData {
   status: HabitStatus;
   strength: number;
   trend: number;
+  scores: number[]; // effective scores per evaluation, chronological
 }
 
 const STATUS_CONFIG: Record<HabitStatus, { label: string; dotClass: string }> = {
@@ -51,13 +52,14 @@ const STATUS_CONFIG: Record<HabitStatus, { label: string; dotClass: string }> = 
 };
 
 function computeHabit(
-  scores: number[],
+  rawScores: number[],
   polarity: "positive" | "negative"
-): { status: HabitStatus; strength: number; trend: number } {
+): { status: HabitStatus; strength: number; trend: number; scores: number[] } {
+  const scores = rawScores.map((s) => (polarity === "negative" ? 1 - s : s));
+
   if (scores.length < 2) {
     const s = scores[0] ?? 0.5;
-    const effective = polarity === "negative" ? 1 - s : s;
-    return { status: "insufficient", strength: effective, trend: 0 };
+    return { status: "insufficient", strength: s, trend: 0, scores };
   }
 
   const latest = scores[scores.length - 1];
@@ -65,23 +67,20 @@ function computeHabit(
   const variance =
     scores.reduce((sum, s) => sum + (s - avg) ** 2, 0) / scores.length;
   const trend = scores[scores.length - 1] - scores[0];
-
-  const effectiveScore = polarity === "negative" ? 1 - latest : latest;
-  const effectiveTrend = polarity === "negative" ? -trend : trend;
   const isConsistent = variance < 0.03;
 
   let status: HabitStatus;
-  if (effectiveScore > 0.7 && isConsistent) {
+  if (latest > 0.7 && isConsistent) {
     status = "established";
-  } else if (effectiveTrend > 0.03) {
+  } else if (trend > 0.03) {
     status = "forming";
-  } else if (effectiveScore > 0.5) {
+  } else if (latest > 0.5) {
     status = "emerging";
   } else {
     status = "needs_work";
   }
 
-  return { status, strength: effectiveScore, trend: effectiveTrend };
+  return { status, strength: latest, trend, scores };
 }
 
 export default function VirtueHabits({ history, agentName }: VirtueHabitsProps) {
@@ -89,12 +88,12 @@ export default function VirtueHabits({ history, agentName }: VirtueHabitsProps) 
   const chronological = [...history].reverse();
 
   const habits: HabitData[] = TRAITS.map((trait) => {
-    const scores = chronological
+    const rawScores = chronological
       .map((e) => e.traitScores?.[trait.key])
       .filter((s): s is number => s !== undefined && s !== null);
 
-    const { status, strength, trend } = computeHabit(scores, trait.polarity);
-    return { trait, status, strength, trend };
+    const { status, strength, trend, scores } = computeHabit(rawScores, trait.polarity);
+    return { trait, status, strength, trend, scores };
   });
 
   const dimensions = [
@@ -176,21 +175,23 @@ export default function VirtueHabits({ history, agentName }: VirtueHabitsProps) 
                         </span>
                       </div>
 
-                      <div className="mt-1 h-1.5 w-full rounded-full bg-foreground/[0.06]">
-                        <motion.div
-                          className="h-1.5 rounded-full"
-                          style={{ backgroundColor: dim.color }}
-                          initial={{ width: 0 }}
-                          whileInView={{
-                            width: `${Math.round(habit.strength * 100)}%`,
-                          }}
-                          viewport={{ once: true }}
-                          transition={{
-                            duration: 0.8,
-                            ease: "easeOut",
-                            delay: 0.1,
-                          }}
-                        />
+                      {/* Consistency squares: solid = strong, outline = weak */}
+                      <div className="mt-1.5 flex gap-1">
+                        {habit.scores.map((score, i) => {
+                          const strong = score >= 0.7;
+                          return (
+                            <div
+                              key={i}
+                              className="h-3 flex-1 rounded-sm"
+                              style={
+                                strong
+                                  ? { backgroundColor: dim.color }
+                                  : { border: `1.5px solid ${dim.color}40`, backgroundColor: "transparent" }
+                              }
+                              title={`Eval ${i + 1}: ${Math.round(score * 100)}%`}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   );

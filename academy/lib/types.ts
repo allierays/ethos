@@ -82,6 +82,7 @@ export interface AgentSummary {
   evaluationCount: number;
   latestAlignmentStatus: string;
   enrolled: boolean;
+  entranceExamCompleted: boolean;
 }
 
 export interface AgentProfile {

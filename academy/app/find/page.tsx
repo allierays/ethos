@@ -121,9 +121,21 @@ export default function FindPage() {
                     >
                       <article>
                         <div className="flex items-center justify-between gap-4">
-                          <h2 className="text-lg font-semibold">
-                            {agent.agentName}
-                          </h2>
+                          <div className="flex items-center gap-2.5">
+                            <h2 className="text-lg font-semibold">
+                              {agent.agentName}
+                            </h2>
+                            {agent.enrolled && (
+                              <span className="rounded-full bg-ethos-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ethos-700">
+                                Enrolled
+                              </span>
+                            )}
+                            {agent.entranceExamCompleted && (
+                              <span className="rounded-full bg-aligned/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-aligned">
+                                Exam complete
+                              </span>
+                            )}
+                          </div>
                           <AlignmentBadge
                             status={agent.latestAlignmentStatus}
                           />

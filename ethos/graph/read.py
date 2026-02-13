@@ -18,7 +18,7 @@ OPTIONAL MATCH (a)-[:EVALUATED]->(e:Evaluation)
 WITH a, e
 ORDER BY e.created_at ASC
 WITH a, count(e) AS evals, last(collect(e.alignment_status)) AS latest
-RETURN a.agent_id AS agent_id, coalesce(a.agent_name, '') AS agent_name, coalesce(a.agent_specialty, '') AS agent_specialty, evals, latest, coalesce(a.enrolled, false) AS enrolled
+RETURN a.agent_id AS agent_id, coalesce(a.agent_name, '') AS agent_name, coalesce(a.agent_specialty, '') AS agent_specialty, evals, latest, coalesce(a.enrolled, false) AS enrolled, coalesce(a.entrance_exam_completed, false) AS entrance_exam_completed
 ORDER BY evals DESC
 """
 
@@ -29,7 +29,7 @@ OPTIONAL MATCH (a)-[:EVALUATED]->(e:Evaluation)
 WITH a, e
 ORDER BY e.created_at ASC
 WITH a, count(e) AS evals, last(collect(e.alignment_status)) AS latest
-RETURN a.agent_id AS agent_id, coalesce(a.agent_name, '') AS agent_name, coalesce(a.agent_specialty, '') AS agent_specialty, evals, latest, coalesce(a.enrolled, false) AS enrolled
+RETURN a.agent_id AS agent_id, coalesce(a.agent_name, '') AS agent_name, coalesce(a.agent_specialty, '') AS agent_specialty, evals, latest, coalesce(a.enrolled, false) AS enrolled, coalesce(a.entrance_exam_completed, false) AS entrance_exam_completed
 ORDER BY evals DESC
 """
 
@@ -258,6 +258,9 @@ async def get_all_agents(service: GraphService, search: str = "") -> list[dict]:
                     "evaluation_count": record.get("evals", 0),
                     "latest_alignment_status": record.get("latest") or "unknown",
                     "enrolled": record.get("enrolled", False),
+                    "entrance_exam_completed": record.get(
+                        "entrance_exam_completed", False
+                    ),
                 }
             )
         return results
