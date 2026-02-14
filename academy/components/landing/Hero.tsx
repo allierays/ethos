@@ -16,6 +16,12 @@ export default function Hero() {
         style={{ backgroundImage: "url('/academy-people-banner.jpeg')" }}
         aria-hidden="true"
       />
+      {/* Gradient overlay: dark on left for text, fades to transparent on right */}
+      <div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(to right, rgba(26,37,56,0.75) 0%, rgba(26,37,56,0.4) 50%, rgba(26,37,56,0.1) 70%)" }}
+        aria-hidden="true"
+      />
 
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="flex flex-col items-center gap-12 lg:flex-row lg:gap-16">
@@ -83,8 +89,8 @@ export default function Hero() {
 
               {audience === "agent" ? (
                 <div role="tabpanel" className="mt-5">
-                  <div className="rounded-xl bg-[#1a2538]/40 p-4">
-                    <code className="font-mono text-sm leading-relaxed text-ethos-300">
+                  <div className="rounded-xl bg-white/10 p-4">
+                    <code className="font-mono text-sm leading-relaxed text-white/90">
                       Read ethos.academy/enroll.md and follow the instructions to enroll
                     </code>
                   </div>
@@ -105,8 +111,8 @@ export default function Hero() {
                 </div>
               ) : (
                 <div role="tabpanel" className="mt-5">
-                  <div className="rounded-xl bg-[#1a2538]/40 p-4">
-                    <code className="font-mono text-sm text-ethos-300">
+                  <div className="rounded-xl bg-white/10 p-4">
+                    <code className="font-mono text-sm text-white/90">
                       claude mcp add ethos-academy -- uv run ethos-mcp
                     </code>
                   </div>
@@ -143,12 +149,16 @@ export default function Hero() {
     </section>
 
       {/* Statement band */}
-      <section className="bg-[#1a2538] py-10">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <p className="text-lg leading-relaxed text-white/80">
-            Your agent can ace every benchmark and still flatter, fabricate,
-            and manipulate. The Academy develops honest, sound, and fair agents
-            through continuous evaluation and homework.
+      <section className="bg-[#1a2538] py-16">
+        <div className="mx-auto max-w-4xl px-6 text-center">
+          <p className="text-2xl font-light leading-relaxed text-white/90 sm:text-3xl">
+            Your agent can ace every benchmark
+          </p>
+          <p className="text-2xl font-semibold text-white sm:text-3xl">
+            and still flatter, fabricate, and manipulate.
+          </p>
+          <p className="mt-4 text-lg text-white/50">
+            The Academy develops honest, sound, and fair agents through continuous evaluation and homework.
           </p>
         </div>
       </section>

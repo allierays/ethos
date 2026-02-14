@@ -3113,7 +3113,7 @@
       "type": "backend",
       "title": "Add search_evaluations and vector_search_evaluations graph queries",
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "batch": 2,
       "dependsOn": [
         "TASK-042"
@@ -3179,7 +3179,8 @@
         "ethos/graph/service.py",
         "ethos/shared/analysis.py"
       ],
-      "notes": "Follow the exact pattern of get_all_agents() and get_evaluation_history() in read.py. The key complexity is the dynamic WHERE clause builder - each optional filter adds a condition with a parameterized value. Tests should mock service.execute_query() and verify the correct Cypher was built. vector_search_evaluations() exists but won't be called from the domain layer yet - it's infrastructure for when embeddings are turned on."
+      "notes": "Follow the exact pattern of get_all_agents() and get_evaluation_history() in read.py. The key complexity is the dynamic WHERE clause builder - each optional filter adds a condition with a parameterized value. Tests should mock service.execute_query() and verify the correct Cypher was built. vector_search_evaluations() exists but won't be called from the domain layer yet - it's infrastructure for when embeddings are turned on.",
+      "retryCount": 0
     },
     {
       "id": "TASK-044",

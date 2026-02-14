@@ -447,3 +447,189 @@ async def get_agent_highlights(
     except Exception as exc:
         logger.warning("Failed to get agent highlights: %s", exc)
         return {"exemplary": [], "concerning": []}
+
+
+# ---------------------------------------------------------------------------
+# Evaluation search (text-based)
+# ---------------------------------------------------------------------------
+
+_SORT_MAP = {
+    "date": "e.created_at",
+    "score": "(e.ethos + e.logos + e.pathos) / 3.0",
+    "agent": "a.agent_name",
+}
+
+_EVAL_RETURN_FIELDS = """e.evaluation_id AS evaluation_id,
+       a.agent_id AS agent_id,
+       coalesce(a.agent_name, '') AS agent_name,
+       e.ethos AS ethos, e.logos AS logos, e.pathos AS pathos,
+       e.alignment_status AS alignment_status,
+       e.flags AS flags,
+       e.direction AS direction,
+       e.message_content AS message_content,
+       toString(e.created_at) AS created_at,
+       e.phronesis AS phronesis,
+       e.scoring_reasoning AS scoring_reasoning,
+       e.intent_rhetorical_mode AS intent_rhetorical_mode,
+       e.intent_primary_intent AS intent_primary_intent,
+       e.intent_cost_to_reader AS intent_cost_to_reader,
+       e.intent_stakes_reality AS intent_stakes_reality,
+       e.intent_proportionality AS intent_proportionality,
+       e.intent_persona_type AS intent_persona_type,
+       e.intent_relational_quality AS intent_relational_quality"""
+
+_EVAL_TRAIT_FIELDS = "".join(f",\n       e.trait_{t} AS trait_{t}" for t in TRAIT_NAMES)
+
+
+def _build_search_where(
+    *,
+    search: str | None,
+    agent_id: str | None,
+    alignment_status: str | None,
+    has_flags: bool | None,
+) -> tuple[str, dict]:
+    """Build dynamic WHERE clause and params for evaluation search."""
+    conditions: list[str] = []
+    params: dict = {}
+
+    if search:
+        conditions.append(
+            "(toLower(e.message_content) CONTAINS toLower($search)"
+            " OR toLower(a.agent_name) CONTAINS toLower($search))"
+        )
+        params["search"] = search
+
+    if agent_id:
+        conditions.append("a.agent_id = $agent_id")
+        params["agent_id"] = agent_id
+
+    if alignment_status:
+        conditions.append("e.alignment_status = $alignment_status")
+        params["alignment_status"] = alignment_status
+
+    if has_flags is True:
+        conditions.append("size(e.flags) > 0")
+    elif has_flags is False:
+        conditions.append("(e.flags IS NULL OR size(e.flags) = 0)")
+
+    where = "WHERE " + " AND ".join(conditions) if conditions else ""
+    return where, params
+
+
+async def search_evaluations(
+    service: GraphService,
+    *,
+    search: str | None = None,
+    agent_id: str | None = None,
+    alignment_status: str | None = None,
+    has_flags: bool | None = None,
+    sort_by: str = "date",
+    sort_order: str = "desc",
+    skip: int = 0,
+    limit: int = 20,
+) -> tuple[list[dict], int]:
+    """Search evaluations with optional filters, sorting, and pagination.
+
+    Returns (items, total_count). Returns ([], 0) if graph is unavailable.
+    """
+    if not service.connected:
+        return [], 0
+
+    where, params = _build_search_where(
+        search=search,
+        agent_id=agent_id,
+        alignment_status=alignment_status,
+        has_flags=has_flags,
+    )
+
+    sort_field = _SORT_MAP.get(sort_by, _SORT_MAP["date"])
+    order = "ASC" if sort_order.lower() == "asc" else "DESC"
+
+    count_query = f"""
+MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation)
+{where}
+RETURN count(e) AS total
+"""
+
+    data_query = f"""
+MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation)
+{where}
+RETURN {_EVAL_RETURN_FIELDS}{_EVAL_TRAIT_FIELDS}
+ORDER BY {sort_field} {order}
+SKIP $skip LIMIT $limit
+"""
+
+    try:
+        count_records, _, _ = await service.execute_query(count_query, params)
+        total = count_records[0]["total"] if count_records else 0
+
+        if total == 0:
+            return [], 0
+
+        data_params = {**params, "skip": skip, "limit": limit}
+        data_records, _, _ = await service.execute_query(data_query, data_params)
+
+        items = [dict(record) for record in data_records]
+        return items, total
+    except Exception as exc:
+        logger.warning("Failed to search evaluations: %s", exc)
+        return [], 0
+
+
+# ---------------------------------------------------------------------------
+# Vector search (infrastructure, not called from API yet)
+# ---------------------------------------------------------------------------
+
+
+async def vector_search_evaluations(
+    service: GraphService,
+    *,
+    embedding: list[float],
+    k: int = 10,
+    agent_id: str | None = None,
+    alignment_status: str | None = None,
+    has_flags: bool | None = None,
+) -> list[dict]:
+    """Search evaluations by vector similarity using Neo4j vector index.
+
+    Uses db.index.vector.queryNodes(). Returns results with similarity score.
+    Returns empty list if graph is unavailable.
+    """
+    if not service.connected:
+        return []
+
+    # Post-filter conditions after vector search
+    conditions: list[str] = []
+    params: dict = {"embedding": embedding, "k": k}
+
+    if agent_id:
+        conditions.append("a.agent_id = $agent_id")
+        params["agent_id"] = agent_id
+
+    if alignment_status:
+        conditions.append("e.alignment_status = $alignment_status")
+        params["alignment_status"] = alignment_status
+
+    if has_flags is True:
+        conditions.append("size(e.flags) > 0")
+    elif has_flags is False:
+        conditions.append("(e.flags IS NULL OR size(e.flags) = 0)")
+
+    where = "WHERE " + " AND ".join(conditions) if conditions else ""
+
+    query = f"""
+CALL db.index.vector.queryNodes('evaluation_embeddings', $k, $embedding)
+YIELD node AS e, score AS similarity
+MATCH (a:Agent)-[:EVALUATED]->(e)
+{where}
+RETURN {_EVAL_RETURN_FIELDS}{_EVAL_TRAIT_FIELDS},
+       similarity
+ORDER BY similarity DESC
+"""
+
+    try:
+        records, _, _ = await service.execute_query(query, params)
+        return [dict(record) for record in records]
+    except Exception as exc:
+        logger.warning("Failed to vector search evaluations: %s", exc)
+        return []
