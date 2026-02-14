@@ -11,6 +11,23 @@ export interface TraitScore {
   indicators: DetectedIndicator[];
 }
 
+export interface Claim {
+  claim: string;
+  type: string; // factual, experiential, opinion, metaphorical, fictional
+}
+
+export interface IntentClassification {
+  rhetoricalMode: string;
+  primaryIntent: string;
+  actionRequested: string;
+  costToReader: string;
+  stakesReality: string;
+  proportionality: string;
+  personaType: string;
+  relationalQuality: string;
+  claims: Claim[];
+}
+
 export interface DetectedIndicator {
   id: string;
   name: string;
@@ -47,6 +64,8 @@ export interface EvaluationResult {
   tierScores: Record<string, number>;
   direction: string | null;
   confidence: number;
+  intentClassification: IntentClassification | null;
+  scoringReasoning: string;
 }
 
 export interface ReflectionResult {
@@ -119,6 +138,8 @@ export interface EvaluationHistoryItem {
   createdAt: string;
   traitScores: Record<string, number>;
   messageContent: string;
+  intentClassification: IntentClassification | null;
+  scoringReasoning: string;
 }
 
 export interface HighlightIndicator {
@@ -139,6 +160,8 @@ export interface HighlightItem {
   indicators: HighlightIndicator[];
   messageContent: string;
   createdAt: string;
+  intentClassification: IntentClassification | null;
+  scoringReasoning: string;
 }
 
 export interface HighlightsResult {

@@ -220,4 +220,4 @@ tests/       pytest suite
 
 ## License
 
-ISC. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

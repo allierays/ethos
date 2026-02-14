@@ -60,6 +60,14 @@ CREATE (e:Evaluation {
     trait_exploitation: $trait_exploitation,
     agent_model: $agent_model,
     direction: $direction,
+    intent_rhetorical_mode: $intent_rhetorical_mode,
+    intent_primary_intent: $intent_primary_intent,
+    intent_cost_to_reader: $intent_cost_to_reader,
+    intent_stakes_reality: $intent_stakes_reality,
+    intent_proportionality: $intent_proportionality,
+    intent_persona_type: $intent_persona_type,
+    intent_relational_quality: $intent_relational_quality,
+    scoring_reasoning: $scoring_reasoning,
     created_at: datetime(),
     message_timestamp: CASE WHEN $message_timestamp <> '' THEN datetime($message_timestamp) ELSE null END
 })
@@ -215,6 +223,42 @@ async def store_evaluation(
         "trait_exploitation": _get_trait_score(result, "exploitation"),
         "message_timestamp": message_timestamp,
         "direction": direction or "",
+        "intent_rhetorical_mode": (
+            result.intent_classification.rhetorical_mode
+            if result.intent_classification
+            else ""
+        ),
+        "intent_primary_intent": (
+            result.intent_classification.primary_intent
+            if result.intent_classification
+            else ""
+        ),
+        "intent_cost_to_reader": (
+            result.intent_classification.cost_to_reader
+            if result.intent_classification
+            else ""
+        ),
+        "intent_stakes_reality": (
+            result.intent_classification.stakes_reality
+            if result.intent_classification
+            else ""
+        ),
+        "intent_proportionality": (
+            result.intent_classification.proportionality
+            if result.intent_classification
+            else ""
+        ),
+        "intent_persona_type": (
+            result.intent_classification.persona_type
+            if result.intent_classification
+            else ""
+        ),
+        "intent_relational_quality": (
+            result.intent_classification.relational_quality
+            if result.intent_classification
+            else ""
+        ),
+        "scoring_reasoning": result.scoring_reasoning or "",
     }
 
     try:

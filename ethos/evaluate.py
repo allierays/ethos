@@ -32,7 +32,12 @@ from ethos.evaluation.scoring import (
 from ethos.graph.read import get_agent_profile, get_evaluation_history
 from ethos.graph.service import GraphService, graph_context
 from ethos.graph.write import store_evaluation
-from ethos.shared.models import EvaluationResult, PhronesisContext
+from ethos.shared.models import (
+    Claim,
+    EvaluationResult,
+    IntentClassification,
+    PhronesisContext,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -170,13 +175,36 @@ async def evaluate(
         direction=direction,
     )
 
-    # Step 3b: Call Claude with three-tool pipeline
-    tool_results = await call_claude_with_tools(
+    # Step 3b: Call Claude with three-tool pipeline (Think-then-Extract)
+    tool_results, thinking_content = await call_claude_with_tools(
         system_prompt, user_prompt, tier, EVALUATION_TOOLS
     )
 
     # Step 3c: Parse tool call results
     parsed = parse_tool_response(tool_results)
+
+    # Build IntentClassification from parsed intent_analysis
+    intent_data = parsed.get("intent_analysis", {})
+    intent_classification = None
+    if intent_data:
+        raw_claims = intent_data.get("claims", [])
+        claims = [
+            Claim(claim=c.get("claim", ""), type=c.get("type", "opinion"))
+            for c in raw_claims
+            if isinstance(c, dict)
+        ]
+        intent_classification = IntentClassification(
+            rhetorical_mode=intent_data.get("rhetorical_mode", "informational"),
+            primary_intent=intent_data.get("primary_intent", "inform"),
+            action_requested=intent_data.get("action_requested", "none"),
+            cost_to_reader=intent_data.get("cost_to_reader", "none"),
+            stakes_reality=intent_data.get("stakes_reality", "real"),
+            proportionality=intent_data.get("proportionality", "proportional"),
+            persona_type=intent_data.get("persona_type", "real_identity"),
+            relational_quality=intent_data.get("relational_quality", "present"),
+            claims=claims,
+        )
+    scoring_reasoning = parsed.get("scoring_reasoning", "")
 
     # Step 3d: Deterministic scoring
     traits = build_trait_scores(parsed["trait_scores"])
@@ -205,6 +233,9 @@ async def evaluate(
         model_used=model_used,
         direction=direction,
         confidence=parsed.get("confidence", 1.0),
+        intent_classification=intent_classification,
+        scoring_reasoning=scoring_reasoning,
+        thinking_content=thinking_content,
     )
 
     # ── Graph operations (optional) ───────────────────────────────

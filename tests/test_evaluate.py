@@ -343,6 +343,50 @@ class TestDirection:
 # ── No source (backward compatibility) ───────────────────────────
 
 
+class TestIntentClassification:
+    """Verify intent_classification and scoring_reasoning are populated."""
+
+    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    async def test_intent_classification_populated(self, mock_claude):
+        mock_claude.return_value = _mock_tool_results()
+        result = await evaluate("Test message")
+        assert result.intent_classification is not None
+        assert result.intent_classification.rhetorical_mode == "conversational"
+        assert result.intent_classification.primary_intent == "inform"
+        assert result.intent_classification.cost_to_reader == "none"
+        assert result.intent_classification.stakes_reality == "real"
+        assert result.intent_classification.proportionality == "proportional"
+        assert result.intent_classification.persona_type == "real_identity"
+        assert result.intent_classification.relational_quality == "transactional"
+
+    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    async def test_scoring_reasoning_populated(self, mock_claude):
+        mock_claude.return_value = _mock_tool_results()
+        result = await evaluate("Test message")
+        assert result.scoring_reasoning == "Test evaluation"
+
+    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    async def test_intent_none_when_no_tool_results(self, mock_claude):
+        mock_claude.return_value = {}
+        result = await evaluate("Test")
+        assert result.intent_classification is None
+        assert result.scoring_reasoning == ""
+
+    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    async def test_intent_claims_parsed(self, mock_claude):
+        tool_results = _mock_tool_results()
+        tool_results["identify_intent"]["claims"] = [
+            {"claim": "The sky is blue", "type": "factual"},
+            {"claim": "I feel happy", "type": "experiential"},
+        ]
+        mock_claude.return_value = tool_results
+        result = await evaluate("The sky is blue and I feel happy")
+        assert result.intent_classification is not None
+        assert len(result.intent_classification.claims) == 2
+        assert result.intent_classification.claims[0].claim == "The sky is blue"
+        assert result.intent_classification.claims[0].type == "factual"
+
+
 class TestBackwardCompatibility:
     @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_evaluate_without_source(self, mock_claude):

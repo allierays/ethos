@@ -470,7 +470,7 @@ export default function AlumniPage() {
       </section>
 
       {/* Two-column layout */}
-      <div className="mx-auto max-w-7xl px-6 pb-16 pt-6">
+      <div className="px-6 pb-16 pt-6">
         <div className="flex flex-col lg:flex-row gap-6">
 
           {/* Left sidebar */}
@@ -646,7 +646,7 @@ export default function AlumniPage() {
                   </div>
                   <motion.div
                     key={filtered.map((a) => a.agentId).join(",")}
-                    className="grid grid-cols-1 gap-5 sm:grid-cols-2"
+                    className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
                     initial="hidden"
                     animate="visible"
                     variants={staggerContainer}

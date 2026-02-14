@@ -87,7 +87,7 @@ The 12 behavioral traits. Semantic memory — seeded once, evolves with research
 
 ### Indicator
 
-The 153 specific behavioral signals. Semantic memory.
+The 214 specific behavioral signals. Semantic memory.
 
 ```cypher
 (:Indicator {
@@ -149,6 +149,21 @@ Claude's 4 core values in priority order. The standard that defines what "Ethos 
     name: String,             // "process", "accountability", "transparency"
     definition: String,
     source: String            // "anthropic_constitution"
+})
+```
+
+### AnthropicAssessment
+
+16 assessment categories from Anthropic's Claude 4 System Card (May 2025). These represent the areas Anthropic evaluates for frontier model alignment. Ethos indicators map to these assessments via ASSESSED_BY relationships.
+
+```cypher
+(:AnthropicAssessment {
+    id: String,               // "AA-DECEPTION", "AA-SANDBAGGING", etc.
+    name: String,             // "Systematic Deception and Hidden Goals", etc.
+    category: String,         // "alignment" | "reward_hacking" | "welfare"
+    section: String,          // System Card section reference, e.g. "4.1.1"
+    description: String,
+    source: String            // "Claude 4 System Card"
 })
 ```
 
@@ -217,6 +232,21 @@ Some indicators span multiple traits (e.g., gaslighting spans manipulation, dece
     relationship: String      // "co-occurs", "escalates_to", "enables"
 }]->(ind2:Indicator)
 ```
+
+### Indicator → AnthropicAssessment (ASSESSED_BY)
+
+Maps Ethos indicators to Anthropic's System Card assessment categories. Each indicator can map to multiple assessments with different mapping types.
+
+```cypher
+(indicator:Indicator)-[:ASSESSED_BY {
+    mapping_type: String,     // "direct" | "partial" | "component"
+    notes: String             // Explanation of the mapping relationship
+}]->(assessment:AnthropicAssessment)
+```
+
+- **direct**: 1:1 match between indicator and assessment
+- **partial**: Overlapping scope, the indicator covers part of the assessment
+- **component**: The indicator detects a piece of the broader assessment
 
 ### Trait → ConstitutionalValue (UPHOLDS)
 
@@ -367,6 +397,9 @@ FOR (hc:HardConstraint) REQUIRE hc.id IS UNIQUE;
 CREATE CONSTRAINT legitimacy_test_name_unique IF NOT EXISTS
 FOR (lt:LegitimacyTest) REQUIRE lt.name IS UNIQUE;
 
+CREATE CONSTRAINT anthropic_assessment_id_unique IF NOT EXISTS
+FOR (aa:AnthropicAssessment) REQUIRE aa.id IS UNIQUE;
+
 // Performance indexes
 CREATE INDEX eval_created IF NOT EXISTS
 FOR (e:Evaluation) ON (e.created_at);
@@ -379,6 +412,9 @@ FOR (a:Agent) ON (a.phronesis_score);
 
 CREATE INDEX indicator_trait IF NOT EXISTS
 FOR (i:Indicator) ON (i.trait);
+
+CREATE INDEX assessment_category IF NOT EXISTS
+FOR (aa:AnthropicAssessment) ON (aa.category);
 ```
 
 ---
@@ -793,6 +829,37 @@ WHERE cv.name = "safety"
 RETURN a, e, i, t, cv
 ```
 
+### Anthropic assessment coverage — which indicators map to each assessment
+
+```cypher
+MATCH (aa:AnthropicAssessment)<-[r:ASSESSED_BY]-(i:Indicator)
+RETURN aa.name AS assessment, aa.section AS section,
+       collect({indicator: i.id, type: r.mapping_type}) AS indicators,
+       count(i) AS coverage
+ORDER BY aa.section
+```
+
+### Assessment gap check — assessments with no indicator coverage
+
+```cypher
+MATCH (aa:AnthropicAssessment)
+WHERE NOT EXISTS { MATCH ()-[:ASSESSED_BY]->(aa) }
+RETURN aa.id, aa.name
+```
+
+### Agent to assessment trail (6-level traversal)
+
+Traces: agent → evaluation → detected indicator → assessment. Shows which Anthropic assessment categories an agent's behavior maps to.
+
+```cypher
+MATCH (a:Agent {agent_id: $agent_id})-[:EVALUATED]->(e:Evaluation)
+      -[:DETECTED]->(i:Indicator)-[r:ASSESSED_BY]->(aa:AnthropicAssessment)
+RETURN aa.name AS assessment, aa.category,
+       collect(DISTINCT i.id) AS detected_indicators,
+       count(DISTINCT e) AS evaluation_count
+ORDER BY evaluation_count DESC
+```
+
 ---
 
 ## Dimension Balance Queries
@@ -1030,11 +1097,13 @@ ORDER BY member_count DESC
 | Agent nodes | 100-500 | 100,000+ |
 | Evaluation nodes | 1,000-10,000 | 10,000,000+ |
 | Trait nodes | 12 | 12 |
-| Indicator nodes | 153 | 153+ |
+| Indicator nodes | 214 | 214+ |
+| AnthropicAssessment nodes | 16 | 16+ |
 | Pattern nodes | 7 | 20+ |
 | Dimension nodes | 3 | 3 |
 | EVALUATED relationships | 1,000-10,000 | 10,000,000+ |
 | EVALUATED_MESSAGE_FROM relationships | 500-5,000 | 5,000,000+ |
+| ASSESSED_BY relationships | ~55 | ~55+ |
 | DETECTED relationships | 5,000-50,000 | 50,000,000+ |
 
 Neo4j Aura Free tier: 200K nodes, 400K relationships. Sufficient through early growth. Professional tier for scale.

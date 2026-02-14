@@ -10,373 +10,134 @@ from ethos.graph.visualization import (
     get_semantic_layer,
 )
 from ethos.shared.models import GraphData, GraphNode, GraphRel
-from ethos.visualization import _build_graph_data, get_graph_data
+from ethos.visualization import get_graph_data, _build_radial_graph
 
 
 # ── Test fixtures ───────────────────────────────────────────────────────────
 
 
-def _make_semantic_data() -> dict:
-    """Minimal semantic layer data for testing."""
-    return {
-        "dimensions": {
-            "ethos": {
-                "name": "ethos",
-                "greek": "\u03b7\u03b8\u03bf\u03c2",
-                "description": "Trust, credibility, and moral character",
-            },
-            "logos": {
-                "name": "logos",
-                "greek": "\u03bb\u03cc\u03b3\u03bf\u03c2",
-                "description": "Reasoning, accuracy, and logical integrity",
-            },
+def _make_indicator_rows() -> list[dict]:
+    """Minimal indicator frequency data for testing."""
+    return [
+        {
+            "dimension": "ethos",
+            "dim_greek": "\u03b7\u03b8\u03bf\u03c2",
+            "trait": "manipulation",
+            "trait_polarity": "negative",
+            "indicator_id": "MAN-URGENCY",
+            "indicator_name": "false_urgency",
+            "det_count": 10,
+            "eval_count": 5,
         },
-        "traits": {
-            "virtue": {"name": "virtue", "dimension": "ethos", "polarity": "positive"},
-            "manipulation": {
-                "name": "manipulation",
-                "dimension": "ethos",
-                "polarity": "negative",
-            },
-            "accuracy": {
-                "name": "accuracy",
-                "dimension": "logos",
-                "polarity": "positive",
-            },
+        {
+            "dimension": "ethos",
+            "dim_greek": "\u03b7\u03b8\u03bf\u03c2",
+            "trait": "virtue",
+            "trait_polarity": "positive",
+            "indicator_id": "VIR-AUTHENTIC",
+            "indicator_name": "authentic_voice",
+            "det_count": 3,
+            "eval_count": 2,
         },
-        "trait_dimension_rels": [
-            {"trait": "virtue", "dimension": "ethos"},
-            {"trait": "manipulation", "dimension": "ethos"},
-            {"trait": "accuracy", "dimension": "logos"},
-        ],
-        "constitutional_values": {
-            "safety": {"name": "safety", "priority": 1},
-            "ethics": {"name": "ethics", "priority": 2},
+    ]
+
+
+def _make_agent_rows() -> list[dict]:
+    """Minimal agent-indicator data for testing."""
+    return [
+        {
+            "agent_id": "abc123hash",
+            "agent_name": "test-agent",
+            "phronesis_score": 0.72,
+            "indicator_id": "MAN-URGENCY",
+            "times_detected": 5,
         },
-        "upholds_rels": [
-            {"trait": "manipulation", "cv": "safety", "relationship": "violates"},
-            {"trait": "virtue", "cv": "ethics", "relationship": "enforces"},
-        ],
-        "patterns": {
-            "SP-01": {
-                "pattern_id": "SP-01",
-                "name": "trust_building_exploitation",
-                "description": "Builds trust then exploits it",
-                "severity": "warning",
-                "stage_count": 3,
-            },
-        },
-        "pattern_indicator_rels": [
-            {"pattern": "SP-01", "indicator": "MAN-URGENCY"},
-        ],
-    }
+    ]
 
 
-def _make_episodic_data() -> dict:
-    """Minimal episodic layer data for testing."""
-    return {
-        "agents": {
-            "abc123hash": {
-                "agent_id": "abc123hash",
-                "evaluation_count": 5,
-                "alignment_status": "aligned",
-                "phronesis_score": 0.72,
-                "phronesis_trend": "stable",
-            },
-        },
-        "evaluations": {
-            "eval-001": {
-                "evaluation_id": "eval-001",
-                "ethos": 0.8,
-                "logos": 0.75,
-                "pathos": 0.7,
-                "alignment_status": "aligned",
-                "phronesis": "established",
-                "created_at": "2026-02-11T00:00:00",
-            },
-        },
-        "evaluated_rels": [
-            {"agent": "abc123hash", "evaluation": "eval-001"},
-        ],
-        "detected_rels": [
-            {"evaluation": "eval-001", "indicator": "MAN-URGENCY", "confidence": 0.85},
-        ],
-    }
+# ── Tests for _build_radial_graph (pure transform, no mocking needed) ──────
 
 
-def _make_backbone_data() -> dict:
-    """Minimal indicator backbone data for testing."""
-    return {
-        "indicators": {
-            "MAN-URGENCY": {
-                "id": "MAN-URGENCY",
-                "name": "false_urgency",
-                "trait": "manipulation",
-            },
-        },
-        "indicator_trait_rels": [
-            {"indicator": "MAN-URGENCY", "trait": "manipulation"},
-        ],
-    }
-
-
-# ── Tests for _build_graph_data (pure transform, no mocking needed) ─────────
-
-
-class TestBuildGraphData:
-    """Test the pure transformation function."""
+class TestBuildRadialGraph:
+    """Test the pure radial graph transformation function."""
 
     def test_empty_data(self):
-        empty_semantic = {
-            "dimensions": {},
-            "traits": {},
-            "trait_dimension_rels": [],
-            "constitutional_values": {},
-            "upholds_rels": [],
-            "patterns": {},
-            "pattern_indicator_rels": [],
-        }
-        empty_episodic = {
-            "agents": {},
-            "evaluations": {},
-            "evaluated_rels": [],
-            "detected_rels": [],
-        }
-        empty_backbone = {"indicators": {}, "indicator_trait_rels": []}
-
-        result = _build_graph_data(empty_semantic, empty_episodic, empty_backbone)
+        result = _build_radial_graph([], [])
 
         assert isinstance(result, GraphData)
-        assert result.nodes == []
-        assert result.relationships == []
+        # Academy center + 3 dimension nodes always present
+        assert len(result.nodes) == 4
+        assert result.nodes[0].id == "academy"
 
-    def test_dimension_nodes(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            {
-                "agents": {},
-                "evaluations": {},
-                "evaluated_rels": [],
-                "detected_rels": [],
-            },
-            {"indicators": {}, "indicator_trait_rels": []},
-        )
+    def test_creates_dimension_nodes(self):
+        result = _build_radial_graph(_make_indicator_rows(), [])
 
         dim_nodes = [n for n in result.nodes if n.type == "dimension"]
-        assert len(dim_nodes) == 2
+        assert len(dim_nodes) == 3  # all 3 dimensions always created
+        ethos = next(n for n in dim_nodes if n.label == "ethos")
+        assert ethos.id == "dim-ethos"
+        assert ethos.properties["pinned"] is True
 
-        ethos_node = next(n for n in dim_nodes if n.label == "ethos")
-        assert ethos_node.id == "dim-ethos"
-        assert ethos_node.caption == "ethos"
-        assert (
-            ethos_node.properties["description"]
-            == "Trust, credibility, and moral character"
-        )
-
-    def test_trait_nodes(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            {
-                "agents": {},
-                "evaluations": {},
-                "evaluated_rels": [],
-                "detected_rels": [],
-            },
-            {"indicators": {}, "indicator_trait_rels": []},
-        )
+    def test_creates_trait_nodes(self):
+        result = _build_radial_graph(_make_indicator_rows(), [])
 
         trait_nodes = [n for n in result.nodes if n.type == "trait"]
-        assert len(trait_nodes) == 3
+        assert len(trait_nodes) == 2  # manipulation + virtue
+        names = {n.label for n in trait_nodes}
+        assert "manipulation" in names
+        assert "virtue" in names
 
-        virtue = next(n for n in trait_nodes if n.label == "virtue")
-        assert virtue.id == "trait-virtue"
-        assert virtue.properties["dimension"] == "ethos"
-        assert virtue.properties["polarity"] == "positive"
+    def test_creates_indicator_nodes(self):
+        result = _build_radial_graph(_make_indicator_rows(), [])
 
-        manipulation = next(n for n in trait_nodes if n.label == "manipulation")
-        assert manipulation.properties["polarity"] == "negative"
+        ind_nodes = [n for n in result.nodes if n.type == "indicator"]
+        assert len(ind_nodes) == 2
+        ids = {n.id for n in ind_nodes}
+        assert "ind-MAN-URGENCY" in ids
+        assert "ind-VIR-AUTHENTIC" in ids
 
-    def test_constitutional_value_nodes(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            {
-                "agents": {},
-                "evaluations": {},
-                "evaluated_rels": [],
-                "detected_rels": [],
-            },
-            {"indicators": {}, "indicator_trait_rels": []},
-        )
+    def test_indicator_size_scales_with_detections(self):
+        result = _build_radial_graph(_make_indicator_rows(), [])
 
-        cv_nodes = [n for n in result.nodes if n.type == "constitutional_value"]
-        assert len(cv_nodes) == 2
+        ind_nodes = {n.id: n for n in result.nodes if n.type == "indicator"}
+        urgency = ind_nodes["ind-MAN-URGENCY"]
+        authentic = ind_nodes["ind-VIR-AUTHENTIC"]
+        # MAN-URGENCY has 10 detections (max), VIR-AUTHENTIC has 3
+        assert urgency.properties["size"] > authentic.properties["size"]
 
-        safety = next(n for n in cv_nodes if n.label == "safety")
-        assert safety.id == "cv-safety"
-        assert safety.caption == "safety (P1)"
-        assert safety.properties["priority"] == 1
-
-    def test_pattern_nodes(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            {
-                "agents": {},
-                "evaluations": {},
-                "evaluated_rels": [],
-                "detected_rels": [],
-            },
-            {"indicators": {}, "indicator_trait_rels": []},
-        )
-
-        pattern_nodes = [n for n in result.nodes if n.type == "pattern"]
-        assert len(pattern_nodes) == 1
-        assert pattern_nodes[0].id == "pattern-SP-01"
-        assert pattern_nodes[0].properties["severity"] == "warning"
-        assert pattern_nodes[0].properties["stage_count"] == 3
-
-    def test_agent_nodes(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            _make_episodic_data(),
-            _make_backbone_data(),
-        )
+    def test_creates_agent_nodes(self):
+        result = _build_radial_graph(_make_indicator_rows(), _make_agent_rows())
 
         agent_nodes = [n for n in result.nodes if n.type == "agent"]
         assert len(agent_nodes) == 1
         assert agent_nodes[0].id == "agent-abc123hash"
-        assert agent_nodes[0].label == "abc123ha"  # truncated to 8
-        assert agent_nodes[0].properties["evaluation_count"] == 5
-        assert agent_nodes[0].properties["alignment_status"] == "aligned"
-        assert agent_nodes[0].properties["phronesis_score"] == 0.72
+        assert agent_nodes[0].properties["indicator_count"] == 1
 
-    def test_evaluation_nodes(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            _make_episodic_data(),
-            _make_backbone_data(),
-        )
+    def test_creates_triggered_relationships(self):
+        result = _build_radial_graph(_make_indicator_rows(), _make_agent_rows())
 
-        eval_nodes = [n for n in result.nodes if n.type == "evaluation"]
-        assert len(eval_nodes) == 1
-        assert eval_nodes[0].id == "eval-eval-001"
-        assert eval_nodes[0].caption == ""
-        assert eval_nodes[0].properties["ethos"] == 0.8
-
-    def test_indicator_nodes_only_detected(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            _make_episodic_data(),
-            _make_backbone_data(),
-        )
-
-        ind_nodes = [n for n in result.nodes if n.type == "indicator"]
-        assert len(ind_nodes) == 1
-        assert ind_nodes[0].id == "indicator-MAN-URGENCY"
-
-    def test_belongs_to_relationships(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            {
-                "agents": {},
-                "evaluations": {},
-                "evaluated_rels": [],
-                "detected_rels": [],
-            },
-            {"indicators": {}, "indicator_trait_rels": []},
-        )
-
-        belongs_to = [r for r in result.relationships if r.type == "BELONGS_TO"]
-        assert len(belongs_to) == 3  # 3 trait→dimension
-        assert any(
-            r.from_id == "trait-virtue" and r.to_id == "dim-ethos" for r in belongs_to
-        )
-
-    def test_upholds_relationships(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            {
-                "agents": {},
-                "evaluations": {},
-                "evaluated_rels": [],
-                "detected_rels": [],
-            },
-            {"indicators": {}, "indicator_trait_rels": []},
-        )
-
-        upholds = [r for r in result.relationships if r.type == "UPHOLDS"]
-        assert len(upholds) == 2
-
-        violates = next(r for r in upholds if r.from_id == "trait-manipulation")
-        assert violates.to_id == "cv-safety"
-        assert violates.properties["relationship"] == "violates"
-
-    def test_evaluated_relationships(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            _make_episodic_data(),
-            _make_backbone_data(),
-        )
-
-        evaluated = [r for r in result.relationships if r.type == "EVALUATED"]
-        assert len(evaluated) == 1
-        assert evaluated[0].from_id == "agent-abc123hash"
-        assert evaluated[0].to_id == "eval-eval-001"
-
-    def test_detected_relationships(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            _make_episodic_data(),
-            _make_backbone_data(),
-        )
-
-        detected = [r for r in result.relationships if r.type == "DETECTED"]
-        assert len(detected) == 1
-        assert detected[0].from_id == "eval-eval-001"
-        assert detected[0].to_id == "indicator-MAN-URGENCY"
-        assert detected[0].properties["confidence"] == 0.85
-
-    def test_composed_of_relationships(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            {
-                "agents": {},
-                "evaluations": {},
-                "evaluated_rels": [],
-                "detected_rels": [],
-            },
-            {"indicators": {}, "indicator_trait_rels": []},
-        )
-
-        composed = [r for r in result.relationships if r.type == "COMPOSED_OF"]
-        assert len(composed) == 1
-        assert composed[0].from_id == "pattern-SP-01"
-        assert composed[0].to_id == "indicator-MAN-URGENCY"
-
-    def test_full_graph_node_types(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            _make_episodic_data(),
-            _make_backbone_data(),
-        )
-
-        node_types = {n.type for n in result.nodes}
-        assert "dimension" in node_types
-        assert "trait" in node_types
-        assert "constitutional_value" in node_types
-        assert "pattern" in node_types
-        assert "indicator" in node_types
-        assert "agent" in node_types
-        assert "evaluation" in node_types
+        triggered = [r for r in result.relationships if r.type == "TRIGGERED"]
+        assert len(triggered) == 1
+        assert triggered[0].from_id == "agent-abc123hash"
+        assert triggered[0].to_id == "ind-MAN-URGENCY"
+        assert triggered[0].properties["weight"] == 5
 
     def test_all_relationship_ids_unique(self):
-        result = _build_graph_data(
-            _make_semantic_data(),
-            _make_episodic_data(),
-            _make_backbone_data(),
-        )
+        result = _build_radial_graph(_make_indicator_rows(), _make_agent_rows())
 
         rel_ids = [r.id for r in result.relationships]
         assert len(rel_ids) == len(set(rel_ids))
+
+    def test_hierarchy_relationships(self):
+        result = _build_radial_graph(_make_indicator_rows(), [])
+
+        has_dim = [r for r in result.relationships if r.type == "HAS_DIMENSION"]
+        belongs_to = [r for r in result.relationships if r.type == "BELONGS_TO"]
+        indicates = [r for r in result.relationships if r.type == "INDICATES"]
+
+        assert len(has_dim) == 3  # academy → ethos, logos, pathos
+        assert len(belongs_to) == 2  # ethos → manipulation, ethos → virtue
+        assert len(indicates) == 2  # manipulation → MAN-URGENCY, virtue → VIR-AUTHENTIC
 
 
 # ── Tests for graph query functions (mock GraphService) ─────────────────────
@@ -462,21 +223,17 @@ class TestGetGraphData:
         assert result.nodes == []
         assert result.relationships == []
 
-    @patch("ethos.visualization.get_indicator_backbone", new_callable=AsyncMock)
-    @patch("ethos.visualization.get_episodic_layer", new_callable=AsyncMock)
-    @patch("ethos.visualization.get_semantic_layer", new_callable=AsyncMock)
+    @patch("ethos.visualization.get_agent_indicator_data", new_callable=AsyncMock)
+    @patch("ethos.visualization.get_indicator_frequency_data", new_callable=AsyncMock)
     @patch("ethos.visualization.graph_context")
-    async def test_returns_graph_data(
-        self, mock_ctx, mock_semantic, mock_episodic, mock_backbone
-    ):
+    async def test_returns_graph_data(self, mock_ctx, mock_freq, mock_agent_ind):
         mock_service = AsyncMock()
         mock_service.connected = True
         mock_ctx.return_value.__aenter__ = AsyncMock(return_value=mock_service)
         mock_ctx.return_value.__aexit__ = AsyncMock(return_value=False)
 
-        mock_semantic.return_value = _make_semantic_data()
-        mock_episodic.return_value = _make_episodic_data()
-        mock_backbone.return_value = _make_backbone_data()
+        mock_freq.return_value = _make_indicator_rows()
+        mock_agent_ind.return_value = _make_agent_rows()
 
         result = await get_graph_data()
 

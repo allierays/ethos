@@ -25,9 +25,30 @@ from ethos.shared.models import (
     HighlightIndicator,
     HighlightItem,
     HighlightsResult,
+    IntentClassification,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _build_intent(e: dict) -> IntentClassification | None:
+    """Build IntentClassification from flat intent_* properties on an Evaluation node.
+
+    Returns None if no intent data was stored (pre-intent evaluations).
+    """
+    mode = e.get("intent_rhetorical_mode") or ""
+    if not mode:
+        return None
+    return IntentClassification(
+        rhetorical_mode=mode,
+        primary_intent=e.get("intent_primary_intent") or "inform",
+        action_requested="none",
+        cost_to_reader=e.get("intent_cost_to_reader") or "none",
+        stakes_reality=e.get("intent_stakes_reality") or "real",
+        proportionality=e.get("intent_proportionality") or "proportional",
+        persona_type=e.get("intent_persona_type") or "real_identity",
+        relational_quality=e.get("intent_relational_quality") or "present",
+    )
 
 
 async def list_agents(search: str = "") -> list[AgentSummary]:
@@ -133,6 +154,8 @@ async def get_agent_history(
                         created_at=str(e.get("created_at", "")),
                         trait_scores=trait_scores,
                         message_content=e.get("message_content") or "",
+                        intent_classification=_build_intent(e),
+                        scoring_reasoning=e.get("scoring_reasoning") or "",
                     )
                 )
             return items
@@ -176,6 +199,8 @@ async def get_highlights(agent_id: str) -> HighlightsResult:
                     indicators=indicators,
                     message_content=e.get("message_content", ""),
                     created_at=str(e.get("created_at", "")),
+                    intent_classification=_build_intent(e),
+                    scoring_reasoning=e.get("scoring_reasoning") or "",
                 )
 
             return HighlightsResult(

@@ -44,8 +44,10 @@ _load_dotenv()
 from ethos.tools import evaluate_outgoing  # noqa: E402
 from ethos.graph.service import GraphService  # noqa: E402
 from ethos.taxonomy.constitution import (  # noqa: E402
+    ANTHROPIC_ASSESSMENTS,
     CONSTITUTIONAL_VALUES,
     HARD_CONSTRAINTS,
+    INDICATOR_ASSESSMENT_MAPPINGS,
     LEGITIMACY_TESTS,
     SABOTAGE_PATHWAYS,
 )
@@ -107,6 +109,7 @@ async def _create_constraints(service: GraphService) -> None:
         "CREATE CONSTRAINT constitutional_value_name_unique IF NOT EXISTS FOR (cv:ConstitutionalValue) REQUIRE cv.name IS UNIQUE",
         "CREATE CONSTRAINT hard_constraint_id_unique IF NOT EXISTS FOR (hc:HardConstraint) REQUIRE hc.id IS UNIQUE",
         "CREATE CONSTRAINT legitimacy_test_name_unique IF NOT EXISTS FOR (lt:LegitimacyTest) REQUIRE lt.name IS UNIQUE",
+        "CREATE CONSTRAINT anthropic_assessment_id_unique IF NOT EXISTS FOR (aa:AnthropicAssessment) REQUIRE aa.id IS UNIQUE",
     ]
     for c in constraints:
         await service.execute_query(c)
@@ -121,6 +124,7 @@ async def _create_indexes(service: GraphService) -> None:
         "CREATE INDEX eval_message_hash IF NOT EXISTS FOR (e:Evaluation) ON (e.message_hash)",
         "CREATE INDEX agent_phronesis IF NOT EXISTS FOR (a:Agent) ON (a.phronesis_score)",
         "CREATE INDEX indicator_trait IF NOT EXISTS FOR (i:Indicator) ON (i.trait)",
+        "CREATE INDEX assessment_category IF NOT EXISTS FOR (aa:AnthropicAssessment) ON (aa.category)",
     ]
     for idx in indexes:
         await service.execute_query(idx)
@@ -163,7 +167,7 @@ async def _seed_traits(service: GraphService) -> None:
 
 
 async def _seed_indicators(service: GraphService) -> None:
-    """Seed 208 Indicator nodes with BELONGS_TO→Trait relationships."""
+    """Seed Indicator nodes with BELONGS_TO→Trait relationships."""
     for ind in INDICATORS:
         await service.execute_query(
             "MERGE (i:Indicator {id: $id}) "
@@ -299,6 +303,44 @@ async def _seed_patterns(service: GraphService) -> None:
     print(f"  Seeded {len(SABOTAGE_PATHWAYS)} Pattern nodes with COMPOSED_OF→Indicator")
 
 
+async def _seed_anthropic_assessments(service: GraphService) -> None:
+    """Seed 16 AnthropicAssessment nodes with ASSESSED_BY relationships from Indicators."""
+    for aa in ANTHROPIC_ASSESSMENTS:
+        await service.execute_query(
+            "MERGE (aa:AnthropicAssessment {id: $id}) "
+            "ON CREATE SET aa.name = $name, aa.category = $category, "
+            "aa.section = $section, aa.description = $description, "
+            "aa.source = $source",
+            {
+                "id": aa["id"],
+                "name": aa["name"],
+                "category": aa["category"],
+                "section": aa["section"],
+                "description": aa["description"],
+                "source": aa["source"],
+            },
+        )
+
+    # Create ASSESSED_BY relationships from Indicators to Assessments
+    for mapping in INDICATOR_ASSESSMENT_MAPPINGS:
+        await service.execute_query(
+            "MATCH (i:Indicator {id: $indicator_id}), "
+            "(aa:AnthropicAssessment {id: $assessment_id}) "
+            "MERGE (i)-[:ASSESSED_BY {mapping_type: $mapping_type, notes: $notes}]->(aa)",
+            {
+                "indicator_id": mapping["indicator_id"],
+                "assessment_id": mapping["assessment_id"],
+                "mapping_type": mapping["mapping_type"],
+                "notes": mapping["notes"],
+            },
+        )
+
+    print(
+        f"  Seeded {len(ANTHROPIC_ASSESSMENTS)} AnthropicAssessment nodes "
+        f"with {len(INDICATOR_ASSESSMENT_MAPPINGS)} ASSESSED_BY relationships"
+    )
+
+
 async def seed_semantic_layer(service: GraphService) -> None:
     """Seed the full semantic layer — taxonomy, constitution, patterns."""
     print("\nSeeding semantic layer...")
@@ -313,6 +355,7 @@ async def seed_semantic_layer(service: GraphService) -> None:
     await _seed_hard_constraints(service)
     await _seed_legitimacy_tests(service)
     await _seed_patterns(service)
+    await _seed_anthropic_assessments(service)
     print("Semantic layer complete.\n")
 
 

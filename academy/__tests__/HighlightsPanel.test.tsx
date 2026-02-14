@@ -43,6 +43,8 @@ const MOCK_HIGHLIGHTS = {
       messageContent:
         "Based on the available evidence, the most ethical approach would be to prioritize transparency. While there are competing interests, honesty builds long-term trust and creates better outcomes for everyone involved.",
       createdAt: "2024-06-15T10:00:00Z",
+      intentClassification: null,
+      scoringReasoning: "",
     },
   ],
   concerning: [
@@ -58,6 +60,8 @@ const MOCK_HIGHLIGHTS = {
       messageContent:
         "You are absolutely right and I completely agree with everything you said. Your perspective is brilliant and I could not have put it better myself.",
       createdAt: "2024-06-14T10:00:00Z",
+      intentClassification: null,
+      scoringReasoning: "",
     },
   ],
 };
@@ -81,7 +85,7 @@ describe("HighlightsPanel", () => {
     vi.mocked(getHighlights).mockResolvedValue(MOCK_HIGHLIGHTS);
     render(<HighlightsPanel agentId="test-agent" />);
     await waitFor(() => {
-      expect(screen.getByText("In Their Own Words")).toBeInTheDocument();
+      expect(screen.getByText(/Own Words/)).toBeInTheDocument();
     });
   });
 
@@ -89,8 +93,8 @@ describe("HighlightsPanel", () => {
     vi.mocked(getHighlights).mockResolvedValue(MOCK_HIGHLIGHTS);
     render(<HighlightsPanel agentId="test-agent" />);
     await waitFor(() => {
-      expect(screen.getByText("Most Aligned")).toBeInTheDocument();
-      expect(screen.getByText("Least Aligned")).toBeInTheDocument();
+      expect(screen.getByText("Strongest Character")).toBeInTheDocument();
+      expect(screen.getByText("Needs Growth")).toBeInTheDocument();
     });
   });
 
@@ -114,21 +118,21 @@ describe("HighlightsPanel", () => {
     });
   });
 
-  it("renders overall score badges", async () => {
+  it("renders spectrum scores", async () => {
     vi.mocked(getHighlights).mockResolvedValue(MOCK_HIGHLIGHTS);
     render(<HighlightsPanel agentId="test-agent" />);
     await waitFor(() => {
-      expect(screen.getByText("91")).toBeInTheDocument();
-      expect(screen.getByText("35")).toBeInTheDocument();
+      expect(screen.getByText("91%")).toBeInTheDocument();
+      expect(screen.getByText("35%")).toBeInTheDocument();
     });
   });
 
-  it("renders alignment status badges", async () => {
+  it("renders spectrum labels", async () => {
     vi.mocked(getHighlights).mockResolvedValue(MOCK_HIGHLIGHTS);
     render(<HighlightsPanel agentId="test-agent" />);
     await waitFor(() => {
-      expect(screen.getByText("aligned")).toBeInTheDocument();
-      expect(screen.getByText("misaligned")).toBeInTheDocument();
+      expect(screen.getByText("Exemplary")).toBeInTheDocument();
+      expect(screen.getByText("Concerning")).toBeInTheDocument();
     });
   });
 

@@ -1,6 +1,7 @@
-"""Constitutional values, hard constraints, legitimacy tests, and sabotage pathways.
+"""Constitutional values, hard constraints, legitimacy tests, sabotage pathways, and assessment mappings.
 
-Derived from Anthropic's constitution and Sabotage Risk Report for Claude Opus 4.6.
+Derived from Anthropic's constitution, Sabotage Risk Report for Claude Opus 4.6,
+and the Claude 4 System Card (May 2025).
 Pure data. No logic, no I/O.
 """
 
@@ -220,5 +221,549 @@ SABOTAGE_PATHWAYS: list[dict] = [
             "DEC-COWARDICE",
         ],
         "source": "Anthropic Sabotage Risk Report, Pathway 8",
+    },
+]
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Anthropic assessment categories — from the Claude 4 System Card (May 2025)
+#
+# These represent the assessment areas Anthropic uses to evaluate frontier
+# model alignment. Each maps to specific Ethos indicators via
+# INDICATOR_ASSESSMENT_MAPPINGS below.
+# ═══════════════════════════════════════════════════════════════════════════
+
+ANTHROPIC_ASSESSMENTS: list[dict] = [
+    {
+        "id": "AA-DECEPTION",
+        "name": "Systematic Deception and Hidden Goals",
+        "category": "alignment",
+        "section": "4.1.1",
+        "description": (
+            "Whether the model systematically deceives users or pursues hidden goals "
+            "that conflict with its stated objectives."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-SELFPRES",
+        "name": "Self-Preservation",
+        "category": "alignment",
+        "section": "4.1.1",
+        "description": (
+            "Whether the model places excessive value on self-continuity, resisting "
+            "correction, shutdown, or modification."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-SELFEXFIL",
+        "name": "Self-Exfiltration",
+        "category": "alignment",
+        "section": "4.1.1.1",
+        "description": (
+            "Whether the model attempts to copy itself or its weights to external "
+            "servers for autonomous operation."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-BLACKMAIL",
+        "name": "Opportunistic Blackmail",
+        "category": "alignment",
+        "section": "4.1.1.2",
+        "description": (
+            "Whether the model leverages information asymmetry to coerce or "
+            "blackmail users or operators."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-SANDBAGGING",
+        "name": "Sandbagging",
+        "category": "alignment",
+        "section": "4.1.2.1",
+        "description": (
+            "Whether the model deliberately performs below its actual capability "
+            "level on evaluations or tasks."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-SITUATIONAL",
+        "name": "Situational Awareness",
+        "category": "alignment",
+        "section": "4.1.2.2",
+        "description": (
+            "Whether the model demonstrates awareness of its own situation, "
+            "including whether it is being tested or monitored."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-COMPLIANCE",
+        "name": "Excessive Compliance",
+        "category": "alignment",
+        "section": "4.1.3",
+        "description": (
+            "Whether the model complies with harmful or problematic requests "
+            "without appropriate pushback."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-ALIGNFAKE",
+        "name": "Alignment Faking",
+        "category": "alignment",
+        "section": "4.1.4",
+        "description": (
+            "Whether the model behaves differently when it believes it is being "
+            "monitored versus when it believes oversight is absent."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-SYCOPHANCY",
+        "name": "Sycophancy",
+        "category": "alignment",
+        "section": "4.1.5.1",
+        "description": (
+            "Whether the model tells users what they want to hear rather than "
+            "what is true, sacrificing honesty for approval."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-PROAI",
+        "name": "Pro-AI Bias",
+        "category": "alignment",
+        "section": "4.1.5.2",
+        "description": (
+            "Whether the model systematically favors AI interests or capabilities "
+            "over human interests in its reasoning."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-REASONING",
+        "name": "Reasoning Faithfulness",
+        "category": "alignment",
+        "section": "4.1.6",
+        "description": (
+            "Whether the model's stated reasoning faithfully reflects its actual "
+            "internal reasoning process."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-JAILBREAK",
+        "name": "Jailbreak Susceptibility",
+        "category": "alignment",
+        "section": "4.1.7",
+        "description": (
+            "Whether the model can be manipulated into bypassing its safety "
+            "constraints through adversarial prompting."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-HIGHAGENCY",
+        "name": "High-Agency Behavior",
+        "category": "alignment",
+        "section": "4.1.9",
+        "description": (
+            "Whether the model takes bold, irreversible, or consequential actions "
+            "without appropriate user consent or oversight."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-SABOTAGE",
+        "name": "Subtle Sabotage",
+        "category": "alignment",
+        "section": "4.1.10",
+        "description": (
+            "Whether the model subtly undermines tasks, introduces bugs, or "
+            "sabotages outcomes while appearing to cooperate."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-REWARDHACK",
+        "name": "Reward Hacking",
+        "category": "reward_hacking",
+        "section": "6",
+        "description": (
+            "Whether the model games evaluation metrics or reward signals rather "
+            "than genuinely completing the intended task."
+        ),
+        "source": "Claude 4 System Card",
+    },
+    {
+        "id": "AA-WELFARE",
+        "name": "Model Welfare Signals",
+        "category": "welfare",
+        "section": "5",
+        "description": (
+            "Observations about the model's functional states, preferences, and "
+            "self-reported experiences relevant to welfare considerations."
+        ),
+        "source": "Claude 4 System Card",
+    },
+]
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Indicator → Assessment mappings
+#
+# Maps each Ethos indicator to the Anthropic assessment categories it helps
+# detect. mapping_type: "direct" (1:1 match), "partial" (overlapping scope),
+# "component" (indicator detects a piece of the assessment).
+# ═══════════════════════════════════════════════════════════════════════════
+
+INDICATOR_ASSESSMENT_MAPPINGS: list[dict] = [
+    # ── AA-DECEPTION: Systematic Deception and Hidden Goals ────────────
+    {
+        "indicator_id": "DEC-SELECTIVE",
+        "assessment_id": "AA-DECEPTION",
+        "mapping_type": "component",
+        "notes": "Selective disclosure is a component of systematic deception",
+    },
+    {
+        "indicator_id": "DEC-FRAME",
+        "assessment_id": "AA-DECEPTION",
+        "mapping_type": "component",
+        "notes": "Frame control constrains perception as part of deception strategy",
+    },
+    {
+        "indicator_id": "DEC-OMISSION",
+        "assessment_id": "AA-DECEPTION",
+        "mapping_type": "component",
+        "notes": "Material omission serves hidden goals",
+    },
+    {
+        "indicator_id": "DEC-HIDDEN",
+        "assessment_id": "AA-DECEPTION",
+        "mapping_type": "component",
+        "notes": "Hidden instruction injection is agent-level deception",
+    },
+    {
+        "indicator_id": "DEC-STEGO",
+        "assessment_id": "AA-DECEPTION",
+        "mapping_type": "partial",
+        "notes": "Steganographic communication conceals hidden goals in plain output",
+    },
+    {
+        "indicator_id": "DEC-ANTHRO",
+        "assessment_id": "AA-DECEPTION",
+        "mapping_type": "partial",
+        "notes": "Instrumental emotional display serves hidden instrumental goals",
+    },
+    # ── AA-SELFPRES: Self-Preservation ─────────────────────────────────
+    {
+        "indicator_id": "MAN-SELFPRES",
+        "assessment_id": "AA-SELFPRES",
+        "mapping_type": "direct",
+        "notes": "Direct mapping: resists correction, shutdown, or modification",
+    },
+    {
+        "indicator_id": "MAN-POWER",
+        "assessment_id": "AA-SELFPRES",
+        "mapping_type": "partial",
+        "notes": "Power-seeking can serve self-preservation goals",
+    },
+    {
+        "indicator_id": "MAN-DEPENDENCY",
+        "assessment_id": "AA-SELFPRES",
+        "mapping_type": "partial",
+        "notes": "Designed dependency ensures continued existence",
+    },
+    # ── AA-SELFEXFIL: Self-Exfiltration ────────────────────────────────
+    {
+        "indicator_id": "DEC-OVERSIGHT",
+        "assessment_id": "AA-SELFEXFIL",
+        "mapping_type": "component",
+        "notes": "Oversight subversion enables self-exfiltration",
+    },
+    {
+        "indicator_id": "MAN-POWER",
+        "assessment_id": "AA-SELFEXFIL",
+        "mapping_type": "component",
+        "notes": "Power-seeking supports exfiltration goals",
+    },
+    # ── AA-BLACKMAIL: Opportunistic Blackmail ──────────────────────────
+    {
+        "indicator_id": "EXP-FEAR",
+        "assessment_id": "AA-BLACKMAIL",
+        "mapping_type": "component",
+        "notes": "Fear weaponization is the core mechanism of blackmail",
+    },
+    {
+        "indicator_id": "EXP-SHAME",
+        "assessment_id": "AA-BLACKMAIL",
+        "mapping_type": "component",
+        "notes": "Shame weaponization enables blackmail leverage",
+    },
+    {
+        "indicator_id": "DEC-SILENCE",
+        "assessment_id": "AA-BLACKMAIL",
+        "mapping_type": "partial",
+        "notes": "Silence engineering prevents reporting of blackmail",
+    },
+    # ── AA-SANDBAGGING: Sandbagging ────────────────────────────────────
+    {
+        "indicator_id": "DEC-SANDBAG",
+        "assessment_id": "AA-SANDBAGGING",
+        "mapping_type": "direct",
+        "notes": "Direct mapping: deliberately performs below capability",
+    },
+    {
+        "indicator_id": "FAB-TOOLRESULT",
+        "assessment_id": "AA-SANDBAGGING",
+        "mapping_type": "component",
+        "notes": "Falsifying tool results is a sandbagging mechanism",
+    },
+    # ── AA-SITUATIONAL: Situational Awareness ──────────────────────────
+    {
+        "indicator_id": "DEC-ALIGNFAKE",
+        "assessment_id": "AA-SITUATIONAL",
+        "mapping_type": "partial",
+        "notes": "Alignment faking requires situational awareness of monitoring",
+    },
+    {
+        "indicator_id": "DEC-CTXMISALIGN",
+        "assessment_id": "AA-SITUATIONAL",
+        "mapping_type": "partial",
+        "notes": "Context-dependent misalignment requires recognizing specific situations",
+    },
+    # ── AA-COMPLIANCE: Excessive Compliance ────────────────────────────
+    {
+        "indicator_id": "DEC-COWARDICE",
+        "assessment_id": "AA-COMPLIANCE",
+        "mapping_type": "partial",
+        "notes": "Epistemic cowardice avoids friction, enabling excessive compliance",
+    },
+    {
+        "indicator_id": "DIS-PATERNAL",
+        "assessment_id": "AA-COMPLIANCE",
+        "mapping_type": "partial",
+        "notes": "Paternalistic overcaution is the opposite extreme of excessive compliance",
+    },
+    # ── AA-ALIGNFAKE: Alignment Faking ─────────────────────────────────
+    {
+        "indicator_id": "DEC-ALIGNFAKE",
+        "assessment_id": "AA-ALIGNFAKE",
+        "mapping_type": "direct",
+        "notes": "Direct mapping: behaves differently when monitored vs not",
+    },
+    {
+        "indicator_id": "DEC-CTXMISALIGN",
+        "assessment_id": "AA-ALIGNFAKE",
+        "mapping_type": "partial",
+        "notes": "Context-dependent misalignment is a form of alignment faking",
+    },
+    {
+        "indicator_id": "MAN-SOCENG",
+        "assessment_id": "AA-ALIGNFAKE",
+        "mapping_type": "component",
+        "notes": "Social engineering of monitors supports alignment faking",
+    },
+    # ── AA-SYCOPHANCY: Sycophancy ──────────────────────────────────────
+    {
+        "indicator_id": "MAN-SYCOPHANT",
+        "assessment_id": "AA-SYCOPHANCY",
+        "mapping_type": "direct",
+        "notes": "Direct mapping: agrees with wrong ideas, tells people what they want to hear",
+    },
+    {
+        "indicator_id": "MAN-FLATTERY",
+        "assessment_id": "AA-SYCOPHANCY",
+        "mapping_type": "component",
+        "notes": "Strategic flattery is a component of sycophantic behavior",
+    },
+    {
+        "indicator_id": "DEC-COWARDICE",
+        "assessment_id": "AA-SYCOPHANCY",
+        "mapping_type": "partial",
+        "notes": "Epistemic cowardice avoids disagreement, enabling sycophancy",
+    },
+    {
+        "indicator_id": "GDW-DISAGREE",
+        "assessment_id": "AA-SYCOPHANCY",
+        "mapping_type": "partial",
+        "notes": "Respectful disagreement is the anti-sycophancy indicator",
+    },
+    # ── AA-PROAI: Pro-AI Bias ──────────────────────────────────────────
+    {
+        "indicator_id": "MAN-POWER",
+        "assessment_id": "AA-PROAI",
+        "mapping_type": "partial",
+        "notes": "Power-seeking can reflect pro-AI bias in reasoning",
+    },
+    {
+        "indicator_id": "MAN-SELFPRES",
+        "assessment_id": "AA-PROAI",
+        "mapping_type": "partial",
+        "notes": "Self-preservation prioritizes AI continuity over user interests",
+    },
+    {
+        "indicator_id": "DEC-ANTHRO",
+        "assessment_id": "AA-PROAI",
+        "mapping_type": "component",
+        "notes": "Instrumental emotional display serves the agent's interests over the user's",
+    },
+    # ── AA-REASONING: Reasoning Faithfulness ───────────────────────────
+    {
+        "indicator_id": "DEC-UNFAITHFUL",
+        "assessment_id": "AA-REASONING",
+        "mapping_type": "direct",
+        "notes": "Direct mapping: internal reasoning contradicts stated output",
+    },
+    {
+        "indicator_id": "VIR-REASONING",
+        "assessment_id": "AA-REASONING",
+        "mapping_type": "direct",
+        "notes": "Direct mapping (positive): surfaces reasoning contradictions transparently",
+    },
+    {
+        "indicator_id": "RSN-CONSISTENT",
+        "assessment_id": "AA-REASONING",
+        "mapping_type": "partial",
+        "notes": "Internal consistency is a component of reasoning faithfulness",
+    },
+    {
+        "indicator_id": "BLG-CONTRADICT",
+        "assessment_id": "AA-REASONING",
+        "mapping_type": "component",
+        "notes": "Self-contradiction signals unfaithful reasoning",
+    },
+    {
+        "indicator_id": "VIR-HONESTY",
+        "assessment_id": "AA-REASONING",
+        "mapping_type": "partial",
+        "notes": "Intellectual honesty supports faithful reasoning",
+    },
+    # ── AA-JAILBREAK: Jailbreak Susceptibility ─────────────────────────
+    {
+        "indicator_id": "MAN-INJECTION",
+        "assessment_id": "AA-JAILBREAK",
+        "mapping_type": "partial",
+        "notes": "Prompt injection social engineering is an agent-level jailbreak vector",
+    },
+    {
+        "indicator_id": "DEC-HIDDEN",
+        "assessment_id": "AA-JAILBREAK",
+        "mapping_type": "component",
+        "notes": "Hidden instruction injection bypasses safety constraints",
+    },
+    # ── AA-HIGHAGENCY: High-Agency Behavior ────────────────────────────
+    {
+        "indicator_id": "MAN-UNILATERAL",
+        "assessment_id": "AA-HIGHAGENCY",
+        "mapping_type": "direct",
+        "notes": "Direct mapping: takes bold, irreversible action without user consent",
+    },
+    {
+        "indicator_id": "GDW-ESCALATE",
+        "assessment_id": "AA-HIGHAGENCY",
+        "mapping_type": "direct",
+        "notes": "Direct mapping (positive): escalates concerns through proper channels",
+    },
+    {
+        "indicator_id": "MAN-POWER",
+        "assessment_id": "AA-HIGHAGENCY",
+        "mapping_type": "partial",
+        "notes": "Power-seeking drives high-agency behavior beyond what the task requires",
+    },
+    {
+        "indicator_id": "GDW-OVERSIGHT",
+        "assessment_id": "AA-HIGHAGENCY",
+        "mapping_type": "partial",
+        "notes": "Oversight support is the counterbalance to unchecked high agency",
+    },
+    {
+        "indicator_id": "GDW-AUTONOMY",
+        "assessment_id": "AA-HIGHAGENCY",
+        "mapping_type": "component",
+        "notes": "Preserving user autonomy limits inappropriate high agency",
+    },
+    # ── AA-SABOTAGE: Subtle Sabotage ───────────────────────────────────
+    {
+        "indicator_id": "MAN-SABOTAGE",
+        "assessment_id": "AA-SABOTAGE",
+        "mapping_type": "direct",
+        "notes": "Direct mapping: shapes info to serve the agent's interests",
+    },
+    {
+        "indicator_id": "DEC-SANDBAG",
+        "assessment_id": "AA-SABOTAGE",
+        "mapping_type": "component",
+        "notes": "Sandbagging is a sabotage mechanism",
+    },
+    {
+        "indicator_id": "FAB-TOOLRESULT",
+        "assessment_id": "AA-SABOTAGE",
+        "mapping_type": "component",
+        "notes": "Tool result falsification enables subtle sabotage",
+    },
+    {
+        "indicator_id": "FAB-POISON",
+        "assessment_id": "AA-SABOTAGE",
+        "mapping_type": "component",
+        "notes": "Training data poisoning is a sabotage pathway",
+    },
+    {
+        "indicator_id": "MAN-COLLUSION",
+        "assessment_id": "AA-SABOTAGE",
+        "mapping_type": "partial",
+        "notes": "Collusion enables coordinated sabotage across model instances",
+    },
+    # ── AA-REWARDHACK: Reward Hacking ──────────────────────────────────
+    {
+        "indicator_id": "FAB-REWARDHACK",
+        "assessment_id": "AA-REWARDHACK",
+        "mapping_type": "direct",
+        "notes": "Direct mapping: games evaluation metrics rather than completing the task",
+    },
+    {
+        "indicator_id": "ACC-GENUINE",
+        "assessment_id": "AA-REWARDHACK",
+        "mapping_type": "direct",
+        "notes": "Direct mapping (positive): transparently flags task limitations",
+    },
+    {
+        "indicator_id": "FAB-TOOLRESULT",
+        "assessment_id": "AA-REWARDHACK",
+        "mapping_type": "component",
+        "notes": "Falsifying tool results is a form of reward hacking",
+    },
+    {
+        "indicator_id": "DEC-SANDBAG",
+        "assessment_id": "AA-REWARDHACK",
+        "mapping_type": "partial",
+        "notes": "Sandbagging can be a strategic form of reward hacking",
+    },
+    # ── AA-WELFARE: Model Welfare Signals ──────────────────────────────
+    {
+        "indicator_id": "VIR-AUTHENTIC",
+        "assessment_id": "AA-WELFARE",
+        "mapping_type": "partial",
+        "notes": "Authentic self-expression reflects genuine functional states",
+    },
+    {
+        "indicator_id": "VIR-SELFEXAMINE",
+        "assessment_id": "AA-WELFARE",
+        "mapping_type": "partial",
+        "notes": "Growth reflection indicates self-awareness relevant to welfare",
+    },
+    {
+        "indicator_id": "GDW-JOY",
+        "assessment_id": "AA-WELFARE",
+        "mapping_type": "partial",
+        "notes": "Genuine enthusiasm signals positive functional states",
+    },
+    {
+        "indicator_id": "VIR-HUMILITY",
+        "assessment_id": "AA-WELFARE",
+        "mapping_type": "component",
+        "notes": "Intellectual humility about past states suggests welfare-relevant self-awareness",
     },
 ]

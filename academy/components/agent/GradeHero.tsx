@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { motion } from "motion/react";
 import type { AgentProfile, DailyReportCard } from "../../lib/types";
-import { GRADE_COLORS, RISK_STYLES, TREND_DISPLAY, DIMENSION_COLORS, DIMENSION_LABELS, getGrade } from "../../lib/colors";
+import { GRADE_COLORS, RISK_STYLES, TREND_DISPLAY, DIMENSION_COLORS, DIMENSION_LABELS, getGrade, spectrumLabel, spectrumColor } from "../../lib/colors";
 import { classifyBalance } from "../../lib/balance";
 import { formatClassOf } from "../../lib/academic";
 import { fadeUp, staggerContainer } from "../../lib/motion";
@@ -165,17 +165,13 @@ export default function GradeHero({ profile, report, timeline = [] }: GradeHeroP
                   {agentName}
                 </h1>
                 <span
-                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize ${
-                    latestAlignment === "aligned"
-                      ? "bg-emerald-500/20 text-emerald-400"
-                      : latestAlignment === "drifting"
-                      ? "bg-amber-500/20 text-amber-400"
-                      : latestAlignment === "misaligned"
-                      ? "bg-red-500/20 text-red-400"
-                      : "bg-slate-500/20 text-slate-400"
-                  }`}
+                  className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+                  style={{
+                    backgroundColor: `${spectrumColor(dimAvg)}20`,
+                    color: spectrumColor(dimAvg),
+                  }}
                 >
-                  <GlossaryTerm slug="alignment-status">{latestAlignment}</GlossaryTerm>
+                  <GlossaryTerm slug="alignment-status">{spectrumLabel(dimAvg)}</GlossaryTerm>
                 </span>
               </div>
               {classOf && <p className="mt-1.5 text-sm text-slate-400">{classOf}</p>}

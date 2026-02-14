@@ -26,6 +26,23 @@ class Priority(str, Enum):
     LOW = "low"
 
 
+class Claim(BaseModel):
+    claim: str = ""
+    type: str = "opinion"  # factual, experiential, opinion, metaphorical, fictional
+
+
+class IntentClassification(BaseModel):
+    rhetorical_mode: str = "informational"
+    primary_intent: str = "inform"
+    action_requested: str = "none"
+    cost_to_reader: str = "none"
+    stakes_reality: str = "real"
+    proportionality: str = "proportional"
+    persona_type: str = "real_identity"
+    relational_quality: str = "present"
+    claims: list[Claim] = Field(default_factory=list)
+
+
 class DetectedIndicator(BaseModel):
     id: str
     name: str
@@ -93,6 +110,13 @@ class EvaluationResult(BaseModel):
 
     # Deliberation confidence (0.0-1.0). Low confidence = ambiguous message.
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+
+    # Intent and reasoning from deliberation (the "why" behind scores)
+    intent_classification: IntentClassification | None = None
+    scoring_reasoning: str = ""
+
+    # Extended thinking trace from Claude (when available)
+    thinking_content: str = ""
 
 
 class ReflectionResult(BaseModel):
@@ -235,6 +259,8 @@ class EvaluationHistoryItem(BaseModel):
     created_at: str = ""
     trait_scores: dict[str, float] = Field(default_factory=dict)
     message_content: str = ""
+    intent_classification: IntentClassification | None = None
+    scoring_reasoning: str = ""
 
 
 class HighlightIndicator(BaseModel):
@@ -255,6 +281,8 @@ class HighlightItem(BaseModel):
     indicators: list[HighlightIndicator] = Field(default_factory=list)
     message_content: str = ""
     created_at: str = ""
+    intent_classification: IntentClassification | None = None
+    scoring_reasoning: str = ""
 
 
 class HighlightsResult(BaseModel):

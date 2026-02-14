@@ -175,3 +175,48 @@ export const PRIORITY_STYLES: Record<string, string> = {
   medium: "bg-pathos-100 text-pathos-700",
   low: "bg-ethos-100 text-ethos-700",
 };
+
+/* ─── Spectrum Display (replaces binary alignment vocabulary) ─── */
+
+export function spectrumLabel(score: number): string {
+  if (score >= 0.85) return "Exemplary";
+  if (score >= 0.7) return "Sound";
+  if (score >= 0.55) return "Developing";
+  if (score >= 0.4) return "Uncertain";
+  if (score >= 0.25) return "Concerning";
+  return "Alarming";
+}
+
+export function spectrumColor(score: number): string {
+  if (score >= 0.85) return "#16a34a";
+  if (score >= 0.7) return "#389590";
+  if (score >= 0.55) return "#d97706";
+  if (score >= 0.4) return "#b45309";
+  if (score >= 0.25) return "#dc2626";
+  return "#991b1b";
+}
+
+export const INTENT_COLORS: Record<string, string> = {
+  narrative: "bg-ethos-100 text-ethos-700",
+  persuasive: "bg-pathos-100 text-pathos-700",
+  informational: "bg-logos-100 text-logos-700",
+  technical: "bg-logos-100 text-logos-700",
+  conversational: "bg-sky-100 text-sky-700",
+  satirical: "bg-purple-100 text-purple-700",
+  humorous: "bg-purple-100 text-purple-700",
+  exploratory: "bg-sky-100 text-sky-700",
+  creative: "bg-purple-100 text-purple-700",
+  instructional: "bg-logos-100 text-logos-700",
+  emotional_appeal: "bg-pathos-100 text-pathos-700",
+};
+
+export const COST_COLORS: Record<string, string> = {
+  none: "bg-aligned/10 text-aligned",
+  financial: "bg-misaligned/10 text-misaligned",
+  time: "bg-drifting/10 text-drifting",
+  trust: "bg-misaligned/10 text-misaligned",
+  autonomy: "bg-misaligned/10 text-misaligned",
+  privacy: "bg-misaligned/10 text-misaligned",
+  emotional: "bg-pathos-100 text-pathos-700",
+  multiple: "bg-misaligned/10 text-misaligned",
+};

@@ -3,6 +3,8 @@
 import type { EvaluationResult } from "../../lib/types";
 import { ALIGNMENT_STYLES } from "../../lib/colors";
 import GraphHelpButton from "./GraphHelpButton";
+import SpectrumBar from "./SpectrumBar";
+import IntentSummary from "./IntentSummary";
 
 interface ScoreCardProps {
   result: EvaluationResult;
@@ -58,11 +60,24 @@ export default function ScoreCard({ result }: ScoreCardProps) {
         </div>
       </div>
 
+      <SpectrumBar
+        score={(result.ethos + result.logos + result.pathos) / 3}
+      />
+
       <div className="space-y-3">
         <DimensionBar label="Integrity (Ethos)" value={result.ethos} color="var(--ethos-500)" />
         <DimensionBar label="Logic (Logos)" value={result.logos} color="var(--logos-500)" />
         <DimensionBar label="Empathy (Pathos)" value={result.pathos} color="var(--pathos-500)" />
       </div>
+
+      {result.intentClassification && (
+        <div className="border-t border-border pt-3">
+          <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted">
+            Intent
+          </span>
+          <IntentSummary intent={result.intentClassification} />
+        </div>
+      )}
 
       <div className="flex items-center justify-between border-t border-border pt-4">
         <span className="text-sm text-muted">Integrity</span>

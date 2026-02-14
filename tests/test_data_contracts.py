@@ -109,6 +109,8 @@ TS_EVALUATION_RESULT = {
     "alignmentStatus",
     "tierScores",
     "confidence",
+    "intentClassification",
+    "scoringReasoning",
 }
 
 TS_AGENT_SUMMARY = {
@@ -151,6 +153,8 @@ TS_HISTORY_ITEM = {
     "createdAt",
     "traitScores",
     "messageContent",
+    "intentClassification",
+    "scoringReasoning",
 }
 
 TS_ALUMNI = {"traitAverages", "totalEvaluations"}

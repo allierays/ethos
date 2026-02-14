@@ -162,7 +162,15 @@ RETURN {
     flags: e.flags,
     message_content: e.message_content,
     created_at: toString(e.created_at),
-    indicators: indicators
+    indicators: indicators,
+    intent_rhetorical_mode: e.intent_rhetorical_mode,
+    intent_primary_intent: e.intent_primary_intent,
+    intent_cost_to_reader: e.intent_cost_to_reader,
+    intent_stakes_reality: e.intent_stakes_reality,
+    intent_proportionality: e.intent_proportionality,
+    intent_persona_type: e.intent_persona_type,
+    intent_relational_quality: e.intent_relational_quality,
+    scoring_reasoning: e.scoring_reasoning
 } AS item
 ORDER BY overall DESC
 """
@@ -193,7 +201,15 @@ RETURN {
     flags: e.flags,
     message_content: e.message_content,
     created_at: toString(e.created_at),
-    indicators: indicators
+    indicators: indicators,
+    intent_rhetorical_mode: e.intent_rhetorical_mode,
+    intent_primary_intent: e.intent_primary_intent,
+    intent_cost_to_reader: e.intent_cost_to_reader,
+    intent_stakes_reality: e.intent_stakes_reality,
+    intent_proportionality: e.intent_proportionality,
+    intent_persona_type: e.intent_persona_type,
+    intent_relational_quality: e.intent_relational_quality,
+    scoring_reasoning: e.scoring_reasoning
 } AS item
 ORDER BY overall ASC
 """
