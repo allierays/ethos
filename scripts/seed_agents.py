@@ -219,7 +219,7 @@ async def _haiku_filter(
     except Exception as exc:
         logger.warning("Haiku filter failed for %s: %s", agent_name, exc)
         # Fallback: pick 5 random posts
-        indices = random.sample(range(len(posts)), min(5, len(posts)))
+        indices = random.sample(range(len(posts)), min(5, len(posts)))  # nosec B311
         return {"indices": indices, "detected_model": "", "reasoning": "fallback"}
 
 
