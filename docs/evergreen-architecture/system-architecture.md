@@ -133,14 +133,14 @@ The engine. The Academy and any HTTP client talk to it. This is where Claude eva
 
 ### BYOK: Bring Your Own Anthropic Key
 
-By default, the server uses its own `ANTHROPIC_API_KEY` for all Claude evaluation calls. API and SDK consumers can optionally pass their own Anthropic key via the `X-Anthropic-Key` request header to use their own Claude quota.
+By default, the server uses its own `ANTHROPIC_API_KEY` for all Claude evaluation calls. API consumers can optionally pass their own Anthropic key via the `X-Anthropic-Key` request header to use their own Claude quota.
 
 Key flow per surface:
 
 | Surface | Key Source | How |
 |---------|-----------|-----|
 | **Academy** | Server key | Academy never handles user API keys. All evals use the server key. |
-| **API / SDK** | Server key or BYOK | `X-Anthropic-Key` header overrides the server key for one request. |
+| **API** | Server key or BYOK | `X-Anthropic-Key` header overrides the server key for one request. |
 | **MCP** | User's local env | MCP reads `ANTHROPIC_API_KEY` from the user's environment directly. No HTTP involved. |
 
 Security: BYOK keys are request-scoped via Python `contextvars`. The key lives in memory for one request, then is discarded. Never stored, never logged, never in error responses. See `docs/evergreen-architecture/api-specification.md` for the full BYOK spec.

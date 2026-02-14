@@ -2043,3 +2043,6 @@ with open('/Users/allierays/Sites/ethos/.ralph/prd.json
 [04:40:15] READ: app/records/page.tsx
 [04:40:21] BASH: npx tsc --noEmit 2>&1
 [04:40:32] BASH: echo "$(date): Completed TASK-046 - Records page already had full implementation
+[04:50:27] BASH: cd /Users/allierays/Sites/ethos/academy && npx next build 2>&1 | tail -30
+[04:50:34] EDIT: app/sitemap.ts
+[04:50:53] BASH: npx next build 2>&1 | tail -30

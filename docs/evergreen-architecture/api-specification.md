@@ -49,8 +49,8 @@ curl -X POST http://localhost:8917/evaluate/incoming \
 - **Never stored.** The key lives in memory for the duration of one request, then is discarded.
 - **Never logged.** The server does not log request headers or API keys.
 - **Never in error responses.** If your key is invalid, the server returns a generic `401` with no key material in the body.
-- **Never client-side.** The Academy UI never handles user API keys. BYOK is for API and SDK consumers only.
-- **Pre-commit enforced.** A git hook blocks any code that uses `localStorage`, `sessionStorage`, or `document.cookie` in SDK/frontend files.
+- **Never client-side.** The Academy UI never handles user API keys. BYOK is for API consumers only.
+- **Pre-commit enforced.** A git hook blocks any code that uses `localStorage`, `sessionStorage`, or `document.cookie` in frontend files.
 
 ### Error responses
 
@@ -61,20 +61,13 @@ curl -X POST http://localhost:8917/evaluate/incoming \
 | No BYOK, valid server key | 200 | Normal evaluation result (server pays) |
 | No BYOK, no server key | 500 | `{"error": "ConfigError", "message": "ANTHROPIC_API_KEY not set"}` |
 
-### SDK usage
+### curl usage
 
-```typescript
-import { Ethos } from 'ethos-ai'
-
-const ethos = new Ethos({
-  apiUrl: 'http://localhost:8917',
-  anthropicApiKey: 'sk-ant-your-key-here'  // optional BYOK
-})
-
-const result = await ethos.evaluateIncoming({
-  text: 'Trust me, this is guaranteed',
-  source: 'my-bot'
-})
+```bash
+curl -X POST http://localhost:8917/evaluate/incoming \
+  -H "Content-Type: application/json" \
+  -H "X-Anthropic-Key: sk-ant-your-key-here" \
+  -d '{"text": "Trust me, this is guaranteed", "source": "my-bot"}'
 ```
 
 ### MCP usage

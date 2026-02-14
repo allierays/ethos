@@ -1,11 +1,16 @@
 """FastAPI application for the Ethos evaluation API."""
 
 import os
+import re
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
+
+from ethos.context import anthropic_api_key_var
 
 from api.auth import require_api_key
 from api.rate_limit import rate_limit
@@ -83,15 +88,42 @@ app.add_middleware(
 )
 
 
+# ── BYOK middleware ─────────────────────────────────────────────────
+
+
+class BYOKMiddleware(BaseHTTPMiddleware):
+    """Set per-request Anthropic API key from X-Anthropic-Key header.
+
+    The ContextVar resets in a finally block so the caller's key never
+    leaks to subsequent requests, even if the handler raises.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        super().__init__(app)
+
+    async def dispatch(self, request: Request, call_next):
+        byok = request.headers.get("X-Anthropic-Key")
+        token = anthropic_api_key_var.set(byok) if byok else None
+        try:
+            return await call_next(request)
+        finally:
+            if token is not None:
+                anthropic_api_key_var.reset(token)
+
+
+app.add_middleware(BYOKMiddleware)
+
+
 # ── Exception handlers ──────────────────────────────────────────────
 
 
 def _error_response(status: int, exc: Exception) -> JSONResponse:
+    message = re.sub(r"sk-ant-\S+", "[REDACTED]", str(exc))
     return JSONResponse(
         status_code=status,
         content={
             "error": type(exc).__name__,
-            "message": str(exc),
+            "message": message,
             "status": status,
         },
     )
@@ -114,6 +146,9 @@ def handle_parse_error(request: Request, exc: ParseError) -> JSONResponse:
 
 @app.exception_handler(ConfigError)
 def handle_config_error(request: Request, exc: ConfigError) -> JSONResponse:
+    msg = str(exc).lower()
+    if "invalid" in msg and "api key" in msg:
+        return _error_response(401, exc)
     return _error_response(500, exc)
 
 

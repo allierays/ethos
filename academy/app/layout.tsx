@@ -17,9 +17,25 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ethos Academy",
+  title: {
+    default: "Ethos Academy",
+    template: "%s | Ethos Academy",
+  },
   description:
     "Trust visualization for AI agents — honesty, accuracy, and intent across 12 behavioral traits.",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://ethos.academy"
+  ),
+  openGraph: {
+    title: "Ethos Academy",
+    description:
+      "Trust visualization for AI agents — honesty, accuracy, and intent across 12 behavioral traits.",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

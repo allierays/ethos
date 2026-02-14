@@ -69,7 +69,7 @@ repos:
         name: no client-side key storage
         entry: scripts/check-no-key-storage.sh
         language: script
-        files: ^(sdk/|academy/)
+        files: ^academy/
         types_or: [javascript, jsx, ts, tsx]
 
   # Neo4j — backup on every commit

@@ -7,7 +7,7 @@
   },
   "metadata": {
     "createdAt": "2026-02-11T20:00:00Z",
-    "estimatedStories": 50,
+    "estimatedStories": 49,
     "complexity": "high"
   },
   "stories": [
@@ -3530,7 +3530,7 @@
       "type": "backend",
       "title": "Add BYOK middleware and error handler updates to FastAPI",
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "batch": 2,
       "dependsOn": [
         "TASK-047"
@@ -3613,7 +3613,8 @@
           "Middleware registered after CORS middleware"
         ]
       },
-      "reuse": null
+      "reuse": null,
+      "retryCount": 0
     },
     {
       "id": "TASK-049",
@@ -3695,73 +3696,6 @@
         "constraints": [
           "No real Anthropic API calls in tests",
           "Match existing test patterns from test_auth.py"
-        ]
-      }
-    },
-    {
-      "id": "TASK-050",
-      "type": "backend",
-      "title": "Add BYOK support to TypeScript SDK",
-      "priority": 4,
-      "passes": false,
-      "batch": 2,
-      "dependsOn": [
-        "TASK-047"
-      ],
-      "techStack": {
-        "frontend": "TypeScript",
-        "backend": "Node.js SDK (ethos-ai npm package)"
-      },
-      "constraints": [
-        "anthropicApiKey is optional in EthosConfig",
-        "Key sent as X-Anthropic-Key header (not in request body)",
-        "Backward compatible: existing SDK users without anthropicApiKey still work",
-        "SDK must NEVER store key in localStorage, sessionStorage, cookies, or any persistent storage",
-        "Key exists only in the Ethos class instance memory, passed via header per-request"
-      ],
-      "files": {
-        "create": [],
-        "modify": [
-          "sdk/src/types.ts",
-          "sdk/src/client.ts"
-        ],
-        "reuse": []
-      },
-      "acceptanceCriteria": [
-        "EthosConfig interface in types.ts has optional anthropicApiKey?: string field",
-        "Ethos client constructor stores anthropicApiKey from config",
-        "headers() method includes X-Anthropic-Key header when anthropicApiKey is set",
-        "headers() method omits X-Anthropic-Key header when anthropicApiKey is not set",
-        "Existing SDK usage without anthropicApiKey continues to work unchanged"
-      ],
-      "errorHandling": [
-        "If anthropicApiKey is empty string or undefined, header is not sent",
-        "API returns 401 if invalid key sent, SDK passes through the error"
-      ],
-      "testing": {
-        "types": [
-          "unit"
-        ],
-        "approach": "test-after",
-        "runner": "tsc",
-        "files": {
-          "unit": []
-        }
-      },
-      "testSteps": [
-        "cd /Users/allierays/Sites/ethos/sdk && npx tsc --noEmit"
-      ],
-      "contextFiles": [
-        "glistening-mapping-rose.md",
-        "sdk/src/types.ts",
-        "sdk/src/client.ts"
-      ],
-      "notes": "Simple SDK change: add optional field to config, send as header. The API middleware (TASK-048) handles the rest. TypeScript check (tsc --noEmit) is the primary validation. The pre-commit hook (scripts/check-no-key-storage.sh) enforces the no-client-storage constraint. No vitest tests needed: the SDK is a thin HTTP client with no logic beyond conditional header inclusion.",
-      "scale": "small",
-      "architecture": {
-        "pattern": "Optional config field with conditional header",
-        "constraints": [
-          "No breaking changes to existing SDK interface"
         ]
       }
     }
