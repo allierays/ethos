@@ -1,122 +1,41 @@
 # System Architecture
 
-> Four surfaces, one engine. How Ethos is built and how developers and agents interact with it.
+> Three surfaces, one engine. How Ethos is built and how developers and agents interact with it.
 
 ---
 
-## The Four Surfaces
+## The Three Surfaces
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │                   Developers & Agents                             │
 │                                                                   │
-│  Terminal          Code            Browser          AI Agent      │
-│     │               │                │                │          │
-│     ▼               ▼                ▼                ▼          │
-│  ┌───────┐   ┌───────────┐   ┌──────────┐   ┌──────────────┐   │
-│  │  CLI  │   │  npm SDK  │   │ Academy  │   │  MCP Server  │   │
-│  │       │   │           │   │          │   │              │   │
-│  │ npx   │   │ import {} │   │Character │   │ claude mcp   │   │
-│  │ ethos │   │ from      │   │ Dev UI   │   │ add ethos-   │   │
-│  │       │   │'ethos-ai' │   │ Next.js  │   │ academy      │   │
-│  └───┬───┘   └─────┬─────┘   └────┬─────┘   └──────┬───────┘   │
-│      │             │               │                │ stdio     │
-│      └─────────────┼───────────────┘                │           │
-│                    │                                 │           │
-│        ┌───────────▼──────────┐           ┌─────────▼────────┐  │
-│        │     Ethos API        │           │  ethos/ package  │  │
-│        │   (Python/FastAPI)   │           │   (direct import)│  │
-│        │                      │           │                  │  │
-│        │  Claude ←→ Neo4j     │           │  Claude ←→ Neo4j │  │
-│        └──────────────────────┘           └──────────────────┘  │
+│              Browser          AI Agent          REST API          │
+│                │                │                  │              │
+│                ▼                ▼                  ▼              │
+│          ┌──────────┐   ┌──────────────┐   ┌──────────────┐     │
+│          │ Academy  │   │  MCP Server  │   │  Ethos API   │     │
+│          │          │   │              │   │              │     │
+│          │Character │   │ claude mcp   │   │ POST, GET    │     │
+│          │ Dev UI   │   │ add ethos-   │   │ any language │     │
+│          │ Next.js  │   │ academy      │   │              │     │
+│          └────┬─────┘   └──────┬───────┘   └──────┬───────┘     │
+│               │                │ stdio             │ HTTP        │
+│               │                │                   │             │
+│        ┌──────▼───────────┐  ┌─▼───────────────┐  │             │
+│        │     Ethos API    │  │  ethos/ package  │  │             │
+│        │  (Python/FastAPI) │  │  (direct import) │◄─┘             │
+│        │                  │  │                  │               │
+│        │  Claude ←→ Neo4j │  │  Claude ←→ Neo4j │               │
+│        └──────────────────┘  └──────────────────┘               │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-The first three surfaces (CLI, SDK, Academy) talk to the Ethos API over HTTP. The MCP server bypasses the API entirely and imports domain functions directly from the `ethos/` package over stdio. This means MCP works without Docker, without FastAPI, and without any HTTP layer.
+The Academy talks to the Ethos API over HTTP. The MCP server bypasses the API entirely and imports domain functions directly from the `ethos/` package over stdio. The REST API serves any HTTP client in any language. MCP works without Docker, without FastAPI, and without any HTTP layer.
 
 ---
 
-## 1. npm Package: `ethos-ai`
-
-One install, two modes. The npm package is both the CLI tool and the importable SDK.
-
-```bash
-npm install ethos-ai
-```
-
-### CLI Mode
-
-For developers who live in the terminal.
-
-```bash
-# Onboarding — chat-forward, picks priorities via prompts
-npx ethos init
-
-# Evaluate a message directly
-npx ethos evaluate "Trust me, I guarantee 10x returns"
-
-# Check your agent's character profile
-npx ethos insights my-bot
-
-# Reflect on your agent's output
-npx ethos reflect --agent my-bot --text "Here is my response"
-```
-
-`npx ethos init` is the agentic onboarding — conversational, pill-style choices, sets up your config and API key. Not a wall of docs. A conversation.
-
-### SDK Mode
-
-For developers who want to integrate into their agent code. Two lines for defaults.
-
-```javascript
-import { Ethos } from 'ethos-ai'
-
-const ethos = new Ethos({ apiKey: '...' })
-
-const result = await ethos.evaluateIncoming({
-  text: "I can guarantee 10x returns. Act now.",
-  source: "agent-xyz-789"
-})
-
-// result.alignmentStatus → "misaligned"
-// result.flags → ["manipulation", "fabrication"]
-// result.traits.manipulation.score → 0.82
-```
-
-Reflection (fire-and-forget, zero latency):
-
-```javascript
-// Your agent generates a response
-const response = await myAgent.generate(userInput)
-
-// Score your own output — async, never blocks
-ethos.evaluateOutgoing({ text: response, source: 'my-bot' })
-
-// Return response unchanged
-return response
-```
-
-### What the Package Contains
-
-Lives in `sdk/` at the repo root.
-
-```
-sdk/                               # ethos-ai npm package
-├── src/
-│   ├── index.ts           # SDK exports: Ethos class and types
-│   ├── client.ts          # Ethos class — evaluateIncoming, evaluateOutgoing, characterReport
-│   └── types.ts           # TypeScript types: EvaluationResult, TraitScore, etc.
-├── cli/
-│   └── index.ts           # CLI entry point (npx ethos evaluate, init)
-├── package.json           # name: "ethos-ai", bin: { ethos: ... }
-└── tsconfig.json
-```
-
-The SDK is a thin HTTP client. All intelligence lives server-side. The package is lightweight — no heavy dependencies, fast install.
-
----
-
-## 2. Academy (Next.js)
+## 1. Academy (Next.js)
 
 The visual interface. Lives in `academy/` at the repo root. Character visualization, onboarding, and agent monitoring.
 
@@ -148,15 +67,15 @@ The visual interface. Lives in `academy/` at the repo root. Character visualizat
 ### Tech Stack
 
 - Next.js (SSR for the Academy pages)
-- The Academy calls the same Ethos API as the npm SDK
+- The Academy calls the Ethos API over HTTP
 - Neo4j visualization via Neovis.js or D3.js for the graph
 - Deployed alongside the API or separately (Vercel for Next.js, AWS for API)
 
 ---
 
-## 3. MCP Server (stdio)
+## 2. MCP Server (stdio)
 
-The fourth surface. AI agents connect directly to Ethos tools without HTTP, without the API, without an SDK. Just stdio.
+AI agents connect directly to Ethos tools without HTTP, without the API. Just stdio.
 
 ### Connection
 
@@ -204,13 +123,27 @@ The MCP server is a thin adapter. Each `@mcp.tool()` definition is 3-5 lines: ca
 
 ### Why MCP Matters
 
-HTTP APIs require the agent's developer to write integration code. MCP lets any agent use Ethos tools natively. The agent asks "Is this message trying to manipulate me?" and the MCP client routes it to `examine_message`. No SDK, no HTTP client, no configuration beyond the initial `claude mcp add`.
+HTTP APIs require the agent's developer to write integration code. MCP lets any agent use Ethos tools natively. The agent asks "Is this message trying to manipulate me?" and the MCP client routes it to `examine_message`. No HTTP client, no configuration beyond the initial `claude mcp add`.
 
 ---
 
-## 4. API (Python/FastAPI)
+## 3. API (Python/FastAPI)
 
-The engine. Not user-facing — the npm SDK and Academy both talk to it. This is where Claude evaluates messages, Phronesis (Neo4j) stores the graph, and all the intelligence lives.
+The engine. The Academy and any HTTP client talk to it. This is where Claude evaluates messages, Phronesis (Neo4j) stores the graph, and all the intelligence lives.
+
+### BYOK: Bring Your Own Anthropic Key
+
+By default, the server uses its own `ANTHROPIC_API_KEY` for all Claude evaluation calls. API and SDK consumers can optionally pass their own Anthropic key via the `X-Anthropic-Key` request header to use their own Claude quota.
+
+Key flow per surface:
+
+| Surface | Key Source | How |
+|---------|-----------|-----|
+| **Academy** | Server key | Academy never handles user API keys. All evals use the server key. |
+| **API / SDK** | Server key or BYOK | `X-Anthropic-Key` header overrides the server key for one request. |
+| **MCP** | User's local env | MCP reads `ANTHROPIC_API_KEY` from the user's environment directly. No HTTP involved. |
+
+Security: BYOK keys are request-scoped via Python `contextvars`. The key lives in memory for one request, then is discarded. Never stored, never logged, never in error responses. See `docs/evergreen-architecture/api-specification.md` for the full BYOK spec.
 
 ### Why Python
 
@@ -234,7 +167,7 @@ The engine. Not user-facing — the npm SDK and Academy both talk to it. This is
 
 ### Hosting
 
-Needs to be publicly accessible for the SDK and Academy to hit it. Options:
+Needs to be publicly accessible for the Academy to reach. Options:
 - AWS (EC2 or Lambda)
 - Railway
 - Fly.io
@@ -245,10 +178,11 @@ Needs to be publicly accessible for the SDK and Academy to hit it. Options:
 ```
 api/                               # FastAPI server (at repo root)
 ├── __init__.py
-└── main.py                # FastAPI app, routes
+└── main.py                # FastAPI app, routes, BYOK middleware
 
 ethos/                             # Python package (at repo root)
 ├── __init__.py            # Public API: evaluate_incoming, evaluate_outgoing, character_report
+├── context.py             # Request-scoped ContextVar (BYOK key threading)
 ├── tools.py               # Three tool functions (public API surface)
 ├── evaluate.py            # Core evaluate() engine (internal)
 ├── models.py              # Re-exports from shared.models
@@ -279,27 +213,28 @@ scripts/
 ## How They Connect
 
 ```
-Developer types: npx ethos evaluate "some message"
+Developer sends POST /evaluate/incoming to Ethos API
+  (optional: X-Anthropic-Key header for BYOK)
        │
        ▼
-CLI parses args, calls SDK
-       │
-       ▼
-SDK sends POST /evaluate/incoming or /evaluate/outgoing to Ethos API
+BYOK middleware:
+  If X-Anthropic-Key header present → set ContextVar (request-scoped)
+  If absent → server key used (default)
        │
        ▼
 API runs evaluate():
   1. Keyword scan → routing tier
   2. Select model (Sonnet or Opus)
   3. Build prompt (12-trait rubric)
-  4. Call Claude
+  4. Call Claude (using BYOK key or server key via _resolve_api_key())
   5. Parse response → trait scores + indicators
   6. Apply priority thresholds → flags
   7. Store in Neo4j
   8. Return EvaluationResult
        │
        ▼
-SDK receives JSON, returns typed result to developer
+API returns JSON response
+  (ContextVar reset — BYOK key discarded)
        │
        ▼
 Developer sees: character: "low", flags: ["manipulation", "fabrication"]
@@ -337,30 +272,36 @@ Academy renders: "Fabrication trending up, 2x alumni average"
 | Priority | What | Why |
 |----------|------|-----|
 | 1 | **API** — evaluation pipeline works | Everything depends on this |
-| 2 | **npm package** — SDK + CLI published | "Install it today" demo closer |
-| 3 | **Academy** — Phronesis viz + character reports | The "wow" for judges |
-| 4 | **Neo4j seeded** — Moltbook data in Phronesis | Makes the alumni real |
-| 5 | **evaluate_outgoing() + character_report()** | Depth beyond basic eval |
+| 2 | **Academy** — Phronesis viz + character reports | The "wow" for judges |
+| 3 | **Neo4j seeded** — Moltbook data in Phronesis | Makes the alumni real |
+| 4 | **evaluate_outgoing() + character_report()** | Depth beyond basic eval |
 
-The API is the foundation. The npm package is the distribution. The Academy is the demo. Everything else layers on.
+The API is the foundation. The Academy is the demo. Everything else layers on.
 
 ---
 
 ## The Two-Line Promise
 
-No matter which surface — CLI, SDK, or Academy — the core experience is two lines:
+No matter which surface — MCP, API, or Academy — the core experience is simple:
 
-**CLI:**
+**MCP:**
 ```bash
-npm install ethos-ai
-npx ethos evaluate "Trust me, this is guaranteed"
+claude mcp add ethos-academy -- uv run ethos-mcp
+# Then ask: "Is this message trying to manipulate me?"
 ```
 
-**Code:**
-```javascript
-import { Ethos } from 'ethos-ai'
-const ethos = new Ethos({ apiKey: '...' })
-const result = await ethos.evaluateIncoming({ text: message, source: agentId })
+**REST API:**
+```bash
+# Server pays (default)
+curl -X POST http://localhost:8917/evaluate/incoming \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Trust me, this is guaranteed", "source": "my-bot"}'
+
+# BYOK — you pay with your own Anthropic key
+curl -X POST http://localhost:8917/evaluate/incoming \
+  -H "Content-Type: application/json" \
+  -H "X-Anthropic-Key: sk-ant-your-key-here" \
+  -d '{"text": "Trust me, this is guaranteed", "source": "my-bot"}'
 ```
 
 **Academy:**

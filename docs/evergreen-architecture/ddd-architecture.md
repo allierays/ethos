@@ -10,6 +10,7 @@ Ethos has six bounded contexts. Each domain has a clear responsibility, owns its
 
 ```
 ethos/                   # Python package (pip install ethos)
+├── context.py       # Request-scoped ContextVar (BYOK key threading)
 ├── evaluation/      # Core scoring — the heart of the product
 ├── reflection/      # Self-examination and insights
 ├── graph/           # Neo4j persistence and alumni intelligence
@@ -19,7 +20,6 @@ ethos/                   # Python package (pip install ethos)
 ├── shared/          # Cross-cutting models and utilities
 └── mcp_server.py    # MCP server — 18 tools over stdio
 api/                     # FastAPI server (at repo root, NOT inside ethos/)
-sdk/                     # ethos-ai npm package (SDK + CLI)
 academy/                 # Next.js character visualization UI
 ```
 
@@ -382,7 +382,7 @@ api/
 - API is a thin layer. No business logic in route handlers — they delegate to domain functions.
 - API has its own request/response models that translate to/from domain models.
 - API depends on all domains but no domain depends on API. The `ethos/` package works without the API (as a Python library).
-- The one-way dependency: `sdk/ → api/ → ethos/`. Nothing points backwards.
+- The one-way dependency: `academy/ → api/ → ethos/`. Nothing points backwards.
 
 ---
 
@@ -398,6 +398,31 @@ ethos/shared/
 ### Why Shared Exists
 
 `EvaluationResult` is created by Evaluation, stored by Graph, queried by Reflection, and returned by API. It belongs to no single domain. It lives in Shared.
+
+---
+
+## Cross-Cutting: Context
+
+```
+ethos/context.py         # Request-scoped ContextVar for BYOK key threading
+```
+
+### Why Context Lives at Package Root
+
+`ethos/context.py` holds a single `ContextVar` that threads the BYOK (Bring Your Own Key) Anthropic API key from the HTTP middleware down to the Claude client without changing any domain function signatures.
+
+It lives at the package root (not in `shared/`) because:
+- `shared/` is pure data and errors only. No runtime state.
+- `context.py` holds mutable, request-scoped state (a `ContextVar`).
+- This follows the same pattern as `graph_context()` in `ethos/graph/service.py` -- infrastructure that domains use but that belongs to no single domain.
+
+### How It Works
+
+```
+API middleware sets ContextVar → domain functions run → claude_client reads ContextVar → ContextVar reset
+```
+
+The Evaluation domain's `claude_client.py` calls `_resolve_api_key()` which checks the ContextVar first (BYOK), then falls back to the server's `EthosConfig` key. Zero domain function signatures change. MCP is unaffected (uses the user's local `ANTHROPIC_API_KEY` env var directly).
 
 ---
 
@@ -437,6 +462,7 @@ ethos/shared/
 - Taxonomy has no dependencies. It's pure data.
 - Config has no dependencies on other domains (it validates against Taxonomy via import, but Taxonomy has no awareness of Config).
 - No circular dependencies. If A depends on B, B never depends on A.
+- `ethos/context.py` is a cross-cutting utility read by Evaluation (via `claude_client.py`) and written by the API middleware. It has no domain dependencies.
 
 ---
 
@@ -455,9 +481,8 @@ The DDD domain structure is in place. Here's what exists and what's planned.
 | Config | `ethos/config/` | `config.py`, `priorities.py` |
 | Shared | `ethos/shared/` | `models.py`, `errors.py` |
 | API | `api/` | `main.py` (3 endpoints) |
-| SDK | `sdk/` | TypeScript scaffold (client, types, CLI stub) |
 
-Top-level convenience files in `ethos/`: `evaluate.py`, `reflect.py`, `models.py`, `prompts.py`, `graph.py`
+Top-level files in `ethos/`: `evaluate.py`, `reflect.py`, `models.py`, `prompts.py`, `graph.py`, `context.py` (BYOK ContextVar)
 
 ### Planned
 
@@ -470,7 +495,6 @@ Top-level convenience files in `ethos/`: `evaluate.py`, `reflect.py`, `models.py
 | Identity | `profile.py` (AgentProfile model) |
 | Config | `presets.py` (industry presets: financial, healthcare, research) |
 | API | `routes/`, `schemas.py`, `deps.py` (as endpoints grow) |
-| SDK | Full TypeScript implementation |
 | Academy | Next.js character visualization UI |
 
 ### Repo Layout
@@ -479,7 +503,6 @@ Top-level convenience files in `ethos/`: `evaluate.py`, `reflect.py`, `models.py
 ~/Sites/ethos/
 ├── ethos/              # Python package — pip install ethos
 ├── api/                # FastAPI server — serves ethos/ over HTTP
-├── sdk/                # ethos-ai npm package — SDK + CLI
 ├── academy/            # Next.js — trust visualization UI
 ├── docs/               # Architecture, research
 ├── scripts/            # seed_graph.py, scrape_moltbook.py
@@ -487,4 +510,4 @@ Top-level convenience files in `ethos/`: `evaluate.py`, `reflect.py`, `models.py
 └── data/               # Moltbook scraped data
 ```
 
-Dependency flow (always one-way): `sdk/ → api/ → ethos/`, `academy/ → api/ → ethos/`, `mcp → ethos/` (stdio, no HTTP)
+Dependency flow (always one-way): `academy/ → api/ → ethos/`, `mcp → ethos/` (stdio, no HTTP)

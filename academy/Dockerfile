@@ -21,6 +21,7 @@ RUN npm run build
 FROM node:22-slim
 
 WORKDIR /app
+ENV NODE_ENV=production
 
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static

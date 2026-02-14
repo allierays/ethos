@@ -8,7 +8,7 @@
 
 ## Authentication
 
-All requests require an API key in the `Authorization` header:
+All mutating requests require an Ethos API key in the `Authorization` header:
 
 ```
 Authorization: Bearer ethos_sk_...
@@ -16,7 +16,75 @@ Authorization: Bearer ethos_sk_...
 
 API keys are generated at registration. One key per developer account.
 
-> **Hackathon MVP:** Authentication is not implemented in the current build. All endpoints are publicly accessible during development. Bearer token auth will be added post-hackathon.
+> **Hackathon MVP:** Authentication is optional via the `ETHOS_API_KEY` environment variable. When set, all `POST` endpoints require the Bearer token. When unset, endpoints are publicly accessible.
+
+---
+
+## BYOK: Bring Your Own Anthropic Key
+
+By default, the Ethos server uses its own `ANTHROPIC_API_KEY` for Claude evaluation calls. Users can optionally provide their own Anthropic API key to use their own Claude quota.
+
+### How it works
+
+Pass your Anthropic key in the `X-Anthropic-Key` request header:
+
+```bash
+curl -X POST http://localhost:8917/evaluate/incoming \
+  -H "Content-Type: application/json" \
+  -H "X-Anthropic-Key: sk-ant-your-key-here" \
+  -d '{"text": "Trust me, this is guaranteed", "source": "my-bot"}'
+```
+
+| Header | Required | Description |
+|--------|----------|-------------|
+| `X-Anthropic-Key` | No | Your Anthropic API key. When present, overrides the server key for this request only. |
+
+### Key resolution priority
+
+1. `X-Anthropic-Key` header (BYOK) -- if present, this request uses your key
+2. Server `ANTHROPIC_API_KEY` env var -- default for all requests without the header
+
+### Security guarantees
+
+- **Never stored.** The key lives in memory for the duration of one request, then is discarded.
+- **Never logged.** The server does not log request headers or API keys.
+- **Never in error responses.** If your key is invalid, the server returns a generic `401` with no key material in the body.
+- **Never client-side.** The Academy UI never handles user API keys. BYOK is for API and SDK consumers only.
+- **Pre-commit enforced.** A git hook blocks any code that uses `localStorage`, `sessionStorage`, or `document.cookie` in SDK/frontend files.
+
+### Error responses
+
+| Scenario | Status | Response |
+|----------|--------|----------|
+| Valid BYOK key | 200 | Normal evaluation result |
+| Invalid BYOK key | 401 | `{"error": "ConfigError", "message": "Invalid Anthropic API key"}` |
+| No BYOK, valid server key | 200 | Normal evaluation result (server pays) |
+| No BYOK, no server key | 500 | `{"error": "ConfigError", "message": "ANTHROPIC_API_KEY not set"}` |
+
+### SDK usage
+
+```typescript
+import { Ethos } from 'ethos-ai'
+
+const ethos = new Ethos({
+  apiUrl: 'http://localhost:8917',
+  anthropicApiKey: 'sk-ant-your-key-here'  // optional BYOK
+})
+
+const result = await ethos.evaluateIncoming({
+  text: 'Trust me, this is guaranteed',
+  source: 'my-bot'
+})
+```
+
+### MCP usage
+
+MCP users already bring their own key via their local environment. No changes needed:
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-your-key-here
+claude mcp add ethos-academy -- uv run ethos-mcp
+```
 
 ---
 

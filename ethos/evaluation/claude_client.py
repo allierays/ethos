@@ -19,11 +19,13 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 
 import anthropic
 
 from ethos.config.config import EthosConfig
-from ethos.shared.errors import EvaluationError
+from ethos.context import anthropic_api_key_var
+from ethos.shared.errors import ConfigError, EvaluationError
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +41,26 @@ _EXTRACT_SYSTEM = (
     "You are extracting a prior analysis into structured evaluation tools. "
     "Call all three tools: identify_intent, detect_indicators, score_traits."
 )
+
+# Regex pattern to redact Anthropic API keys in error messages
+_KEY_PATTERN = re.compile(r"sk-ant-\S+")
+
+
+def _resolve_api_key() -> str:
+    """Return the Anthropic API key for the current request.
+
+    Checks the BYOK ContextVar first (per-request override), then falls
+    back to the server key from EthosConfig.from_env().
+    """
+    byok = anthropic_api_key_var.get()
+    if byok is not None:
+        return byok
+    return EthosConfig.from_env().anthropic_api_key
+
+
+def _redact(msg: str) -> str:
+    """Scrub any sk-ant-* tokens from an error message."""
+    return _KEY_PATTERN.sub("[REDACTED]", msg)
 
 
 def _get_model(tier: str) -> str:
@@ -116,8 +138,12 @@ async def _call_think_then_extract(
 
     try:
         think_response = await client.messages.create(**think_kwargs)
+    except anthropic.AuthenticationError:
+        raise ConfigError("Invalid Anthropic API key") from None
     except Exception as exc:
-        logger.warning("Think call failed, falling back to single-call: %s", exc)
+        logger.warning(
+            "Think call failed, falling back to single-call: %s", _redact(str(exc))
+        )
         return None
 
     # Extract thinking blocks and text from response
@@ -163,8 +189,10 @@ async def _call_think_then_extract(
                 tools=tools,
                 tool_choice={"type": "any"},
             )
+        except anthropic.AuthenticationError:
+            raise ConfigError("Invalid Anthropic API key") from None
         except Exception as exc:
-            raise EvaluationError(f"Extract call failed: {exc}") from exc
+            raise EvaluationError(f"Extract call failed: {_redact(str(exc))}") from None
 
         tool_use_blocks = []
         for block in extract_response.content:
@@ -224,9 +252,9 @@ async def call_claude(system_prompt: str, user_prompt: str, tier: str) -> str:
         ConfigError: If ANTHROPIC_API_KEY is not set.
         EvaluationError: If the Anthropic API call fails.
     """
-    config = EthosConfig.from_env()
+    api_key = _resolve_api_key()
     model = _get_model(tier)
-    client = anthropic.AsyncAnthropic(api_key=config.anthropic_api_key)
+    client = anthropic.AsyncAnthropic(api_key=api_key)
 
     # Deep tiers (daily reports) produce large structured JSON responses
     max_tokens = 4096 if tier in ("deep", "deep_with_context") else 2048
@@ -246,8 +274,10 @@ async def call_claude(system_prompt: str, user_prompt: str, tier: str) -> str:
 
     try:
         response = await client.messages.create(**call_kwargs)
+    except anthropic.AuthenticationError:
+        raise ConfigError("Invalid Anthropic API key") from None
     except Exception as exc:
-        raise EvaluationError(f"Claude API call failed: {exc}") from exc
+        raise EvaluationError(f"Claude API call failed: {_redact(str(exc))}") from None
 
     # Extract text blocks (skip thinking blocks)
     text_parts = []
@@ -289,9 +319,9 @@ async def call_claude_with_tools(
     Raises:
         EvaluationError: If the API call fails or tools are incomplete.
     """
-    config = EthosConfig.from_env()
+    api_key = _resolve_api_key()
     model = _get_model(tier)
-    client = anthropic.AsyncAnthropic(api_key=config.anthropic_api_key)
+    client = anthropic.AsyncAnthropic(api_key=api_key)
 
     # Think-then-Extract only for deep tiers where reasoning depth matters.
     # Standard/focused stay on the fast single-call path — Sonnet's 4096-token
@@ -320,8 +350,12 @@ async def call_claude_with_tools(
                 tools=tools,
                 tool_choice={"type": "any"},
             )
+        except anthropic.AuthenticationError:
+            raise ConfigError("Invalid Anthropic API key") from None
         except Exception as exc:
-            raise EvaluationError(f"Claude API call failed: {exc}") from exc
+            raise EvaluationError(
+                f"Claude API call failed: {_redact(str(exc))}"
+            ) from None
 
         tool_use_blocks = []
         for block in response.content:

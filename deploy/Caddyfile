@@ -7,5 +7,10 @@ api.ethos-academy.com {
 }
 
 mcp.ethos-academy.com {
-	reverse_proxy mcp:8888
+	reverse_proxy mcp:8888 {
+		flush_interval -1
+		transport http {
+			read_timeout 0
+		}
+	}
 }

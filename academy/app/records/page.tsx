@@ -6,14 +6,14 @@ import { AnimatePresence, motion } from "motion/react";
 import { getRecords } from "../../lib/api";
 import type { RecordItem, RecordsResult, DetectedIndicatorSummary } from "../../lib/types";
 import {
-  ALIGNMENT_STYLES,
   DIMENSIONS,
   DIMENSION_COLORS,
   TRAIT_LABELS,
   TRAIT_DIMENSIONS,
   spectrumColor,
-  spectrumLabel,
 } from "../../lib/colors";
+import AlignmentBadge from "../../components/shared/AlignmentBadge";
+import SpectrumBar from "../../components/shared/SpectrumBar";
 import IntentSummary from "../../components/shared/IntentSummary";
 
 /* ─── Constants ─── */
@@ -171,8 +171,6 @@ function IndicatorGroup({ indicators }: { indicators: DetectedIndicatorSummary[]
 /* ─── Expanded Row Detail Panel ─── */
 
 function ExpandedDetail({ record }: { record: RecordItem }) {
-  const color = spectrumColor(record.overall);
-
   return (
     <motion.div
       initial={{ height: 0, opacity: 0 }}
@@ -182,12 +180,11 @@ function ExpandedDetail({ record }: { record: RecordItem }) {
       className="overflow-hidden"
     >
       <div className="px-4 pb-5 pt-2 space-y-5 border-t border-white/15">
-        {/* Overview bar */}
+        {/* Overall score spectrum */}
+        <div className="max-w-xs">
+          <SpectrumBar score={record.overall} size="sm" />
+        </div>
         <div className="flex flex-wrap items-center gap-3 text-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="font-semibold" style={{ color }}>{spectrumLabel(record.overall)}</span>
-            <span className="tabular-nums text-muted">{Math.round(record.overall * 100)}%</span>
-          </div>
           {record.direction && (
             <span className="rounded-full bg-white/40 px-2 py-0.5 text-[10px] text-muted">
               {record.direction}
@@ -340,8 +337,6 @@ function RecordRow({
   expanded: boolean;
   onToggle: () => void;
 }) {
-  const alignmentStyle = ALIGNMENT_STYLES[record.alignmentStatus] ?? "bg-muted/10 text-muted";
-  const alignmentLabel = ALIGNMENT_LABELS[record.alignmentStatus] ?? record.alignmentStatus;
   const timeAgo = formatTimeAgo(new Date(record.createdAt));
   const scorePct = Math.round(record.overall * 100);
   const scoreColor = spectrumColor(record.overall);
@@ -399,9 +394,7 @@ function RecordRow({
 
         {/* Alignment */}
         <div className="w-22 shrink-0 hidden md:block">
-          <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${alignmentStyle}`}>
-            {alignmentLabel}
-          </span>
+          <AlignmentBadge status={record.alignmentStatus} className="text-[10px] px-2 py-0.5" />
         </div>
 
         {/* Flags + indicators */}

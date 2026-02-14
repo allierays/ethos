@@ -1,12 +1,14 @@
-"""Tests for ethos/evaluation/claude_client.py — async Anthropic SDK wrapper.
+"""Tests for ethos/evaluation/claude_client.py -- async Anthropic SDK wrapper.
 
-TDD: Tests written first, implementation follows.
+Covers model selection, prompt routing, error handling, BYOK key resolution,
+and security hardening (AuthenticationError catch, regex redaction).
 """
 
 from __future__ import annotations
 
 from unittest.mock import MagicMock, AsyncMock, patch
 
+import anthropic
 import pytest
 
 from ethos.shared.errors import ConfigError, EvaluationError
@@ -29,6 +31,7 @@ class TestModelSelection:
         cfg.anthropic_api_key = "test-key"
         mock_from_env.return_value = cfg
 
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
         mock_client = AsyncMock()
         mock_anthropic.AsyncAnthropic.return_value = mock_client
         mock_client.messages.create.return_value = MagicMock(
@@ -49,6 +52,7 @@ class TestModelSelection:
         cfg.anthropic_api_key = "test-key"
         mock_from_env.return_value = cfg
 
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
         mock_client = AsyncMock()
         mock_anthropic.AsyncAnthropic.return_value = mock_client
         mock_client.messages.create.return_value = MagicMock(
@@ -69,6 +73,7 @@ class TestModelSelection:
         cfg.anthropic_api_key = "test-key"
         mock_from_env.return_value = cfg
 
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
         mock_client = AsyncMock()
         mock_anthropic.AsyncAnthropic.return_value = mock_client
         mock_client.messages.create.return_value = MagicMock(
@@ -91,6 +96,7 @@ class TestModelSelection:
         cfg.anthropic_api_key = "test-key"
         mock_from_env.return_value = cfg
 
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
         mock_client = AsyncMock()
         mock_anthropic.AsyncAnthropic.return_value = mock_client
         mock_client.messages.create.return_value = MagicMock(
@@ -120,6 +126,7 @@ class TestPromptRouting:
         cfg.anthropic_api_key = "test-key"
         mock_from_env.return_value = cfg
 
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
         mock_client = AsyncMock()
         mock_anthropic.AsyncAnthropic.return_value = mock_client
         mock_client.messages.create.return_value = MagicMock(
@@ -144,6 +151,7 @@ class TestPromptRouting:
         cfg.anthropic_api_key = "test-key"
         mock_from_env.return_value = cfg
 
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
         mock_client = AsyncMock()
         mock_anthropic.AsyncAnthropic.return_value = mock_client
         mock_client.messages.create.return_value = MagicMock(
@@ -167,6 +175,7 @@ class TestPromptRouting:
         cfg.anthropic_api_key = "test-key"
         mock_from_env.return_value = cfg
 
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
         mock_client = AsyncMock()
         mock_anthropic.AsyncAnthropic.return_value = mock_client
         mock_client.messages.create.return_value = MagicMock(
@@ -197,6 +206,7 @@ class TestReturnValue:
         cfg.anthropic_api_key = "test-key"
         mock_from_env.return_value = cfg
 
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
         mock_client = AsyncMock()
         mock_anthropic.AsyncAnthropic.return_value = mock_client
         text_block = MagicMock(type="text", text='{"trait_scores": {}}')
@@ -235,6 +245,7 @@ class TestErrorHandling:
         cfg.anthropic_api_key = "test-key"
         mock_from_env.return_value = cfg
 
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
         mock_client = AsyncMock()
         mock_anthropic.AsyncAnthropic.return_value = mock_client
         mock_client.messages.create.side_effect = Exception("API rate limited")
@@ -289,3 +300,236 @@ class TestModelEnvOverride:
 
         model = _get_model("deep")
         assert model == "claude-opus-4-20250514"
+
+
+# ---------------------------------------------------------------------------
+# BYOK (Bring Your Own Key) -- ContextVar key resolution
+# ---------------------------------------------------------------------------
+
+
+class TestBYOKKeyResolution:
+    """_resolve_api_key() returns BYOK key when set, falls back to config."""
+
+    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    def test_falls_back_to_config_when_contextvar_unset(self, mock_from_env):
+        from ethos.evaluation.claude_client import _resolve_api_key
+
+        cfg = MagicMock()
+        cfg.anthropic_api_key = "server-key-123"
+        mock_from_env.return_value = cfg
+
+        assert _resolve_api_key() == "server-key-123"
+
+    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    def test_returns_byok_key_when_contextvar_set(self, mock_from_env):
+        from ethos.context import anthropic_api_key_var
+        from ethos.evaluation.claude_client import _resolve_api_key
+
+        token = anthropic_api_key_var.set("byok-user-key")
+        try:
+            result = _resolve_api_key()
+            assert result == "byok-user-key"
+            mock_from_env.assert_not_called()
+        finally:
+            anthropic_api_key_var.reset(token)
+
+    @patch("ethos.evaluation.claude_client.anthropic")
+    async def test_byok_key_used_in_call_claude(self, mock_anthropic):
+        """call_claude uses BYOK key from ContextVar, skipping EthosConfig."""
+        from ethos.context import anthropic_api_key_var
+        from ethos.evaluation.claude_client import call_claude
+
+        mock_client = AsyncMock()
+        mock_anthropic.AsyncAnthropic.return_value = mock_client
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
+        mock_client.messages.create.return_value = MagicMock(
+            content=[MagicMock(type="text", text="ok")]
+        )
+
+        token = anthropic_api_key_var.set("byok-key-abc")
+        try:
+            await call_claude("sys", "usr", "standard")
+            mock_anthropic.AsyncAnthropic.assert_called_once_with(
+                api_key="byok-key-abc"
+            )
+        finally:
+            anthropic_api_key_var.reset(token)
+
+
+# ---------------------------------------------------------------------------
+# ContextVar default
+# ---------------------------------------------------------------------------
+
+
+class TestContextVar:
+    """anthropic_api_key_var ContextVar has correct default."""
+
+    def test_default_is_none(self):
+        from ethos.context import anthropic_api_key_var
+
+        assert anthropic_api_key_var.get() is None
+
+
+# ---------------------------------------------------------------------------
+# Security: AuthenticationError -> ConfigError with from None
+# ---------------------------------------------------------------------------
+
+
+class TestAuthenticationErrorHandling:
+    """AuthenticationError raises ConfigError with generic message."""
+
+    @patch("ethos.evaluation.claude_client.anthropic")
+    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    async def test_call_claude_auth_error_raises_config_error(
+        self, mock_from_env, mock_anthropic
+    ):
+        from ethos.evaluation.claude_client import call_claude
+
+        cfg = MagicMock()
+        cfg.anthropic_api_key = "bad-key"
+        mock_from_env.return_value = cfg
+
+        mock_client = AsyncMock()
+        mock_anthropic.AsyncAnthropic.return_value = mock_client
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
+        mock_client.messages.create.side_effect = anthropic.AuthenticationError(
+            message="invalid x-api-key",
+            response=MagicMock(status_code=401),
+            body={"error": {"message": "invalid x-api-key"}},
+        )
+
+        with pytest.raises(ConfigError, match="Invalid Anthropic API key") as exc_info:
+            await call_claude("sys", "usr", "standard")
+
+        # from None suppresses __cause__
+        assert exc_info.value.__cause__ is None
+
+    @patch("ethos.evaluation.claude_client.anthropic")
+    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    async def test_call_claude_with_tools_auth_error_raises_config_error(
+        self, mock_from_env, mock_anthropic
+    ):
+        from ethos.evaluation.claude_client import call_claude_with_tools
+
+        cfg = MagicMock()
+        cfg.anthropic_api_key = "bad-key"
+        mock_from_env.return_value = cfg
+
+        mock_client = AsyncMock()
+        mock_anthropic.AsyncAnthropic.return_value = mock_client
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
+        mock_client.messages.create.side_effect = anthropic.AuthenticationError(
+            message="invalid x-api-key",
+            response=MagicMock(status_code=401),
+            body={"error": {"message": "invalid x-api-key"}},
+        )
+
+        with pytest.raises(ConfigError, match="Invalid Anthropic API key") as exc_info:
+            await call_claude_with_tools("sys", "usr", "standard", [])
+
+        assert exc_info.value.__cause__ is None
+
+    @patch("ethos.evaluation.claude_client.anthropic")
+    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    async def test_auth_error_message_never_echoes_key(
+        self, mock_from_env, mock_anthropic
+    ):
+        from ethos.evaluation.claude_client import call_claude
+
+        cfg = MagicMock()
+        cfg.anthropic_api_key = "sk-ant-secret123"
+        mock_from_env.return_value = cfg
+
+        mock_client = AsyncMock()
+        mock_anthropic.AsyncAnthropic.return_value = mock_client
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
+        mock_client.messages.create.side_effect = anthropic.AuthenticationError(
+            message="invalid x-api-key sk-ant-secret123",
+            response=MagicMock(status_code=401),
+            body={"error": {"message": "invalid x-api-key"}},
+        )
+
+        with pytest.raises(ConfigError) as exc_info:
+            await call_claude("sys", "usr", "standard")
+
+        # Generic message, not the original error with the key
+        assert "sk-ant-" not in str(exc_info.value)
+        assert str(exc_info.value) == "Invalid Anthropic API key"
+
+
+# ---------------------------------------------------------------------------
+# Security: regex redaction of sk-ant- in error messages
+# ---------------------------------------------------------------------------
+
+
+class TestKeyRedaction:
+    """Error messages scrub sk-ant-* tokens before wrapping."""
+
+    def test_redact_removes_key_from_message(self):
+        from ethos.evaluation.claude_client import _redact
+
+        msg = "Connection failed with key sk-ant-abc123-xyz for user"
+        result = _redact(msg)
+        assert "sk-ant-" not in result
+        assert "[REDACTED]" in result
+        assert "Connection failed with key" in result
+
+    def test_redact_handles_no_key(self):
+        from ethos.evaluation.claude_client import _redact
+
+        msg = "Connection timeout after 30s"
+        assert _redact(msg) == msg
+
+    def test_redact_handles_multiple_keys(self):
+        from ethos.evaluation.claude_client import _redact
+
+        msg = "tried sk-ant-key1 then sk-ant-key2"
+        result = _redact(msg)
+        assert result == "tried [REDACTED] then [REDACTED]"
+
+    @patch("ethos.evaluation.claude_client.anthropic")
+    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    async def test_evaluation_error_redacts_key_in_message(
+        self, mock_from_env, mock_anthropic
+    ):
+        from ethos.evaluation.claude_client import call_claude
+
+        cfg = MagicMock()
+        cfg.anthropic_api_key = "test-key"
+        mock_from_env.return_value = cfg
+
+        mock_client = AsyncMock()
+        mock_anthropic.AsyncAnthropic.return_value = mock_client
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
+        mock_client.messages.create.side_effect = RuntimeError(
+            "request failed: sk-ant-mysecretkey was rejected"
+        )
+
+        with pytest.raises(EvaluationError) as exc_info:
+            await call_claude("sys", "usr", "standard")
+
+        error_msg = str(exc_info.value)
+        assert "sk-ant-" not in error_msg
+        assert "[REDACTED]" in error_msg
+
+    @patch("ethos.evaluation.claude_client.anthropic")
+    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    async def test_from_none_suppresses_cause_on_general_error(
+        self, mock_from_env, mock_anthropic
+    ):
+        from ethos.evaluation.claude_client import call_claude
+
+        cfg = MagicMock()
+        cfg.anthropic_api_key = "test-key"
+        mock_from_env.return_value = cfg
+
+        mock_client = AsyncMock()
+        mock_anthropic.AsyncAnthropic.return_value = mock_client
+        mock_anthropic.AuthenticationError = anthropic.AuthenticationError
+        mock_client.messages.create.side_effect = RuntimeError("some error")
+
+        with pytest.raises(EvaluationError) as exc_info:
+            await call_claude("sys", "usr", "standard")
+
+        # from None suppresses exception chaining
+        assert exc_info.value.__cause__ is None
