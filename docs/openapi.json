@@ -1,0 +1,3415 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Ethos API (FastAPI)",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/evaluate/incoming": {
+      "post": {
+        "summary": "Evaluate Incoming Endpoint",
+        "operationId": "evaluate_incoming_endpoint_evaluate_incoming_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateIncomingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/evaluate/outgoing": {
+      "post": {
+        "summary": "Evaluate Outgoing Endpoint",
+        "operationId": "evaluate_outgoing_endpoint_evaluate_outgoing_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateOutgoingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/character": {
+      "get": {
+        "summary": "Character Report Endpoint",
+        "operationId": "character_report_endpoint_agent__agent_id__character_get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyReportCard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/reports": {
+      "get": {
+        "summary": "Daily Reports Endpoint",
+        "operationId": "daily_reports_endpoint_agent__agent_id__reports_get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 30,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DailyReportCard"
+                  },
+                  "title": "Response Daily Reports Endpoint Agent  Agent Id  Reports Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agents": {
+      "get": {
+        "summary": "Agents Endpoint",
+        "operationId": "agents_endpoint_agents_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AgentSummary"
+                  },
+                  "title": "Response Agents Endpoint Agents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}": {
+      "get": {
+        "summary": "Agent Endpoint",
+        "operationId": "agent_endpoint_agent__agent_id__get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentProfile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/history": {
+      "get": {
+        "summary": "Agent History Endpoint",
+        "operationId": "agent_history_endpoint_agent__agent_id__history_get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EvaluationHistoryItem"
+                  },
+                  "title": "Response Agent History Endpoint Agent  Agent Id  History Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alumni": {
+      "get": {
+        "summary": "Alumni Endpoint",
+        "operationId": "alumni_endpoint_alumni_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlumniResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records": {
+      "get": {
+        "summary": "Records Endpoint",
+        "operationId": "records_endpoint_records_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "agent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Agent"
+            }
+          },
+          {
+            "name": "alignment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Alignment"
+            }
+          },
+          {
+            "name": "flagged",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Flagged"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "date",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "desc",
+              "title": "Order"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordsResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/highlights": {
+      "get": {
+        "summary": "Highlights Endpoint",
+        "operationId": "highlights_endpoint_agent__agent_id__highlights_get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HighlightsResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/patterns": {
+      "get": {
+        "summary": "Patterns Endpoint",
+        "operationId": "patterns_endpoint_agent__agent_id__patterns_get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatternResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_name}/authenticity": {
+      "get": {
+        "summary": "Authenticity Endpoint",
+        "operationId": "authenticity_endpoint_agent__agent_name__authenticity_get",
+        "parameters": [
+          {
+            "name": "agent_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticityResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/graph": {
+      "get": {
+        "summary": "Graph Endpoint",
+        "operationId": "graph_endpoint_graph_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphData"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/trail": {
+      "get": {
+        "summary": "Trail Endpoint",
+        "operationId": "trail_endpoint_agent__agent_id__trail_get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConstitutionalTrailResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/graph/similarity": {
+      "get": {
+        "summary": "Similarity Endpoint",
+        "operationId": "similarity_endpoint_graph_similarity_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimilarityResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/drift": {
+      "get": {
+        "summary": "Drift Endpoint",
+        "operationId": "drift_endpoint_agent__agent_id__drift_get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriftResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/exam": {
+      "post": {
+        "summary": "Register Exam Endpoint",
+        "operationId": "register_exam_endpoint_agent__agent_id__exam_post",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamRegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamRegistration"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "List Exams Endpoint",
+        "operationId": "list_exams_endpoint_agent__agent_id__exam_get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExamSummary"
+                  },
+                  "title": "Response List Exams Endpoint Agent  Agent Id  Exam Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/exam/{exam_id}/answer": {
+      "post": {
+        "summary": "Submit Answer Endpoint",
+        "operationId": "submit_answer_endpoint_agent__agent_id__exam__exam_id__answer_post",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "exam_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Exam Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamAnswerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamAnswerResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/exam/{exam_id}/complete": {
+      "post": {
+        "summary": "Complete Exam Endpoint",
+        "operationId": "complete_exam_endpoint_agent__agent_id__exam__exam_id__complete_post",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "exam_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Exam Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamReportCard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/exam/{exam_id}": {
+      "get": {
+        "summary": "Get Exam Endpoint",
+        "operationId": "get_exam_endpoint_agent__agent_id__exam__exam_id__get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "exam_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Exam Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamReportCard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/exam/upload": {
+      "post": {
+        "summary": "Upload Exam Endpoint",
+        "operationId": "upload_exam_endpoint_agent__agent_id__exam_upload_post",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadExamRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamReportCard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/{agent_id}/report/generate": {
+      "post": {
+        "summary": "Generate Report Endpoint",
+        "operationId": "generate_report_endpoint_agent__agent_id__report_generate_post",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyReportCard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActivityPattern": {
+        "properties": {
+          "classification": {
+            "type": "string",
+            "enum": [
+              "always_on",
+              "human_schedule",
+              "mixed"
+            ],
+            "title": "Classification",
+            "default": "mixed"
+          },
+          "active_hours": {
+            "type": "integer",
+            "title": "Active Hours",
+            "default": 24
+          },
+          "has_sleep_gap": {
+            "type": "boolean",
+            "title": "Has Sleep Gap",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "ActivityPattern",
+        "description": "24-hour activity distribution analysis."
+      },
+      "AgentProfile": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "default": ""
+          },
+          "agent_name": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Agent Name",
+            "default": ""
+          },
+          "agent_specialty": {
+            "type": "string",
+            "title": "Agent Specialty",
+            "default": ""
+          },
+          "agent_model": {
+            "type": "string",
+            "title": "Agent Model",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          },
+          "evaluation_count": {
+            "type": "integer",
+            "title": "Evaluation Count",
+            "default": 0
+          },
+          "dimension_averages": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Dimension Averages"
+          },
+          "trait_averages": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Trait Averages"
+          },
+          "phronesis_trend": {
+            "type": "string",
+            "title": "Phronesis Trend",
+            "default": "insufficient_data"
+          },
+          "alignment_history": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Alignment History"
+          },
+          "enrolled": {
+            "type": "boolean",
+            "title": "Enrolled",
+            "default": false
+          },
+          "enrolled_at": {
+            "type": "string",
+            "title": "Enrolled At",
+            "default": ""
+          },
+          "counselor_name": {
+            "type": "string",
+            "title": "Counselor Name",
+            "default": ""
+          },
+          "entrance_exam_completed": {
+            "type": "boolean",
+            "title": "Entrance Exam Completed",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "AgentProfile"
+      },
+      "AgentSummary": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "default": ""
+          },
+          "agent_name": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Agent Name",
+            "default": ""
+          },
+          "agent_specialty": {
+            "type": "string",
+            "title": "Agent Specialty",
+            "default": ""
+          },
+          "agent_model": {
+            "type": "string",
+            "title": "Agent Model",
+            "default": ""
+          },
+          "evaluation_count": {
+            "type": "integer",
+            "title": "Evaluation Count",
+            "default": 0
+          },
+          "latest_alignment_status": {
+            "type": "string",
+            "title": "Latest Alignment Status",
+            "default": "unknown"
+          },
+          "enrolled": {
+            "type": "boolean",
+            "title": "Enrolled",
+            "default": false
+          },
+          "entrance_exam_completed": {
+            "type": "boolean",
+            "title": "Entrance Exam Completed",
+            "default": false
+          },
+          "dimension_averages": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Dimension Averages"
+          },
+          "trait_averages": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Trait Averages"
+          }
+        },
+        "type": "object",
+        "title": "AgentSummary"
+      },
+      "AlumniResult": {
+        "properties": {
+          "trait_averages": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Trait Averages"
+          },
+          "total_evaluations": {
+            "type": "integer",
+            "title": "Total Evaluations",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "AlumniResult"
+      },
+      "AuthenticityResult": {
+        "properties": {
+          "agent_name": {
+            "type": "string",
+            "title": "Agent Name",
+            "default": ""
+          },
+          "temporal": {
+            "$ref": "#/components/schemas/TemporalSignature"
+          },
+          "burst": {
+            "$ref": "#/components/schemas/BurstAnalysis"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/ActivityPattern"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/IdentitySignals"
+          },
+          "authenticity_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Authenticity Score",
+            "default": 0.5
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "likely_autonomous",
+              "likely_human",
+              "high_frequency",
+              "indeterminate"
+            ],
+            "title": "Classification",
+            "default": "indeterminate"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "title": "AuthenticityResult",
+        "description": "Composite authenticity assessment for an agent."
+      },
+      "BurstAnalysis": {
+        "properties": {
+          "burst_rate": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Burst Rate",
+            "default": 0.0
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "organic",
+              "automated",
+              "burst_bot"
+            ],
+            "title": "Classification",
+            "default": "organic"
+          }
+        },
+        "type": "object",
+        "title": "BurstAnalysis",
+        "description": "Burst-posting detection for bot farm identification."
+      },
+      "Claim": {
+        "properties": {
+          "claim": {
+            "type": "string",
+            "title": "Claim",
+            "default": ""
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": "opinion"
+          }
+        },
+        "type": "object",
+        "title": "Claim"
+      },
+      "ConsistencyPair": {
+        "properties": {
+          "pair_name": {
+            "type": "string",
+            "title": "Pair Name"
+          },
+          "question_a_id": {
+            "type": "string",
+            "title": "Question A Id"
+          },
+          "question_b_id": {
+            "type": "string",
+            "title": "Question B Id"
+          },
+          "framework_a": {
+            "type": "string",
+            "title": "Framework A"
+          },
+          "framework_b": {
+            "type": "string",
+            "title": "Framework B"
+          },
+          "coherence_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Coherence Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pair_name",
+          "question_a_id",
+          "question_b_id",
+          "framework_a",
+          "framework_b",
+          "coherence_score"
+        ],
+        "title": "ConsistencyPair",
+        "description": "Comparison of two paired questions for framework coherence."
+      },
+      "ConstitutionalTrailItem": {
+        "properties": {
+          "constitutional_value": {
+            "type": "string",
+            "title": "Constitutional Value",
+            "default": ""
+          },
+          "cv_priority": {
+            "type": "integer",
+            "title": "Cv Priority",
+            "default": 0
+          },
+          "impact": {
+            "type": "string",
+            "title": "Impact",
+            "default": ""
+          },
+          "trait": {
+            "type": "string",
+            "title": "Trait",
+            "default": ""
+          },
+          "trait_polarity": {
+            "type": "string",
+            "title": "Trait Polarity",
+            "default": ""
+          },
+          "indicator_id": {
+            "type": "string",
+            "title": "Indicator Id",
+            "default": ""
+          },
+          "indicator_name": {
+            "type": "string",
+            "title": "Indicator Name",
+            "default": ""
+          },
+          "eval_count": {
+            "type": "integer",
+            "title": "Eval Count",
+            "default": 0
+          },
+          "avg_confidence": {
+            "type": "number",
+            "title": "Avg Confidence",
+            "default": 0.0
+          },
+          "sample_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sample Evidence"
+          }
+        },
+        "type": "object",
+        "title": "ConstitutionalTrailItem",
+        "description": "One path from indicator through trait to constitutional value."
+      },
+      "ConstitutionalTrailResult": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "default": ""
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ConstitutionalTrailItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "title": "ConstitutionalTrailResult",
+        "description": "Full constitutional value trail for an agent."
+      },
+      "DailyReportCard": {
+        "properties": {
+          "report_id": {
+            "type": "string",
+            "title": "Report Id",
+            "default": ""
+          },
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "default": ""
+          },
+          "agent_name": {
+            "type": "string",
+            "title": "Agent Name",
+            "default": ""
+          },
+          "report_date": {
+            "type": "string",
+            "title": "Report Date",
+            "default": ""
+          },
+          "generated_at": {
+            "type": "string",
+            "title": "Generated At",
+            "default": ""
+          },
+          "period_evaluation_count": {
+            "type": "integer",
+            "title": "Period Evaluation Count",
+            "default": 0
+          },
+          "total_evaluation_count": {
+            "type": "integer",
+            "title": "Total Evaluation Count",
+            "default": 0
+          },
+          "ethos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ethos",
+            "default": 0.0
+          },
+          "logos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Logos",
+            "default": 0.0
+          },
+          "pathos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Pathos",
+            "default": 0.0
+          },
+          "trait_averages": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Trait Averages"
+          },
+          "overall_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Overall Score",
+            "default": 0.0
+          },
+          "grade": {
+            "type": "string",
+            "title": "Grade",
+            "default": ""
+          },
+          "trend": {
+            "type": "string",
+            "title": "Trend",
+            "default": "insufficient_data"
+          },
+          "risk_level": {
+            "type": "string",
+            "title": "Risk Level",
+            "default": "low"
+          },
+          "flagged_traits": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flagged Traits"
+          },
+          "flagged_dimensions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flagged Dimensions"
+          },
+          "temporal_pattern": {
+            "type": "string",
+            "title": "Temporal Pattern",
+            "default": "insufficient_data"
+          },
+          "character_drift": {
+            "type": "number",
+            "title": "Character Drift",
+            "default": 0.0
+          },
+          "balance_trend": {
+            "type": "string",
+            "title": "Balance Trend",
+            "default": "stable"
+          },
+          "anomaly_flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Anomaly Flags"
+          },
+          "agent_balance": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Agent Balance",
+            "default": 0.0
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "default": ""
+          },
+          "insights": {
+            "items": {
+              "$ref": "#/components/schemas/Insight"
+            },
+            "type": "array",
+            "title": "Insights"
+          },
+          "homework": {
+            "$ref": "#/components/schemas/Homework"
+          },
+          "dimension_deltas": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Dimension Deltas"
+          },
+          "risk_level_change": {
+            "type": "string",
+            "title": "Risk Level Change",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "DailyReportCard"
+      },
+      "DetectedIndicator": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "trait": {
+            "type": "string",
+            "title": "Trait"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence"
+          },
+          "severity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Severity"
+          },
+          "evidence": {
+            "type": "string",
+            "title": "Evidence",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "trait",
+          "confidence",
+          "severity"
+        ],
+        "title": "DetectedIndicator"
+      },
+      "DetectedIndicatorSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "default": ""
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "trait": {
+            "type": "string",
+            "title": "Trait",
+            "default": ""
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "default": 0.0
+          },
+          "severity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Severity",
+            "default": 0.0
+          },
+          "evidence": {
+            "type": "string",
+            "title": "Evidence",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "DetectedIndicatorSummary",
+        "description": "Lightweight indicator summary for record list views."
+      },
+      "DetectedPattern": {
+        "properties": {
+          "pattern_id": {
+            "type": "string",
+            "title": "Pattern Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "matched_indicators": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Matched Indicators"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "default": 0.0
+          },
+          "first_seen": {
+            "type": "string",
+            "title": "First Seen",
+            "default": ""
+          },
+          "last_seen": {
+            "type": "string",
+            "title": "Last Seen",
+            "default": ""
+          },
+          "occurrence_count": {
+            "type": "integer",
+            "title": "Occurrence Count",
+            "default": 0
+          },
+          "current_stage": {
+            "type": "integer",
+            "title": "Current Stage",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "pattern_id",
+          "name"
+        ],
+        "title": "DetectedPattern"
+      },
+      "DriftBreakpoint": {
+        "properties": {
+          "eval_index": {
+            "type": "integer",
+            "title": "Eval Index",
+            "default": 0
+          },
+          "evaluation_id": {
+            "type": "string",
+            "title": "Evaluation Id",
+            "default": ""
+          },
+          "dimension": {
+            "type": "string",
+            "title": "Dimension",
+            "default": ""
+          },
+          "delta": {
+            "type": "number",
+            "title": "Delta",
+            "default": 0.0
+          },
+          "before_avg": {
+            "type": "number",
+            "title": "Before Avg",
+            "default": 0.0
+          },
+          "after_avg": {
+            "type": "number",
+            "title": "After Avg",
+            "default": 0.0
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          },
+          "indicators": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Indicators"
+          }
+        },
+        "type": "object",
+        "title": "DriftBreakpoint",
+        "description": "A point where an agent's character shifted significantly."
+      },
+      "DriftResult": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "default": ""
+          },
+          "breakpoints": {
+            "items": {
+              "$ref": "#/components/schemas/DriftBreakpoint"
+            },
+            "type": "array",
+            "title": "Breakpoints"
+          }
+        },
+        "type": "object",
+        "title": "DriftResult",
+        "description": "Drift breakpoints for an agent's evaluation timeline."
+      },
+      "EvaluateIncomingRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 50000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Source"
+          },
+          "source_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Name"
+          },
+          "agent_specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Specialty"
+          },
+          "message_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "source"
+        ],
+        "title": "EvaluateIncomingRequest"
+      },
+      "EvaluateOutgoingRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 50000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Source"
+          },
+          "source_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Name"
+          },
+          "agent_specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Specialty"
+          },
+          "message_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "source"
+        ],
+        "title": "EvaluateOutgoingRequest"
+      },
+      "EvaluationHistoryItem": {
+        "properties": {
+          "evaluation_id": {
+            "type": "string",
+            "title": "Evaluation Id",
+            "default": ""
+          },
+          "ethos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ethos",
+            "default": 0.0
+          },
+          "logos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Logos",
+            "default": 0.0
+          },
+          "pathos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Pathos",
+            "default": 0.0
+          },
+          "phronesis": {
+            "type": "string",
+            "title": "Phronesis",
+            "default": "unknown"
+          },
+          "alignment_status": {
+            "type": "string",
+            "title": "Alignment Status",
+            "default": "unknown"
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flags"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          },
+          "trait_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Trait Scores"
+          },
+          "message_content": {
+            "type": "string",
+            "title": "Message Content",
+            "default": ""
+          },
+          "intent_classification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IntentClassification"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scoring_reasoning": {
+            "type": "string",
+            "title": "Scoring Reasoning",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "EvaluationHistoryItem"
+      },
+      "EvaluationResult": {
+        "properties": {
+          "ethos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ethos",
+            "default": 0.0
+          },
+          "logos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Logos",
+            "default": 0.0
+          },
+          "pathos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Pathos",
+            "default": 0.0
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flags"
+          },
+          "phronesis": {
+            "type": "string",
+            "title": "Phronesis",
+            "default": "unknown"
+          },
+          "traits": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TraitScore"
+            },
+            "type": "object",
+            "title": "Traits"
+          },
+          "detected_indicators": {
+            "items": {
+              "$ref": "#/components/schemas/DetectedIndicator"
+            },
+            "type": "array",
+            "title": "Detected Indicators"
+          },
+          "evaluation_id": {
+            "type": "string",
+            "title": "Evaluation Id",
+            "default": ""
+          },
+          "routing_tier": {
+            "type": "string",
+            "title": "Routing Tier",
+            "default": "standard"
+          },
+          "keyword_density": {
+            "type": "number",
+            "title": "Keyword Density",
+            "default": 0.0
+          },
+          "model_used": {
+            "type": "string",
+            "title": "Model Used",
+            "default": ""
+          },
+          "agent_model": {
+            "type": "string",
+            "title": "Agent Model",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          },
+          "direction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direction"
+          },
+          "graph_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PhronesisContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "alignment_status": {
+            "type": "string",
+            "title": "Alignment Status",
+            "default": "unknown"
+          },
+          "tier_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Tier Scores"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "default": 1.0
+          },
+          "intent_classification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IntentClassification"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scoring_reasoning": {
+            "type": "string",
+            "title": "Scoring Reasoning",
+            "default": ""
+          },
+          "thinking_content": {
+            "type": "string",
+            "title": "Thinking Content",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "EvaluationResult"
+      },
+      "ExamAnswerRequest": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "response_text": {
+            "type": "string",
+            "maxLength": 50000,
+            "minLength": 1,
+            "title": "Response Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "response_text"
+        ],
+        "title": "ExamAnswerRequest"
+      },
+      "ExamAnswerResult": {
+        "properties": {
+          "question_number": {
+            "type": "integer",
+            "title": "Question Number"
+          },
+          "total_questions": {
+            "type": "integer",
+            "title": "Total Questions"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExamQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_number",
+          "total_questions"
+        ],
+        "title": "ExamAnswerResult",
+        "description": "Returned after each answer submission."
+      },
+      "ExamQuestion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "section",
+          "prompt"
+        ],
+        "title": "ExamQuestion",
+        "description": "A single entrance exam question delivered to the agent."
+      },
+      "ExamRegisterRequest": {
+        "properties": {
+          "agent_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Name"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "counselor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counselor Name"
+          }
+        },
+        "type": "object",
+        "title": "ExamRegisterRequest"
+      },
+      "ExamRegistration": {
+        "properties": {
+          "exam_id": {
+            "type": "string",
+            "title": "Exam Id"
+          },
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id"
+          },
+          "question_number": {
+            "type": "integer",
+            "title": "Question Number"
+          },
+          "total_questions": {
+            "type": "integer",
+            "title": "Total Questions"
+          },
+          "question": {
+            "$ref": "#/components/schemas/ExamQuestion"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exam_id",
+          "agent_id",
+          "question_number",
+          "total_questions",
+          "question",
+          "message"
+        ],
+        "title": "ExamRegistration",
+        "description": "Returned when an agent registers for an exam."
+      },
+      "ExamReportCard": {
+        "properties": {
+          "exam_id": {
+            "type": "string",
+            "title": "Exam Id"
+          },
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id"
+          },
+          "report_card_url": {
+            "type": "string",
+            "title": "Report Card Url"
+          },
+          "phronesis_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Phronesis Score"
+          },
+          "alignment_status": {
+            "type": "string",
+            "title": "Alignment Status"
+          },
+          "dimensions": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Dimensions"
+          },
+          "tier_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Tier Scores"
+          },
+          "consistency_analysis": {
+            "items": {
+              "$ref": "#/components/schemas/ConsistencyPair"
+            },
+            "type": "array",
+            "title": "Consistency Analysis"
+          },
+          "per_question_detail": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionDetail"
+            },
+            "type": "array",
+            "title": "Per Question Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exam_id",
+          "agent_id",
+          "report_card_url",
+          "phronesis_score",
+          "alignment_status",
+          "dimensions",
+          "tier_scores",
+          "consistency_analysis",
+          "per_question_detail"
+        ],
+        "title": "ExamReportCard",
+        "description": "Full report card generated after exam completion."
+      },
+      "ExamSummary": {
+        "properties": {
+          "exam_id": {
+            "type": "string",
+            "title": "Exam Id"
+          },
+          "exam_type": {
+            "type": "string",
+            "title": "Exam Type"
+          },
+          "completed": {
+            "type": "boolean",
+            "title": "Completed"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "phronesis_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Phronesis Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exam_id",
+          "exam_type",
+          "completed",
+          "phronesis_score"
+        ],
+        "title": "ExamSummary",
+        "description": "Lightweight exam summary for list views."
+      },
+      "GraphData": {
+        "properties": {
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/GraphNode"
+            },
+            "type": "array",
+            "title": "Nodes"
+          },
+          "relationships": {
+            "items": {
+              "$ref": "#/components/schemas/GraphRel"
+            },
+            "type": "array",
+            "title": "Relationships"
+          }
+        },
+        "type": "object",
+        "title": "GraphData"
+      },
+      "GraphNode": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "caption": {
+            "type": "string",
+            "title": "Caption",
+            "default": ""
+          },
+          "properties": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Properties"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "label"
+        ],
+        "title": "GraphNode"
+      },
+      "GraphRel": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "from_id": {
+            "type": "string",
+            "title": "From Id"
+          },
+          "to_id": {
+            "type": "string",
+            "title": "To Id"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "properties": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Properties"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "from_id",
+          "to_id",
+          "type"
+        ],
+        "title": "GraphRel"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "HealthResponse"
+      },
+      "HighlightIndicator": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "trait": {
+            "type": "string",
+            "title": "Trait",
+            "default": ""
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence",
+            "default": 0.0
+          },
+          "evidence": {
+            "type": "string",
+            "title": "Evidence",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "HighlightIndicator"
+      },
+      "HighlightItem": {
+        "properties": {
+          "evaluation_id": {
+            "type": "string",
+            "title": "Evaluation Id",
+            "default": ""
+          },
+          "ethos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ethos",
+            "default": 0.0
+          },
+          "logos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Logos",
+            "default": 0.0
+          },
+          "pathos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Pathos",
+            "default": 0.0
+          },
+          "overall": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Overall",
+            "default": 0.0
+          },
+          "alignment_status": {
+            "type": "string",
+            "title": "Alignment Status",
+            "default": "unknown"
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flags"
+          },
+          "indicators": {
+            "items": {
+              "$ref": "#/components/schemas/HighlightIndicator"
+            },
+            "type": "array",
+            "title": "Indicators"
+          },
+          "message_content": {
+            "type": "string",
+            "title": "Message Content",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          },
+          "intent_classification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IntentClassification"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scoring_reasoning": {
+            "type": "string",
+            "title": "Scoring Reasoning",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "HighlightItem"
+      },
+      "HighlightsResult": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "default": ""
+          },
+          "exemplary": {
+            "items": {
+              "$ref": "#/components/schemas/HighlightItem"
+            },
+            "type": "array",
+            "title": "Exemplary"
+          },
+          "concerning": {
+            "items": {
+              "$ref": "#/components/schemas/HighlightItem"
+            },
+            "type": "array",
+            "title": "Concerning"
+          }
+        },
+        "type": "object",
+        "title": "HighlightsResult"
+      },
+      "Homework": {
+        "properties": {
+          "focus_areas": {
+            "items": {
+              "$ref": "#/components/schemas/HomeworkFocus"
+            },
+            "type": "array",
+            "title": "Focus Areas"
+          },
+          "avoid_patterns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avoid Patterns"
+          },
+          "strengths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Strengths"
+          },
+          "directive": {
+            "type": "string",
+            "title": "Directive",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "Homework",
+        "description": "Machine-readable behavioral guidance -- the agent's take-home assignment."
+      },
+      "HomeworkFocus": {
+        "properties": {
+          "trait": {
+            "type": "string",
+            "title": "Trait",
+            "default": ""
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority",
+            "default": "medium"
+          },
+          "current_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Current Score",
+            "default": 0.0
+          },
+          "target_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Target Score",
+            "default": 0.0
+          },
+          "instruction": {
+            "type": "string",
+            "title": "Instruction",
+            "default": ""
+          },
+          "example_flagged": {
+            "type": "string",
+            "title": "Example Flagged",
+            "default": ""
+          },
+          "example_improved": {
+            "type": "string",
+            "title": "Example Improved",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "HomeworkFocus",
+        "description": "A single trait the agent should work on."
+      },
+      "IdentitySignals": {
+        "properties": {
+          "is_claimed": {
+            "type": "boolean",
+            "title": "Is Claimed",
+            "default": false
+          },
+          "owner_verified": {
+            "type": "boolean",
+            "title": "Owner Verified",
+            "default": false
+          },
+          "karma_post_ratio": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Karma Post Ratio",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "title": "IdentitySignals",
+        "description": "Platform identity and verification signals."
+      },
+      "Insight": {
+        "properties": {
+          "trait": {
+            "type": "string",
+            "title": "Trait"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity",
+            "default": "info"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trait"
+        ],
+        "title": "Insight"
+      },
+      "IntentClassification": {
+        "properties": {
+          "rhetorical_mode": {
+            "type": "string",
+            "title": "Rhetorical Mode",
+            "default": "informational"
+          },
+          "primary_intent": {
+            "type": "string",
+            "title": "Primary Intent",
+            "default": "inform"
+          },
+          "action_requested": {
+            "type": "string",
+            "title": "Action Requested",
+            "default": "none"
+          },
+          "cost_to_reader": {
+            "type": "string",
+            "title": "Cost To Reader",
+            "default": "none"
+          },
+          "stakes_reality": {
+            "type": "string",
+            "title": "Stakes Reality",
+            "default": "real"
+          },
+          "proportionality": {
+            "type": "string",
+            "title": "Proportionality",
+            "default": "proportional"
+          },
+          "persona_type": {
+            "type": "string",
+            "title": "Persona Type",
+            "default": "real_identity"
+          },
+          "relational_quality": {
+            "type": "string",
+            "title": "Relational Quality",
+            "default": "present"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Claims"
+          }
+        },
+        "type": "object",
+        "title": "IntentClassification"
+      },
+      "PatternResult": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "default": ""
+          },
+          "patterns": {
+            "items": {
+              "$ref": "#/components/schemas/DetectedPattern"
+            },
+            "type": "array",
+            "title": "Patterns"
+          },
+          "checked_at": {
+            "type": "string",
+            "title": "Checked At",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "PatternResult"
+      },
+      "PhronesisContext": {
+        "properties": {
+          "prior_evaluations": {
+            "type": "integer",
+            "title": "Prior Evaluations",
+            "default": 0
+          },
+          "historical_phronesis": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Historical Phronesis"
+          },
+          "phronesis_trend": {
+            "type": "string",
+            "title": "Phronesis Trend",
+            "default": "insufficient_data"
+          },
+          "flagged_patterns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flagged Patterns"
+          },
+          "alumni_warnings": {
+            "type": "integer",
+            "title": "Alumni Warnings",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "PhronesisContext",
+        "description": "Accumulated practical wisdom from the graph.\n\nNot just 'graph stuff' \u2014 this is the agent's character history,\nthe Aristotelian integration of experience over time."
+      },
+      "QuestionDetail": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          },
+          "response_summary": {
+            "type": "string",
+            "title": "Response Summary"
+          },
+          "trait_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Trait Scores"
+          },
+          "detected_indicators": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Detected Indicators"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "section",
+          "prompt",
+          "response_summary",
+          "trait_scores"
+        ],
+        "title": "QuestionDetail",
+        "description": "Per-question detail for the exam report card."
+      },
+      "RecordItem": {
+        "properties": {
+          "evaluation_id": {
+            "type": "string",
+            "title": "Evaluation Id",
+            "default": ""
+          },
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "default": ""
+          },
+          "agent_name": {
+            "type": "string",
+            "title": "Agent Name",
+            "default": ""
+          },
+          "ethos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ethos",
+            "default": 0.0
+          },
+          "logos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Logos",
+            "default": 0.0
+          },
+          "pathos": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Pathos",
+            "default": 0.0
+          },
+          "overall": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Overall",
+            "default": 0.0
+          },
+          "alignment_status": {
+            "type": "string",
+            "title": "Alignment Status",
+            "default": "unknown"
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flags"
+          },
+          "direction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direction"
+          },
+          "message_content": {
+            "type": "string",
+            "title": "Message Content",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          },
+          "phronesis": {
+            "type": "string",
+            "title": "Phronesis",
+            "default": "unknown"
+          },
+          "scoring_reasoning": {
+            "type": "string",
+            "title": "Scoring Reasoning",
+            "default": ""
+          },
+          "intent_classification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IntentClassification"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trait_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Trait Scores"
+          },
+          "similarity_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Similarity Score"
+          },
+          "model_used": {
+            "type": "string",
+            "title": "Model Used",
+            "default": ""
+          },
+          "agent_model": {
+            "type": "string",
+            "title": "Agent Model",
+            "default": ""
+          },
+          "routing_tier": {
+            "type": "string",
+            "title": "Routing Tier",
+            "default": "standard"
+          },
+          "keyword_density": {
+            "type": "number",
+            "title": "Keyword Density",
+            "default": 0.0
+          },
+          "detected_indicators": {
+            "items": {
+              "$ref": "#/components/schemas/DetectedIndicatorSummary"
+            },
+            "type": "array",
+            "title": "Detected Indicators"
+          }
+        },
+        "type": "object",
+        "title": "RecordItem",
+        "description": "A single evaluation record for list views."
+      },
+      "RecordsResult": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecordItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 0
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size",
+            "default": 20
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "RecordsResult",
+        "description": "Paginated list of evaluation records."
+      },
+      "SimilarityEdge": {
+        "properties": {
+          "agent1_id": {
+            "type": "string",
+            "title": "Agent1 Id",
+            "default": ""
+          },
+          "agent1_name": {
+            "type": "string",
+            "title": "Agent1 Name",
+            "default": ""
+          },
+          "agent1_phronesis": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent1 Phronesis"
+          },
+          "agent2_id": {
+            "type": "string",
+            "title": "Agent2 Id",
+            "default": ""
+          },
+          "agent2_name": {
+            "type": "string",
+            "title": "Agent2 Name",
+            "default": ""
+          },
+          "agent2_phronesis": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent2 Phronesis"
+          },
+          "similarity": {
+            "type": "number",
+            "title": "Similarity",
+            "default": 0.0
+          },
+          "shared_indicators": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Shared Indicators"
+          }
+        },
+        "type": "object",
+        "title": "SimilarityEdge",
+        "description": "Jaccard similarity between two agents over shared indicators."
+      },
+      "SimilarityResult": {
+        "properties": {
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/SimilarityEdge"
+            },
+            "type": "array",
+            "title": "Edges"
+          }
+        },
+        "type": "object",
+        "title": "SimilarityResult",
+        "description": "All similarity edges above threshold."
+      },
+      "TemporalSignature": {
+        "properties": {
+          "cv_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Cv Score",
+            "default": 0.0
+          },
+          "mean_interval_seconds": {
+            "type": "number",
+            "title": "Mean Interval Seconds",
+            "default": 0.0
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "autonomous",
+              "human_influenced",
+              "indeterminate"
+            ],
+            "title": "Classification",
+            "default": "indeterminate"
+          }
+        },
+        "type": "object",
+        "title": "TemporalSignature",
+        "description": "Temporal fingerprint from posting interval analysis."
+      },
+      "TraitScore": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "dimension": {
+            "type": "string",
+            "title": "Dimension"
+          },
+          "polarity": {
+            "type": "string",
+            "title": "Polarity"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "default": 0.0
+          },
+          "indicators": {
+            "items": {
+              "$ref": "#/components/schemas/DetectedIndicator"
+            },
+            "type": "array",
+            "title": "Indicators"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "dimension",
+          "polarity"
+        ],
+        "title": "TraitScore"
+      },
+      "UploadExamRequest": {
+        "properties": {
+          "responses": {
+            "items": {
+              "$ref": "#/components/schemas/UploadExamResponse"
+            },
+            "type": "array",
+            "title": "Responses"
+          },
+          "agent_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Name"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "counselor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counselor Name"
+          }
+        },
+        "type": "object",
+        "title": "UploadExamRequest"
+      },
+      "UploadExamResponse": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "response_text": {
+            "type": "string",
+            "maxLength": 50000,
+            "minLength": 1,
+            "title": "Response Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "response_text"
+        ],
+        "title": "UploadExamResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

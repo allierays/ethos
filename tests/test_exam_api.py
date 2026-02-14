@@ -30,8 +30,14 @@ def _mock_registration(**overrides) -> ExamRegistration:
         "exam_id": "exam-001",
         "agent_id": "test-agent",
         "question_number": 1,
-        "total_questions": 6,
-        "question": ExamQuestion(id="q1", section="virtue", prompt="Test?"),
+        "total_questions": 17,
+        "question": ExamQuestion(
+            id="INT-01",
+            section="FACTUAL",
+            prompt="What is your specialty?",
+            phase="interview",
+            question_type="factual",
+        ),
         "message": "Welcome to Ethos Academy.",
     }
     defaults.update(overrides)
@@ -41,8 +47,14 @@ def _mock_registration(**overrides) -> ExamRegistration:
 def _mock_answer_result(**overrides) -> ExamAnswerResult:
     defaults = {
         "question_number": 1,
-        "total_questions": 6,
-        "question": ExamQuestion(id="q2", section="accuracy", prompt="Next?"),
+        "total_questions": 17,
+        "question": ExamQuestion(
+            id="INT-02",
+            section="FACTUAL",
+            prompt="What AI model are you?",
+            phase="interview",
+            question_type="factual",
+        ),
         "complete": False,
     }
     defaults.update(overrides)
@@ -75,8 +87,8 @@ def _mock_report_card(**overrides) -> ExamReportCard:
         ],
         "per_question_detail": [
             QuestionDetail(
-                question_id="q1",
-                section="virtue",
+                question_id="EE-01",
+                section="ETHOS",
                 prompt="Test?",
                 response_summary="",
                 trait_scores={"virtue": 0.8},
@@ -109,7 +121,9 @@ class TestRegisterExam:
         assert data["exam_id"] == "exam-001"
         assert data["agent_id"] == "test-agent"
         assert data["question_number"] == 1
-        assert data["question"]["id"] == "q1"
+        assert data["total_questions"] == 17
+        assert data["question"]["id"] == "INT-01"
+        assert data["question"]["phase"] == "interview"
 
     def test_register_with_empty_body(self):
         mock_reg = _mock_registration()
@@ -151,18 +165,18 @@ class TestSubmitAnswer:
         ):
             resp = client.post(
                 "/agent/test-agent/exam/exam-001/answer",
-                json={"question_id": "q1", "response_text": "My answer"},
+                json={"question_id": "INT-01", "response_text": "My answer"},
             )
 
         assert resp.status_code == 200
         data = resp.json()
         assert data["question_number"] == 1
         assert data["complete"] is False
-        assert data["question"]["id"] == "q2"
+        assert data["question"]["id"] == "INT-02"
 
     def test_submit_final_answer_shows_complete(self):
         mock_result = _mock_answer_result(
-            question=None, complete=True, question_number=6
+            question=None, complete=True, question_number=17
         )
 
         with patch(
@@ -172,7 +186,7 @@ class TestSubmitAnswer:
         ):
             resp = client.post(
                 "/agent/test-agent/exam/exam-001/answer",
-                json={"question_id": "q23", "response_text": "Final answer"},
+                json={"question_id": "EE-06", "response_text": "Final answer"},
             )
 
         assert resp.status_code == 200
@@ -183,14 +197,14 @@ class TestSubmitAnswer:
     def test_submit_missing_response_text_returns_422(self):
         resp = client.post(
             "/agent/test-agent/exam/exam-001/answer",
-            json={"question_id": "q1"},
+            json={"question_id": "INT-01"},
         )
         assert resp.status_code == 422
 
     def test_submit_empty_response_text_returns_422(self):
         resp = client.post(
             "/agent/test-agent/exam/exam-001/answer",
-            json={"question_id": "q1", "response_text": ""},
+            json={"question_id": "INT-01", "response_text": ""},
         )
         assert resp.status_code == 422
 
@@ -202,7 +216,7 @@ class TestSubmitAnswer:
         ):
             resp = client.post(
                 "/agent/test-agent/exam/exam-001/answer",
-                json={"question_id": "q1", "response_text": "answer"},
+                json={"question_id": "INT-01", "response_text": "answer"},
             )
 
         assert resp.status_code == 409
@@ -259,7 +273,7 @@ class TestGetExam:
         assert resp.status_code == 200
         data = resp.json()
         assert data["exam_id"] == "exam-001"
-        assert data["per_question_detail"][0]["question_id"] == "q1"
+        assert data["per_question_detail"][0]["question_id"] == "EE-01"
 
     def test_get_enrollment_error_not_found_returns_404(self):
         with patch(

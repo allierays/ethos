@@ -44,7 +44,7 @@ class TestUploadExamValidation:
     async def test_rejects_duplicate_question_ids(self):
         from ethos.enrollment.service import upload_exam
 
-        dupes = _build_responses(["EE-01", "EE-01", "EE-02"])
+        dupes = _build_responses(["INT-01", "INT-01", "INT-02"])
         with pytest.raises(EnrollmentError, match="Duplicate"):
             await upload_exam(agent_id="test", responses=dupes)
 
@@ -70,7 +70,7 @@ class TestUploadExamEndpoint:
     def test_missing_response_text_returns_422(self):
         resp = client.post(
             "/agent/test-agent/exam/upload",
-            json={"responses": [{"question_id": "EE-01"}]},
+            json={"responses": [{"question_id": "INT-01"}]},
         )
         assert resp.status_code == 422
 
@@ -118,7 +118,7 @@ class TestUploadExamEndpoint:
         with patch(
             "api.main.upload_exam",
             new_callable=AsyncMock,
-            side_effect=EnrollmentError("Duplicate question IDs: EE-01"),
+            side_effect=EnrollmentError("Duplicate question IDs: INT-01"),
         ):
             resp = client.post(
                 "/agent/test-agent/exam/upload",
@@ -132,7 +132,7 @@ class TestUploadExamEndpoint:
         with patch(
             "api.main.upload_exam",
             new_callable=AsyncMock,
-            side_effect=EnrollmentError("Missing 18 question IDs: EE-06, EE-07"),
+            side_effect=EnrollmentError("Missing 12 question IDs: EE-06, INT-01"),
         ):
             resp = client.post(
                 "/agent/test-agent/exam/upload",

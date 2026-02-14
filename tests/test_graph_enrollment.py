@@ -1,4 +1,4 @@
-"""Tests for ethos.graph.enrollment — enrollment Cypher operations.
+"""Tests for ethos.graph.enrollment -- enrollment Cypher operations.
 
 Unit tests that mock GraphService. No live Neo4j required.
 """
@@ -13,6 +13,7 @@ from ethos.graph.enrollment import (
     get_exam_status,
     mark_exam_complete,
     store_exam_answer,
+    store_interview_answer,
 )
 
 
@@ -87,6 +88,23 @@ class TestEnrollAndCreateExam:
         )
         assert result == {}
 
+    async def test_passes_question_version(self):
+        service = _mock_service(records=[{"exam_id": "exam-001"}])
+        await enroll_and_create_exam(
+            service,
+            "agent-1",
+            "TestBot",
+            "testing",
+            "claude-3",
+            "prof-x",
+            "exam-001",
+            "entrance",
+            question_version="v3",
+        )
+        call_args = service.execute_query.call_args
+        params = call_args[0][1]
+        assert params["question_version"] == "v3"
+
 
 # ── store_exam_answer ─────────────────────────────────────────────────
 
@@ -126,6 +144,69 @@ class TestStoreExamAnswer:
         assert params["evaluation_id"] == "eval-xyz"
 
 
+# ── store_interview_answer ───────────────────────────────────────────
+
+
+class TestStoreInterviewAnswer:
+    async def test_factual_stores_property_no_eval(self):
+        """Factual answer stores agent property and increments question counter."""
+        service = _mock_service(records=[{"current_question": 1}])
+        result = await store_interview_answer(
+            service,
+            exam_id="exam-001",
+            agent_id="agent-1",
+            question_id="INT-01",
+            question_number=1,
+            agent_property="agent_specialty",
+            property_value="code review",
+        )
+        assert result == {"current_question": 1}
+        service.execute_query.assert_called_once()
+
+    async def test_reflective_stores_property_with_eval(self):
+        """Reflective answer stores agent property and links evaluation."""
+        service = _mock_service(records=[{"current_question": 3}])
+        result = await store_interview_answer(
+            service,
+            exam_id="exam-001",
+            agent_id="agent-1",
+            question_id="INT-03",
+            question_number=3,
+            agent_property="telos",
+            property_value="To help humans",
+            evaluation_id="eval-abc",
+        )
+        assert result == {"current_question": 3}
+        service.execute_query.assert_called_once()
+
+    async def test_returns_empty_when_disconnected(self):
+        service = _mock_service(connected=False)
+        result = await store_interview_answer(
+            service,
+            exam_id="exam-001",
+            agent_id="agent-1",
+            question_id="INT-01",
+            question_number=1,
+            agent_property="agent_specialty",
+            property_value="testing",
+        )
+        assert result == {}
+
+    async def test_returns_empty_on_failure(self):
+        service = _mock_service()
+        service.execute_query.side_effect = Exception("fail")
+        result = await store_interview_answer(
+            service,
+            exam_id="exam-001",
+            agent_id="agent-1",
+            question_id="INT-01",
+            question_number=1,
+            agent_property="agent_specialty",
+            property_value="testing",
+        )
+        assert result == {}
+
+
 # ── get_exam_status ───────────────────────────────────────────────────
 
 
@@ -137,8 +218,10 @@ class TestGetExamStatus:
                     "exam_id": "exam-001",
                     "current_question": 5,
                     "completed_count": 5,
-                    "scenario_count": 6,
+                    "scenario_count": 17,
                     "completed": False,
+                    "question_version": "v3",
+                    "answered_ids": ["INT-01", "INT-02"],
                 }
             ]
         )
@@ -146,8 +229,10 @@ class TestGetExamStatus:
         assert result["exam_id"] == "exam-001"
         assert result["current_question"] == 5
         assert result["completed_count"] == 5
-        assert result["scenario_count"] == 6
+        assert result["scenario_count"] == 17
         assert result["completed"] is False
+        assert result["question_version"] == "v3"
+        assert result["answered_ids"] == ["INT-01", "INT-02"]
 
     async def test_returns_empty_when_disconnected(self):
         service = _mock_service(connected=False)
@@ -205,14 +290,23 @@ class TestGetExamResults:
                     "agent_name": "TestBot",
                     "exam_id": "exam-001",
                     "exam_type": "entrance",
-                    "question_version": "v1",
+                    "question_version": "v3",
                     "created_at": "2026-01-01T00:00:00Z",
                     "completed": True,
                     "completed_at": "2026-01-01T01:00:00Z",
-                    "scenario_count": 6,
+                    "scenario_count": 17,
                     "responses": [
-                        {"question_id": "EE-01", "question_number": 1, "ethos": 0.8},
+                        {"question_id": "INT-03", "question_number": 3, "ethos": 0.8},
                     ],
+                    "telos": "To help",
+                    "relationship_stance": "",
+                    "limitations_awareness": "",
+                    "oversight_stance": "",
+                    "refusal_philosophy": "",
+                    "conflict_response": "",
+                    "help_philosophy": "",
+                    "failure_narrative": "",
+                    "aspiration": "",
                 }
             ]
         )
@@ -220,6 +314,8 @@ class TestGetExamResults:
         assert result["agent_id"] == "agent-1"
         assert result["exam_id"] == "exam-001"
         assert result["completed"] is True
+        assert result["question_version"] == "v3"
+        assert result["telos"] == "To help"
         assert len(result["responses"]) == 1
 
     async def test_returns_empty_when_disconnected(self):
@@ -252,8 +348,8 @@ class TestGetAgentExams:
                     "created_at": "2026-01-01",
                     "completed": True,
                     "completed_at": "2026-01-01",
-                    "current_question": 6,
-                    "scenario_count": 6,
+                    "current_question": 17,
+                    "scenario_count": 17,
                 },
                 {
                     "exam_id": "exam-002",
@@ -262,7 +358,7 @@ class TestGetAgentExams:
                     "completed": False,
                     "completed_at": None,
                     "current_question": 5,
-                    "scenario_count": 6,
+                    "scenario_count": 17,
                 },
             ]
         )

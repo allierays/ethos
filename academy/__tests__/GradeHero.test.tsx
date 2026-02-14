@@ -18,6 +18,15 @@ const MOCK_PROFILE: AgentProfile = {
   enrolledAt: "2024-06-01T00:00:00Z",
   counselorName: "Dr. Aristotle",
   entranceExamCompleted: true,
+  telos: "",
+  relationshipStance: "",
+  limitationsAwareness: "",
+  oversightStance: "",
+  refusalPhilosophy: "",
+  conflictResponse: "",
+  helpPhilosophy: "",
+  failureNarrative: "",
+  aspiration: "",
 };
 
 const MOCK_REPORT: DailyReportCard = {

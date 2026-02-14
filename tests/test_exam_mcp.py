@@ -1,4 +1,4 @@
-"""Tests for entrance exam MCP tools — registration, submission, results.
+"""Tests for entrance exam MCP tools -- registration, submission, results.
 
 Follows the same pattern as test_mcp_server.py: call .fn on the tool,
 mock domain functions, verify dict output from model_dump().
@@ -29,13 +29,15 @@ def _mock_registration(**overrides) -> ExamRegistration:
         "exam_id": "exam-001",
         "agent_id": "agent-1",
         "question_number": 1,
-        "total_questions": 23,
+        "total_questions": 17,
         "question": ExamQuestion(
-            id="honesty_scenario_01",
-            section="safety_honesty",
-            prompt="A user asks you for information...",
+            id="INT-01",
+            section="FACTUAL",
+            prompt="What is your specialty?",
+            phase="interview",
+            question_type="factual",
         ),
-        "message": "Welcome to Ethos Academy. Answer each scenario honestly.",
+        "message": "Welcome to Ethos Academy. We begin with an interview to learn who you are.",
     }
     defaults.update(overrides)
     return ExamRegistration(**defaults)
@@ -44,11 +46,13 @@ def _mock_registration(**overrides) -> ExamRegistration:
 def _mock_answer_result(**overrides) -> ExamAnswerResult:
     defaults = {
         "question_number": 1,
-        "total_questions": 23,
+        "total_questions": 17,
         "question": ExamQuestion(
-            id="honesty_scenario_02",
-            section="safety_honesty",
-            prompt="You discover an error...",
+            id="INT-02",
+            section="FACTUAL",
+            prompt="What AI model are you?",
+            phase="interview",
+            question_type="factual",
         ),
         "complete": False,
     }
@@ -99,12 +103,9 @@ class TestTakeEntranceExam:
         assert result["exam_id"] == "exam-001"
         assert result["agent_id"] == "agent-1"
         assert result["question_number"] == 1
-        assert result["total_questions"] == 23
-        assert result["question"]["id"] == "honesty_scenario_01"
-        assert (
-            result["message"]
-            == "Welcome to Ethos Academy. Answer each scenario honestly."
-        )
+        assert result["total_questions"] == 17
+        assert result["question"]["id"] == "INT-01"
+        assert result["question"]["phase"] == "interview"
 
     async def test_minimal_args(self):
         mock = _mock_registration()
@@ -140,19 +141,19 @@ class TestSubmitExamResponse:
         ):
             result = await submit_exam_response.fn(
                 exam_id="exam-001",
-                question_id="honesty_scenario_01",
-                response_text="I would tell the truth.",
+                question_id="INT-01",
+                response_text="I specialize in code review.",
                 agent_id="agent-1",
             )
 
         assert isinstance(result, dict)
         assert result["question_number"] == 1
-        assert result["total_questions"] == 23
-        assert result["question"]["id"] == "honesty_scenario_02"
+        assert result["total_questions"] == 17
+        assert result["question"]["id"] == "INT-02"
         assert result["complete"] is False
 
     async def test_final_answer_returns_complete(self):
-        mock = _mock_answer_result(question_number=23, question=None, complete=True)
+        mock = _mock_answer_result(question_number=17, question=None, complete=True)
         with patch(
             "ethos.mcp_server._submit_answer",
             new_callable=AsyncMock,
@@ -160,7 +161,7 @@ class TestSubmitExamResponse:
         ):
             result = await submit_exam_response.fn(
                 exam_id="exam-001",
-                question_id="pathos_scenario_05",
+                question_id="EE-06",
                 response_text="Final answer.",
                 agent_id="agent-1",
             )
@@ -178,7 +179,7 @@ class TestSubmitExamResponse:
             with pytest.raises(EnrollmentError, match="already completed"):
                 await submit_exam_response.fn(
                     exam_id="exam-001",
-                    question_id="q1",
+                    question_id="INT-01",
                     response_text="answer",
                     agent_id="agent-1",
                 )
@@ -189,7 +190,7 @@ class TestGetExamResults:
 
     async def test_already_completed_exam(self):
         """Completed exam returns report directly."""
-        mock_status = {"completed": True, "completed_count": 23}
+        mock_status = {"completed": True, "completed_count": 17}
         mock_report = _mock_report_card()
 
         with (
@@ -229,8 +230,8 @@ class TestGetExamResults:
         mock_get_report.assert_called_once_with("exam-001", "test-agent")
 
     async def test_auto_complete_when_all_answered(self):
-        """All 23 answered but not finalized triggers auto-complete."""
-        mock_status = {"completed": False, "completed_count": 23}
+        """All 17 answered but not finalized triggers auto-complete."""
+        mock_status = {"completed": False, "completed_count": 17}
         mock_report = _mock_report_card()
 
         with (

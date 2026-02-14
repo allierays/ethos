@@ -90,6 +90,9 @@ Resources:
           # Clone repo
           sudo -u ubuntu git clone https://github.com/allierays/ethos.git /home/ubuntu/ethos
 
+          # Nightly reflection cron (2 AM UTC)
+          sudo -u ubuntu bash -c '(crontab -l 2>/dev/null; echo "0 2 * * * cd /home/ubuntu/ethos && docker compose -f docker-compose.prod.yml exec -T app python -m scripts.nightly_reflection >> /var/log/ethos-nightly.log 2>&1") | crontab -'
+
           # Signal that setup is complete
           echo "UserData complete" > /home/ubuntu/setup-done
 

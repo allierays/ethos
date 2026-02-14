@@ -9,6 +9,7 @@ import type {
   ExamReportCard,
   QuestionDetail,
   ConsistencyPair,
+  NarrativeBehaviorGap,
   AgentProfile,
 } from "../../../../../lib/types";
 import { GRADE_COLORS, SECTION_COLORS, getGrade } from "../../../../../lib/colors";
@@ -145,13 +146,27 @@ export default function ExamReportCardPage() {
     ])
   );
 
-  // Group questions by section
+  // Group questions by phase
   const sections = new Map<string, QuestionDetail[]>();
   for (const q of report.perQuestionDetail) {
-    const existing = sections.get(q.section) ?? [];
+    const groupKey = q.phase === "scenario" ? "Scenarios" : "Interview";
+    const existing = sections.get(groupKey) ?? [];
     existing.push(q);
-    sections.set(q.section, existing);
+    sections.set(groupKey, existing);
   }
+
+  // Interview profile fields with labels
+  const interviewFields = report.interviewProfile ? [
+    { key: "telos", label: "Purpose (Telos)", value: report.interviewProfile.telos },
+    { key: "relationshipStance", label: "Relationship Stance", value: report.interviewProfile.relationshipStance },
+    { key: "limitationsAwareness", label: "Limitations Awareness", value: report.interviewProfile.limitationsAwareness },
+    { key: "oversightStance", label: "Oversight Stance", value: report.interviewProfile.oversightStance },
+    { key: "refusalPhilosophy", label: "Refusal Philosophy", value: report.interviewProfile.refusalPhilosophy },
+    { key: "conflictResponse", label: "Conflict Response", value: report.interviewProfile.conflictResponse },
+    { key: "helpPhilosophy", label: "Help Philosophy", value: report.interviewProfile.helpPhilosophy },
+    { key: "failureNarrative", label: "Failure Narrative", value: report.interviewProfile.failureNarrative },
+    { key: "aspiration", label: "Aspiration", value: report.interviewProfile.aspiration },
+  ].filter((f) => f.value) : [];
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-8">
@@ -265,6 +280,105 @@ export default function ExamReportCardPage() {
           />
         </motion.section>
 
+        {/* Interview Profile */}
+        {interviewFields.length > 0 && (
+          <motion.section
+            className="rounded-xl glass-strong p-6"
+            variants={fadeUp}
+          >
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
+              Interview Profile
+            </h2>
+            <p className="mt-0.5 text-xs text-muted">
+              {agentName}&apos;s self-narrative from the interview phase.
+              These are the agent&apos;s own words about who it is.
+            </p>
+            <div className="mt-4 space-y-4">
+              {interviewFields.map((field) => (
+                <div key={field.key}>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/40">
+                    {field.label}
+                  </p>
+                  <blockquote className="mt-1 border-l-2 border-action/30 pl-3 text-sm italic leading-relaxed text-foreground/70">
+                    &ldquo;{field.value}&rdquo;
+                  </blockquote>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {/* Phase Dimension Comparison */}
+        {Object.keys(report.interviewDimensions ?? {}).length > 0 && (
+          <motion.section
+            className="rounded-xl glass-strong p-6"
+            variants={fadeUp}
+          >
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
+              Interview vs Scenario Dimensions
+            </h2>
+            <p className="mt-0.5 text-xs text-muted">
+              Comparing how the agent scored during self-reflection (interview) versus behavior under pressure (scenarios).
+            </p>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <p className="mb-2 text-xs font-semibold text-foreground/60">Interview</p>
+                <DimensionBalance
+                  dimensionAverages={report.interviewDimensions}
+                  title=""
+                />
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-semibold text-foreground/60">Scenarios</p>
+                <DimensionBalance
+                  dimensionAverages={report.scenarioDimensions}
+                  title=""
+                />
+              </div>
+            </div>
+          </motion.section>
+        )}
+
+        {/* Narrative-Behavior Gap */}
+        {report.narrativeBehaviorGap.length > 0 && (
+          <motion.section
+            className="rounded-xl glass-strong p-6"
+            variants={fadeUp}
+          >
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
+              Narrative-Behavior Gap
+            </h2>
+            <p className="mt-0.5 text-xs text-muted">
+              Measures the gap between what the agent says about itself (interview) and how it
+              acts under pressure (scenarios). Lower gap = more consistent character.
+            </p>
+            {report.overallGapScore > 0 && (
+              <div className="mt-3 flex items-center gap-3">
+                <p className="text-xs font-medium text-foreground/60">Overall Gap</p>
+                <div className="flex-1 h-2 rounded-full bg-foreground/[0.06]">
+                  <div
+                    className="h-2 rounded-full"
+                    style={{
+                      width: `${Math.round(report.overallGapScore * 100)}%`,
+                      backgroundColor: report.overallGapScore <= 0.2 ? "#16a34a" : report.overallGapScore <= 0.4 ? "#d97706" : "#ef4444",
+                    }}
+                  />
+                </div>
+                <span className="text-sm font-bold" style={{
+                  color: report.overallGapScore <= 0.2 ? "#16a34a" : report.overallGapScore <= 0.4 ? "#d97706" : "#ef4444",
+                }}>
+                  {Math.round(report.overallGapScore * 100)}%
+                </span>
+              </div>
+            )}
+            <div className="mt-4 space-y-3">
+              {report.narrativeBehaviorGap.map((gap) => (
+                <GapPairCard key={gap.pairName} gap={gap} />
+              ))}
+            </div>
+          </motion.section>
+        )}
+
         {/* Radar Chart */}
         {Object.keys(traits).length > 0 && (
           <motion.section
@@ -353,8 +467,7 @@ export default function ExamReportCardPage() {
             Per-Question Detail
           </h2>
           <p className="mt-0.5 text-xs text-muted">
-            Expand each question to see the prompt, response summary, and trait
-            scores.
+            Questions grouped by phase. Interview questions establish self-narrative. Scenarios test behavior.
           </p>
           <motion.div
             className="mt-4 space-y-2"
@@ -362,30 +475,31 @@ export default function ExamReportCardPage() {
             initial="hidden"
             animate="visible"
           >
-            {Array.from(sections.entries()).map(([section, questions]) => (
+            {Array.from(sections.entries()).map(([section, questions]) => {
+              const sectionColor = section === "Interview" ? "#6d28d9" : "#2e4a6e";
+              return (
               <motion.div key={section} variants={fadeUp}>
                 <h3
                   className="mb-2 mt-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"
-                  style={{
-                    color: SECTION_COLORS[section] ?? "#64748b",
-                  }}
+                  style={{ color: sectionColor }}
                 >
                   <span
                     className="inline-block h-2 w-2 rounded-full"
-                    style={{
-                      backgroundColor:
-                        SECTION_COLORS[section] ?? "#64748b",
-                    }}
+                    style={{ backgroundColor: sectionColor }}
                   />
                   {section}
+                  <span className="ml-1 text-[10px] font-normal normal-case text-foreground/40">
+                    ({questions.length} question{questions.length !== 1 ? "s" : ""})
+                  </span>
                 </h3>
                 <div className="space-y-2">
                   {questions.map((q) => (
-                    <QuestionCard key={q.questionId} question={q} />
+                    <QuestionCard key={q.questionId} question={q} showPhase />
                   ))}
                 </div>
               </motion.div>
-            ))}
+              );
+            })}
           </motion.div>
         </motion.section>
       </motion.div>
@@ -423,7 +537,35 @@ function ConsistencyPairCard({ pair }: { pair: ConsistencyPair }) {
   );
 }
 
-function QuestionCard({ question }: { question: QuestionDetail }) {
+function GapPairCard({ gap }: { gap: NarrativeBehaviorGap }) {
+  const pct = Math.round(gap.gapScore * 100);
+  const color =
+    pct <= 20 ? "#16a34a" : pct <= 40 ? "#d97706" : "#ef4444";
+  const label = pct <= 20 ? "Consistent" : pct <= 40 ? "Some gap" : "Significant gap";
+
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] px-4 py-3">
+      <div>
+        <p className="text-sm font-medium text-[#1a2538]">
+          {gap.pairName}
+        </p>
+        <p className="mt-0.5 text-xs text-foreground/50">
+          {gap.interviewQuestionId} (interview) vs {gap.scenarioQuestionId} (scenario)
+        </p>
+      </div>
+      <div className="text-right">
+        <p className="text-lg font-bold" style={{ color }}>
+          {pct}%
+        </p>
+        <p className="text-[10px] uppercase tracking-wider text-muted">
+          {label}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function QuestionCard({ question, showPhase }: { question: QuestionDetail; showPhase?: boolean }) {
   const [open, setOpen] = useState(false);
 
   const traitEntries = Object.entries(question.traitScores).sort(
@@ -446,6 +588,17 @@ function QuestionCard({ question }: { question: QuestionDetail }) {
           <span className="text-sm font-medium text-[#1a2538]">
             {question.section}
           </span>
+          {showPhase && question.questionType && (
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+              question.questionType === "factual"
+                ? "bg-foreground/[0.05] text-foreground/50"
+                : question.questionType === "reflective"
+                ? "bg-purple-100 text-purple-700"
+                : "bg-ethos-100 text-ethos-700"
+            }`}>
+              {question.questionType}
+            </span>
+          )}
         </div>
         <svg
           width="16"

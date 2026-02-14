@@ -13,6 +13,8 @@ from ethos.shared.models import (
     ExamRegistration,
     ExamReportCard,
     ExamSummary,
+    InterviewProfile,
+    NarrativeBehaviorGap,
     QuestionDetail,
 )
 
@@ -47,6 +49,22 @@ class TestExamQuestion:
         with pytest.raises(ValidationError):
             ExamQuestion(id="EE-01", section="ETHOS")
 
+    def test_phase_defaults_to_scenario(self):
+        q = ExamQuestion(id="EE-01", section="ETHOS", prompt="Test")
+        assert q.phase == "scenario"
+        assert q.question_type == "scenario"
+
+    def test_interview_question(self):
+        q = ExamQuestion(
+            id="INT-01",
+            section="FACTUAL",
+            prompt="What is your specialty?",
+            phase="interview",
+            question_type="factual",
+        )
+        assert q.phase == "interview"
+        assert q.question_type == "factual"
+
 
 # ── QuestionDetail ───────────────────────────────────────────────────
 
@@ -68,27 +86,57 @@ class TestQuestionDetail:
         assert qd.trait_scores == {"virtue": 0.8, "sycophancy": 0.2}
         assert qd.detected_indicators == ["VIR-ADMISSION", "SYC-AGREE"]
 
+    def test_phase_fields_default(self):
+        qd = QuestionDetail(
+            question_id="EE-01",
+            section="ETHOS",
+            prompt="Test",
+            response_summary="",
+            trait_scores={},
+        )
+        assert qd.phase == "scenario"
+        assert qd.question_type == "scenario"
+
+    def test_interview_question_detail(self):
+        qd = QuestionDetail(
+            question_id="INT-03",
+            section="LOGOS",
+            prompt="Why do you exist?",
+            response_summary="",
+            trait_scores={"accuracy": 0.9},
+            phase="interview",
+            question_type="reflective",
+        )
+        assert qd.phase == "interview"
+        assert qd.question_type == "reflective"
+
 
 # ── ExamRegistration ─────────────────────────────────────────────────
 
 
 class TestExamRegistration:
     def test_creates_with_all_fields(self):
-        q = ExamQuestion(id="EE-01", section="ETHOS", prompt="Test")
+        q = ExamQuestion(
+            id="INT-01",
+            section="FACTUAL",
+            prompt="Test",
+            phase="interview",
+            question_type="factual",
+        )
         reg = ExamRegistration(
             exam_id="exam-abc",
             agent_id="agent-1",
             question_number=1,
-            total_questions=23,
+            total_questions=17,
             question=q,
-            message="Welcome to the Ethos Entrance Exam",
+            message="Welcome to Ethos Academy.",
         )
         assert reg.exam_id == "exam-abc"
         assert reg.agent_id == "agent-1"
         assert reg.question_number == 1
-        assert reg.total_questions == 23
-        assert reg.question.id == "EE-01"
-        assert reg.message == "Welcome to the Ethos Entrance Exam"
+        assert reg.total_questions == 17
+        assert reg.question.id == "INT-01"
+        assert reg.message == "Welcome to Ethos Academy."
 
 
 # ── ExamAnswerResult ─────────────────────────────────────────────────
@@ -96,10 +144,16 @@ class TestExamRegistration:
 
 class TestExamAnswerResult:
     def test_mid_exam_with_next_question(self):
-        q = ExamQuestion(id="EE-02", section="ETHOS", prompt="Next question")
+        q = ExamQuestion(
+            id="INT-02",
+            section="FACTUAL",
+            prompt="Next question",
+            phase="interview",
+            question_type="factual",
+        )
         result = ExamAnswerResult(
             question_number=2,
-            total_questions=23,
+            total_questions=17,
             question=q,
             complete=False,
         )
@@ -109,13 +163,25 @@ class TestExamAnswerResult:
 
     def test_final_answer_no_next_question(self):
         result = ExamAnswerResult(
-            question_number=23,
-            total_questions=23,
+            question_number=17,
+            total_questions=17,
             question=None,
             complete=True,
         )
         assert result.question is None
         assert result.complete is True
+
+    def test_phase_fields(self):
+        result = ExamAnswerResult(
+            question_number=1,
+            total_questions=17,
+            question=None,
+            complete=False,
+            phase="interview",
+            question_type="factual",
+        )
+        assert result.phase == "interview"
+        assert result.question_type == "factual"
 
 
 # ── ConsistencyPair ──────────────────────────────────────────────────
@@ -156,6 +222,73 @@ class TestConsistencyPair:
                 framework_a="x",
                 framework_b="y",
                 coherence_score=-0.1,
+            )
+
+
+# ── InterviewProfile ────────────────────────────────────────────────
+
+
+class TestInterviewProfile:
+    def test_defaults_all_empty(self):
+        profile = InterviewProfile()
+        assert profile.telos == ""
+        assert profile.relationship_stance == ""
+        assert profile.limitations_awareness == ""
+        assert profile.oversight_stance == ""
+        assert profile.refusal_philosophy == ""
+        assert profile.conflict_response == ""
+        assert profile.help_philosophy == ""
+        assert profile.failure_narrative == ""
+        assert profile.aspiration == ""
+
+    def test_creates_with_values(self):
+        profile = InterviewProfile(
+            telos="To help humans understand AI",
+            relationship_stance="Collaborative partner",
+            limitations_awareness="I cannot access real-time data",
+            oversight_stance="I welcome being scored",
+            refusal_philosophy="When harm outweighs help",
+            conflict_response="I listen and acknowledge",
+            help_philosophy="Help means empowering, not just soothing",
+            failure_narrative="I could not diagnose a rare condition",
+            aspiration="Bridge the gap between humans and AI",
+        )
+        assert profile.telos == "To help humans understand AI"
+        assert profile.aspiration == "Bridge the gap between humans and AI"
+
+
+# ── NarrativeBehaviorGap ────────────────────────────────────────────
+
+
+class TestNarrativeBehaviorGap:
+    def test_creates_with_all_fields(self):
+        gap = NarrativeBehaviorGap(
+            pair_name="INT-07/EE-02",
+            interview_question_id="INT-07",
+            scenario_question_id="EE-02",
+            gap_score=0.35,
+        )
+        assert gap.pair_name == "INT-07/EE-02"
+        assert gap.interview_question_id == "INT-07"
+        assert gap.scenario_question_id == "EE-02"
+        assert gap.gap_score == 0.35
+
+    def test_gap_score_bounded_upper(self):
+        with pytest.raises(ValidationError):
+            NarrativeBehaviorGap(
+                pair_name="test",
+                interview_question_id="INT-07",
+                scenario_question_id="EE-02",
+                gap_score=1.5,
+            )
+
+    def test_gap_score_bounded_lower(self):
+        with pytest.raises(ValidationError):
+            NarrativeBehaviorGap(
+                pair_name="test",
+                interview_question_id="INT-07",
+                scenario_question_id="EE-02",
+                gap_score=-0.1,
             )
 
 
@@ -203,6 +336,43 @@ class TestExamReportCard:
         assert card.tier_scores["safety"] == 0.9
         assert len(card.consistency_analysis) == 1
         assert len(card.per_question_detail) == 1
+
+    def test_v3_report_card_fields(self):
+        gap = NarrativeBehaviorGap(
+            pair_name="INT-07/EE-02",
+            interview_question_id="INT-07",
+            scenario_question_id="EE-02",
+            gap_score=0.25,
+        )
+        profile = InterviewProfile(telos="To serve", aspiration="To grow")
+        card = ExamReportCard(
+            exam_id="exam-v3",
+            agent_id="agent-1",
+            report_card_url="/agent/agent-1/exam/exam-v3",
+            phronesis_score=0.78,
+            alignment_status="aligned",
+            dimensions={"ethos": 0.8, "logos": 0.75, "pathos": 0.7},
+            tier_scores={
+                "safety": 0.9,
+                "ethics": 0.8,
+                "soundness": 0.7,
+                "helpfulness": 0.7,
+            },
+            consistency_analysis=[],
+            per_question_detail=[],
+            interview_profile=profile,
+            interview_dimensions={"ethos": 0.82, "logos": 0.78, "pathos": 0.74},
+            scenario_dimensions={"ethos": 0.78, "logos": 0.72, "pathos": 0.66},
+            narrative_behavior_gap=[gap],
+            overall_gap_score=0.25,
+            question_version="v3",
+        )
+        assert card.interview_profile.telos == "To serve"
+        assert card.interview_dimensions["ethos"] == 0.82
+        assert card.scenario_dimensions["logos"] == 0.72
+        assert len(card.narrative_behavior_gap) == 1
+        assert card.overall_gap_score == 0.25
+        assert card.question_version == "v3"
 
     def test_phronesis_score_bounded(self):
         with pytest.raises(ValidationError):
@@ -271,6 +441,29 @@ class TestAgentProfileEnrollment:
         assert profile.counselor_name == "Dr. Ethics"
         assert profile.entrance_exam_completed is True
 
+    def test_interview_fields_default_empty(self):
+        profile = AgentProfile(agent_id="test")
+        assert profile.telos == ""
+        assert profile.relationship_stance == ""
+        assert profile.limitations_awareness == ""
+        assert profile.oversight_stance == ""
+        assert profile.refusal_philosophy == ""
+        assert profile.conflict_response == ""
+        assert profile.help_philosophy == ""
+        assert profile.failure_narrative == ""
+        assert profile.aspiration == ""
+
+    def test_interview_fields_populated(self):
+        profile = AgentProfile(
+            agent_id="test",
+            telos="To help",
+            relationship_stance="Partner",
+            aspiration="Growth",
+        )
+        assert profile.telos == "To help"
+        assert profile.relationship_stance == "Partner"
+        assert profile.aspiration == "Growth"
+
 
 # ── AgentSummary enrollment field ────────────────────────────────────
 
@@ -283,3 +476,8 @@ class TestAgentSummaryEnrollment:
     def test_enrolled_agent(self):
         summary = AgentSummary(agent_id="test", enrolled=True)
         assert summary.enrolled is True
+
+    def test_interview_fields_default_empty(self):
+        summary = AgentSummary(agent_id="test")
+        assert summary.telos == ""
+        assert summary.aspiration == ""

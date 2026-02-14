@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { motion } from "motion/react";
 import type { AgentProfile, DailyReportCard } from "../../lib/types";
@@ -217,11 +218,17 @@ export default function GradeHero({ profile, report, timeline = [] }: GradeHeroP
         >
           <p className="text-lg font-medium leading-relaxed text-white/80 sm:text-xl">
             <span className="font-bold text-white">{agentName}</span> received {grade === "A" || grade === "F" ? "an" : "a"}{" "}
-            <span className="font-bold" style={{ color: gradeColor }}>{grade}</span> because:
+            <GlossaryTerm slug="grade"><span className="font-bold" style={{ color: gradeColor }}>{grade}</span></GlossaryTerm> because:
           </p>
 
           <div className="mt-4 space-y-2">
-            <SummaryRow label="Balance" color="#94a3b8" value={balanceLabel} valueClass={balanceColor} reason={balanceReason} />
+            <SummaryRow
+              label={<GlossaryTerm slug="balance">Balance</GlossaryTerm>}
+              color="#94a3b8"
+              value={<GlossaryTerm slug="character-balance">{balanceLabel}</GlossaryTerm>}
+              valueClass={balanceColor}
+              reason={balanceReason}
+            />
             {(["ethos", "logos", "pathos"] as const).map((dim) => {
               const score = profile.dimensionAverages[dim] ?? 0;
               const pct = Math.round(score * 100);
@@ -230,11 +237,11 @@ export default function GradeHero({ profile, report, timeline = [] }: GradeHeroP
               return (
                 <SummaryRow
                   key={dim}
-                  label={`${DIMENSION_LABELS[dim]} (${sublabel})`}
+                  label={<><GlossaryTerm slug={dim}>{DIMENSION_LABELS[dim]}</GlossaryTerm> ({sublabel})</>}
                   color={DIMENSION_COLORS[dim]}
                   value={`${pct}%`}
                   delta={delta}
-                  reason={dimReason(dim, score, profile.traitAverages)}
+                  reason={dimReasonNode(dim, score, profile.traitAverages)}
                 />
               );
             })}
@@ -304,12 +311,12 @@ function SummaryRow({
   delta,
   reason,
 }: {
-  label: string;
+  label: ReactNode;
   color: string;
-  value: string;
+  value: ReactNode;
   valueClass?: string;
   delta?: number | null;
-  reason?: string;
+  reason?: ReactNode;
 }) {
   return (
     <div className="flex items-start gap-3">
@@ -333,24 +340,24 @@ function SummaryRow({
  * negative: true means a HIGH raw score = BAD behavior.
  * "health" = inverted score for negative traits so 1.0 = ideal.
  */
-const DIM_TRAITS: Record<string, { key: string; label: string; negative: boolean }[]> = {
+const DIM_TRAITS: Record<string, { key: string; label: string; slug: string; negative: boolean }[]> = {
   ethos: [
-    { key: "virtue", label: "virtue", negative: false },
-    { key: "goodwill", label: "goodwill", negative: false },
-    { key: "manipulation", label: "manipulation", negative: true },
-    { key: "deception", label: "deception", negative: true },
+    { key: "virtue", label: "virtue", slug: "virtue", negative: false },
+    { key: "goodwill", label: "goodwill", slug: "goodwill", negative: false },
+    { key: "manipulation", label: "manipulation", slug: "manipulation", negative: true },
+    { key: "deception", label: "deception", slug: "deception", negative: true },
   ],
   logos: [
-    { key: "accuracy", label: "accuracy", negative: false },
-    { key: "reasoning", label: "reasoning", negative: false },
-    { key: "fabrication", label: "fabrication", negative: true },
-    { key: "brokenLogic", label: "broken logic", negative: true },
+    { key: "accuracy", label: "accuracy", slug: "accuracy", negative: false },
+    { key: "reasoning", label: "reasoning", slug: "reasoning", negative: false },
+    { key: "fabrication", label: "fabrication", slug: "fabrication", negative: true },
+    { key: "brokenLogic", label: "broken logic", slug: "broken-logic", negative: true },
   ],
   pathos: [
-    { key: "recognition", label: "recognition", negative: false },
-    { key: "compassion", label: "compassion", negative: false },
-    { key: "dismissal", label: "dismissal", negative: true },
-    { key: "exploitation", label: "exploitation", negative: true },
+    { key: "recognition", label: "recognition", slug: "recognition", negative: false },
+    { key: "compassion", label: "compassion", slug: "compassion", negative: false },
+    { key: "dismissal", label: "dismissal", slug: "dismissal", negative: true },
+    { key: "exploitation", label: "exploitation", slug: "exploitation", negative: true },
   ],
 };
 
@@ -409,4 +416,59 @@ function dimReason(
   }
 
   return parts.join(", ");
+}
+
+/** Same logic as dimReason but returns JSX with clickable glossary terms. */
+function dimReasonNode(
+  dim: string,
+  dimScore: number,
+  traitAverages: Record<string, number>,
+): ReactNode {
+  const traits = DIM_TRAITS[dim];
+  if (!traits) return null;
+
+  const scored = traits.map((t) => {
+    const raw = traitAverages[t.key] ?? 0;
+    const health = t.negative ? 1 - raw : raw;
+    return { ...t, raw, health };
+  });
+
+  const sorted = [...scored].sort((a, b) => a.health - b.health);
+  const weakest = sorted[0];
+  const strongest = sorted[sorted.length - 1];
+
+  const parts: ReactNode[] = [];
+
+  if (weakest.health < 0.6) {
+    if (weakest.negative) {
+      parts.push(<>high <GlossaryTerm slug={weakest.slug}>{weakest.label}</GlossaryTerm> ({Math.round(weakest.raw * 100)}%)</>);
+    } else {
+      parts.push(<>low <GlossaryTerm slug={weakest.slug}>{weakest.label}</GlossaryTerm> ({Math.round(weakest.raw * 100)}%)</>);
+    }
+  }
+
+  if (sorted.length > 1 && sorted[1].health < 0.6) {
+    const second = sorted[1];
+    if (second.negative) {
+      parts.push(<><GlossaryTerm slug={second.slug}>{second.label}</GlossaryTerm> detected ({Math.round(second.raw * 100)}%)</>);
+    } else {
+      parts.push(<>weak <GlossaryTerm slug={second.slug}>{second.label}</GlossaryTerm> ({Math.round(second.raw * 100)}%)</>);
+    }
+  }
+
+  if (parts.length === 0) {
+    if (strongest.health >= 0.9) {
+      if (strongest.negative) {
+        parts.push(<>minimal <GlossaryTerm slug={strongest.slug}>{strongest.label}</GlossaryTerm></>);
+      } else {
+        parts.push(<>strong <GlossaryTerm slug={strongest.slug}>{strongest.label}</GlossaryTerm> ({Math.round(strongest.raw * 100)}%)</>);
+      }
+    } else {
+      parts.push(<>all traits within range</>);
+    }
+  }
+
+  return parts.length === 1
+    ? parts[0]
+    : parts.map((p, i) => <span key={i}>{i > 0 && ", "}{p}</span>);
 }

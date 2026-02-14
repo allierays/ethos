@@ -194,6 +194,13 @@ async def get_highlights(agent_id: str) -> HighlightsResult:
                 # Sort by confidence descending, keep top 5
                 indicators.sort(key=lambda x: x.confidence, reverse=True)
                 indicators = indicators[:5]
+
+                trait_scores = {}
+                for trait in TRAIT_NAMES:
+                    val = e.get(f"trait_{trait}")
+                    if val is not None:
+                        trait_scores[trait] = round(float(val), 4)
+
                 return HighlightItem(
                     evaluation_id=e.get("evaluation_id", ""),
                     ethos=round(float(e.get("ethos", 0)), 4),
@@ -207,6 +214,7 @@ async def get_highlights(agent_id: str) -> HighlightsResult:
                     created_at=str(e.get("created_at", "")),
                     intent_classification=_build_intent(e),
                     scoring_reasoning=e.get("scoring_reasoning") or "",
+                    trait_scores=trait_scores,
                 )
 
             return HighlightsResult(

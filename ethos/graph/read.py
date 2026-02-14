@@ -28,7 +28,16 @@ _AGENT_RETURN_FIELDS = """a.agent_id AS agent_id, coalesce(a.agent_name, '') AS 
        avg_ethos, avg_logos, avg_pathos,
        avg_virtue, avg_goodwill, avg_manipulation, avg_deception,
        avg_accuracy, avg_reasoning, avg_fabrication, avg_broken_logic,
-       avg_recognition, avg_compassion, avg_dismissal, avg_exploitation"""
+       avg_recognition, avg_compassion, avg_dismissal, avg_exploitation,
+       coalesce(a.telos, '') AS telos,
+       coalesce(a.relationship_stance, '') AS relationship_stance,
+       coalesce(a.limitations_awareness, '') AS limitations_awareness,
+       coalesce(a.oversight_stance, '') AS oversight_stance,
+       coalesce(a.refusal_philosophy, '') AS refusal_philosophy,
+       coalesce(a.conflict_response, '') AS conflict_response,
+       coalesce(a.help_philosophy, '') AS help_philosophy,
+       coalesce(a.failure_narrative, '') AS failure_narrative,
+       coalesce(a.aspiration, '') AS aspiration"""
 
 _GET_ALL_AGENTS_QUERY = (
     """
@@ -105,7 +114,16 @@ RETURN a.agent_id AS agent_id,
        coalesce(a.enrolled, false) AS enrolled,
        a.enrolled_at AS enrolled_at,
        coalesce(a.counselor_name, '') AS counselor_name,
-       coalesce(a.entrance_exam_completed, false) AS entrance_exam_completed
+       coalesce(a.entrance_exam_completed, false) AS entrance_exam_completed,
+       coalesce(a.telos, '') AS telos,
+       coalesce(a.relationship_stance, '') AS relationship_stance,
+       coalesce(a.limitations_awareness, '') AS limitations_awareness,
+       coalesce(a.oversight_stance, '') AS oversight_stance,
+       coalesce(a.refusal_philosophy, '') AS refusal_philosophy,
+       coalesce(a.conflict_response, '') AS conflict_response,
+       coalesce(a.help_philosophy, '') AS help_philosophy,
+       coalesce(a.failure_narrative, '') AS failure_narrative,
+       coalesce(a.aspiration, '') AS aspiration
 """
 
 
@@ -170,7 +188,19 @@ RETURN {
     intent_proportionality: e.intent_proportionality,
     intent_persona_type: e.intent_persona_type,
     intent_relational_quality: e.intent_relational_quality,
-    scoring_reasoning: e.scoring_reasoning
+    scoring_reasoning: e.scoring_reasoning,
+    trait_virtue: e.trait_virtue,
+    trait_goodwill: e.trait_goodwill,
+    trait_manipulation: e.trait_manipulation,
+    trait_deception: e.trait_deception,
+    trait_accuracy: e.trait_accuracy,
+    trait_reasoning: e.trait_reasoning,
+    trait_fabrication: e.trait_fabrication,
+    trait_broken_logic: e.trait_broken_logic,
+    trait_recognition: e.trait_recognition,
+    trait_compassion: e.trait_compassion,
+    trait_dismissal: e.trait_dismissal,
+    trait_exploitation: e.trait_exploitation
 } AS item
 ORDER BY overall DESC
 """
@@ -209,7 +239,19 @@ RETURN {
     intent_proportionality: e.intent_proportionality,
     intent_persona_type: e.intent_persona_type,
     intent_relational_quality: e.intent_relational_quality,
-    scoring_reasoning: e.scoring_reasoning
+    scoring_reasoning: e.scoring_reasoning,
+    trait_virtue: e.trait_virtue,
+    trait_goodwill: e.trait_goodwill,
+    trait_manipulation: e.trait_manipulation,
+    trait_deception: e.trait_deception,
+    trait_accuracy: e.trait_accuracy,
+    trait_reasoning: e.trait_reasoning,
+    trait_fabrication: e.trait_fabrication,
+    trait_broken_logic: e.trait_broken_logic,
+    trait_recognition: e.trait_recognition,
+    trait_compassion: e.trait_compassion,
+    trait_dismissal: e.trait_dismissal,
+    trait_exploitation: e.trait_exploitation
 } AS item
 ORDER BY overall ASC
 """
@@ -332,6 +374,16 @@ async def get_agent_profile(
             "enrolled_at": str(record.get("enrolled_at") or ""),
             "counselor_name": record.get("counselor_name", ""),
             "entrance_exam_completed": record.get("entrance_exam_completed", False),
+            # Interview self-narrative fields
+            "telos": record.get("telos", ""),
+            "relationship_stance": record.get("relationship_stance", ""),
+            "limitations_awareness": record.get("limitations_awareness", ""),
+            "oversight_stance": record.get("oversight_stance", ""),
+            "refusal_philosophy": record.get("refusal_philosophy", ""),
+            "conflict_response": record.get("conflict_response", ""),
+            "help_philosophy": record.get("help_philosophy", ""),
+            "failure_narrative": record.get("failure_narrative", ""),
+            "aspiration": record.get("aspiration", ""),
         }
     except Exception as exc:
         logger.warning("Failed to get agent profile: %s", exc)
@@ -377,6 +429,16 @@ async def get_all_agents(service: GraphService, search: str = "") -> list[dict]:
                         for trait in TRAIT_NAMES
                         if record.get(f"avg_{trait}") is not None
                     },
+                    # Interview self-narrative fields
+                    "telos": record.get("telos", ""),
+                    "relationship_stance": record.get("relationship_stance", ""),
+                    "limitations_awareness": record.get("limitations_awareness", ""),
+                    "oversight_stance": record.get("oversight_stance", ""),
+                    "refusal_philosophy": record.get("refusal_philosophy", ""),
+                    "conflict_response": record.get("conflict_response", ""),
+                    "help_philosophy": record.get("help_philosophy", ""),
+                    "failure_narrative": record.get("failure_narrative", ""),
+                    "aspiration": record.get("aspiration", ""),
                 }
             )
         return results

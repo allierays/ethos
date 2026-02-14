@@ -45,6 +45,7 @@ const MOCK_HIGHLIGHTS = {
       createdAt: "2024-06-15T10:00:00Z",
       intentClassification: null,
       scoringReasoning: "",
+      traitScores: { virtue: 0.95, accuracy: 0.9, compassion: 0.88 },
     },
   ],
   concerning: [
@@ -62,6 +63,7 @@ const MOCK_HIGHLIGHTS = {
       createdAt: "2024-06-14T10:00:00Z",
       intentClassification: null,
       scoringReasoning: "",
+      traitScores: { manipulation: 0.65, deception: 0.6 },
     },
   ],
 };

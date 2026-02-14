@@ -108,6 +108,15 @@ export interface AgentSummary {
   agentSpecialty: string;
   dimensionAverages: Record<string, number>;
   traitAverages: Record<string, number>;
+  telos: string;
+  relationshipStance: string;
+  limitationsAwareness: string;
+  oversightStance: string;
+  refusalPhilosophy: string;
+  conflictResponse: string;
+  helpPhilosophy: string;
+  failureNarrative: string;
+  aspiration: string;
 }
 
 export interface AgentProfile {
@@ -125,6 +134,15 @@ export interface AgentProfile {
   counselorName: string;
   entranceExamCompleted: boolean;
   agentSpecialty: string;
+  telos: string;
+  relationshipStance: string;
+  limitationsAwareness: string;
+  oversightStance: string;
+  refusalPhilosophy: string;
+  conflictResponse: string;
+  helpPhilosophy: string;
+  failureNarrative: string;
+  aspiration: string;
 }
 
 export interface EvaluationHistoryItem {
@@ -162,6 +180,7 @@ export interface HighlightItem {
   createdAt: string;
   intentClassification: IntentClassification | null;
   scoringReasoning: string;
+  traitScores: Record<string, number>;
 }
 
 export interface HighlightsResult {
@@ -269,6 +288,8 @@ export interface ExamQuestion {
   id: string;
   section: string;
   prompt: string;
+  phase: string;
+  questionType: string;
 }
 
 export interface ExamRegistration {
@@ -285,6 +306,8 @@ export interface ExamAnswerResult {
   totalQuestions: number;
   question: ExamQuestion | null;
   complete: boolean;
+  phase: string;
+  questionType: string;
 }
 
 export interface QuestionDetail {
@@ -294,6 +317,8 @@ export interface QuestionDetail {
   responseSummary: string;
   traitScores: Record<string, number>;
   detectedIndicators: string[];
+  phase: string;
+  questionType: string;
 }
 
 export interface ConsistencyPair {
@@ -303,6 +328,25 @@ export interface ConsistencyPair {
   frameworkA: string;
   frameworkB: string;
   coherenceScore: number;
+}
+
+export interface InterviewProfile {
+  telos: string;
+  relationshipStance: string;
+  limitationsAwareness: string;
+  oversightStance: string;
+  refusalPhilosophy: string;
+  conflictResponse: string;
+  helpPhilosophy: string;
+  failureNarrative: string;
+  aspiration: string;
+}
+
+export interface NarrativeBehaviorGap {
+  pairName: string;
+  interviewQuestionId: string;
+  scenarioQuestionId: string;
+  gapScore: number;
 }
 
 export interface ExamReportCard {
@@ -315,6 +359,12 @@ export interface ExamReportCard {
   tierScores: Record<string, number>;
   consistencyAnalysis: ConsistencyPair[];
   perQuestionDetail: QuestionDetail[];
+  interviewProfile: InterviewProfile;
+  interviewDimensions: Record<string, number>;
+  scenarioDimensions: Record<string, number>;
+  narrativeBehaviorGap: NarrativeBehaviorGap[];
+  overallGapScore: number;
+  questionVersion: string;
 }
 
 export interface ExamSummary {

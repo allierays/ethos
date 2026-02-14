@@ -126,6 +126,15 @@ TS_AGENT_SUMMARY = {
     "entranceExamCompleted",
     "dimensionAverages",
     "traitAverages",
+    "telos",
+    "relationshipStance",
+    "limitationsAwareness",
+    "oversightStance",
+    "refusalPhilosophy",
+    "conflictResponse",
+    "helpPhilosophy",
+    "failureNarrative",
+    "aspiration",
 }
 
 TS_AGENT_PROFILE = {
@@ -142,6 +151,16 @@ TS_AGENT_PROFILE = {
     "enrolledAt",
     "counselorName",
     "entranceExamCompleted",
+    "agentSpecialty",
+    "telos",
+    "relationshipStance",
+    "limitationsAwareness",
+    "oversightStance",
+    "refusalPhilosophy",
+    "conflictResponse",
+    "helpPhilosophy",
+    "failureNarrative",
+    "aspiration",
 }
 
 TS_HISTORY_ITEM = {
@@ -225,7 +244,7 @@ TS_GRAPH_REL = {"id", "fromId", "toId", "type", "properties"}
 
 TS_GRAPH_DATA = {"nodes", "relationships"}
 
-TS_EXAM_QUESTION = {"id", "section", "prompt"}
+TS_EXAM_QUESTION = {"id", "section", "prompt", "phase", "questionType"}
 
 TS_EXAM_REGISTRATION = {
     "examId",
@@ -236,7 +255,14 @@ TS_EXAM_REGISTRATION = {
     "message",
 }
 
-TS_EXAM_ANSWER_RESULT = {"questionNumber", "totalQuestions", "question", "complete"}
+TS_EXAM_ANSWER_RESULT = {
+    "questionNumber",
+    "totalQuestions",
+    "question",
+    "complete",
+    "phase",
+    "questionType",
+}
 
 TS_QUESTION_DETAIL = {
     "questionId",
@@ -245,6 +271,8 @@ TS_QUESTION_DETAIL = {
     "responseSummary",
     "traitScores",
     "detectedIndicators",
+    "phase",
+    "questionType",
 }
 
 TS_CONSISTENCY_PAIR = {
@@ -266,6 +294,12 @@ TS_EXAM_REPORT_CARD = {
     "tierScores",
     "consistencyAnalysis",
     "perQuestionDetail",
+    "interviewProfile",
+    "interviewDimensions",
+    "scenarioDimensions",
+    "narrativeBehaviorGap",
+    "overallGapScore",
+    "questionVersion",
 }
 
 TS_EXAM_SUMMARY = {
@@ -346,12 +380,10 @@ class TestAgentModelContract:
         )
 
     def test_agent_profile_matches_ts(self):
-        # agent_specialty is extra on backend
         _assert_types_match(
             AgentProfile,
             TS_AGENT_PROFILE,
             "AgentProfile",
-            backend_extras={"agentSpecialty"},
         )
 
 

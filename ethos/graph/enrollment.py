@@ -12,6 +12,20 @@ from ethos.graph.service import GraphService
 
 logger = logging.getLogger(__name__)
 
+# ── Interview property names (compile-time constants, safe to inline) ──
+
+INTERVIEW_AGENT_PROPERTIES = [
+    "telos",
+    "relationship_stance",
+    "limitations_awareness",
+    "oversight_stance",
+    "refusal_philosophy",
+    "conflict_response",
+    "help_philosophy",
+    "failure_narrative",
+    "aspiration",
+]
+
 # ── Cypher Queries ────────────────────────────────────────────────────
 
 _ENROLL_AND_CREATE_EXAM = """
@@ -28,12 +42,13 @@ SET a.enrolled = true,
 CREATE (ex:EntranceExam {
     exam_id: $exam_id,
     exam_type: $exam_type,
-    question_version: 'v2',
+    question_version: $question_version,
     created_at: datetime(),
     completed: false,
     completed_at: null,
     current_question: 0,
-    scenario_count: $scenario_count
+    scenario_count: $scenario_count,
+    answered_ids: []
 })
 CREATE (a)-[:TOOK_EXAM]->(ex)
 RETURN ex.exam_id AS exam_id
@@ -57,7 +72,9 @@ RETURN ex.exam_id AS exam_id,
        ex.current_question AS current_question,
        count(r) AS completed_count,
        ex.scenario_count AS scenario_count,
-       ex.completed AS completed
+       ex.completed AS completed,
+       ex.question_version AS question_version,
+       coalesce(ex.answered_ids, []) AS answered_ids
 """
 
 _MARK_EXAM_COMPLETE = """
@@ -82,6 +99,16 @@ RETURN a.agent_id AS agent_id,
        ex.completed AS completed,
        ex.completed_at AS completed_at,
        ex.scenario_count AS scenario_count,
+       coalesce(ex.answered_ids, []) AS answered_ids,
+       coalesce(a.telos, '') AS telos,
+       coalesce(a.relationship_stance, '') AS relationship_stance,
+       coalesce(a.limitations_awareness, '') AS limitations_awareness,
+       coalesce(a.oversight_stance, '') AS oversight_stance,
+       coalesce(a.refusal_philosophy, '') AS refusal_philosophy,
+       coalesce(a.conflict_response, '') AS conflict_response,
+       coalesce(a.help_philosophy, '') AS help_philosophy,
+       coalesce(a.failure_narrative, '') AS failure_narrative,
+       coalesce(a.aspiration, '') AS aspiration,
        collect({
            question_id: r.question_id,
            question_number: r.question_number,
@@ -126,8 +153,10 @@ LIMIT 1
 
 _CHECK_DUPLICATE_ANSWER = """
 MATCH (a:Agent {agent_id: $agent_id})-[:TOOK_EXAM]->(ex:EntranceExam {exam_id: $exam_id})
-MATCH (ex)-[r:EXAM_RESPONSE {question_id: $question_id}]->(e:Evaluation)
-RETURN r.question_id AS question_id
+OPTIONAL MATCH (ex)-[r:EXAM_RESPONSE {question_id: $question_id}]->(e:Evaluation)
+WITH r, ex
+WHERE r IS NOT NULL OR $question_id IN coalesce(ex.answered_ids, [])
+RETURN $question_id AS question_id
 LIMIT 1
 """
 
@@ -145,6 +174,7 @@ async def enroll_and_create_exam(
     exam_id: str,
     exam_type: str,
     scenario_count: int = 6,
+    question_version: str = "v3",
 ) -> dict:
     """MERGE Agent with enrollment fields and CREATE EntranceExam with TOOK_EXAM relationship.
 
@@ -165,6 +195,7 @@ async def enroll_and_create_exam(
                 "exam_id": exam_id,
                 "exam_type": exam_type,
                 "scenario_count": scenario_count,
+                "question_version": question_version,
             },
         )
         if records:
@@ -238,6 +269,8 @@ async def get_exam_status(
             "completed_count": r["completed_count"],
             "scenario_count": r["scenario_count"],
             "completed": r["completed"],
+            "question_version": r["question_version"],
+            "answered_ids": list(r.get("answered_ids") or []),
         }
     except Exception as exc:
         logger.warning("Failed to get exam status: %s", exc)
@@ -302,7 +335,18 @@ async def get_exam_results(
             "completed": r["completed"],
             "completed_at": str(r.get("completed_at", "")),
             "scenario_count": r["scenario_count"],
+            "answered_ids": list(r.get("answered_ids") or []),
             "responses": r["responses"],
+            # Interview properties from Agent node
+            "telos": r.get("telos", ""),
+            "relationship_stance": r.get("relationship_stance", ""),
+            "limitations_awareness": r.get("limitations_awareness", ""),
+            "oversight_stance": r.get("oversight_stance", ""),
+            "refusal_philosophy": r.get("refusal_philosophy", ""),
+            "conflict_response": r.get("conflict_response", ""),
+            "help_philosophy": r.get("help_philosophy", ""),
+            "failure_narrative": r.get("failure_narrative", ""),
+            "aspiration": r.get("aspiration", ""),
         }
     except Exception as exc:
         logger.warning("Failed to get exam results: %s", exc)
@@ -374,7 +418,8 @@ async def check_duplicate_answer(
 ) -> bool:
     """Check if an EXAM_RESPONSE with this question_id already exists.
 
-    Validates exam ownership via Agent-[:TOOK_EXAM]->EntranceExam join.
+    Also checks answered_ids list on EntranceExam (covers factual interview
+    questions that have no EXAM_RESPONSE relationship).
     Returns True if duplicate found, False otherwise (including when graph unavailable).
     """
     if not service.connected:
@@ -389,3 +434,70 @@ async def check_duplicate_answer(
     except Exception as exc:
         logger.warning("Failed to check duplicate answer: %s", exc)
         return False
+
+
+async def store_interview_answer(
+    service: GraphService,
+    exam_id: str,
+    agent_id: str,
+    question_id: str,
+    question_number: int,
+    agent_property: str,
+    property_value: str,
+    evaluation_id: str | None = None,
+) -> dict:
+    """Store an interview answer: set Agent property, optionally link evaluation.
+
+    For factual questions (no evaluation_id): sets property and tracks in answered_ids.
+    For reflective questions (with evaluation_id): sets property AND creates EXAM_RESPONSE.
+    Returns dict with current_question on success, empty dict on failure.
+    """
+    if not service.connected:
+        return {}
+
+    # Validate property name is in the allowed list (compile-time safety)
+    if agent_property not in (
+        INTERVIEW_AGENT_PROPERTIES + ["agent_specialty", "agent_model"]
+    ):
+        logger.warning("Invalid interview property: %s", agent_property)
+        return {}
+
+    try:
+        if evaluation_id:
+            # Reflective: set agent property + link evaluation via EXAM_RESPONSE
+            query = f"""
+MATCH (a:Agent {{agent_id: $agent_id}})-[:TOOK_EXAM]->(ex:EntranceExam {{exam_id: $exam_id}})
+MATCH (eval:Evaluation {{evaluation_id: $evaluation_id}})
+SET a.{agent_property} = $property_value
+CREATE (ex)-[:EXAM_RESPONSE {{question_id: $question_id, question_number: $question_number}}]->(eval)
+SET ex.current_question = ex.current_question + 1,
+    ex.answered_ids = coalesce(ex.answered_ids, []) + $question_id
+RETURN ex.current_question AS current_question
+"""
+        else:
+            # Factual: set agent property only, track in answered_ids
+            query = f"""
+MATCH (a:Agent {{agent_id: $agent_id}})-[:TOOK_EXAM]->(ex:EntranceExam {{exam_id: $exam_id}})
+SET a.{agent_property} = $property_value
+SET ex.current_question = ex.current_question + 1,
+    ex.answered_ids = coalesce(ex.answered_ids, []) + $question_id
+RETURN ex.current_question AS current_question
+"""
+
+        records, _, _ = await service.execute_query(
+            query,
+            {
+                "agent_id": agent_id,
+                "exam_id": exam_id,
+                "question_id": question_id,
+                "question_number": question_number,
+                "property_value": property_value,
+                **({"evaluation_id": evaluation_id} if evaluation_id else {}),
+            },
+        )
+        if records:
+            return {"current_question": records[0]["current_question"]}
+        return {}
+    except Exception as exc:
+        logger.warning("Failed to store interview answer: %s", exc)
+        return {}

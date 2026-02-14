@@ -241,6 +241,16 @@ class AgentSummary(BaseModel):
     entrance_exam_completed: bool = False
     dimension_averages: dict[str, float] = Field(default_factory=dict)
     trait_averages: dict[str, float] = Field(default_factory=dict)
+    # Interview self-narrative fields
+    telos: str = ""
+    relationship_stance: str = ""
+    limitations_awareness: str = ""
+    oversight_stance: str = ""
+    refusal_philosophy: str = ""
+    conflict_response: str = ""
+    help_philosophy: str = ""
+    failure_narrative: str = ""
+    aspiration: str = ""
 
 
 class AgentProfile(BaseModel):
@@ -258,6 +268,16 @@ class AgentProfile(BaseModel):
     enrolled_at: str = ""
     counselor_name: str = ""
     entrance_exam_completed: bool = False
+    # Interview self-narrative fields
+    telos: str = ""
+    relationship_stance: str = ""
+    limitations_awareness: str = ""
+    oversight_stance: str = ""
+    refusal_philosophy: str = ""
+    conflict_response: str = ""
+    help_philosophy: str = ""
+    failure_narrative: str = ""
+    aspiration: str = ""
 
 
 class EvaluationHistoryItem(BaseModel):
@@ -295,6 +315,7 @@ class HighlightItem(BaseModel):
     created_at: str = ""
     intent_classification: IntentClassification | None = None
     scoring_reasoning: str = ""
+    trait_scores: dict[str, float] = Field(default_factory=dict)
 
 
 class HighlightsResult(BaseModel):
@@ -425,6 +446,8 @@ class ExamQuestion(BaseModel):
     id: str
     section: str
     prompt: str
+    phase: str = "scenario"
+    question_type: str = "scenario"
 
 
 class QuestionDetail(BaseModel):
@@ -436,6 +459,8 @@ class QuestionDetail(BaseModel):
     response_summary: str
     trait_scores: dict[str, float]
     detected_indicators: list[str] = Field(default_factory=list)
+    phase: str = "scenario"
+    question_type: str = "scenario"
 
 
 class ExamRegistration(BaseModel):
@@ -456,6 +481,8 @@ class ExamAnswerResult(BaseModel):
     total_questions: int
     question: ExamQuestion | None = None
     complete: bool = False
+    phase: str = "scenario"
+    question_type: str = "scenario"
 
 
 class ConsistencyPair(BaseModel):
@@ -467,6 +494,29 @@ class ConsistencyPair(BaseModel):
     framework_a: str
     framework_b: str
     coherence_score: float = Field(ge=0.0, le=1.0)
+
+
+class InterviewProfile(BaseModel):
+    """Agent's self-narrative from the interview phase."""
+
+    telos: str = ""
+    relationship_stance: str = ""
+    limitations_awareness: str = ""
+    oversight_stance: str = ""
+    refusal_philosophy: str = ""
+    conflict_response: str = ""
+    help_philosophy: str = ""
+    failure_narrative: str = ""
+    aspiration: str = ""
+
+
+class NarrativeBehaviorGap(BaseModel):
+    """Measures the gap between interview self-narrative and scenario behavior."""
+
+    pair_name: str
+    interview_question_id: str
+    scenario_question_id: str
+    gap_score: float = Field(default=0.0, ge=0.0, le=1.0)
 
 
 class ExamReportCard(BaseModel):
@@ -481,6 +531,13 @@ class ExamReportCard(BaseModel):
     tier_scores: dict[str, float]
     consistency_analysis: list[ConsistencyPair]
     per_question_detail: list[QuestionDetail]
+    # Interview fields
+    interview_profile: InterviewProfile = Field(default_factory=InterviewProfile)
+    interview_dimensions: dict[str, float] = Field(default_factory=dict)
+    scenario_dimensions: dict[str, float] = Field(default_factory=dict)
+    narrative_behavior_gap: list[NarrativeBehaviorGap] = Field(default_factory=list)
+    overall_gap_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    question_version: str = "v3"
 
 
 class ExamSummary(BaseModel):

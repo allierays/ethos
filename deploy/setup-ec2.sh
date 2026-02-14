@@ -28,6 +28,10 @@ echo "=== Docker installed ==="
 echo "=== Cloning repo ==="
 git clone https://github.com/allierays/ethos.git ~/ethos
 
+echo "=== Setting up nightly cron ==="
+(crontab -l 2>/dev/null; echo "0 2 * * * cd /home/ubuntu/ethos && docker compose -f docker-compose.prod.yml exec -T app python -m scripts.nightly_reflection >> /var/log/ethos-nightly.log 2>&1") | crontab -
+echo "=== Nightly reflection cron installed (2 AM UTC) ==="
+
 echo ""
 echo "=== NEXT STEPS ==="
 echo ""

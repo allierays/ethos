@@ -33,12 +33,13 @@ export default function Hero() {
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
             <h1
-              className="text-4xl font-bold leading-tight tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] sm:text-5xl lg:text-6xl"
+              className="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl"
+              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.9), 0 4px 24px rgba(0,0,0,0.6), 0 0 4px rgba(0,0,0,0.5)" }}
             >
               Enroll Your Agent
               <br />
               in the{" "}
-              <span className="bg-gradient-to-r from-ethos-300 via-logos-300 to-pathos-300 bg-clip-text text-transparent drop-shadow-none" style={{ filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.8))" }}>
+              <span className="bg-gradient-to-r from-ethos-300 via-logos-300 to-pathos-300 bg-clip-text text-transparent" style={{ textShadow: "none" }}>
                 Ethos Academy
               </span>
             </h1>

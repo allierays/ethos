@@ -181,13 +181,13 @@ async def generate_daily_report(agent_id: str) -> DailyReportCard:
                 summary = f"Report generation partially failed: {exc}"
 
             # Compute day-over-day deltas
+            dim_scores = {"ethos": ethos_avg, "logos": logos_avg, "pathos": pathos_avg}
             dimension_deltas: dict[str, float] = {}
             risk_level_change = ""
             if prev_raw:
                 for dim in ("ethos", "logos", "pathos"):
                     prev_val = float(prev_raw.get(dim, 0))
-                    curr_val = locals()[f"{dim}_avg"]
-                    dimension_deltas[dim] = round(curr_val - prev_val, 4)
+                    dimension_deltas[dim] = round(dim_scores[dim] - prev_val, 4)
                 prev_risk = prev_raw.get("risk_level", "low")
                 curr_risk = instinct_result.risk_level if instinct_result else "low"
                 if curr_risk != prev_risk:

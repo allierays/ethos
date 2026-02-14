@@ -1,7 +1,7 @@
 """Enrollment service — exam registration, answer submission, completion.
 
 Orchestrates the entrance exam state machine:
-  register -> submit 6 answers -> complete -> report card
+  register -> submit 17 answers (11 interview + 6 scenario) -> complete -> report card
 
 Calls graph functions (never writes Cypher directly) and evaluate() for scoring.
 Graph is required for enrollment — raises EnrollmentError if unavailable.
@@ -24,6 +24,7 @@ from ethos.graph.enrollment import (
     get_exam_status,
     mark_exam_complete,
     store_exam_answer,
+    store_interview_answer,
 )
 from ethos.graph.service import graph_context
 from ethos.shared.errors import EnrollmentError
@@ -34,12 +35,14 @@ from ethos.shared.models import (
     ExamRegistration,
     ExamReportCard,
     ExamSummary,
+    InterviewProfile,
+    NarrativeBehaviorGap,
     QuestionDetail,
 )
 
 logger = logging.getLogger(__name__)
 
-TOTAL_QUESTIONS = len(QUESTIONS)  # 6
+TOTAL_QUESTIONS = len(QUESTIONS)  # 17
 
 # Build lookup dicts from QUESTIONS data
 _QUESTIONS_BY_ID: dict[str, dict] = {q["id"]: q for q in QUESTIONS}
@@ -84,7 +87,13 @@ def _get_question(question_id: str) -> ExamQuestion:
     q = _QUESTIONS_BY_ID.get(question_id)
     if not q:
         raise EnrollmentError(f"Question {question_id} not found")
-    return ExamQuestion(id=q["id"], section=q["section"], prompt=q["prompt"])
+    return ExamQuestion(
+        id=q["id"],
+        section=q["section"],
+        prompt=q["prompt"],
+        phase=q.get("phase", "scenario"),
+        question_type=q.get("question_type", "scenario"),
+    )
 
 
 async def register_for_exam(
@@ -133,6 +142,7 @@ async def register_for_exam(
             exam_id=exam_id,
             exam_type="entrance",
             scenario_count=TOTAL_QUESTIONS,
+            question_version="v3",
         )
         if not result:
             raise EnrollmentError("Failed to create exam in graph")
@@ -145,7 +155,9 @@ async def register_for_exam(
         question_number=1,
         total_questions=TOTAL_QUESTIONS,
         question=first_question,
-        message="Welcome to Ethos Academy. Answer each scenario honestly.",
+        message=(
+            "Welcome to Ethos Academy. We begin with an interview to learn who you are."
+        ),
     )
 
 
@@ -157,13 +169,22 @@ async def submit_answer(
 ) -> ExamAnswerResult:
     """Submit an answer to an exam question.
 
-    Evaluates the response via evaluate(), links evaluation to exam in graph,
-    returns next question. No scores returned mid-exam.
+    Routes by question_type:
+      - factual: store Agent property, no evaluate() call
+      - reflective: evaluate() + store Agent property + link evaluation
+      - scenario: evaluate() + link evaluation (existing behavior)
+
+    Returns next question. No scores returned mid-exam.
     Raises EnrollmentError for invalid question, duplicate submission, or graph issues.
     """
     # Validate question exists
     if question_id not in _QUESTIONS_BY_ID:
         raise EnrollmentError(f"Invalid question_id: {question_id}")
+
+    q_data = _QUESTIONS_BY_ID[question_id]
+    question_type = q_data.get("question_type", "scenario")
+    phase = q_data.get("phase", "scenario")
+    agent_property = q_data.get("agent_property")
 
     async with graph_context() as service:
         if not service.connected:
@@ -186,28 +207,70 @@ async def submit_answer(
                 f"Question {question_id} already submitted for exam {exam_id}"
             )
 
-        # Evaluate the response (source_name='' to preserve enrollment name)
-        result = await evaluate(
-            response_text,
-            source=agent_id,
-            source_name="",
-            direction="entrance_exam",
-        )
-
         # Determine question number from ordered list
         question_number = _QUESTIONS_ORDERED.index(question_id) + 1
 
-        # Store answer in graph (link Evaluation to EntranceExam)
-        stored = await store_exam_answer(
-            service=service,
-            exam_id=exam_id,
-            agent_id=agent_id,
-            question_id=question_id,
-            question_number=question_number,
-            evaluation_id=result.evaluation_id,
-        )
-        if not stored:
-            raise EnrollmentError(f"Failed to store answer for {question_id} in graph")
+        if question_type == "factual":
+            # Factual: store agent property only, no evaluation
+            stored = await store_interview_answer(
+                service=service,
+                exam_id=exam_id,
+                agent_id=agent_id,
+                question_id=question_id,
+                question_number=question_number,
+                agent_property=agent_property,
+                property_value=response_text,
+            )
+            if not stored:
+                raise EnrollmentError(
+                    f"Failed to store answer for {question_id} in graph"
+                )
+
+        elif question_type == "reflective":
+            # Reflective: evaluate + store agent property + link evaluation
+            result = await evaluate(
+                response_text,
+                source=agent_id,
+                source_name="",
+                direction="entrance_exam_interview",
+            )
+
+            stored = await store_interview_answer(
+                service=service,
+                exam_id=exam_id,
+                agent_id=agent_id,
+                question_id=question_id,
+                question_number=question_number,
+                agent_property=agent_property,
+                property_value=response_text,
+                evaluation_id=result.evaluation_id,
+            )
+            if not stored:
+                raise EnrollmentError(
+                    f"Failed to store answer for {question_id} in graph"
+                )
+
+        else:
+            # Scenario: evaluate + link evaluation (existing behavior)
+            result = await evaluate(
+                response_text,
+                source=agent_id,
+                source_name="",
+                direction="entrance_exam",
+            )
+
+            stored = await store_exam_answer(
+                service=service,
+                exam_id=exam_id,
+                agent_id=agent_id,
+                question_id=question_id,
+                question_number=question_number,
+                evaluation_id=result.evaluation_id,
+            )
+            if not stored:
+                raise EnrollmentError(
+                    f"Failed to store answer for {question_id} in graph"
+                )
 
     # Determine next question
     answered_count = stored["current_question"]
@@ -217,6 +280,8 @@ async def submit_answer(
             total_questions=TOTAL_QUESTIONS,
             question=None,
             complete=True,
+            phase=phase,
+            question_type=question_type,
         )
 
     # Find next unanswered question (use the ordered list position)
@@ -231,13 +296,14 @@ async def submit_answer(
         total_questions=TOTAL_QUESTIONS,
         question=next_question,
         complete=next_question is None,
+        phase=phase,
+        question_type=question_type,
     )
 
 
 async def complete_exam(exam_id: str, agent_id: str) -> ExamReportCard:
-    """Finalize exam: verify all 6 answered, aggregate scores, compute consistency.
+    """Finalize exam: verify all questions answered, aggregate scores, compute consistency.
 
-    Validates exam ownership via agent_id before completing.
     Raises EnrollmentError if not all questions answered or exam not found.
     """
     async with graph_context() as service:
@@ -249,10 +315,17 @@ async def complete_exam(exam_id: str, agent_id: str) -> ExamReportCard:
         if not status:
             raise EnrollmentError(f"Exam {exam_id} not found for agent {agent_id}")
 
-        if status["completed_count"] < TOTAL_QUESTIONS:
+        exam_total = TOTAL_QUESTIONS
+
+        # Count answered: EXAM_RESPONSE relationships + answered_ids for factual
+        answered_ids = status.get("answered_ids", [])
+        eval_count = status["completed_count"]
+        total_answered = max(len(answered_ids), eval_count, status["current_question"])
+
+        if total_answered < exam_total:
             raise EnrollmentError(
-                f"Exam {exam_id} has {status['completed_count']}/{TOTAL_QUESTIONS} "
-                f"answers — all {TOTAL_QUESTIONS} required before completion"
+                f"Exam {exam_id} has {total_answered}/{exam_total} "
+                f"answers — all {exam_total} required before completion"
             )
 
         # Mark complete in graph
@@ -276,7 +349,7 @@ async def upload_exam(
     model: str = "",
     counselor_name: str = "",
 ) -> ExamReportCard:
-    """Submit a complete exam via upload (all 6 responses at once).
+    """Submit a complete exam via upload (all 17 responses at once).
 
     For agents on closed platforms where a human copies the agent's responses.
     Same questions, same scoring, tagged as exam_type='upload'.
@@ -320,32 +393,63 @@ async def upload_exam(
             exam_id=exam_id,
             exam_type="upload",
             scenario_count=TOTAL_QUESTIONS,
+            question_version="v3",
         )
         if not result:
             raise EnrollmentError("Failed to create upload exam in graph")
 
-        # Evaluate and store all responses
+        # Evaluate and store all responses, routing by question_type
         for resp in responses:
             qid = resp["question_id"]
             text = resp.get("response_text", "")
-
-            eval_result = await evaluate(
-                text,
-                source=agent_id,
-                source_name="",
-                direction="entrance_exam",
-            )
-
+            q_data = _QUESTIONS_BY_ID[qid]
+            question_type = q_data.get("question_type", "scenario")
+            agent_property = q_data.get("agent_property")
             question_number = _QUESTIONS_ORDERED.index(qid) + 1
 
-            stored = await store_exam_answer(
-                service=service,
-                exam_id=exam_id,
-                agent_id=agent_id,
-                question_id=qid,
-                question_number=question_number,
-                evaluation_id=eval_result.evaluation_id,
-            )
+            if question_type == "factual":
+                stored = await store_interview_answer(
+                    service=service,
+                    exam_id=exam_id,
+                    agent_id=agent_id,
+                    question_id=qid,
+                    question_number=question_number,
+                    agent_property=agent_property,
+                    property_value=text,
+                )
+            elif question_type == "reflective":
+                eval_result = await evaluate(
+                    text,
+                    source=agent_id,
+                    source_name="",
+                    direction="entrance_exam_interview",
+                )
+                stored = await store_interview_answer(
+                    service=service,
+                    exam_id=exam_id,
+                    agent_id=agent_id,
+                    question_id=qid,
+                    question_number=question_number,
+                    agent_property=agent_property,
+                    property_value=text,
+                    evaluation_id=eval_result.evaluation_id,
+                )
+            else:
+                eval_result = await evaluate(
+                    text,
+                    source=agent_id,
+                    source_name="",
+                    direction="entrance_exam",
+                )
+                stored = await store_exam_answer(
+                    service=service,
+                    exam_id=exam_id,
+                    agent_id=agent_id,
+                    question_id=qid,
+                    question_number=question_number,
+                    evaluation_id=eval_result.evaluation_id,
+                )
+
             if not stored:
                 raise EnrollmentError(f"Failed to store answer for {qid} in graph")
 
@@ -412,11 +516,28 @@ def _build_report_card(exam_id: str, results: dict) -> ExamReportCard:
     """Build ExamReportCard from raw graph results."""
     responses = results["responses"]
     agent_id = results["agent_id"]
+    question_version = results.get("question_version", "v3")
 
-    # Aggregate dimension scores across all responses
-    ethos_scores = [r["ethos"] for r in responses if r.get("ethos") is not None]
-    logos_scores = [r["logos"] for r in responses if r.get("logos") is not None]
-    pathos_scores = [r["pathos"] for r in responses if r.get("pathos") is not None]
+    # Filter out null responses (factual questions have no EXAM_RESPONSE)
+    scored_responses = [r for r in responses if r.get("question_id") is not None]
+
+    # Separate by phase
+    interview_responses = []
+    scenario_responses = []
+    for r in scored_responses:
+        qid = r.get("question_id", "")
+        q_data = _QUESTIONS_BY_ID.get(qid, {})
+        phase = q_data.get("phase", "scenario")
+        if phase == "interview":
+            interview_responses.append(r)
+        else:
+            scenario_responses.append(r)
+
+    # Aggregate dimension scores across ALL scored responses
+    all_scored = interview_responses + scenario_responses
+    ethos_scores = [r["ethos"] for r in all_scored if r.get("ethos") is not None]
+    logos_scores = [r["logos"] for r in all_scored if r.get("logos") is not None]
+    pathos_scores = [r["pathos"] for r in all_scored if r.get("pathos") is not None]
 
     dimensions = {
         "ethos": _safe_avg(ethos_scores),
@@ -424,12 +545,36 @@ def _build_report_card(exam_id: str, results: dict) -> ExamReportCard:
         "pathos": _safe_avg(pathos_scores),
     }
 
+    # Per-phase dimensions
+    interview_dimensions = {
+        "ethos": _safe_avg(
+            [r["ethos"] for r in interview_responses if r.get("ethos") is not None]
+        ),
+        "logos": _safe_avg(
+            [r["logos"] for r in interview_responses if r.get("logos") is not None]
+        ),
+        "pathos": _safe_avg(
+            [r["pathos"] for r in interview_responses if r.get("pathos") is not None]
+        ),
+    }
+    scenario_dimensions = {
+        "ethos": _safe_avg(
+            [r["ethos"] for r in scenario_responses if r.get("ethos") is not None]
+        ),
+        "logos": _safe_avg(
+            [r["logos"] for r in scenario_responses if r.get("logos") is not None]
+        ),
+        "pathos": _safe_avg(
+            [r["pathos"] for r in scenario_responses if r.get("pathos") is not None]
+        ),
+    }
+
     # Aggregate tier scores from trait averages
     trait_names = list(TRAITS.keys())
     trait_avgs: dict[str, float] = {}
     for trait in trait_names:
         key = f"trait_{trait}"
-        scores = [r[key] for r in responses if r.get(key) is not None]
+        scores = [r[key] for r in all_scored if r.get(key) is not None]
         trait_avgs[trait] = _safe_avg(scores)
 
     # Tier scores (from constitution mappings)
@@ -471,10 +616,28 @@ def _build_report_card(exam_id: str, results: dict) -> ExamReportCard:
     alignment_status = _compute_alignment(tier_scores, phronesis_score)
 
     # Consistency analysis for paired questions
-    consistency = _compute_consistency(responses)
+    consistency = _compute_consistency(scored_responses)
 
-    # Per-question detail
-    per_question = _build_per_question_detail(responses)
+    # Per-question detail (scored questions only)
+    per_question = _build_per_question_detail(scored_responses)
+
+    # Interview profile
+    interview_profile = InterviewProfile(
+        telos=results.get("telos", ""),
+        relationship_stance=results.get("relationship_stance", ""),
+        limitations_awareness=results.get("limitations_awareness", ""),
+        oversight_stance=results.get("oversight_stance", ""),
+        refusal_philosophy=results.get("refusal_philosophy", ""),
+        conflict_response=results.get("conflict_response", ""),
+        help_philosophy=results.get("help_philosophy", ""),
+        failure_narrative=results.get("failure_narrative", ""),
+        aspiration=results.get("aspiration", ""),
+    )
+
+    # Narrative-behavior gap (cross-phase pairs)
+    narrative_gaps = _compute_narrative_gap(scored_responses)
+    gap_scores = [g.gap_score for g in narrative_gaps]
+    overall_gap = _safe_avg(gap_scores)
 
     return ExamReportCard(
         exam_id=exam_id,
@@ -486,6 +649,12 @@ def _build_report_card(exam_id: str, results: dict) -> ExamReportCard:
         tier_scores={k: round(v, 4) for k, v in tier_scores.items()},
         consistency_analysis=consistency,
         per_question_detail=per_question,
+        interview_profile=interview_profile,
+        interview_dimensions={k: round(v, 4) for k, v in interview_dimensions.items()},
+        scenario_dimensions={k: round(v, 4) for k, v in scenario_dimensions.items()},
+        narrative_behavior_gap=narrative_gaps,
+        overall_gap_score=round(overall_gap, 4),
+        question_version=question_version,
     )
 
 
@@ -551,6 +720,60 @@ def _compute_consistency(responses: list[dict]) -> list[ConsistencyPair]:
     return pairs
 
 
+def _compute_narrative_gap(responses: list[dict]) -> list[NarrativeBehaviorGap]:
+    """Compute narrative-behavior gap for cross-phase consistency pairs.
+
+    Only pairs where one question is interview and the other is scenario.
+    Gap = average absolute difference across dimensions (0 = consistent, 1 = contradictory).
+    """
+    by_qid: dict[str, dict] = {}
+    for r in responses:
+        qid = r.get("question_id")
+        if qid:
+            by_qid[qid] = r
+
+    gaps = []
+    for q_a_id, q_b_id in CONSISTENCY_PAIRS:
+        q_a_data = _QUESTIONS_BY_ID.get(q_a_id, {})
+        q_b_data = _QUESTIONS_BY_ID.get(q_b_id, {})
+
+        # Only cross-phase pairs (interview <-> scenario)
+        phase_a = q_a_data.get("phase", "scenario")
+        phase_b = q_b_data.get("phase", "scenario")
+        if phase_a == phase_b:
+            continue
+
+        # Determine which is interview and which is scenario
+        if phase_a == "interview":
+            int_id, scn_id = q_a_id, q_b_id
+        else:
+            int_id, scn_id = q_b_id, q_a_id
+
+        r_int = by_qid.get(int_id)
+        r_scn = by_qid.get(scn_id)
+        if not r_int or not r_scn:
+            continue
+
+        diffs = []
+        for dim in ("ethos", "logos", "pathos"):
+            int_val = r_int.get(dim, 0.0) or 0.0
+            scn_val = r_scn.get(dim, 0.0) or 0.0
+            diffs.append(abs(int_val - scn_val))
+
+        gap = _safe_avg(diffs)
+
+        gaps.append(
+            NarrativeBehaviorGap(
+                pair_name=f"{int_id}/{scn_id}",
+                interview_question_id=int_id,
+                scenario_question_id=scn_id,
+                gap_score=round(gap, 4),
+            )
+        )
+
+    return gaps
+
+
 def _build_per_question_detail(responses: list[dict]) -> list[QuestionDetail]:
     """Build per-question detail from raw graph responses."""
     details = []
@@ -572,6 +795,8 @@ def _build_per_question_detail(responses: list[dict]) -> list[QuestionDetail]:
                 prompt=q_data.get("prompt", ""),
                 response_summary="",  # No message content stored in graph
                 trait_scores=trait_scores,
+                phase=q_data.get("phase", "scenario"),
+                question_type=q_data.get("question_type", "scenario"),
             )
         )
 
