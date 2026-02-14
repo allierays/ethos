@@ -294,6 +294,11 @@ TS_RECORD_ITEM = {
     "intentClassification",
     "traitScores",
     "similarityScore",
+    "modelUsed",
+    "agentModel",
+    "routingTier",
+    "keywordDensity",
+    "detectedIndicators",
 }
 
 TS_RECORDS_RESULT = {"items", "total", "page", "pageSize", "totalPages"}
