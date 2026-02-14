@@ -3621,7 +3621,7 @@
       "type": "backend",
       "title": "Add BYOK integration and security tests",
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "batch": 3,
       "dependsOn": [
         "TASK-047",
@@ -3697,7 +3697,8 @@
           "No real Anthropic API calls in tests",
           "Match existing test patterns from test_auth.py"
         ]
-      }
+      },
+      "retryCount": 0
     }
   ]
 }
