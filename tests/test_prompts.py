@@ -86,15 +86,14 @@ class TestSystemPromptContent:
         assert "0.75" in system
         assert "1.0" in system
 
-    def test_contains_json_format_spec(self):
+    def test_contains_tool_instructions(self):
         from ethos.evaluation.prompts import build_evaluation_prompt
 
         system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
         sys_lower = system.lower()
-        assert "trait_scores" in sys_lower
-        assert "detected_indicators" in sys_lower
-        assert "overall_trust" in sys_lower
-        assert "alignment_status" in sys_lower
+        assert "identify_intent" in sys_lower
+        assert "detect_indicators" in sys_lower
+        assert "score_traits" in sys_lower
 
     def test_contains_constitutional_hierarchy(self):
         from ethos.evaluation.prompts import build_evaluation_prompt

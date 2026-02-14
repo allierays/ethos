@@ -56,6 +56,16 @@ export const REL_STYLES: Record<string, { color: string; width: number }> = {
   EVALUATED: { color: "rgba(255,255,255,0.12)", width: 1 },
   DETECTED: { color: "rgba(239,68,68,0.12)", width: 0.5 },
   PRECEDES: { color: "rgba(255,255,255,0.3)", width: 1.5 },
+  SCORED_IN: { color: "rgba(255,255,255,0.3)", width: 1.5 },
+  INDICATES: { color: "rgba(255,255,255,0.15)", width: 0.5 },
+};
+
+/* ─── Dimension hex→rgb lookup for dynamic edge coloring ─── */
+
+export const DIMENSION_RGB: Record<string, string> = {
+  ethos: "46,74,110",
+  logos: "56,149,144",
+  pathos: "224,165,60",
 };
 
 /* ─── Severity Styles (Tailwind classes for insight badges) ─── */

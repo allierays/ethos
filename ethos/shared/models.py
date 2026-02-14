@@ -91,6 +91,9 @@ class EvaluationResult(BaseModel):
     alignment_status: str = "unknown"
     tier_scores: dict[str, float] = Field(default_factory=dict)
 
+    # Deliberation confidence (0.0-1.0). Low confidence = ambiguous message.
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+
 
 class ReflectionResult(BaseModel):
     # Backward-compat fields

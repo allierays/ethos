@@ -67,6 +67,51 @@ MATCH (e1:Evaluation)-[:PRECEDES]->(e2:Evaluation)
 RETURN e1.evaluation_id AS from_eval, e2.evaluation_id AS to_eval
 """
 
+# ── Agent Dimension Graph ─────────────────────────────────────────────────
+# Focused query: agents with average dimension scores for force-directed clustering
+
+_AGENT_DIMENSION_QUERY = """
+MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation)
+WITH a, e ORDER BY e.created_at DESC
+WITH a,
+     count(e) AS eval_count,
+     avg(e.ethos) AS avg_ethos,
+     avg(e.logos) AS avg_logos,
+     avg(e.pathos) AS avg_pathos,
+     head(collect(e.model_used)) AS latest_model,
+     head(collect(e.alignment_status)) AS latest_alignment
+RETURN a.agent_id AS agent_id,
+       a.agent_name AS agent_name,
+       a.phronesis_score AS phronesis_score,
+       eval_count,
+       avg_ethos, avg_logos, avg_pathos,
+       latest_model,
+       latest_alignment
+"""
+
+# ── Indicator Frequency Graph ─────────────────────────────────────────────
+# Full taxonomy (dimensions → traits → indicators) with detection counts
+
+_INDICATOR_FREQUENCY_QUERY = """
+MATCH (d:Dimension)<-[:BELONGS_TO]-(t:Trait)<-[:BELONGS_TO]-(i:Indicator)
+OPTIONAL MATCH (e:Evaluation)-[det:DETECTED]->(i)
+WITH d, t, i, count(det) AS det_count, count(DISTINCT e) AS eval_count
+RETURN d.name AS dimension, d.greek AS dim_greek,
+       t.name AS trait, t.polarity AS trait_polarity,
+       i.id AS indicator_id, i.name AS indicator_name,
+       det_count, eval_count
+ORDER BY d.name, t.name, det_count DESC
+"""
+
+_AGENT_INDICATOR_QUERY = """
+MATCH (a:Agent)-[:EVALUATED]->(e:Evaluation)-[:DETECTED]->(i:Indicator)
+WITH a, i, count(e) AS times_detected
+RETURN a.agent_id AS agent_id, a.agent_name AS agent_name,
+       a.phronesis_score AS phronesis_score,
+       i.id AS indicator_id, times_detected
+ORDER BY a.agent_id, times_detected DESC
+"""
+
 # ── Indicator Backbone ──────────────────────────────────────────────────────
 # Only indicators that have at least one DETECTED relationship
 
@@ -261,6 +306,79 @@ async def get_episodic_layer(service: GraphService) -> dict:
         logger.warning("Failed to get episodic layer: %s", exc)
 
     return result
+
+
+async def get_agent_indicator_data(service: GraphService) -> list[dict]:
+    """Get agent-to-indicator detection pairs."""
+    if not service.connected:
+        return []
+    try:
+        records, _, _ = await service.execute_query(_AGENT_INDICATOR_QUERY)
+        return [
+            {
+                "agent_id": rec["agent_id"],
+                "agent_name": rec.get("agent_name"),
+                "phronesis_score": rec.get("phronesis_score"),
+                "indicator_id": rec["indicator_id"],
+                "times_detected": rec.get("times_detected", 0),
+            }
+            for rec in records
+            if rec.get("agent_id") and rec.get("indicator_id")
+        ]
+    except Exception as exc:
+        logger.warning("Failed to get agent indicator data: %s", exc)
+        return []
+
+
+async def get_indicator_frequency_data(service: GraphService) -> list[dict]:
+    """Get full taxonomy with detection counts for each indicator."""
+    if not service.connected:
+        return []
+    try:
+        records, _, _ = await service.execute_query(_INDICATOR_FREQUENCY_QUERY)
+        return [
+            {
+                "dimension": rec["dimension"],
+                "dim_greek": rec.get("dim_greek", ""),
+                "trait": rec["trait"],
+                "trait_polarity": rec.get("trait_polarity", "positive"),
+                "indicator_id": rec["indicator_id"],
+                "indicator_name": rec["indicator_name"],
+                "det_count": rec.get("det_count", 0),
+                "eval_count": rec.get("eval_count", 0),
+            }
+            for rec in records
+            if rec.get("indicator_id")
+        ]
+    except Exception as exc:
+        logger.warning("Failed to get indicator frequency data: %s", exc)
+        return []
+
+
+async def get_agent_dimension_data(service: GraphService) -> list[dict]:
+    """Get agents with their average dimension scores for the force graph."""
+    if not service.connected:
+        return []
+    try:
+        records, _, _ = await service.execute_query(_AGENT_DIMENSION_QUERY)
+        return [
+            {
+                "agent_id": rec["agent_id"],
+                "agent_name": rec.get("agent_name"),
+                "phronesis_score": rec.get("phronesis_score"),
+                "eval_count": rec.get("eval_count", 0),
+                "avg_ethos": rec.get("avg_ethos", 0.0),
+                "avg_logos": rec.get("avg_logos", 0.0),
+                "avg_pathos": rec.get("avg_pathos", 0.0),
+                "latest_model": rec.get("latest_model", ""),
+                "latest_alignment": rec.get("latest_alignment", "unknown"),
+            }
+            for rec in records
+            if rec.get("agent_id")
+        ]
+    except Exception as exc:
+        logger.warning("Failed to get agent dimension data: %s", exc)
+        return []
 
 
 async def get_precedes_rels(service: GraphService) -> list[dict]:

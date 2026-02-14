@@ -108,6 +108,7 @@ TS_EVALUATION_RESULT = {
     "graphContext",
     "alignmentStatus",
     "tierScores",
+    "confidence",
 }
 
 TS_AGENT_SUMMARY = {

@@ -46,6 +46,7 @@ export interface EvaluationResult {
   alignmentStatus: string;
   tierScores: Record<string, number>;
   direction: string | null;
+  confidence: number;
 }
 
 export interface ReflectionResult {

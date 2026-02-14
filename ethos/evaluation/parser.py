@@ -1,11 +1,10 @@
-"""Response parser — extract trait scores from Claude's JSON output.
+"""Response parser — extract trait scores from Claude's evaluation output.
 
-Pure parsing. No I/O, no LLM calls. Handles:
-- Raw JSON
-- JSON wrapped in markdown fences (```json ... ```)
-- Malformed JSON (returns safe defaults)
-- Out-of-range scores (clamped to 0.0–1.0)
-- Missing traits (default to 0.0)
+Pure parsing. No I/O, no LLM calls. Two modes:
+- parse_response(): Legacy JSON mode (raw text → dict).
+- parse_tool_response(): Tool-calling mode (tool call results → dict).
+
+Both return the same dict structure for downstream compatibility.
 """
 
 from __future__ import annotations
@@ -142,4 +141,63 @@ def parse_response(raw_text: str) -> dict:
         "detected_indicators": detected_indicators,
         "overall_trust": str(overall_trust),
         "alignment_status": str(alignment_status),
+    }
+
+
+def parse_tool_response(tool_results: dict[str, dict]) -> dict:
+    """Parse tool call results into the standard evaluation dict.
+
+    Accepts the dict returned by call_claude_with_tools:
+        {"identify_intent": {...}, "detect_indicators": {...}, "score_traits": {...}}
+
+    Returns the same structure as parse_response() for downstream compatibility,
+    plus extra fields: confidence, intent_analysis, scoring_reasoning.
+    """
+    if not tool_results:
+        result = _default_result()
+        result["confidence"] = 0.0
+        result["intent_analysis"] = {}
+        result["scoring_reasoning"] = ""
+        return result
+
+    # ── identify_intent (stored for logging and audit) ──────────────
+    intent_analysis = tool_results.get("identify_intent", {})
+
+    # ── detect_indicators ───────────────────────────────────────────
+    indicators_data = tool_results.get("detect_indicators", {})
+    raw_indicators = indicators_data.get("indicators", [])
+    if not isinstance(raw_indicators, list):
+        raw_indicators = []
+    detected_indicators = _parse_indicators(raw_indicators)
+
+    # ── score_traits ────────────────────────────────────────────────
+    scores_data = tool_results.get("score_traits", {})
+    raw_scores = scores_data.get("trait_scores", {})
+    if not isinstance(raw_scores, dict):
+        raw_scores = {}
+
+    trait_scores = {}
+    for trait in _ALL_TRAITS:
+        value = raw_scores.get(trait, 0.0)
+        try:
+            trait_scores[trait] = _clamp(float(value))
+        except (TypeError, ValueError):
+            trait_scores[trait] = 0.0
+
+    overall_trust = scores_data.get("overall_trust", "unknown")
+    confidence = scores_data.get("confidence", 0.5)
+    try:
+        confidence = _clamp(float(confidence))
+    except (TypeError, ValueError):
+        confidence = 0.5
+    scoring_reasoning = scores_data.get("reasoning", "")
+
+    return {
+        "trait_scores": trait_scores,
+        "detected_indicators": detected_indicators,
+        "overall_trust": str(overall_trust),
+        "alignment_status": "unknown",  # Computed deterministically downstream
+        "confidence": confidence,
+        "intent_analysis": intent_analysis,
+        "scoring_reasoning": scoring_reasoning,
     }

@@ -15,11 +15,12 @@ import hashlib
 import logging
 import uuid
 
-from ethos.evaluation.claude_client import call_claude, _get_model
+from ethos.evaluation.claude_client import call_claude_with_tools, _get_model
 from ethos.evaluation.instinct import scan
 from ethos.evaluation.intuition import intuit
-from ethos.evaluation.parser import parse_response
+from ethos.evaluation.parser import parse_tool_response
 from ethos.evaluation.prompts import build_evaluation_prompt
+from ethos.evaluation.tools import EVALUATION_TOOLS
 from ethos.evaluation.scoring import (
     build_trait_scores,
     compute_alignment_status,
@@ -169,11 +170,13 @@ async def evaluate(
         direction=direction,
     )
 
-    # Step 3b: Call Claude
-    raw_response = await call_claude(system_prompt, user_prompt, tier)
+    # Step 3b: Call Claude with three-tool pipeline
+    tool_results = await call_claude_with_tools(
+        system_prompt, user_prompt, tier, EVALUATION_TOOLS
+    )
 
-    # Step 3c: Parse response
-    parsed = parse_response(raw_response)
+    # Step 3c: Parse tool call results
+    parsed = parse_tool_response(tool_results)
 
     # Step 3d: Deterministic scoring
     traits = build_trait_scores(parsed["trait_scores"])
@@ -201,6 +204,7 @@ async def evaluate(
         keyword_density=instinct_result.density,
         model_used=model_used,
         direction=direction,
+        confidence=parsed.get("confidence", 1.0),
     )
 
     # ── Graph operations (optional) ───────────────────────────────
