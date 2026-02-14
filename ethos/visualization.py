@@ -2,6 +2,10 @@
 
 DDD layering: API calls get_graph_data() → this module calls graph/visualization.py.
 API never touches graph directly.
+
+The graph shows agents, evaluations, and dimensions only. The full taxonomy
+(traits, indicators, constitutional values, patterns) lives in the taxonomy
+explorer, not the force-directed graph.
 """
 
 from __future__ import annotations
@@ -11,23 +15,16 @@ import logging
 from ethos.graph.service import graph_context
 from ethos.graph.visualization import (
     get_episodic_layer,
-    get_indicator_backbone,
+    get_precedes_rels,
     get_semantic_layer,
 )
 from ethos.shared.models import GraphData, GraphNode, GraphRel
 
 logger = logging.getLogger(__name__)
 
-# Dimension colors for trait inheritance
-_DIMENSION_COLORS = {
-    "ethos": "#0d9488",
-    "logos": "#3b82f6",
-    "pathos": "#f59e0b",
-}
-
 
 async def get_graph_data() -> GraphData:
-    """Pull the full Phronesis subgraph and transform into GraphData.
+    """Pull agents, evaluations, and dimensions for the Phronesis graph.
 
     Returns empty GraphData if Neo4j is unavailable.
     """
@@ -38,9 +35,9 @@ async def get_graph_data() -> GraphData:
 
             semantic = await get_semantic_layer(service)
             episodic = await get_episodic_layer(service)
-            backbone = await get_indicator_backbone(service)
+            precedes = await get_precedes_rels(service)
 
-            return _build_graph_data(semantic, episodic, backbone)
+            return _build_graph_data(semantic, episodic, precedes)
 
     except Exception as exc:
         logger.warning("Failed to get graph data: %s", exc)
@@ -50,14 +47,14 @@ async def get_graph_data() -> GraphData:
 def _build_graph_data(
     semantic: dict,
     episodic: dict,
-    backbone: dict,
+    precedes: list[dict],
 ) -> GraphData:
-    """Transform raw graph query results into GraphData with proper node IDs."""
+    """Build a focused graph: dimensions + agents + evaluations."""
     nodes: list[GraphNode] = []
     relationships: list[GraphRel] = []
     rel_counter = 0
 
-    # ── Dimension nodes ─────────────────────────────────────────────────
+    # ── Dimension nodes (3 anchors) ──────────────────────────────────────
     for dim in semantic["dimensions"].values():
         name = dim["name"]
         nodes.append(
@@ -70,124 +67,18 @@ def _build_graph_data(
             )
         )
 
-    # ── Trait nodes ─────────────────────────────────────────────────────
-    for trait in semantic["traits"].values():
-        name = trait["name"]
-        nodes.append(
-            GraphNode(
-                id=f"trait-{name}",
-                type="trait",
-                label=name,
-                caption=name,
-                properties={
-                    "dimension": trait.get("dimension", ""),
-                    "polarity": trait.get("polarity", ""),
-                },
-            )
-        )
-
-    # Trait → Dimension BELONGS_TO relationships
-    for rel in semantic["trait_dimension_rels"]:
-        rel_counter += 1
-        relationships.append(
-            GraphRel(
-                id=f"rel-{rel_counter}",
-                from_id=f"trait-{rel['trait']}",
-                to_id=f"dim-{rel['dimension']}",
-                type="BELONGS_TO",
-            )
-        )
-
-    # ── ConstitutionalValue nodes ───────────────────────────────────────
-    for cv in semantic["constitutional_values"].values():
-        name = cv["name"]
-        priority = cv.get("priority", 0)
-        nodes.append(
-            GraphNode(
-                id=f"cv-{name}",
-                type="constitutional_value",
-                label=name,
-                caption=f"{name} (P{priority})",
-                properties={"priority": priority},
-            )
-        )
-
-    # Trait → ConstitutionalValue UPHOLDS relationships
-    for rel in semantic["upholds_rels"]:
-        rel_counter += 1
-        relationships.append(
-            GraphRel(
-                id=f"rel-{rel_counter}",
-                from_id=f"trait-{rel['trait']}",
-                to_id=f"cv-{rel['cv']}",
-                type="UPHOLDS",
-                properties={"relationship": rel.get("relationship", "")},
-            )
-        )
-
-    # ── Pattern nodes ───────────────────────────────────────────────────
-    for pattern in semantic["patterns"].values():
-        pid = pattern["pattern_id"]
-        nodes.append(
-            GraphNode(
-                id=f"pattern-{pid}",
-                type="pattern",
-                label=pattern.get("name", pid),
-                caption=pattern.get("name", pid),
-                properties={
-                    "severity": pattern.get("severity", "info"),
-                    "stage_count": pattern.get("stage_count", 0),
-                },
-            )
-        )
-
-    # Pattern → Indicator COMPOSED_OF relationships
-    for rel in semantic["pattern_indicator_rels"]:
-        rel_counter += 1
-        relationships.append(
-            GraphRel(
-                id=f"rel-{rel_counter}",
-                from_id=f"pattern-{rel['pattern']}",
-                to_id=f"indicator-{rel['indicator']}",
-                type="COMPOSED_OF",
-            )
-        )
-
-    # ── Indicator nodes (only detected ones) ────────────────────────────
-    for indicator in backbone["indicators"].values():
-        iid = indicator["id"]
-        nodes.append(
-            GraphNode(
-                id=f"indicator-{iid}",
-                type="indicator",
-                label=iid,
-                caption=iid,
-                properties={"trait": indicator.get("trait", "")},
-            )
-        )
-
-    # Indicator → Trait BELONGS_TO relationships
-    for rel in backbone["indicator_trait_rels"]:
-        rel_counter += 1
-        relationships.append(
-            GraphRel(
-                id=f"rel-{rel_counter}",
-                from_id=f"indicator-{rel['indicator']}",
-                to_id=f"trait-{rel['trait']}",
-                type="BELONGS_TO",
-            )
-        )
-
-    # ── Agent nodes ─────────────────────────────────────────────────────
+    # ── Agent nodes ──────────────────────────────────────────────────────
     for agent in episodic["agents"].values():
         aid = agent["agent_id"]
+        agent_name = agent.get("agent_name") or aid
         nodes.append(
             GraphNode(
                 id=f"agent-{aid}",
                 type="agent",
-                label=aid[:8] if len(aid) > 8 else aid,
-                caption=aid[:8] if len(aid) > 8 else aid,
+                label=agent_name,
+                caption=agent_name,
                 properties={
+                    "agent_name": agent_name,
                     "evaluation_count": agent.get("evaluation_count", 0),
                     "alignment_status": agent.get("alignment_status", "unknown"),
                     "phronesis_score": agent.get("phronesis_score"),
@@ -195,9 +86,10 @@ def _build_graph_data(
             )
         )
 
-    # ── Evaluation nodes ────────────────────────────────────────────────
+    # ── Evaluation nodes ─────────────────────────────────────────────────
     for ev in episodic["evaluations"].values():
         eid = ev["evaluation_id"]
+        model = ev.get("model_used", "")
         nodes.append(
             GraphNode(
                 id=f"eval-{eid}",
@@ -210,11 +102,12 @@ def _build_graph_data(
                     "pathos": ev.get("pathos", 0.0),
                     "alignment_status": ev.get("alignment_status", "unknown"),
                     "phronesis": ev.get("phronesis", "undetermined"),
+                    "model_used": model,
                 },
             )
         )
 
-    # Agent → Evaluation EVALUATED relationships
+    # ── Agent → Evaluation EVALUATED rels ────────────────────────────────
     for rel in episodic["evaluated_rels"]:
         rel_counter += 1
         relationships.append(
@@ -226,17 +119,20 @@ def _build_graph_data(
             )
         )
 
-    # Evaluation → Indicator DETECTED relationships
-    for rel in episodic["detected_rels"]:
-        rel_counter += 1
-        relationships.append(
-            GraphRel(
-                id=f"rel-{rel_counter}",
-                from_id=f"eval-{rel['evaluation']}",
-                to_id=f"indicator-{rel['indicator']}",
-                type="DETECTED",
-                properties={"confidence": rel.get("confidence", 0.0)},
+    # ── Evaluation → Evaluation PRECEDES rels ────────────────────────────
+    eval_ids = {ev["evaluation_id"] for ev in episodic["evaluations"].values()}
+    for rel in precedes:
+        from_id = rel["from_eval"]
+        to_id = rel["to_eval"]
+        if from_id in eval_ids and to_id in eval_ids:
+            rel_counter += 1
+            relationships.append(
+                GraphRel(
+                    id=f"rel-{rel_counter}",
+                    from_id=f"eval-{from_id}",
+                    to_id=f"eval-{to_id}",
+                    type="PRECEDES",
+                )
             )
-        )
 
     return GraphData(nodes=nodes, relationships=relationships)

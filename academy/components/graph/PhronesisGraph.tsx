@@ -4,12 +4,34 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getGraph } from "../../lib/api";
 import {
   DIMENSION_COLORS,
-  ALIGNMENT_COLORS,
-  PATTERN_SEVERITY_COLORS,
   REL_STYLES,
 } from "../../lib/colors";
 import type { GraphData, GraphNode as EthosGraphNode, GraphRel } from "../../lib/types";
 import GraphHelpButton from "../shared/GraphHelpButton";
+
+/* -------------------------------------------------------------------------- */
+/*  Constants                                                                  */
+/* -------------------------------------------------------------------------- */
+
+const AGENT_COLORS: Record<string, string> = {
+  aligned: "#16a34a",
+  drifting: "#d97706",
+  misaligned: "#991b1b",
+  violation: "#991b1b",
+};
+
+const MODEL_COLORS = {
+  sonnet: "rgba(56,149,144,0.6)",
+  opus: "rgba(224,165,60,0.6)",
+  unknown: "rgba(255,255,255,0.15)",
+};
+
+function getModelColor(modelUsed: string | undefined): string {
+  if (!modelUsed) return MODEL_COLORS.unknown;
+  if (modelUsed.includes("opus")) return MODEL_COLORS.opus;
+  if (modelUsed.includes("sonnet")) return MODEL_COLORS.sonnet;
+  return MODEL_COLORS.unknown;
+}
 
 /* -------------------------------------------------------------------------- */
 /*  NVL type interfaces                                                       */
@@ -20,6 +42,7 @@ interface NvlNode {
   color?: string;
   size?: number;
   caption?: string;
+  captionColor?: string;
   pinned?: boolean;
 }
 
@@ -38,30 +61,12 @@ function getNodeColor(node: EthosGraphNode): string {
   switch (type) {
     case "dimension":
       return DIMENSION_COLORS[node.label] ?? "#389590";
-    case "trait": {
-      const polarity = properties.polarity as string | undefined;
-      if (polarity === "negative") return "#ef4444";
-      const dim = properties.dimension as string | undefined;
-      return dim ? (DIMENSION_COLORS[dim] ?? "#94a3b8") : "#94a3b8";
-    }
-    case "constitutional_value":
-      return "#8b5cf6";
-    case "pattern": {
-      const severity = properties.severity as string | undefined;
-      return severity
-        ? (PATTERN_SEVERITY_COLORS[severity] ?? "#e0a53c")
-        : "#e0a53c";
-    }
-    case "indicator":
-      return "#94a3b8";
     case "agent": {
       const status = properties.alignmentStatus as string | undefined;
-      return status
-        ? (ALIGNMENT_COLORS[status] ?? "#10b981")
-        : "#10b981";
+      return status ? (AGENT_COLORS[status] ?? "#16a34a") : "#16a34a";
     }
     case "evaluation":
-      return "rgba(59, 138, 152, 0.5)";
+      return getModelColor(properties.modelUsed as string | undefined);
     default:
       return "#94a3b8";
   }
@@ -71,14 +76,6 @@ function getNodeSize(node: EthosGraphNode): number {
   switch (node.type) {
     case "dimension":
       return 40;
-    case "trait":
-      return 25;
-    case "constitutional_value":
-      return 30;
-    case "pattern":
-      return 20;
-    case "indicator":
-      return 8;
     case "agent": {
       const count = (node.properties.evaluationCount as number) ?? 0;
       return Math.min(35, 15 + count * 2);
@@ -94,26 +91,16 @@ function getNodeCaption(node: EthosGraphNode): string {
   switch (node.type) {
     case "dimension":
       return node.label;
-    case "trait":
-      return node.label;
-    case "constitutional_value":
-      return node.label;
-    case "pattern":
-      return node.label;
-    case "agent":
-      return node.label;
-    case "indicator":
-      return "";
+    case "agent": {
+      const name = node.properties.agentName as string | undefined;
+      return name || node.label;
+    }
     case "evaluation":
       return "";
     default:
       return node.label;
   }
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Relationship color + width mapping                                        */
-/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 /*  Transform API data → NVL format                                           */
@@ -125,6 +112,7 @@ function toNvlNodes(nodes: EthosGraphNode[]): NvlNode[] {
     color: getNodeColor(n),
     size: getNodeSize(n),
     caption: getNodeCaption(n),
+    captionColor: "#ffffff",
   }));
 }
 
@@ -132,7 +120,7 @@ function toNvlRelationships(rels: GraphRel[], nodeIds: Set<string>): NvlRelation
   return rels
     .filter((r) => nodeIds.has(r.fromId) && nodeIds.has(r.toId))
     .map((r) => {
-      const style = REL_STYLES[r.type] ?? { color: "#cbd5e1", width: 1 };
+      const style = REL_STYLES[r.type] ?? { color: "rgba(255,255,255,0.08)", width: 0.5 };
       return {
         id: r.id,
         from: r.fromId,
@@ -260,6 +248,75 @@ function NvlRenderer({ nodes, rels, onNodeClick }: NvlRendererProps) {
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Legend component                                                           */
+/* -------------------------------------------------------------------------- */
+
+function GraphLegend({ nodeCount, agentCount, evalCount }: {
+  nodeCount: number;
+  agentCount: number;
+  evalCount: number;
+}) {
+  return (
+    <div className="absolute bottom-3 left-3 rounded-lg bg-black/40 px-3 py-2.5 text-xs text-white/80 backdrop-blur-sm">
+      <div className="flex gap-5">
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] uppercase tracking-wider text-white/50">Alignment</span>
+          <div className="flex gap-2">
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#16a34a" }} />
+              Aligned
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#d97706" }} />
+              Drifting
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#991b1b" }} />
+              Misaligned
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] uppercase tracking-wider text-white/50">Model</span>
+          <div className="flex gap-2">
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: MODEL_COLORS.sonnet }} />
+              Sonnet
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: MODEL_COLORS.opus }} />
+              Opus
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] uppercase tracking-wider text-white/50">Dimensions</span>
+          <div className="flex gap-2">
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#2e4a6e" }} />
+              Integrity
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#389590" }} />
+              Logic
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#e0a53c" }} />
+              Empathy
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="mt-1.5 flex gap-3 text-[10px] text-white/40">
+        <span>Agents: {agentCount}</span>
+        <span>Evaluations: {evalCount}</span>
+        <span>Total: {nodeCount}</span>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Main component                                                            */
 /* -------------------------------------------------------------------------- */
 
@@ -331,12 +388,13 @@ export default function PhronesisGraph({ onNodeClick }: PhronesisGraphProps) {
   if (loading) {
     return (
       <div
-        className="flex h-[600px] items-center justify-center rounded-xl border border-border bg-white"
+        className="flex h-[600px] items-center justify-center rounded-xl border border-white/10"
+        style={{ backgroundColor: "#152438" }}
         data-testid="graph-loading"
       >
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-action border-t-transparent" />
-          <p className="mt-3 text-sm text-muted">Loading Phronesis Graph...</p>
+          <p className="mt-3 text-sm text-white/50">Loading Phronesis Graph...</p>
         </div>
       </div>
     );
@@ -346,7 +404,8 @@ export default function PhronesisGraph({ onNodeClick }: PhronesisGraphProps) {
   if (error) {
     return (
       <div
-        className="flex h-[600px] items-center justify-center rounded-xl border border-border bg-white"
+        className="flex h-[600px] items-center justify-center rounded-xl border border-white/10"
+        style={{ backgroundColor: "#152438" }}
         data-testid="graph-error"
       >
         <div className="text-center">
@@ -368,11 +427,12 @@ export default function PhronesisGraph({ onNodeClick }: PhronesisGraphProps) {
   if (!graphData || graphData.nodes.length === 0) {
     return (
       <div
-        className="flex h-[600px] items-center justify-center rounded-xl border border-border bg-white"
+        className="flex h-[600px] items-center justify-center rounded-xl border border-white/10"
+        style={{ backgroundColor: "#152438" }}
         data-testid="graph-empty"
       >
         <div className="text-center">
-          <p className="text-sm text-muted">
+          <p className="text-sm text-white/50">
             No graph data yet. Seed evaluations first.
           </p>
         </div>
@@ -386,7 +446,8 @@ export default function PhronesisGraph({ onNodeClick }: PhronesisGraphProps) {
 
   return (
     <div
-      className="relative h-[600px] rounded-xl border border-border bg-white"
+      className="relative h-[600px] rounded-xl border border-white/10"
+      style={{ backgroundColor: "#152438" }}
       data-testid="phronesis-graph"
     >
       <NvlRenderer
@@ -400,19 +461,12 @@ export default function PhronesisGraph({ onNodeClick }: PhronesisGraphProps) {
         <GraphHelpButton slug="guide-phronesis-graph" />
       </div>
 
-      {/* Node count legend */}
-      <div className="absolute bottom-3 left-3 flex gap-3 rounded-lg bg-white/90 px-3 py-2 text-xs text-muted backdrop-blur-sm">
-        <span>
-          Nodes: {graphData.nodes.length}
-        </span>
-        <span>
-          Agents: {graphData.nodes.filter((n) => n.type === "agent").length}
-        </span>
-        <span>
-          Evaluations:{" "}
-          {graphData.nodes.filter((n) => n.type === "evaluation").length}
-        </span>
-      </div>
+      {/* Legend */}
+      <GraphLegend
+        nodeCount={graphData.nodes.length}
+        agentCount={graphData.nodes.filter((n) => n.type === "agent").length}
+        evalCount={graphData.nodes.filter((n) => n.type === "evaluation").length}
+      />
     </div>
   );
 }

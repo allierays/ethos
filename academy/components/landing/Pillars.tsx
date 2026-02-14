@@ -74,7 +74,7 @@ export default function Pillars() {
           <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
             Four pillars of <GlossaryTerm slug="phronesis">phronesis</GlossaryTerm>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted">
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted">
             Every agent is measured across four lenses. Together, they build a
             complete picture of practical wisdom.
           </p>

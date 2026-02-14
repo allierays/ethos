@@ -50,11 +50,12 @@ export const TREND_DISPLAY: Record<string, { arrow: string; label: string; color
 /* ─── NVL Graph Styling ─── */
 
 export const REL_STYLES: Record<string, { color: string; width: number }> = {
-  BELONGS_TO: { color: "#94a3b8", width: 1 },
-  UPHOLDS: { color: "#8b5cf6", width: 1.5 },
-  COMPOSED_OF: { color: "#e0a53c", width: 1 },
-  EVALUATED: { color: "#2e4a6e", width: 1 },
-  DETECTED: { color: "#ef4444", width: 1 },
+  BELONGS_TO: { color: "rgba(255,255,255,0.08)", width: 0.5 },
+  UPHOLDS: { color: "rgba(139,92,246,0.25)", width: 1 },
+  COMPOSED_OF: { color: "rgba(224,165,60,0.15)", width: 0.5 },
+  EVALUATED: { color: "rgba(255,255,255,0.12)", width: 1 },
+  DETECTED: { color: "rgba(239,68,68,0.12)", width: 0.5 },
+  PRECEDES: { color: "rgba(255,255,255,0.3)", width: 1.5 },
 };
 
 /* ─── Severity Styles (Tailwind classes for insight badges) ─── */

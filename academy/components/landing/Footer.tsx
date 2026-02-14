@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ColumnIcon from "../shared/ColumnIcon";
 
 export default function Footer() {
   return (
@@ -16,8 +17,11 @@ export default function Footer() {
         <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
           {/* Left: branding */}
           <div className="text-center sm:text-left">
-            <p className="text-lg font-semibold text-white">Ethos</p>
-            <p className="mt-1 max-w-xs text-sm text-white/60">
+            <div className="flex items-center gap-2">
+              <ColumnIcon className="h-5 w-5 text-white/70" />
+              <p className="text-lg font-semibold text-white">Ethos Academy</p>
+            </div>
+            <p className="mt-1 max-w-xs text-sm text-white/80">
               Better agents. Better data. Better alignment.
             </p>
             <div className="mt-4 flex items-center justify-center gap-4 sm:justify-start">
@@ -25,7 +29,7 @@ export default function Footer() {
                 href="https://github.com/allierays/ethos"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/50 transition-colors hover:text-white"
+                className="text-white/70 transition-colors hover:text-white"
                 aria-label="GitHub"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -36,7 +40,7 @@ export default function Footer() {
                 href="https://www.linkedin.com/in/allierays/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/50 transition-colors hover:text-white"
+                className="text-white/70 transition-colors hover:text-white"
                 aria-label="LinkedIn"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -47,7 +51,7 @@ export default function Footer() {
                 href="https://x.com/allierays"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/50 transition-colors hover:text-white"
+                className="text-white/70 transition-colors hover:text-white"
                 aria-label="X (Twitter)"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -59,20 +63,20 @@ export default function Footer() {
 
           {/* Center: Academy links */}
           <div className="text-center sm:text-left">
-            <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/90">
               Academy
             </p>
             <nav className="mt-3 flex flex-col gap-2">
-              <Link href="/how-it-works" className="text-sm text-white/50 transition-colors hover:text-white">
+              <Link href="/how-it-works" className="text-sm text-white/70 transition-colors hover:text-white">
                 How It Works
               </Link>
-              <Link href="/curriculum" className="text-sm text-white/50 transition-colors hover:text-white">
+              <Link href="/curriculum" className="text-sm text-white/70 transition-colors hover:text-white">
                 Curriculum
               </Link>
-              <Link href="/explore" className="text-sm text-white/50 transition-colors hover:text-white">
+              <Link href="/explore" className="text-sm text-white/70 transition-colors hover:text-white">
                 Explore
               </Link>
-              <Link href="/alumni" className="text-sm text-white/50 transition-colors hover:text-white">
+              <Link href="/alumni" className="text-sm text-white/70 transition-colors hover:text-white">
                 Alumni
               </Link>
             </nav>
@@ -80,7 +84,7 @@ export default function Footer() {
 
           {/* Right: Project links */}
           <div className="text-center sm:text-left">
-            <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/90">
               Project
             </p>
             <nav className="mt-3 flex flex-col gap-2">
@@ -88,7 +92,7 @@ export default function Footer() {
                 href="https://github.com/allierays/ethos"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-white/50 transition-colors hover:text-white"
+                className="text-sm text-white/70 transition-colors hover:text-white"
               >
                 Source Code
               </a>
@@ -96,7 +100,7 @@ export default function Footer() {
                 href="https://github.com/allierays/ethos#readme"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-white/50 transition-colors hover:text-white"
+                className="text-sm text-white/70 transition-colors hover:text-white"
               >
                 Documentation
               </a>
@@ -104,7 +108,7 @@ export default function Footer() {
                 href="https://github.com/allierays/ethos/issues"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-white/50 transition-colors hover:text-white"
+                className="text-sm text-white/70 transition-colors hover:text-white"
               >
                 Issues
               </a>
@@ -114,24 +118,24 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-10 flex flex-col items-center gap-2 border-t border-white/10 pt-6 sm:flex-row sm:justify-between">
-          <p className="text-xs text-white/30">
+          <p className="text-xs text-white/50">
             Built for the{" "}
             <a
               href="https://cerebralvalley.ai/e/claude-code-hackathon"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline transition-colors hover:text-white/60"
+              className="underline transition-colors hover:text-white/80"
             >
               Claude Code Hackathon 2026
             </a>
           </p>
-          <p className="text-xs text-white/30">
+          <p className="text-xs text-white/50">
             made with love by{" "}
             <a
               href="https://www.linkedin.com/in/allierays/"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline transition-colors hover:text-white/60"
+              className="underline transition-colors hover:text-white/80"
             >
               allierays
             </a>

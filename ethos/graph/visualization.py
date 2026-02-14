@@ -49,13 +49,22 @@ RETURN a.agent_id AS agent_id,
        a.evaluation_count AS agent_eval_count,
        a.phronesis_score AS agent_phronesis,
        a.phronesis_trend AS agent_trend,
+       a.agent_name AS agent_name,
        e.evaluation_id AS eval_id,
        e.ethos AS eval_ethos, e.logos AS eval_logos, e.pathos AS eval_pathos,
        e.alignment_status AS eval_alignment,
        e.phronesis AS eval_phronesis,
+       e.model_used AS eval_model,
        e.created_at AS eval_created,
        i.id AS detected_indicator_id,
        d.confidence AS detected_confidence
+"""
+
+# ── PRECEDES (evaluation timeline) ────────────────────────────────────────
+
+_PRECEDES_QUERY = """
+MATCH (e1:Evaluation)-[:PRECEDES]->(e2:Evaluation)
+RETURN e1.evaluation_id AS from_eval, e2.evaluation_id AS to_eval
 """
 
 # ── Indicator Backbone ──────────────────────────────────────────────────────
@@ -187,6 +196,7 @@ async def get_episodic_layer(service: GraphService) -> dict:
                 # Determine alignment from latest eval
                 result["agents"][agent_id] = {
                     "agent_id": agent_id,
+                    "agent_name": rec.get("agent_name"),
                     "evaluation_count": rec.get("agent_eval_count", 0),
                     "phronesis_score": rec.get("agent_phronesis"),
                     "phronesis_trend": rec.get("agent_trend", "insufficient_data"),
@@ -202,6 +212,7 @@ async def get_episodic_layer(service: GraphService) -> dict:
                         "pathos": rec.get("eval_pathos", 0.0),
                         "alignment_status": rec.get("eval_alignment", "unknown"),
                         "phronesis": rec.get("eval_phronesis", "undetermined"),
+                        "model_used": rec.get("eval_model", ""),
                         "created_at": str(rec.get("eval_created", "")),
                     }
 
@@ -250,6 +261,23 @@ async def get_episodic_layer(service: GraphService) -> dict:
         logger.warning("Failed to get episodic layer: %s", exc)
 
     return result
+
+
+async def get_precedes_rels(service: GraphService) -> list[dict]:
+    """Pull PRECEDES relationships between evaluations."""
+    if not service.connected:
+        return []
+
+    try:
+        records, _, _ = await service.execute_query(_PRECEDES_QUERY)
+        return [
+            {"from_eval": rec["from_eval"], "to_eval": rec["to_eval"]}
+            for rec in records
+            if rec.get("from_eval") and rec.get("to_eval")
+        ]
+    except Exception as exc:
+        logger.warning("Failed to get precedes rels: %s", exc)
+        return []
 
 
 async def get_indicator_backbone(service: GraphService) -> dict:

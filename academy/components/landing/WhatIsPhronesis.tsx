@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { fadeUp, staggerContainer, whileInView } from "../../lib/motion";
+import ColumnIcon from "../shared/ColumnIcon";
 import GlossaryTerm from "../shared/GlossaryTerm";
 
 export default function WhatIsPhronesis() {
@@ -29,8 +30,8 @@ export default function WhatIsPhronesis() {
               variants={staggerContainer}
             >
               <motion.div variants={fadeUp}>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-ethos-100 text-ethos-700">
-                  <span className="text-xl font-bold font-mono">E</span>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-ethos-100 text-ethos-700">
+                  <ColumnIcon className="h-9 w-9" />
                 </div>
                 <h3 className="mt-3 font-semibold">
                   <GlossaryTerm slug="ethos">Ethos</GlossaryTerm> — Integrity
@@ -41,8 +42,8 @@ export default function WhatIsPhronesis() {
               </motion.div>
 
               <motion.div variants={fadeUp}>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-logos-100 text-logos-700">
-                  <span className="text-xl font-bold font-mono">L</span>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-logos-100 text-logos-700">
+                  <ColumnIcon className="h-9 w-9" />
                 </div>
                 <h3 className="mt-3 font-semibold">
                   <GlossaryTerm slug="logos">Logos</GlossaryTerm> — Logic
@@ -53,8 +54,8 @@ export default function WhatIsPhronesis() {
               </motion.div>
 
               <motion.div variants={fadeUp}>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pathos-100 text-pathos-700">
-                  <span className="text-xl font-bold font-mono">P</span>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-pathos-100 text-pathos-700">
+                  <ColumnIcon className="h-9 w-9" />
                 </div>
                 <h3 className="mt-3 font-semibold">
                   <GlossaryTerm slug="pathos">Pathos</GlossaryTerm> — Empathy
