@@ -137,7 +137,11 @@ async def store_evaluation(
                 )
                 return
         except Exception as exc:
-            logger.debug("Duplicate check failed, proceeding with creation: %s", exc)
+            logger.debug(
+                "Duplicate check failed (%s), proceeding with creation: %s",
+                type(exc).__name__,
+                exc,
+            )
 
     # Compute agent-level phronesis_score as running avg of 3 dimensions
     phronesis_score = round((result.ethos + result.logos + result.pathos) / 3.0, 4)
@@ -263,8 +267,10 @@ async def store_evaluation(
 
     try:
         await service.execute_query(_STORE_EVALUATION_QUERY, params)
+    except (ConnectionError, OSError) as exc:
+        logger.warning("Failed to store evaluation (%s): %s", type(exc).__name__, exc)
     except Exception as exc:
-        logger.warning("Failed to store evaluation: %s", exc)
+        logger.error("Failed to store evaluation (%s): %s", type(exc).__name__, exc)
 
 
 _STORE_AUTHENTICITY_QUERY = """
@@ -333,5 +339,17 @@ async def store_authenticity(
                 "No Agent node found for agent_name=%s — skipping authenticity store",
                 agent_name,
             )
+    except (ConnectionError, OSError) as exc:
+        logger.warning(
+            "Failed to store authenticity for %s (%s): %s",
+            agent_name,
+            type(exc).__name__,
+            exc,
+        )
     except Exception as exc:
-        logger.warning("Failed to store authenticity for %s: %s", agent_name, exc)
+        logger.error(
+            "Failed to store authenticity for %s (%s): %s",
+            agent_name,
+            type(exc).__name__,
+            exc,
+        )

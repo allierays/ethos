@@ -130,6 +130,7 @@ async def get_agent_history(
     agent_id: str, limit: int = 50
 ) -> list[EvaluationHistoryItem]:
     """Get evaluation history for an agent. Returns empty list if unavailable."""
+    limit = min(limit, 1000)
     try:
         async with graph_context() as service:
             raw = await get_evaluation_history(service, agent_id, limit=limit)

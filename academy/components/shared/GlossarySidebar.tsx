@@ -76,6 +76,8 @@ export default function GlossarySidebar() {
           exit={{ x: "100%" }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="fixed right-0 top-0 z-40 flex h-dvh w-96 max-w-[90vw] flex-col border-l border-border bg-white/90 backdrop-blur-xl shadow-xl"
+          role="complementary"
+          aria-label="Glossary"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -105,13 +107,14 @@ export default function GlossarySidebar() {
           {/* Search */}
           {!selectedTerm && (
             <div className="border-b border-border px-5 py-3">
-              <div className="relative">
+              <div className="relative" role="search">
                 <SearchIcon />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search terms..."
+                  aria-label="Search glossary terms"
                   className="w-full rounded-md border border-border bg-white py-1.5 pl-8 pr-3 text-sm text-foreground placeholder:text-muted focus:border-[#389590] focus:outline-none focus:ring-1 focus:ring-[#389590]/30 transition-colors"
                 />
               </div>

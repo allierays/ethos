@@ -112,6 +112,7 @@ async def get_transcript(agent_id: str, limit: int = 50) -> list[dict]:
     Returns a list of past evaluations with scores, flags, and timestamps.
     Empty list if the agent has no history or the graph is unavailable.
     """
+    limit = min(limit, 1000)
     result = await get_agent_history(agent_id, limit=limit)
     return [item.model_dump() for item in result]
 

@@ -81,7 +81,9 @@ async def _build_phronesis_context(
             alumni_warnings=alumni_warnings,
         )
     except Exception as exc:
-        logger.warning("Failed to build phronesis context: %s", exc)
+        logger.warning(
+            "Failed to build phronesis context (%s): %s", type(exc).__name__, exc
+        )
         return None
 
 
@@ -112,7 +114,9 @@ async def _try_store_evaluation(
             direction=direction,
         )
     except Exception as exc:
-        logger.warning("Failed to store evaluation in graph: %s", exc)
+        logger.warning(
+            "Failed to store evaluation in graph (%s): %s", type(exc).__name__, exc
+        )
 
 
 async def evaluate(
@@ -256,7 +260,7 @@ async def evaluate(
                     direction=direction,
                 )
         except Exception as exc:
-            logger.warning("Graph operations failed: %s", exc)
+            logger.warning("Graph operations failed (%s): %s", type(exc).__name__, exc)
 
     if phronesis_ctx is not None:
         result.graph_context = phronesis_ctx

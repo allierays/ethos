@@ -140,6 +140,7 @@ async def get_daily_report_history(
     agent_id: str, limit: int = 30
 ) -> list[DailyReportCard]:
     """Get daily report history. Returns empty list if unavailable."""
+    limit = min(limit, 1000)
     try:
         async with graph_context() as service:
             raw_list = await get_daily_reports(service, agent_id, limit=limit)

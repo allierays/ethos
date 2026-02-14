@@ -2,7 +2,7 @@
 
 import os
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -209,7 +209,9 @@ async def character_report_endpoint(agent_id: str) -> DailyReportCard:
     response_model=list[DailyReportCard],
     dependencies=[Depends(require_api_key)],
 )
-async def daily_reports_endpoint(agent_id: str, limit: int = 30):
+async def daily_reports_endpoint(
+    agent_id: str, limit: int = Query(default=30, ge=1, le=1000)
+):
     return await get_daily_report_history(agent_id, limit=limit)
 
 

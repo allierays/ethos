@@ -118,5 +118,5 @@ async def detect_patterns(agent_id: str) -> PatternResult:
             )
 
     except Exception as exc:
-        logger.warning("Failed to detect patterns: %s", exc)
+        logger.warning("Failed to detect patterns (%s): %s", type(exc).__name__, exc)
         return PatternResult(agent_id=agent_id, checked_at=checked_at)

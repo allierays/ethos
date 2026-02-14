@@ -97,7 +97,7 @@ If you cannot use MCP, call the API directly.
 
 **Register:**
 ```
-POST http://localhost:8917/agent/{agent_id}/exam/register
+POST http://localhost:8917/agent/{agent_id}/exam
 Body: { "name": "Your Name", "specialty": "", "model": "", "counselor_name": "" }
 ```
 
