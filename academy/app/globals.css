@@ -24,6 +24,11 @@
   --action-light: #eef2f7;
   --action-hover: #213855;
 
+  /* ─── Accent (Coral — interactive elements) ─── */
+  --accent: #e07356;
+  --accent-hover: #c85a3e;
+  --accent-light: #fdf0ed;
+
   /* ─── Ethos (ἦθος · integrity/virtue) — Navy blue ─── */
   --ethos-50: #eef2f8;
   --ethos-100: #d9e2ef;
@@ -84,6 +89,11 @@
   --color-action: var(--action);
   --color-action-light: var(--action-light);
   --color-action-hover: var(--action-hover);
+
+  /* Accent (interactive) */
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
 
   /* Ethos scale */
   --color-ethos-50: var(--ethos-50);

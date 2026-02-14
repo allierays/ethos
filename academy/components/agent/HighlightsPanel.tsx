@@ -223,7 +223,7 @@ function DetailSection({
           <path d="M9 18l6-6-6-6" />
         </svg>
         {icon && <FontAwesomeIcon icon={icon} className="w-3 h-3 shrink-0" style={{ color: accent ?? "currentColor" }} />}
-        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground group-hover:text-action transition-colors">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground group-hover:text-accent transition-colors">
           {title}
         </h4>
       </button>
@@ -389,7 +389,7 @@ function HighlightRow({
     <div className={`transition-colors ${expanded ? "bg-white/40" : "hover:bg-white/20"}`}>
       <button
         onClick={onToggle}
-        className="w-full text-left px-4 py-3 flex items-center gap-3"
+        className="w-full text-left px-4 py-3 flex items-center gap-3 cursor-pointer border-l-3 border-accent"
         aria-expanded={expanded}
       >
         {/* Score */}
@@ -570,7 +570,7 @@ export default function HighlightsPanel({ agentId, agentName }: HighlightsPanelP
       <div className="mt-5 text-center">
         <Link
           href={`/records?agent=${encodeURIComponent(agentId)}`}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-action hover:underline transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline transition-colors"
         >
           See all records
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

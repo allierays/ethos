@@ -55,7 +55,7 @@ const MOCK_PROFILE = {
   alignment_history: ["aligned", "aligned", "developing"],
   enrolled: true,
   enrolled_at: "2024-06-01T00:00:00Z",
-  counselor_name: "Dr. Aristotle",
+  guardian_name: "Dr. Aristotle",
   entrance_exam_completed: true,
 };
 

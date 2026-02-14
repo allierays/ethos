@@ -339,7 +339,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                   >
                     <button
                       type="button"
-                      className="w-full p-3 text-center transition-colors hover:bg-foreground/[0.02]"
+                      className="w-full p-3 text-center transition-colors hover:bg-foreground/[0.02] cursor-pointer"
                       onClick={() => hasHabits && setExpandedDim(isExpanded ? null : dim.key)}
                     >
                       <p className="text-[10px] uppercase tracking-wider text-muted">

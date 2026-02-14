@@ -283,7 +283,7 @@ function StatCard({
     </>
   );
 
-  const className = "flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-xl border border-white/20 px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] transition-colors hover:bg-white/15";
+  const className = "flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-xl border border-white/20 px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] transition-colors hover:bg-white/15 cursor-pointer";
 
   if (href) {
     return (

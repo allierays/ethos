@@ -528,6 +528,24 @@ function TermDetail({
           {entry.definition}
         </motion.p>
 
+        {/* External links */}
+        {entry.links && entry.links.length > 0 && (
+          <motion.div variants={staggerChild} className="mt-4 flex flex-col gap-1.5">
+            {entry.links.map((link) => (
+              <a
+                key={link.url}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-[#389590] hover:text-[#2e4a6e] transition-colors"
+              >
+                <ExternalLinkIcon />
+                {link.label}
+              </a>
+            ))}
+          </motion.div>
+        )}
+
         {/* Alignment scale inline diagram */}
         {entry.slug === "highlights" && (
           <motion.div variants={staggerChild} className="mt-4">
@@ -747,6 +765,24 @@ function XIcon() {
       strokeLinecap="round"
     >
       <path d="M1 1l12 12M13 1L1 13" />
+    </svg>
+  );
+}
+
+function ExternalLinkIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+    >
+      <path d="M9 3L3 9M9 3H5M9 3v4" />
     </svg>
   );
 }

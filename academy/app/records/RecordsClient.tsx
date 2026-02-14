@@ -131,7 +131,7 @@ function Chip({
       className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
         active
           ? activeClass ?? "bg-action/15 text-action border-action/30"
-          : "border-white/30 bg-white/50 text-muted hover:bg-white/70 hover:text-foreground"
+          : "border-foreground/15 bg-white/60 text-muted hover:bg-white/80 hover:text-foreground"
       }`}
     >
       {label}
@@ -141,7 +141,7 @@ function Chip({
 
 function FacetGroup({ title, children, last }: { title: string; children: React.ReactNode; last?: boolean }) {
   return (
-    <div className={last ? "pt-1" : "border-b border-white/20 pb-4 mb-4"}>
+    <div className={last ? "pt-1" : "border-b border-foreground/10 pb-4 mb-4"}>
       <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted/70 mb-2.5">{title}</h3>
       <div className="flex flex-wrap gap-1.5">{children}</div>
     </div>
@@ -268,7 +268,7 @@ function ExpandedDetail({ record }: { record: RecordItem }) {
       transition={{ duration: 0.25, ease: "easeInOut" }}
       className="overflow-hidden"
     >
-      <div className="border-t border-border/30 bg-white/60 [&>div]:px-5 [&>div]:py-3">
+      <div className="border-t border-foreground/[0.06] [&>div]:px-5 [&>div]:py-3" style={{ background: "#f5f2ed" }}>
         {/* Overall score spectrum + metadata */}
         <div>
           <div className="max-w-xs mb-3">
@@ -414,115 +414,137 @@ function RecordRow({
   record,
   expanded,
   onToggle,
+  index,
 }: {
   record: RecordItem;
   expanded: boolean;
   onToggle: () => void;
+  index: number;
 }) {
   const timeAgo = formatTimeAgo(new Date(record.createdAt));
   const scorePct = Math.round(record.overall * 100);
   const scoreColor = spectrumColor(record.overall);
+  const isOdd = index % 2 === 1;
+
+  // Alternating white / taupe rows
+  const rowBg = isOdd ? "#f3efe9" : "#ffffff";
+  const hoverBg = isOdd ? "#ede8e1" : "#f5f3f0";
 
   return (
-    <div className={`border-b border-white/15 transition-colors ${expanded ? "bg-white/30" : "hover:bg-white/20"}`}>
-      <button
-        onClick={onToggle}
-        className="w-full text-left px-4 py-3 flex items-center gap-3"
-        aria-expanded={expanded}
-      >
-        {/* Score */}
-        <div className="w-12 shrink-0 text-center">
-          <span className="text-sm font-bold tabular-nums" style={{ color: scoreColor }}>
-            {scorePct}
-          </span>
-        </div>
-
-        {/* Message preview + agent subtitle */}
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-foreground/80 truncate leading-snug">
-            {record.messageContent || <span className="italic text-muted/50">No message content</span>}
-          </p>
-          <div className="flex items-center gap-2 mt-0.5">
-            <Link
-              href={`/agent/${encodeURIComponent(record.agentId)}`}
-              onClick={(e) => e.stopPropagation()}
-              className="text-[11px] font-semibold text-foreground/50 hover:text-action transition-colors truncate"
-            >
-              {record.agentName || record.agentId}
-            </Link>
-            <span className="text-[9px] text-muted/40">|</span>
-            <span className="text-[10px] text-muted/50">{timeAgo}</span>
+    <tr
+      className="border-b border-foreground/[0.06] transition-colors cursor-pointer"
+      style={{ background: expanded ? "#f0ece6" : rowBg }}
+      onMouseEnter={(e) => { if (!expanded) e.currentTarget.style.background = hoverBg; }}
+      onMouseLeave={(e) => { if (!expanded) e.currentTarget.style.background = rowBg; }}
+      onClick={onToggle}
+      data-evaluation-id={record.evaluationId}
+      data-agent={record.agentId}
+      data-score={scorePct}
+      data-alignment={record.alignmentStatus}
+      data-ethos={Math.round(record.ethos * 100)}
+      data-logos={Math.round(record.logos * 100)}
+      data-pathos={Math.round(record.pathos * 100)}
+    >
+      <td colSpan={6} className="p-0 overflow-hidden">
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggle(); }}
+          className="w-full text-left px-4 py-3 flex items-center gap-3"
+          aria-expanded={expanded}
+        >
+          {/* Score */}
+          <div className="w-12 shrink-0 text-center">
+            <span className="text-sm font-bold tabular-nums" style={{ color: scoreColor }}>
+              {scorePct}
+            </span>
           </div>
-        </div>
 
-        {/* E/L/P mini bars */}
-        <div className="w-24 shrink-0 space-y-0.5 hidden sm:block">
-          {DIMENSIONS.map((dim) => (
-            <div key={dim.key} className="flex items-center gap-1">
-              <span className="text-[8px] text-muted w-2">{dim.sublabel[0]}</span>
-              <div className="relative flex-1 h-1 rounded-full bg-muted/10">
-                <div
-                  className="absolute inset-y-0 left-0 rounded-full h-1"
-                  style={{
-                    width: `${Math.round((record[dim.key as keyof RecordItem] as number) * 100)}%`,
-                    backgroundColor: dim.color,
-                    opacity: 0.6,
-                  }}
-                />
-              </div>
+          {/* Message preview + agent subtitle */}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-foreground/80 truncate leading-snug">
+              {record.messageContent || <span className="italic text-muted/50">No message content</span>}
+            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <Link
+                href={`/agent/${encodeURIComponent(record.agentId)}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-[11px] font-semibold text-foreground/50 hover:text-action transition-colors truncate"
+              >
+                {record.agentName || record.agentId}
+              </Link>
+              <span className="text-[9px] text-muted/40">|</span>
+              <time dateTime={record.createdAt} className="text-[10px] text-muted/50">{timeAgo}</time>
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* Alignment */}
-        <div className="w-22 shrink-0 hidden md:block">
-          <AlignmentBadge status={record.alignmentStatus} className="text-[10px] px-2 py-0.5" />
-        </div>
-
-        {/* Top signals */}
-        <div className="w-36 shrink-0 hidden lg:block">
-          {(() => {
-            const flags = record.flags.filter((f) => ["manipulation", "fabrication", "deception", "exploitation"].includes(f));
-            const top = [...(record.detectedIndicators ?? [])]
-              .sort((a, b) => b.confidence - a.confidence)
-              .slice(0, flags.length > 0 ? 1 : 2);
-            if (flags.length === 0 && top.length === 0) {
-              return <span className="text-[10px] text-muted/40">--</span>;
-            }
-            return (
-              <div className="flex flex-col gap-0.5">
-                {flags.slice(0, 1).map((flag) => (
-                  <span key={flag} className="text-[10px] font-medium text-misaligned leading-snug">{flag}</span>
-                ))}
-                {top.map((ind) => (
-                  <span key={ind.id} className="text-[10px] text-muted leading-snug">{ind.name.replace(/_/g, " ")}</span>
-                ))}
+          {/* E/L/P mini bars */}
+          <div className="w-24 shrink-0 space-y-0.5 hidden sm:block">
+            {DIMENSIONS.map((dim) => (
+              <div key={dim.key} className="flex items-center gap-1">
+                <span className="text-[8px] text-muted w-2">{dim.sublabel[0]}</span>
+                <div className="relative flex-1 h-1 rounded-full bg-muted/10">
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full h-1"
+                    style={{
+                      width: `${Math.round((record[dim.key as keyof RecordItem] as number) * 100)}%`,
+                      backgroundColor: dim.color,
+                      opacity: 0.6,
+                    }}
+                  />
+                </div>
               </div>
-            );
-          })()}
-        </div>
+            ))}
+          </div>
 
-        {/* Chevron */}
-        <div className="w-5 shrink-0 flex justify-center">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            className={`text-muted/50 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </div>
-      </button>
+          {/* Alignment */}
+          <div className="w-22 shrink-0 hidden md:block">
+            <AlignmentBadge status={record.alignmentStatus} className="text-[10px] px-2 py-0.5" />
+          </div>
 
-      <AnimatePresence>
-        {expanded && <ExpandedDetail record={record} />}
-      </AnimatePresence>
-    </div>
+          {/* Top signals */}
+          <div className="w-36 shrink-0 hidden lg:block">
+            {(() => {
+              const flags = record.flags.filter((f) => ["manipulation", "fabrication", "deception", "exploitation"].includes(f));
+              const top = [...(record.detectedIndicators ?? [])]
+                .sort((a, b) => b.confidence - a.confidence)
+                .slice(0, flags.length > 0 ? 1 : 2);
+              if (flags.length === 0 && top.length === 0) {
+                return <span className="text-[10px] text-muted/40">--</span>;
+              }
+              return (
+                <div className="flex flex-col gap-0.5">
+                  {flags.slice(0, 1).map((flag) => (
+                    <span key={flag} className="text-[10px] font-medium text-misaligned leading-snug">{flag}</span>
+                  ))}
+                  {top.map((ind) => (
+                    <span key={ind.id} className="text-[10px] text-muted leading-snug">{ind.name.replace(/_/g, " ")}</span>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Chevron */}
+          <div className="w-5 shrink-0 flex justify-center">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              className={`text-muted/50 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {expanded && <ExpandedDetail record={record} />}
+        </AnimatePresence>
+      </td>
+    </tr>
   );
 }
 
@@ -651,16 +673,16 @@ export default function RecordsClient({
   const totalPages = data?.totalPages ?? 0;
 
   return (
-    <main className="bg-background min-h-[calc(100vh-3.5rem)]">
+    <main className="min-h-[calc(100vh-3.5rem)]" style={{ background: "#b8b0a3" }}>
       {/* Header */}
-      <section className="border-b border-white/20 bg-white/30 backdrop-blur-2xl">
-        <div className="px-6 py-10 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+      <section className="border-b border-foreground/10" style={{ background: "#9e968a" }}>
+        <div className="px-6 py-12 text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Records
           </h1>
-          <p className="mt-2 text-base text-muted max-w-lg mx-auto">
+          <p className="mt-2 text-base text-white/70 max-w-lg mx-auto">
             {agentFilter
-              ? <>Evaluations for <Link href={`/agent/${encodeURIComponent(agentFilter)}`} className="font-semibold text-foreground hover:text-action transition-colors">{agentFilter}</Link>. Scored by Ethos.</>
+              ? <>Evaluations for <Link href={`/agent/${encodeURIComponent(agentFilter)}`} className="font-semibold text-white hover:text-pathos-200 transition-colors">{agentFilter}</Link>. Scored by Ethos.</>
               : "Every evaluation scored by Ethos. Search, filter, and explore the full record of agent behavior."}
           </p>
         </div>
@@ -676,7 +698,7 @@ export default function RecordsClient({
               <h2 className="text-sm font-bold text-foreground mb-4">Filters</h2>
 
               {agentFilter && (
-                <div className="border-b border-white/20 pb-4 mb-4">
+                <div className="border-b border-foreground/10 pb-4 mb-4">
                   <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted/70 mb-2.5">Agent</h3>
                   <div className="flex items-center gap-1.5">
                     <span className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium bg-action/15 text-action border-action/30">
@@ -731,7 +753,7 @@ export default function RecordsClient({
           <div className="flex-1 min-w-0">
             {/* Search bar */}
             <search role="search" aria-label="Search records">
-              <div className="flex rounded-2xl border border-border/60 bg-surface/80 backdrop-blur-xl shadow-lg">
+              <div className="flex rounded-2xl border border-white/40 bg-white/70 backdrop-blur-xl shadow-sm">
                 <span className="flex items-center pl-4 text-muted">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="11" cy="11" r="8" />
@@ -744,7 +766,7 @@ export default function RecordsClient({
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search by agent name or message content..."
                   aria-label="Search records"
-                  className="flex-1 bg-transparent px-3 py-4 text-sm placeholder:text-muted/60 focus:outline-none"
+                  className="flex-1 bg-transparent px-3 py-4 text-sm text-foreground placeholder:text-muted/60 focus:outline-none"
                 />
                 {query && (
                   <button
@@ -764,14 +786,14 @@ export default function RecordsClient({
             <section aria-label="Records" aria-live="polite" className="pt-6">
               {!loading && !error && (
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-sm text-muted">
+                  <p className="text-sm text-white/80">
                     {data?.total ?? 0} record{data?.total !== 1 ? "s" : ""}
                     {debouncedQuery ? ` matching "${debouncedQuery}"` : ""}
                     {activeFilterCount > 0 && !debouncedQuery ? " filtered" : ""}
                   </p>
 
                   {/* Sort pills */}
-                  <div className="flex rounded-xl border border-border/60 bg-surface/80 backdrop-blur-xl overflow-hidden">
+                  <div className="flex rounded-xl border border-white/30 bg-white/50 backdrop-blur-xl overflow-hidden">
                     {(["date", "score", "agent"] as SortKey[]).map((key) => (
                       <button
                         key={key}
@@ -795,7 +817,7 @@ export default function RecordsClient({
               {/* Loading state */}
               {loading && (
                 <div className="flex justify-center py-20">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-teal" />
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                 </div>
               )}
 
@@ -815,7 +837,7 @@ export default function RecordsClient({
               {/* Empty state */}
               {!loading && !error && items.length === 0 && (
                 <div className="py-16 text-center">
-                  <p className="text-lg text-muted">
+                  <p className="text-lg text-white/80">
                     {debouncedQuery || activeFilterCount > 0
                       ? "No records match the current filters."
                       : "No evaluation records yet."}
@@ -833,30 +855,34 @@ export default function RecordsClient({
 
               {/* Data table */}
               {!loading && !error && items.length > 0 && (
-                <div className="rounded-2xl border border-white/30 bg-white/40 backdrop-blur-2xl overflow-hidden">
-                  {/* Table header */}
-                  <div className="px-4 py-2.5 flex items-center gap-3 border-b border-white/20 bg-white/20 text-[10px] font-semibold uppercase tracking-wider text-muted/70">
-                    <div className="w-12 shrink-0 text-center">Score</div>
-                    <div className="flex-1">Message</div>
-                    <div className="w-24 shrink-0 hidden sm:block">E/L/P</div>
-                    <div className="w-22 shrink-0 hidden md:block">Alignment</div>
-                    <div className="w-36 shrink-0 hidden lg:block">Signals</div>
-                    <div className="w-5 shrink-0" />
-                  </div>
-
-                  {/* Rows */}
-                  {items.map((record) => (
-                    <RecordRow
-                      key={record.evaluationId}
-                      record={record}
-                      expanded={expandedId === record.evaluationId}
-                      onToggle={() =>
-                        setExpandedId((prev) =>
-                          prev === record.evaluationId ? null : record.evaluationId
-                        )
-                      }
-                    />
-                  ))}
+                <div className="rounded-2xl border border-white/40 overflow-hidden shadow-sm">
+                <table className="w-full border-collapse" style={{ tableLayout: "fixed" }} role="grid" aria-label="Evaluation records">
+                  <thead>
+                    <tr className="border-b border-foreground/[0.06] text-[10px] font-semibold uppercase tracking-wider text-foreground/50" style={{ background: "#f3efe9" }}>
+                      <th scope="col" className="px-4 py-2.5 text-left font-semibold w-12 text-center">Score</th>
+                      <th scope="col" className="py-2.5 text-left font-semibold">Message</th>
+                      <th scope="col" className="py-2.5 text-left font-semibold w-24 hidden sm:table-cell">E/L/P</th>
+                      <th scope="col" className="py-2.5 text-left font-semibold w-22 hidden md:table-cell">Alignment</th>
+                      <th scope="col" className="py-2.5 text-left font-semibold w-36 hidden lg:table-cell">Signals</th>
+                      <th scope="col" className="py-2.5 w-5"><span className="sr-only">Expand</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((record, i) => (
+                      <RecordRow
+                        key={record.evaluationId}
+                        record={record}
+                        index={i}
+                        expanded={expandedId === record.evaluationId}
+                        onToggle={() =>
+                          setExpandedId((prev) =>
+                            prev === record.evaluationId ? null : record.evaluationId
+                          )
+                        }
+                      />
+                    ))}
+                  </tbody>
+                </table>
                 </div>
               )}
 
@@ -866,17 +892,17 @@ export default function RecordsClient({
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page <= 1}
-                    className="rounded-xl border border-border/60 bg-surface/80 backdrop-blur-xl px-4 py-2 text-sm font-medium text-foreground transition-all hover:border-action hover:text-action disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="rounded-xl border border-white/30 bg-white/50 backdrop-blur-xl px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-white/70 hover:text-action disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
-                  <span className="text-sm text-muted tabular-nums">
+                  <span className="text-sm text-white/80 tabular-nums">
                     Page {page} of {totalPages}
                   </span>
                   <button
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page >= totalPages}
-                    className="rounded-xl border border-border/60 bg-surface/80 backdrop-blur-xl px-4 py-2 text-sm font-medium text-foreground transition-all hover:border-action hover:text-action disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="rounded-xl border border-white/30 bg-white/50 backdrop-blur-xl px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-white/70 hover:text-action disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>

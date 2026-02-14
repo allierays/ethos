@@ -16,7 +16,7 @@ const MOCK_PROFILE: AgentProfile = {
   alignmentHistory: ["aligned", "aligned", "developing"],
   enrolled: true,
   enrolledAt: "2024-06-01T00:00:00Z",
-  counselorName: "Dr. Aristotle",
+  guardianName: "Dr. Aristotle",
   entranceExamCompleted: true,
   telos: "",
   relationshipStance: "",

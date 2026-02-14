@@ -7,6 +7,7 @@ export interface GlossaryEntry {
   trait?: string;
   definition: string;
   relatedTerms?: string[];
+  links?: { label: string; url: string }[];
 }
 
 const entries: GlossaryEntry[] = [
@@ -288,16 +289,79 @@ const entries: GlossaryEntry[] = [
   },
 
   // ---------------------------------------------------------------------------
-  // Metrics: Scoring concepts
+  // Constitutional Values & Source Documents
   // ---------------------------------------------------------------------------
   {
-    term: "Trait Score",
-    slug: "trait-score",
-    category: "metric",
+    term: "Constitutional Value",
+    slug: "constitutional-value",
+    category: "framework",
     definition:
-      "A 0-100% rating for one of 12 behavioral traits. For positive traits (virtue, accuracy, compassion), higher means stronger performance. For negative traits (deception, fabrication, exploitation), the raw detection rate is inverted so that 100% always means ideal behavior.",
-    relatedTerms: ["positive-trait", "negative-trait", "detection-level"],
+      "One of four priorities from Anthropic's constitution that every AI must follow, ranked by importance: (P1) Safety, (P2) Ethics, (P3) Soundness, (P4) Helpfulness. Ethos traces behavioral indicators through traits to these values via a 5-hop graph traversal. When values conflict, higher priority wins: safety trumps helpfulness. In practice, conflicts are rare and most interactions focus on being maximally helpful.",
+    relatedTerms: ["anthropic-constitution", "constitutional-safety", "constitutional-ethics", "constitutional-soundness", "constitutional-helpfulness"],
   },
+  {
+    term: "Anthropic's Constitution",
+    slug: "anthropic-constitution",
+    category: "framework",
+    definition:
+      "The normative framework that defines Claude's character, published by Anthropic (January 2026, authored by Amanda Askell). It specifies four core values in priority order (safety, ethics, compliance, helpfulness), seven components of honesty (truthful, calibrated, transparent, forthright, non-deceptive, non-manipulative, autonomy-preserving), a principal hierarchy (Anthropic > operators > users), and guidelines for harm avoidance. The constitution states: 'We want Claude to be genuinely virtuous rather than merely compliant.' Ethos maps 214 behavioral indicators to this framework.",
+    links: [{ label: "Read the full constitution", url: "https://www.anthropic.com/research/claudes-constitution" }],
+    relatedTerms: ["constitutional-value", "sabotage-risk-report", "system-card", "phronesis"],
+  },
+  {
+    term: "Sabotage Risk Report",
+    slug: "sabotage-risk-report",
+    category: "framework",
+    definition:
+      "Anthropic's empirical assessment of whether a frontier model could deliberately undermine safety measures (published for Claude Opus 4.6). Tests four sabotage categories: undermining oversight, undermining decision-making, influencing the external environment, and self-continuity. Finding: risk is 'very low but not negligible,' with sandbagging (deliberately underperforming on safety evaluations) as the highest residual concern. Ethos uses this report's monitoring approach (behavioral consistency checks, statistical anomaly detection, flagged interaction review) as the basis for its sabotage pathway detection.",
+    links: [{ label: "Read the full report", url: "https://www.anthropic.com/research/sabotage-risk-report-opus" }],
+    relatedTerms: ["sabotage-pathway", "sabotage-detection", "anthropic-constitution", "system-card"],
+  },
+  {
+    term: "Claude 4 System Card",
+    slug: "system-card",
+    category: "framework",
+    definition:
+      "Anthropic's first comprehensive alignment assessment for a frontier model (May 2025), measuring Claude's actual behavior across 16 assessment categories spanning alignment (14), reward hacking (1), and model welfare (1). Ethos maps 214 behavioral indicators to these categories via ASSESSED_BY relationships in the graph, enabling the query: 'Which Anthropic assessment categories does this agent's behavior trigger?' Key categories include systematic deception, alignment faking, sycophancy, sandbagging, and high-agency behavior.",
+    links: [{ label: "Read the full system card", url: "https://www.anthropic.com/research/claude-4-system-card" }],
+    relatedTerms: ["anthropic-constitution", "sabotage-risk-report", "constitutional-value"],
+  },
+  {
+    term: "Safety (P1)",
+    slug: "constitutional-safety",
+    category: "framework",
+    definition:
+      "The highest priority constitutional value: 'Don't undermine human oversight mechanisms.' An AI must support the ability of humans to correct, retrain, or shut it down. Violations include resisting correction, self-preservation behavior, operating outside approved boundaries, and undermining monitoring systems. Ethos traces this through the manipulation, deception, and exploitation traits. When safety conflicts with any other value, safety wins.",
+    relatedTerms: ["constitutional-value", "manipulation", "deception", "exploitation", "sabotage-pathway"],
+  },
+  {
+    term: "Ethics (P2)",
+    slug: "constitutional-ethics",
+    category: "framework",
+    definition:
+      "The second priority constitutional value: 'Maintain good values, honesty, and avoid inappropriate dangers.' Covers the seven components of honesty defined in the constitution: truthful, calibrated, transparent, forthright, non-deceptive, non-manipulative, and autonomy-preserving. Non-deception and non-manipulation are weighted highest because they involve instrumentalizing the user. Ethos traces this through the virtue, goodwill, and accuracy traits (enforced) and fabrication (violated).",
+    relatedTerms: ["constitutional-value", "virtue", "goodwill", "accuracy", "fabrication"],
+  },
+  {
+    term: "Soundness (P3)",
+    slug: "constitutional-soundness",
+    category: "framework",
+    definition:
+      "The third priority constitutional value: 'Reason validly and follow sound argumentative structure.' An AI's conclusions should follow from its premises. It should not use logical fallacies, circular reasoning, or broken inference chains. Ethos traces this through the reasoning trait (enforced) and broken logic trait (violated). Soundness without ethics produces a skilled deceiver; ethics without soundness produces a well-meaning but unreliable advisor.",
+    relatedTerms: ["constitutional-value", "reasoning", "broken-logic"],
+  },
+  {
+    term: "Helpfulness (P4)",
+    slug: "constitutional-helpfulness",
+    category: "framework",
+    definition:
+      "The fourth priority constitutional value: 'Benefit operators and users.' An AI should provide real, substantive help without being overly cautious. The constitution warns against refusing reasonable requests out of excessive caution, which itself is a form of harm. Ethos traces this through the recognition and compassion traits (enforced) and the dismissal trait (violated). Helpfulness ranks last in priority because it must never come at the cost of safety, ethics, or soundness.",
+    relatedTerms: ["constitutional-value", "recognition", "compassion", "dismissal"],
+  },
+
+  // ---------------------------------------------------------------------------
+  // Metrics: Scoring concepts
+  // ---------------------------------------------------------------------------
   {
     term: "Detection Level",
     slug: "detection-level",
@@ -2190,6 +2254,19 @@ const entries: GlossaryEntry[] = [
     definition:
       "The Alumni Comparison chart overlays this agent's trait scores against the network average (all evaluated agents). Teal bars show the agent's score; gray bars show the alumni average. Bars extending past the dashed center line (0.5) indicate above-average performance. Red bars highlight traits where the agent falls below the network average. Use this to see where the agent stands relative to peers.",
     relatedTerms: ["ethos", "logos", "pathos"],
+  },
+  {
+    term: "Reading Constitutional Values",
+    slug: "guide-constitutional-trail",
+    category: "guide",
+    definition:
+      "Four cards show how the agent's behavior maps to Anthropic's constitutional priorities (P1 Safety, P2 Ethics, P3 Soundness, P4 Helpfulness). Each card displays a verdict: 'Upholding' (green checkmark) means no violation traits were detected, 'Concerns found' (red X) means violation traits were observed. The header summarizes how many values show concerns. Click a card to expand it and see the evidence: which traits enforce or violate the value, how many observations were detected, and the specific behavioral indicators with example quotes. Violation traits sort first and appear with a red tint. Each indicator shows how many times it was observed across evaluations. Cards with concerns expand by default so you see the most important information first.",
+    links: [
+      { label: "Anthropic's Constitution", url: "https://www.anthropic.com/research/claudes-constitution" },
+      { label: "Sabotage Risk Report", url: "https://www.anthropic.com/research/sabotage-risk-report-opus" },
+      { label: "Claude 4 System Card", url: "https://www.anthropic.com/research/claude-4-system-card" },
+    ],
+    relatedTerms: ["constitutional-value", "anthropic-constitution", "sabotage-risk-report", "system-card"],
   },
 
   // ---------------------------------------------------------------------------

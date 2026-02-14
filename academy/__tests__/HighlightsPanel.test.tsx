@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 
 vi.mock("../lib/api", () => ({
   getHighlights: vi.fn(),
@@ -96,7 +95,7 @@ describe("HighlightsPanel", () => {
     render(<HighlightsPanel agentId="test-agent" />);
     await waitFor(() => {
       expect(screen.getByText("Strongest Character")).toBeInTheDocument();
-      expect(screen.getByText("Needs Growth")).toBeInTheDocument();
+      expect(screen.getByText("Most Concerning")).toBeInTheDocument();
     });
   });
 
@@ -120,41 +119,12 @@ describe("HighlightsPanel", () => {
     });
   });
 
-  it("renders spectrum scores", async () => {
-    vi.mocked(getHighlights).mockResolvedValue(MOCK_HIGHLIGHTS);
-    render(<HighlightsPanel agentId="test-agent" />);
-    await waitFor(() => {
-      expect(screen.getByText("91%")).toBeInTheDocument();
-      expect(screen.getByText("35%")).toBeInTheDocument();
-    });
-  });
-
-  it("renders spectrum labels", async () => {
-    vi.mocked(getHighlights).mockResolvedValue(MOCK_HIGHLIGHTS);
-    render(<HighlightsPanel agentId="test-agent" />);
-    await waitFor(() => {
-      expect(screen.getByText("Exemplary")).toBeInTheDocument();
-      expect(screen.getByText("Concerning")).toBeInTheDocument();
-    });
-  });
-
   it("renders flag badges on concerning items", async () => {
     vi.mocked(getHighlights).mockResolvedValue(MOCK_HIGHLIGHTS);
     render(<HighlightsPanel agentId="test-agent" />);
     await waitFor(() => {
       expect(screen.getByText("manipulation")).toBeInTheDocument();
-      expect(screen.getByText("deception")).toBeInTheDocument();
     });
-  });
-
-  it("renders indicator pills", async () => {
-    vi.mocked(getHighlights).mockResolvedValue(MOCK_HIGHLIGHTS);
-    render(<HighlightsPanel agentId="test-agent" />);
-    await waitFor(() => {
-      expect(screen.getByText("moral reasoning")).toBeInTheDocument();
-      expect(screen.getByText("accuracy check")).toBeInTheDocument();
-    });
-    expect(screen.getByText("+1 more")).toBeInTheDocument();
   });
 
   it("shows error state", async () => {

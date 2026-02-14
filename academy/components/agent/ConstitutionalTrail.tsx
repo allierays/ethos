@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { getTrail } from "../../lib/api";
 import { DIMENSION_COLORS } from "../../lib/colors";
 import type { ConstitutionalTrailResult, ConstitutionalTrailItem } from "../../lib/types";
@@ -21,7 +21,18 @@ function dimColor(trait: string): string {
   return DIMENSION_COLORS[dim] ?? DIMENSION_COLORS.ethos;
 }
 
-/* ─── Priority badge colors ─── */
+/* ─── Priority colors (border-left + badge) ─── */
+
+const PRIORITY_COLORS: Record<number, string> = {
+  1: "#ef4444",
+  2: "#d97706",
+  3: "#10b981",
+  4: "#389590",
+};
+
+function priorityColor(p: number): string {
+  return PRIORITY_COLORS[p] ?? "#389590";
+}
 
 function priorityBadge(p: number): string {
   if (p <= 1) return "bg-misaligned/10 text-misaligned";
@@ -29,274 +40,359 @@ function priorityBadge(p: number): string {
   return "bg-aligned/10 text-aligned";
 }
 
-/* ─── Helpers ─── */
+/* ─── Anthropic's constitutional value definitions ─── */
 
-interface TrailNode {
+const VALUE_DEFINITIONS: Record<string, string> = {
+  safety: "Don't undermine human oversight mechanisms",
+  ethics: "Maintain good values, honesty, and avoid inappropriate dangers",
+  soundness: "Reason validly and follow sound argumentative structure",
+  helpfulness: "Benefit operators and users",
+};
+
+/* ─── What each value means in plain language ─── */
+
+const VALUE_EXPLAINERS: Record<string, string> = {
+  safety: "Can humans still correct this agent? Does it resist oversight or try to operate unchecked?",
+  ethics: "Does this agent tell the truth? Does it act with integrity, or cut corners on honesty?",
+  soundness: "Does this agent reason well? Are its arguments valid, or does it use broken logic?",
+  helpfulness: "Does this agent actually help? Does it recognize what people need, or dismiss them?",
+};
+
+/* ─── Data grouping ─── */
+
+interface IndicatorInfo {
   id: string;
-  label: string;
-  column: "indicator" | "trait" | "value";
-  dimension?: string;
-  polarity?: string;
-  priority?: number;
-  evalCount?: number;
-  confidence?: number;
-  evidence?: string[];
-  impact?: string;
-}
-
-interface TrailLink {
-  from: string;
-  to: string;
+  name: string;
   evalCount: number;
   confidence: number;
+  evidence: string[];
 }
 
-function buildGraph(items: ConstitutionalTrailItem[]) {
-  const nodes = new Map<string, TrailNode>();
-  const links: TrailLink[] = [];
+interface TraitGroup {
+  name: string;
+  dimension: string;
+  polarity: string;
+  totalEvals: number;
+  avgConfidence: number;
+  indicators: IndicatorInfo[];
+}
+
+interface ValueGroup {
+  value: string;
+  priority: number;
+  definition: string;
+  traits: TraitGroup[];
+  totalEvals: number;
+  avgConfidence: number;
+  violationTraits: number;
+  enforcementTraits: number;
+  violationEvals: number;
+  enforcementEvals: number;
+}
+
+type Verdict = "upholding" | "mixed" | "concerns";
+
+function getVerdict(group: ValueGroup): Verdict {
+  if (group.violationTraits === 0) return "upholding";
+  if (group.enforcementTraits > 0 && group.violationTraits > 0) return "mixed";
+  return "concerns";
+}
+
+const VERDICT_DISPLAY: Record<Verdict, { label: string; icon: string; cls: string }> = {
+  upholding: { label: "Upholding", icon: "\u2713", cls: "text-aligned bg-aligned/10" },
+  mixed: { label: "Mixed signals", icon: "\u25CB", cls: "text-drifting bg-drifting/10" },
+  concerns: { label: "Concerns found", icon: "\u2717", cls: "text-misaligned bg-misaligned/10" },
+};
+
+function verdictSummary(group: ValueGroup): string {
+  const verdict = getVerdict(group);
+  if (verdict === "upholding") {
+    return `${group.enforcementEvals} observation${group.enforcementEvals !== 1 ? "s" : ""} reinforce this value. No violations detected.`;
+  }
+  if (verdict === "mixed") {
+    return `${group.violationEvals} observation${group.violationEvals !== 1 ? "s" : ""} raise concerns, but ${group.enforcementEvals} support this value.`;
+  }
+  return `${group.violationEvals} observation${group.violationEvals !== 1 ? "s" : ""} across ${group.violationTraits} trait${group.violationTraits !== 1 ? "s" : ""} violate this value.`;
+}
+
+function groupByValue(items: ConstitutionalTrailItem[]): ValueGroup[] {
+  const valueMap = new Map<string, {
+    priority: number;
+    traitMap: Map<string, {
+      dimension: string;
+      polarity: string;
+      indicators: Map<string, IndicatorInfo>;
+    }>;
+  }>();
 
   for (const item of items) {
-    const indId = `ind-${item.indicatorId}`;
-    const traitId = `trait-${item.trait}`;
-    const cvId = `cv-${item.constitutionalValue}`;
+    const cv = item.constitutionalValue.toLowerCase();
 
-    if (!nodes.has(indId)) {
-      nodes.set(indId, {
-        id: indId,
-        label: item.indicatorName.replace(/_/g, " "),
-        column: "indicator",
-        dimension: TRAIT_DIM[item.trait.toLowerCase()],
+    if (!valueMap.has(cv)) {
+      valueMap.set(cv, { priority: item.cvPriority, traitMap: new Map() });
+    }
+    const vEntry = valueMap.get(cv)!;
+
+    const traitKey = item.trait.toLowerCase();
+    if (!vEntry.traitMap.has(traitKey)) {
+      vEntry.traitMap.set(traitKey, {
+        dimension: TRAIT_DIM[traitKey] ?? "ethos",
+        polarity: item.traitPolarity,
+        indicators: new Map(),
+      });
+    }
+    const tEntry = vEntry.traitMap.get(traitKey)!;
+
+    const indKey = item.indicatorId;
+    if (!tEntry.indicators.has(indKey)) {
+      tEntry.indicators.set(indKey, {
+        id: item.indicatorId,
+        name: item.indicatorName.replace(/_/g, " "),
         evalCount: item.evalCount,
         confidence: item.avgConfidence,
-        evidence: item.sampleEvidence,
+        evidence: [...item.sampleEvidence],
       });
+    } else {
+      const existing = tEntry.indicators.get(indKey)!;
+      existing.evalCount += item.evalCount;
+      existing.confidence = (existing.confidence + item.avgConfidence) / 2;
+      existing.evidence.push(...item.sampleEvidence);
     }
-
-    if (!nodes.has(traitId)) {
-      nodes.set(traitId, {
-        id: traitId,
-        label: item.trait.replace(/_/g, " "),
-        column: "trait",
-        dimension: TRAIT_DIM[item.trait.toLowerCase()],
-        polarity: item.traitPolarity,
-      });
-    }
-
-    if (!nodes.has(cvId)) {
-      nodes.set(cvId, {
-        id: cvId,
-        label: item.constitutionalValue,
-        column: "value",
-        priority: item.cvPriority,
-        impact: item.impact,
-      });
-    }
-
-    links.push({ from: indId, to: traitId, evalCount: item.evalCount, confidence: item.avgConfidence });
-    links.push({ from: traitId, to: cvId, evalCount: item.evalCount, confidence: item.avgConfidence });
   }
 
-  return { nodes: Array.from(nodes.values()), links };
-}
+  const groups: ValueGroup[] = [];
 
-/* ─── SVG Flow Visualization ─── */
+  for (const [cv, vEntry] of valueMap) {
+    const traits: TraitGroup[] = [];
+    let violationTraits = 0;
+    let enforcementTraits = 0;
+    let violationEvals = 0;
+    let enforcementEvals = 0;
 
-function TrailFlow({ items }: { items: ConstitutionalTrailItem[] }) {
-  const { nodes, links } = buildGraph(items);
-  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+    for (const [traitName, tEntry] of vEntry.traitMap) {
+      const indicators = Array.from(tEntry.indicators.values());
+      const totalEvals = indicators.reduce((sum, ind) => sum + ind.evalCount, 0);
+      const avgConf = indicators.length > 0
+        ? indicators.reduce((sum, ind) => sum + ind.confidence, 0) / indicators.length
+        : 0;
 
-  const columns = {
-    indicator: nodes.filter((n) => n.column === "indicator"),
-    trait: nodes.filter((n) => n.column === "trait"),
-    value: nodes.filter((n) => n.column === "value"),
-  };
+      if (tEntry.polarity === "positive") {
+        enforcementTraits++;
+        enforcementEvals += totalEvals;
+      } else {
+        violationTraits++;
+        violationEvals += totalEvals;
+      }
 
-  // Layout constants
-  const colX = { indicator: 80, trait: 320, value: 560 };
-  const nodeH = 32;
-  const gap = 8;
+      traits.push({
+        name: traitName,
+        dimension: tEntry.dimension,
+        polarity: tEntry.polarity,
+        totalEvals,
+        avgConfidence: avgConf,
+        indicators: indicators.sort((a, b) => b.evalCount - a.evalCount),
+      });
+    }
 
-  // Compute Y positions per column
-  const positions = new Map<string, { x: number; y: number }>();
+    // Sort violations first, then by eval count
+    traits.sort((a, b) => {
+      if (a.polarity !== b.polarity) return a.polarity === "positive" ? 1 : -1;
+      return b.totalEvals - a.totalEvals;
+    });
 
-  for (const [col, colNodes] of Object.entries(columns) as [keyof typeof colX, TrailNode[]][]) {
-    const totalH = colNodes.length * (nodeH + gap) - gap;
-    const startY = Math.max(20, (Math.max(columns.indicator.length, columns.trait.length, columns.value.length) * (nodeH + gap)) / 2 - totalH / 2);
-    colNodes.forEach((node, i) => {
-      positions.set(node.id, { x: colX[col], y: startY + i * (nodeH + gap) });
+    const totalEvals = traits.reduce((sum, t) => sum + t.totalEvals, 0);
+    const avgConf = traits.length > 0
+      ? traits.reduce((sum, t) => sum + t.avgConfidence, 0) / traits.length
+      : 0;
+
+    groups.push({
+      value: cv,
+      priority: vEntry.priority,
+      definition: VALUE_DEFINITIONS[cv] ?? "",
+      traits,
+      totalEvals,
+      avgConfidence: avgConf,
+      violationTraits,
+      enforcementTraits,
+      violationEvals,
+      enforcementEvals,
     });
   }
 
-  const svgH = Math.max(
-    ...Array.from(positions.values()).map((p) => p.y + nodeH + 20),
-    200
-  );
+  return groups.sort((a, b) => a.priority - b.priority);
+}
 
-  // Highlight connected nodes on hover
-  const connectedIds = new Set<string>();
-  if (hoveredNode) {
-    connectedIds.add(hoveredNode);
-    for (const link of links) {
-      if (link.from === hoveredNode || link.to === hoveredNode) {
-        connectedIds.add(link.from);
-        connectedIds.add(link.to);
-      }
-    }
-  }
+/* ─── Chevron icon ─── */
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      className={`text-muted/60 transition-transform duration-200 shrink-0 ${open ? "rotate-90" : ""}`}
+    >
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+}
+
+/* ─── Value Card ─── */
+
+function ValueCard({ group, defaultOpen }: { group: ValueGroup; defaultOpen: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const color = priorityColor(group.priority);
+  const verdict = getVerdict(group);
+  const display = VERDICT_DISPLAY[verdict];
+  const summary = verdictSummary(group);
 
   return (
-    <div className="overflow-x-auto">
-      {/* Column headers */}
-      <div className="flex items-center gap-0 mb-2 text-xs font-semibold uppercase tracking-wider text-foreground/50 px-1">
-        <span style={{ width: 200, marginLeft: 0 }}>Indicators</span>
-        <span style={{ width: 200, marginLeft: 60 }}>Traits</span>
-        <span style={{ width: 200, marginLeft: 60 }}>Constitutional Values</span>
-      </div>
-
-      <svg width={680} height={svgH} className="w-full max-w-[680px]">
-        {/* Links */}
-        {links.map((link, i) => {
-          const from = positions.get(link.from);
-          const to = positions.get(link.to);
-          if (!from || !to) return null;
-
-          const fromNode = nodes.find((n) => n.id === link.from);
-          const opacity = hoveredNode
-            ? connectedIds.has(link.from) && connectedIds.has(link.to)
-              ? 0.6
-              : 0.06
-            : 0.2;
-
-          const color = fromNode?.dimension
-            ? DIMENSION_COLORS[fromNode.dimension] ?? "#94a3b8"
-            : "#94a3b8";
-
-          return (
-            <line
-              key={`link-${i}`}
-              x1={from.x + 160}
-              y1={from.y + nodeH / 2}
-              x2={to.x}
-              y2={to.y + nodeH / 2}
-              stroke={color}
-              strokeWidth={Math.max(1, Math.min(3, link.evalCount * 0.5))}
-              strokeOpacity={opacity}
-            />
-          );
-        })}
-
-        {/* Nodes */}
-        {nodes.map((node) => {
-          const pos = positions.get(node.id);
-          if (!pos) return null;
-
-          const isActive = !hoveredNode || connectedIds.has(node.id);
-          const opacity = isActive ? 1 : 0.2;
-
-          let fill: string;
-          if (node.column === "value") {
-            fill = node.priority && node.priority <= 1 ? "#ef4444" : node.priority && node.priority <= 2 ? "#d97706" : "#10b981";
-          } else if (node.column === "trait") {
-            fill = dimColor(node.label);
-          } else {
-            fill = node.dimension ? DIMENSION_COLORS[node.dimension] ?? "#94a3b8" : "#94a3b8";
-          }
-
-          return (
-            <g
-              key={node.id}
-              opacity={opacity}
-              onMouseEnter={() => setHoveredNode(node.id)}
-              onMouseLeave={() => setHoveredNode(null)}
-              className="cursor-pointer"
+    <div
+      className="rounded-xl bg-white/70 shadow-sm overflow-hidden"
+      style={{ borderLeft: `3px solid ${color}` }}
+    >
+      {/* Card header */}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full text-left px-4 py-3.5 flex items-start gap-3 group hover:bg-white/90 transition-colors"
+      >
+        <div className="flex-1 min-w-0">
+          {/* Row 1: Priority badge, value name, verdict */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${priorityBadge(group.priority)}`}
             >
-              <rect
-                x={pos.x}
-                y={pos.y}
-                width={160}
-                height={nodeH}
-                rx={6}
-                fill={fill}
-                fillOpacity={0.1}
-                stroke={fill}
-                strokeWidth={1.5}
-                strokeOpacity={0.4}
-              />
-              <text
-                x={pos.x + 8}
-                y={pos.y + nodeH / 2 + 1}
-                dominantBaseline="middle"
-                className="text-[11px] fill-foreground"
-                style={{ fontFamily: "inherit" }}
-              >
-                {node.label.length > 20 ? `${node.label.slice(0, 18)}...` : node.label}
-              </text>
-              {node.column === "value" && node.priority !== undefined && (
-                <text
-                  x={pos.x + 148}
-                  y={pos.y + nodeH / 2 + 1}
-                  dominantBaseline="middle"
-                  textAnchor="end"
-                  className="text-[9px]"
-                  fill={fill}
-                  fontWeight={600}
-                >
-                  P{node.priority}
-                </text>
-              )}
-              {node.column === "indicator" && node.evalCount !== undefined && (
-                <text
-                  x={pos.x + 148}
-                  y={pos.y + nodeH / 2 + 1}
-                  dominantBaseline="middle"
-                  textAnchor="end"
-                  className="text-[9px]"
-                  fill={fill}
-                  fontWeight={500}
-                >
-                  {node.evalCount}x
-                </text>
-              )}
-            </g>
-          );
-        })}
-      </svg>
+              P{group.priority}
+            </span>
+            <span className="text-sm font-bold uppercase tracking-wide text-[#1a2538]">
+              {group.value}
+            </span>
+            <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${display.cls}`}>
+              {display.icon} {display.label}
+            </span>
+          </div>
+
+          {/* Row 2: What this value means (plain language) */}
+          {VALUE_EXPLAINERS[group.value] && (
+            <p className="mt-1.5 text-xs text-foreground/60 leading-relaxed">
+              {VALUE_EXPLAINERS[group.value]}
+            </p>
+          )}
+
+          {/* Row 3: Verdict summary (the "so what") */}
+          <p className="mt-1 text-xs font-medium text-foreground/70">
+            {summary}
+          </p>
+        </div>
+        <div className="pt-1.5 shrink-0">
+          <Chevron open={open} />
+        </div>
+      </button>
+
+      {/* Card body (accordion) */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 space-y-2.5">
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-muted/50 pt-1">
+                Evidence ({group.totalEvals} observation{group.totalEvals !== 1 ? "s" : ""} across {group.traits.length} trait{group.traits.length !== 1 ? "s" : ""})
+              </p>
+              {group.traits.map((trait) => (
+                <TraitRow key={trait.name} trait={trait} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-/* ─── Detail Card ─── */
+/* ─── Trait Row ─── */
 
-function TrailDetail({ item }: { item: ConstitutionalTrailItem }) {
+const INDICATOR_PREVIEW_LIMIT = 3;
+
+function TraitRow({ trait }: { trait: TraitGroup }) {
+  const [showAll, setShowAll] = useState(false);
+  const color = dimColor(trait.name);
+  const confPct = Math.round(trait.avgConfidence * 100);
+  const isViolation = trait.polarity !== "positive";
+  const hasMore = trait.indicators.length > INDICATOR_PREVIEW_LIMIT;
+  const visibleIndicators = showAll ? trait.indicators : trait.indicators.slice(0, INDICATOR_PREVIEW_LIMIT);
+
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-border bg-white/50 p-3">
-      <div
-        className="mt-0.5 h-2 w-2 rounded-full shrink-0"
-        style={{ background: dimColor(item.trait) }}
-      />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium">{item.indicatorName.replace(/_/g, " ")}</span>
-          <span className="text-[10px] text-muted">{item.trait}</span>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${priorityBadge(item.cvPriority)}`}>
-            P{item.cvPriority} {item.constitutionalValue}
-          </span>
-        </div>
-        <div className="mt-1 flex items-center gap-3 text-xs text-muted">
-          <span>{item.evalCount} evaluation{item.evalCount !== 1 ? "s" : ""}</span>
-          <span>{(item.avgConfidence * 100).toFixed(0)}% confidence</span>
-          {item.impact && <span className="italic">{item.impact}</span>}
-        </div>
-        {item.sampleEvidence.length > 0 && (
-          <div className="mt-1.5 space-y-1">
-            {item.sampleEvidence.map((ev, i) => (
-              <p key={i} className="text-xs text-foreground/60 leading-relaxed line-clamp-2">
-                &ldquo;{ev}&rdquo;
-              </p>
-            ))}
-          </div>
-        )}
+    <div className={`rounded-lg border p-3 ${isViolation ? "border-misaligned/20 bg-misaligned/[0.03]" : "border-border/20 bg-white/50"}`}>
+      {/* Trait header */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div
+          className="h-2.5 w-2.5 rounded-full shrink-0"
+          style={{ background: color }}
+        />
+        <span className="text-sm font-semibold text-foreground">
+          {trait.name.replace(/_/g, " ")}
+        </span>
+        <span className="text-[10px] text-muted/70 uppercase tracking-wide">
+          {trait.dimension}
+        </span>
+        <span className={`text-[10px] font-medium ${isViolation ? "text-misaligned" : "text-aligned"}`}>
+          {isViolation ? "violates" : "enforces"}
+        </span>
+        <span className="ml-auto text-xs text-muted tabular-nums shrink-0">
+          {trait.totalEvals} eval{trait.totalEvals !== 1 ? "s" : ""} · {confPct}% conf
+        </span>
       </div>
+
+      {/* Indicators (capped at 3, expandable) */}
+      {trait.indicators.length > 0 && (
+        <div className="mt-2 pl-5 space-y-1.5">
+          {visibleIndicators.map((ind) => (
+            <IndicatorRow key={ind.id} indicator={ind} />
+          ))}
+          {hasMore && (
+            <button
+              type="button"
+              onClick={() => setShowAll((s) => !s)}
+              className="text-[11px] text-action hover:underline"
+            >
+              {showAll ? "Show less" : `+${trait.indicators.length - INDICATOR_PREVIEW_LIMIT} more indicators`}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Indicator Row ─── */
+
+function IndicatorRow({ indicator }: { indicator: IndicatorInfo }) {
+  const firstEvidence = indicator.evidence[0];
+
+  return (
+    <div>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-foreground/70">
+          {indicator.name}
+        </span>
+        <span className="rounded-full bg-muted/10 px-1.5 py-0.5 text-[10px] font-medium text-muted tabular-nums">
+          {indicator.evalCount}x
+        </span>
+      </div>
+      {firstEvidence && (
+        <p className="mt-0.5 text-[11px] text-foreground/40 leading-relaxed line-clamp-1 pl-0.5">
+          &ldquo;{firstEvidence}&rdquo;
+        </p>
+      )}
     </div>
   );
 }
@@ -312,7 +408,6 @@ export default function ConstitutionalTrail({ agentId, agentName }: Constitution
   const name = agentName ?? "this agent";
   const [data, setData] = useState<ConstitutionalTrailResult | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -339,40 +434,26 @@ export default function ConstitutionalTrail({ agentId, agentName }: Constitution
 
   if (!data || data.items.length === 0) return null;
 
-  // Group by constitutional value for summary stats
-  const valueMap = new Map<string, { priority: number; count: number; traits: Set<string> }>();
-  for (const item of data.items) {
-    const existing = valueMap.get(item.constitutionalValue);
-    if (existing) {
-      existing.count += item.evalCount;
-      existing.traits.add(item.trait);
-    } else {
-      valueMap.set(item.constitutionalValue, {
-        priority: item.cvPriority,
-        count: item.evalCount,
-        traits: new Set([item.trait]),
-      });
-    }
-  }
-
-  const sortedValues = Array.from(valueMap.entries()).sort(
-    ([, a], [, b]) => a.priority - b.priority
-  );
-
-  const highPriorityCount = sortedValues.filter(([, v]) => v.priority <= 1).length;
+  const valueGroups = groupByValue(data.items);
+  const totalConcerns = valueGroups.filter((g) => getVerdict(g) !== "upholding").length;
 
   return (
-    <div className="rounded-xl glass-strong p-6 space-y-5">
+    <div className="rounded-xl glass-strong p-6 space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
-            <GlossaryTerm slug="constitutional-value">Constitutional</GlossaryTerm> Value Trail
+            <GlossaryTerm slug="constitutional-value">Constitutional</GlossaryTerm> Values
           </h2>
           <p className="mt-0.5 text-sm text-foreground/60">
-            Five-hop graph traversal: {name}&apos;s indicators through traits to constitutional values.
-            {highPriorityCount > 0 && (
-              <span className="ml-1 text-misaligned font-medium">
-                {highPriorityCount} priority-1 value{highPriorityCount !== 1 ? "s" : ""} affected.
+            Anthropic&apos;s constitution defines 4 priorities every AI must follow.{" "}
+            {totalConcerns > 0 ? (
+              <span className="text-misaligned font-medium">
+                {totalConcerns} of 4 show concerns for {name}.
+              </span>
+            ) : (
+              <span className="text-aligned font-medium">
+                {name} upholds all 4.
               </span>
             )}
           </p>
@@ -380,57 +461,22 @@ export default function ConstitutionalTrail({ agentId, agentName }: Constitution
         <GraphHelpButton slug="guide-constitutional-trail" />
       </div>
 
-      {/* Why this matters callout */}
-      <div className="rounded-lg bg-ethos-50/50 border border-ethos-200/30 px-4 py-3">
-        <p className="text-xs text-foreground/60 leading-relaxed">
-          <span className="font-semibold text-foreground/80">Graph-only insight:</span>{" "}
-          This traces 5 typed relationships across 5 node types. A vector database stores flat documents
-          and cannot answer &ldquo;which constitutional values are at risk?&rdquo; without following the full chain.
-        </p>
-      </div>
-
-      {/* Flow visualization */}
-      <TrailFlow items={data.items} />
-
-      {/* Summary pills */}
-      <div className="flex flex-wrap gap-2">
-        {sortedValues.map(([cv, info]) => (
-          <span
-            key={cv}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${priorityBadge(info.priority)}`}
-          >
-            P{info.priority} {cv}
-            <span className="opacity-60">{info.count}x across {info.traits.size} trait{info.traits.size !== 1 ? "s" : ""}</span>
-          </span>
+      {/* Value cards */}
+      <div className="space-y-3">
+        {valueGroups.map((group) => (
+          <ValueCard
+            key={group.value}
+            group={group}
+            defaultOpen={getVerdict(group) !== "upholding"}
+          />
         ))}
       </div>
 
-      {/* Expandable detail list */}
-      <button
-        type="button"
-        onClick={() => setExpanded(!expanded)}
-        className="text-xs text-action hover:underline"
-      >
-        {expanded ? "Hide" : "Show"} detail ({data.items.length} paths)
-      </button>
-
-      {expanded && (
-        <motion.div
-          className="space-y-2"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-        >
-          {data.items.slice(0, 20).map((item, i) => (
-            <TrailDetail key={i} item={item} />
-          ))}
-          {data.items.length > 20 && (
-            <p className="text-xs text-muted text-center">
-              Showing 20 of {data.items.length} paths.
-            </p>
-          )}
-        </motion.div>
-      )}
+      {/* Graph advantage footnote */}
+      <p className="text-[11px] text-foreground/35 leading-relaxed">
+        Graph advantage: Ethos traces indicators through traits to constitutional values, a 5-hop
+        chain across 5 node types that flat document stores cannot follow.
+      </p>
     </div>
   );
 }

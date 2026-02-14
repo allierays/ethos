@@ -3,6 +3,12 @@
  * All properties use camelCase (transformed from snake_case API responses).
  */
 
+export interface GuardianPhoneStatus {
+  hasPhone: boolean;
+  verified: boolean;
+  optedOut: boolean;
+}
+
 export interface TraitScore {
   name: string;
   dimension: string;
@@ -131,7 +137,7 @@ export interface AgentProfile {
   alignmentHistory: string[];
   enrolled: boolean;
   enrolledAt: string;
-  counselorName: string;
+  guardianName: string;
   entranceExamCompleted: boolean;
   agentSpecialty: string;
   telos: string;

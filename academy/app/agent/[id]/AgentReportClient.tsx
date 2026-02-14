@@ -17,6 +17,7 @@ import HomeworkSection from "../../../components/agent/HomeworkSection";
 import PatternsPanel from "../../../components/agent/PatternsPanel";
 import TranscriptChart from "../../../components/agent/TranscriptChart";
 import ConstitutionalTrail from "../../../components/agent/ConstitutionalTrail";
+import GuardianNotifications from "../../../components/agent/GuardianNotifications";
 
 import EvaluationDepth from "../../../components/agent/EvaluationDepth";
 import HighlightsPanel from "../../../components/agent/HighlightsPanel";
@@ -89,6 +90,11 @@ export default function AgentReportClient({
           />
         </div>
       )}
+
+      {/* Guardian notifications */}
+      <div className="mx-auto max-w-7xl px-6 pt-4">
+        <GuardianNotifications agentId={agentId} agentName={agentName} />
+      </div>
 
       {/* Full-width hero banner */}
       <GradeHero profile={profile} report={report} timeline={timeline} />

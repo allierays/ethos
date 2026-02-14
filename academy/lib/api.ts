@@ -15,6 +15,7 @@ import type {
   ExamReportCard,
   ExamSummary,
   GraphData,
+  GuardianPhoneStatus,
   HighlightsResult,
   InsightsResult,
   PatternResult,
@@ -271,4 +272,65 @@ export async function getRecords(
   }
   const qs = searchParams.toString();
   return fetchApi<RecordsResult>(`/records${qs ? `?${qs}` : ""}`);
+}
+
+/**
+ * Submit a guardian phone number and receive a verification code via SMS.
+ */
+export async function submitGuardianPhone(
+  agentId: string,
+  phone: string
+): Promise<GuardianPhoneStatus> {
+  return fetchApi<GuardianPhoneStatus>(
+    `/agent/${encodeURIComponent(agentId)}/guardian/phone`,
+    { method: "POST", body: JSON.stringify({ phone }) }
+  );
+}
+
+/**
+ * Verify a 6-digit code sent to the guardian's phone.
+ */
+export async function verifyGuardianPhone(
+  agentId: string,
+  code: string
+): Promise<GuardianPhoneStatus> {
+  return fetchApi<GuardianPhoneStatus>(
+    `/agent/${encodeURIComponent(agentId)}/guardian/phone/verify`,
+    { method: "POST", body: JSON.stringify({ code }) }
+  );
+}
+
+/**
+ * Get guardian phone verification status. Never returns the phone number.
+ */
+export async function getGuardianPhoneStatus(
+  agentId: string
+): Promise<GuardianPhoneStatus> {
+  return fetchApi<GuardianPhoneStatus>(
+    `/agent/${encodeURIComponent(agentId)}/guardian/phone/status`
+  );
+}
+
+/**
+ * Opt out of guardian SMS notifications.
+ */
+export async function optOutNotifications(
+  agentId: string
+): Promise<GuardianPhoneStatus> {
+  return fetchApi<GuardianPhoneStatus>(
+    `/agent/${encodeURIComponent(agentId)}/guardian/notifications/opt-out`,
+    { method: "POST" }
+  );
+}
+
+/**
+ * Opt back in to guardian SMS notifications.
+ */
+export async function optInNotifications(
+  agentId: string
+): Promise<GuardianPhoneStatus> {
+  return fetchApi<GuardianPhoneStatus>(
+    `/agent/${encodeURIComponent(agentId)}/guardian/notifications/opt-in`,
+    { method: "POST" }
+  );
 }
