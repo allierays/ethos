@@ -1,7 +1,7 @@
 """FastAPI application for the Ethos evaluation API."""
 
+import logging
 import os
-import re
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,11 +10,8 @@ from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from ethos.context import anthropic_api_key_var
-
 from api.auth import require_api_key
 from api.rate_limit import rate_limit
-
 from ethos import (
     analyze_authenticity,
     character_report,
@@ -39,6 +36,8 @@ from ethos import (
     submit_answer,
     upload_exam,
 )
+from ethos.context import anthropic_api_key_var
+from ethos.evaluation.claude_client import _redact
 from ethos.models import (
     AgentProfile,
     AgentSummary,
@@ -68,6 +67,8 @@ from ethos.shared.errors import (
     ParseError,
 )
 
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="Ethos API (FastAPI)", version="0.1.0")
 
 
@@ -91,6 +92,9 @@ app.add_middleware(
 # ── BYOK middleware ─────────────────────────────────────────────────
 
 
+_BYOK_MAX_LENGTH = 256
+
+
 class BYOKMiddleware(BaseHTTPMiddleware):
     """Set per-request Anthropic API key from X-Anthropic-Key header.
 
@@ -103,6 +107,17 @@ class BYOKMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         byok = request.headers.get("X-Anthropic-Key")
+        if byok:
+            if len(byok) > _BYOK_MAX_LENGTH or not byok.startswith("sk-ant-"):
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": "InvalidHeader",
+                        "message": "X-Anthropic-Key must be a valid Anthropic API key",
+                        "status": 400,
+                    },
+                )
+            logger.debug("BYOK key provided for %s", request.url.path)
         token = anthropic_api_key_var.set(byok) if byok else None
         try:
             return await call_next(request)
@@ -118,12 +133,11 @@ app.add_middleware(BYOKMiddleware)
 
 
 def _error_response(status: int, exc: Exception) -> JSONResponse:
-    message = re.sub(r"sk-ant-\S+", "[REDACTED]", str(exc))
     return JSONResponse(
         status_code=status,
         content={
             "error": type(exc).__name__,
-            "message": message,
+            "message": _redact(str(exc)),
             "status": status,
         },
     )

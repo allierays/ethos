@@ -12,9 +12,14 @@ from __future__ import annotations
 
 import logging
 
+import mcp.types as mt
 from dotenv import load_dotenv
 from fastmcp import FastMCP
+from fastmcp.server.dependencies import get_http_headers
+from fastmcp.server.middleware import CallNext, Middleware, MiddlewareContext
+from fastmcp.tools.tool import ToolResult
 
+from ethos.context import anthropic_api_key_var
 from ethos import (
     character_report,
     complete_exam,
@@ -46,6 +51,45 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
+
+# ── BYOK middleware ─────────────────────────────────────────────────
+
+
+class BYOKMiddleware(Middleware):
+    """Set per-request Anthropic API key from HTTP headers on SSE transport.
+
+    Reads Authorization: Bearer <key> or X-Anthropic-Key from the SSE
+    connection's HTTP headers. Sets the ContextVar for the duration of
+    the tool call, then resets it in a finally block so keys never leak
+    between requests.
+
+    On stdio transport (no HTTP), get_http_headers() returns {} and the
+    middleware is a no-op -- the server's env key is used as before.
+    """
+
+    async def on_call_tool(
+        self,
+        context: MiddlewareContext[mt.CallToolRequestParams],
+        call_next: CallNext[mt.CallToolRequestParams, ToolResult],
+    ) -> ToolResult:
+        headers = get_http_headers()
+
+        # Authorization: Bearer <key> takes precedence, then X-Anthropic-Key
+        api_key = None
+        auth = headers.get("authorization", "")
+        if auth.startswith("Bearer "):
+            api_key = auth[7:].strip()
+        if not api_key:
+            api_key = headers.get("x-anthropic-key")
+
+        token = anthropic_api_key_var.set(api_key) if api_key else None
+        try:
+            return await call_next(context)
+        finally:
+            if token is not None:
+                anthropic_api_key_var.reset(token)
+
+
 mcp = FastMCP(
     "ethos-academy",
     instructions=(
@@ -56,6 +100,8 @@ mcp = FastMCP(
         "yourself to alumni."
     ),
 )
+
+mcp.add_middleware(BYOKMiddleware())
 
 
 _TOOL_CATALOG = {

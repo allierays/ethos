@@ -45,6 +45,47 @@ def _clean_rate_limit():
 
 
 # ---------------------------------------------------------------------------
+# Key format validation (middleware rejects bad keys before ContextVar)
+# ---------------------------------------------------------------------------
+
+
+class TestBYOKKeyValidation:
+    """BYOKMiddleware rejects keys with wrong prefix or excessive length."""
+
+    def test_rejects_key_without_sk_ant_prefix(self, client):
+        resp = client.post(
+            "/evaluate/incoming",
+            json=_EVAL_PAYLOAD,
+            headers={"X-Anthropic-Key": "bad-prefix-key"},
+        )
+        assert resp.status_code == 400
+        assert resp.json()["error"] == "InvalidHeader"
+
+    def test_rejects_key_exceeding_max_length(self, client):
+        long_key = "sk-ant-" + "x" * 300
+        resp = client.post(
+            "/evaluate/incoming",
+            json=_EVAL_PAYLOAD,
+            headers={"X-Anthropic-Key": long_key},
+        )
+        assert resp.status_code == 400
+        assert resp.json()["error"] == "InvalidHeader"
+
+    @patch("api.main.evaluate_incoming")
+    def test_accepts_valid_key_format(self, mock_eval, client):
+        async def fake(*args, **kwargs):
+            return EvaluationResult()
+
+        mock_eval.side_effect = fake
+        resp = client.post(
+            "/evaluate/incoming",
+            json=_EVAL_PAYLOAD,
+            headers={"X-Anthropic-Key": _BYOK_KEY},
+        )
+        assert resp.status_code == 200
+
+
+# ---------------------------------------------------------------------------
 # Key resolution (unit)
 # ---------------------------------------------------------------------------
 

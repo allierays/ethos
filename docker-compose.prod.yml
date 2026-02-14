@@ -50,6 +50,7 @@ services:
       - .env
     environment:
       - NEO4J_URI=bolt://neo4j:7687
+      - ANTHROPIC_API_KEY=
     command: ["/app/.venv/bin/python", "-m", "ethos.mcp_server", "--transport", "sse", "--port", "8888", "--host", "0.0.0.0"]
 
   neo4j:

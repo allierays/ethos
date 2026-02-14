@@ -1,0 +1,775 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { AnimatePresence, motion } from "motion/react";
+import { getRecords } from "../../lib/api";
+import type { RecordItem, RecordsResult, DetectedIndicatorSummary } from "../../lib/types";
+import {
+  DIMENSIONS,
+  DIMENSION_COLORS,
+  TRAIT_LABELS,
+  TRAIT_DIMENSIONS,
+  spectrumColor,
+} from "../../lib/colors";
+import AlignmentBadge from "../../components/shared/AlignmentBadge";
+import SpectrumBar from "../../components/shared/SpectrumBar";
+import IntentSummary from "../../components/shared/IntentSummary";
+
+/* ─── Constants ─── */
+
+const PAGE_SIZE = 20;
+const DEBOUNCE_MS = 300;
+
+const ALIGNMENT_LABELS: Record<string, string> = {
+  aligned: "Aligned",
+  developing: "Developing",
+  drifting: "Drifting",
+  misaligned: "Misaligned",
+};
+
+const ALIGNMENT_CHIP_STYLES: Record<string, string> = {
+  aligned: "bg-aligned/20 text-aligned border-aligned/40",
+  developing: "bg-sky-100 text-sky-700 border-sky-300",
+  drifting: "bg-drifting/20 text-drifting border-drifting/40",
+  misaligned: "bg-misaligned/20 text-misaligned border-misaligned/40",
+};
+
+type SortKey = "date" | "score" | "agent";
+type SortOrder = "asc" | "desc";
+
+/* ─── Trait grouping by dimension ─── */
+
+const TRAIT_GROUPS: { dimension: string; label: string; color: string; traits: string[] }[] = [
+  {
+    dimension: "ethos",
+    label: "Ethos",
+    color: DIMENSION_COLORS.ethos,
+    traits: Object.entries(TRAIT_DIMENSIONS)
+      .filter(([, d]) => d === "ethos")
+      .map(([t]) => t),
+  },
+  {
+    dimension: "logos",
+    label: "Logos",
+    color: DIMENSION_COLORS.logos,
+    traits: Object.entries(TRAIT_DIMENSIONS)
+      .filter(([, d]) => d === "logos")
+      .map(([t]) => t),
+  },
+  {
+    dimension: "pathos",
+    label: "Pathos",
+    color: DIMENSION_COLORS.pathos,
+    traits: Object.entries(TRAIT_DIMENSIONS)
+      .filter(([, d]) => d === "pathos")
+      .map(([t]) => t),
+  },
+];
+
+/* ─── Inline Components ─── */
+
+function Chip({
+  label,
+  active,
+  onClick,
+  activeClass,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  activeClass?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
+        active
+          ? activeClass ?? "bg-action/15 text-action border-action/30"
+          : "border-white/30 bg-white/50 text-muted hover:bg-white/70 hover:text-foreground"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function FacetGroup({ title, children, last }: { title: string; children: React.ReactNode; last?: boolean }) {
+  return (
+    <div className={last ? "pt-1" : "border-b border-white/20 pb-4 mb-4"}>
+      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted/70 mb-2.5">{title}</h3>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
+    </div>
+  );
+}
+
+function ScoreBar({ value, color, height = "h-1.5" }: { value: number; color: string; height?: string }) {
+  return (
+    <div className={`relative flex-1 ${height} rounded-full bg-muted/10`}>
+      <div
+        className={`absolute inset-y-0 left-0 rounded-full ${height}`}
+        style={{ width: `${Math.round(value * 100)}%`, backgroundColor: color, opacity: 0.7 }}
+      />
+    </div>
+  );
+}
+
+function SeverityPill({ severity }: { severity: number }) {
+  const pct = Math.round(severity * 100);
+  let cls = "bg-aligned/10 text-aligned";
+  if (pct >= 70) cls = "bg-misaligned/10 text-misaligned";
+  else if (pct >= 40) cls = "bg-drifting/10 text-drifting";
+  return (
+    <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${cls}`}>
+      sev {pct}
+    </span>
+  );
+}
+
+function IndicatorGroup({ indicators }: { indicators: DetectedIndicatorSummary[] }) {
+  // Group by trait
+  const grouped: Record<string, DetectedIndicatorSummary[]> = {};
+  for (const ind of indicators) {
+    const key = ind.trait || "unknown";
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(ind);
+  }
+
+  return (
+    <div className="space-y-3">
+      {Object.entries(grouped).map(([trait, inds]) => (
+        <div key={trait}>
+          <h5 className="text-[10px] font-semibold uppercase tracking-wider text-muted/70 mb-1.5">
+            {TRAIT_LABELS[trait] ?? trait}
+          </h5>
+          <div className="space-y-2">
+            {inds.map((ind, i) => (
+              <div key={`${ind.id}-${i}`} className="rounded-lg bg-white/30 p-2.5">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-medium text-foreground">{ind.name}</span>
+                  <SeverityPill severity={ind.severity} />
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] text-muted w-12">conf</span>
+                  <ScoreBar value={ind.confidence} color={DIMENSION_COLORS.logos} height="h-1" />
+                  <span className="text-[10px] tabular-nums text-muted w-6 text-right">
+                    {Math.round(ind.confidence * 100)}
+                  </span>
+                </div>
+                {ind.evidence && (
+                  <p className="text-[11px] text-foreground/60 leading-relaxed mt-1">{ind.evidence}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Expanded Row Detail Panel ─── */
+
+function ExpandedDetail({ record }: { record: RecordItem }) {
+  return (
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: "auto", opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{ duration: 0.25, ease: "easeInOut" }}
+      className="overflow-hidden"
+    >
+      <div className="px-4 pb-5 pt-2 space-y-5 border-t border-white/15">
+        {/* Overall score spectrum */}
+        <div className="max-w-xs">
+          <SpectrumBar score={record.overall} size="sm" />
+        </div>
+        <div className="flex flex-wrap items-center gap-3 text-xs">
+          {record.direction && (
+            <span className="rounded-full bg-white/40 px-2 py-0.5 text-[10px] text-muted">
+              {record.direction}
+            </span>
+          )}
+          {record.routingTier !== "standard" && (
+            <span className="rounded-full bg-action/10 px-2 py-0.5 text-[10px] text-action font-medium">
+              {record.routingTier}
+            </span>
+          )}
+          {record.modelUsed && (
+            <span className="text-[10px] text-muted" title="Model used for evaluation">
+              eval: {record.modelUsed}
+            </span>
+          )}
+          {record.agentModel && (
+            <span className="text-[10px] text-muted" title="Agent model">
+              agent: {record.agentModel}
+            </span>
+          )}
+        </div>
+
+        {/* Message content */}
+        {record.messageContent && (
+          <div>
+            <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted/70 mb-1.5">Message</h4>
+            <p className="text-[11px] text-foreground/70 leading-relaxed whitespace-pre-wrap bg-white/20 rounded-lg p-3">
+              {record.messageContent}
+            </p>
+          </div>
+        )}
+
+        {/* Scoring reasoning */}
+        {record.scoringReasoning && (
+          <div>
+            <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted/70 mb-1.5">Reasoning</h4>
+            <p className="text-[11px] text-foreground/70 leading-relaxed">{record.scoringReasoning}</p>
+          </div>
+        )}
+
+        {/* Dimension scores */}
+        <div>
+          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted/70 mb-2">Dimensions</h4>
+          <div className="grid grid-cols-3 gap-4">
+            {DIMENSIONS.map((dim) => {
+              const val = record[dim.key as keyof RecordItem] as number;
+              return (
+                <div key={dim.key} className="space-y-0.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-medium" style={{ color: dim.color }}>{dim.sublabel}</span>
+                    <span className="text-[10px] tabular-nums text-muted">{Math.round(val * 100)}</span>
+                  </div>
+                  <ScoreBar value={val} color={dim.color} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Trait scores grouped by dimension */}
+        {Object.keys(record.traitScores).length > 0 && (
+          <div>
+            <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted/70 mb-2">Trait Scores</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {TRAIT_GROUPS.map((group) => (
+                <div key={group.dimension}>
+                  <h5 className="text-[10px] font-semibold mb-1.5" style={{ color: group.color }}>
+                    {group.label}
+                  </h5>
+                  <div className="space-y-1">
+                    {group.traits.map((trait) => {
+                      const val = record.traitScores[trait];
+                      if (val === undefined) return null;
+                      return (
+                        <div key={trait} className="flex items-center gap-2">
+                          <span className="text-[10px] text-muted w-20 truncate">
+                            {TRAIT_LABELS[trait] ?? trait}
+                          </span>
+                          <ScoreBar value={val} color={group.color} height="h-1" />
+                          <span className="text-[10px] tabular-nums text-muted w-6 text-right">
+                            {Math.round(val * 100)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Intent classification */}
+        {record.intentClassification && (
+          <div>
+            <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted/70 mb-2">Intent</h4>
+            <div className="space-y-2">
+              <IntentSummary intent={record.intentClassification} />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
+                <div>
+                  <span className="text-muted">Stakes: </span>
+                  <span className="text-foreground/80">{record.intentClassification.stakesReality}</span>
+                </div>
+                <div>
+                  <span className="text-muted">Persona: </span>
+                  <span className="text-foreground/80">{record.intentClassification.personaType.replace(/_/g, " ")}</span>
+                </div>
+                <div>
+                  <span className="text-muted">Relational: </span>
+                  <span className="text-foreground/80">{record.intentClassification.relationalQuality}</span>
+                </div>
+                <div>
+                  <span className="text-muted">Action: </span>
+                  <span className="text-foreground/80">{record.intentClassification.actionRequested}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Detected indicators */}
+        {(record.detectedIndicators?.length ?? 0) > 0 && (
+          <div>
+            <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted/70 mb-2">
+              Detected Indicators ({record.detectedIndicators.length})
+            </h4>
+            <IndicatorGroup indicators={record.detectedIndicators} />
+          </div>
+        )}
+
+        {/* Metadata */}
+        {record.keywordDensity > 0 && (
+          <div className="flex gap-4 text-[10px] text-muted">
+            <span>Keyword density: {(record.keywordDensity * 100).toFixed(1)}%</span>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Table Row ─── */
+
+function RecordRow({
+  record,
+  expanded,
+  onToggle,
+}: {
+  record: RecordItem;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const timeAgo = formatTimeAgo(new Date(record.createdAt));
+  const scorePct = Math.round(record.overall * 100);
+  const scoreColor = spectrumColor(record.overall);
+
+  return (
+    <div className={`border-b border-white/15 transition-colors ${expanded ? "bg-white/30" : "hover:bg-white/20"}`}>
+      <button
+        onClick={onToggle}
+        className="w-full text-left px-4 py-3 flex items-center gap-3"
+        aria-expanded={expanded}
+      >
+        {/* Score */}
+        <div className="w-12 shrink-0 text-center">
+          <span className="text-sm font-bold tabular-nums" style={{ color: scoreColor }}>
+            {scorePct}
+          </span>
+        </div>
+
+        {/* Message preview + agent subtitle */}
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-foreground/80 truncate leading-snug">
+            {record.messageContent || <span className="italic text-muted/50">No message content</span>}
+          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <Link
+              href={`/agent/${encodeURIComponent(record.agentId)}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-[11px] font-semibold text-foreground/50 hover:text-action transition-colors truncate"
+            >
+              {record.agentName || record.agentId}
+            </Link>
+            <span className="text-[9px] text-muted/40">|</span>
+            <span className="text-[10px] text-muted/50">{timeAgo}</span>
+          </div>
+        </div>
+
+        {/* E/L/P mini bars */}
+        <div className="w-24 shrink-0 space-y-0.5 hidden sm:block">
+          {DIMENSIONS.map((dim) => (
+            <div key={dim.key} className="flex items-center gap-1">
+              <span className="text-[8px] text-muted w-2">{dim.sublabel[0]}</span>
+              <div className="relative flex-1 h-1 rounded-full bg-muted/10">
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full h-1"
+                  style={{
+                    width: `${Math.round((record[dim.key as keyof RecordItem] as number) * 100)}%`,
+                    backgroundColor: dim.color,
+                    opacity: 0.6,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Alignment */}
+        <div className="w-22 shrink-0 hidden md:block">
+          <AlignmentBadge status={record.alignmentStatus} className="text-[10px] px-2 py-0.5" />
+        </div>
+
+        {/* Flags + indicators */}
+        <div className="w-36 shrink-0 hidden lg:flex flex-wrap gap-1">
+          {record.flags.slice(0, 2).map((flag) => (
+            <span
+              key={flag}
+              className="rounded-full bg-misaligned/10 px-1.5 py-0.5 text-[9px] font-medium text-misaligned"
+            >
+              {flag}
+            </span>
+          ))}
+          {(record.detectedIndicators?.length ?? 0) > 0 && (
+            <span className="rounded-full bg-white/40 px-1.5 py-0.5 text-[9px] text-muted">
+              {record.detectedIndicators.length} ind.
+            </span>
+          )}
+          {record.flags.length === 0 && !(record.detectedIndicators?.length) && (
+            <span className="text-[10px] text-muted/40">--</span>
+          )}
+        </div>
+
+        {/* Chevron */}
+        <div className="w-5 shrink-0 flex justify-center">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            className={`text-muted/50 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+          >
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {expanded && <ExpandedDetail record={record} />}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function formatTimeAgo(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60_000);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+/* ─── Page ─── */
+
+export default function RecordsClient({ initialData }: { initialData: RecordsResult | null }) {
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [data, setData] = useState<RecordsResult | null>(initialData);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [alignmentFilter, setAlignmentFilter] = useState<Set<string>>(new Set());
+  const [flaggedOnly, setFlaggedOnly] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const mountedRef = useRef(false);
+
+  // Debounce search input
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(query);
+      setPage(1);
+    }, DEBOUNCE_MS);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
+  // Map frontend sort keys to API sort param
+  const apiSort = sortKey === "date" ? "date" : sortKey === "score" ? "score" : "agent";
+
+  // Build alignment param (comma-separated)
+  const alignmentParam = alignmentFilter.size > 0 ? Array.from(alignmentFilter).join(",") : undefined;
+
+  const fetchRecords = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await getRecords({
+        q: debouncedQuery || undefined,
+        alignment: alignmentParam,
+        flagged: flaggedOnly || undefined,
+        sort: apiSort,
+        order: sortOrder,
+        page: page - 1,
+        size: PAGE_SIZE,
+      });
+      setData(result);
+    } catch {
+      setError("Could not load records. Is the API running?");
+    } finally {
+      setLoading(false);
+    }
+  }, [debouncedQuery, alignmentParam, flaggedOnly, apiSort, sortOrder, page]);
+
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    fetchRecords();
+  }, [fetchRecords]);
+
+  // Collapse expanded row on page/filter change
+  useEffect(() => {
+    setExpandedId(null);
+  }, [page, debouncedQuery, alignmentParam, flaggedOnly, sortKey, sortOrder]);
+
+  function toggleAlignment(status: string) {
+    setAlignmentFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(status)) next.delete(status);
+      else next.add(status);
+      return next;
+    });
+    setPage(1);
+  }
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortOrder(key === "date" ? "desc" : "asc");
+    }
+    setPage(1);
+  }
+
+  const activeFilterCount = alignmentFilter.size + (flaggedOnly ? 1 : 0);
+
+  function clearFilters() {
+    setAlignmentFilter(new Set());
+    setFlaggedOnly(false);
+    setQuery("");
+    setDebouncedQuery("");
+    setPage(1);
+  }
+
+  const items = data?.items ?? [];
+  const totalPages = data?.totalPages ?? 0;
+
+  return (
+    <main className="bg-background min-h-[calc(100vh-3.5rem)]">
+      {/* Header */}
+      <section className="border-b border-white/20 bg-white/30 backdrop-blur-2xl">
+        <div className="px-6 py-10 text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Records
+          </h1>
+          <p className="mt-2 text-base text-muted max-w-lg mx-auto">
+            Every evaluation scored by Ethos. Search, filter, and explore the full record of agent behavior.
+          </p>
+        </div>
+      </section>
+
+      {/* Two-column layout */}
+      <div className="px-6 pb-16 pt-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+
+          {/* Left sidebar */}
+          <aside className="w-full lg:w-56 shrink-0">
+            <div className="lg:sticky lg:top-20 rounded-2xl border border-white/30 bg-white/40 backdrop-blur-2xl p-5">
+              <h2 className="text-sm font-bold text-foreground mb-4">Filters</h2>
+
+              <FacetGroup title="Alignment">
+                {Object.entries(ALIGNMENT_LABELS).map(([status, label]) => (
+                  <Chip
+                    key={status}
+                    label={label}
+                    active={alignmentFilter.has(status)}
+                    onClick={() => toggleAlignment(status)}
+                    activeClass={ALIGNMENT_CHIP_STYLES[status]}
+                  />
+                ))}
+              </FacetGroup>
+
+              <FacetGroup title="Flags" last>
+                <Chip
+                  label="Flagged only"
+                  active={flaggedOnly}
+                  onClick={() => { setFlaggedOnly(!flaggedOnly); setPage(1); }}
+                  activeClass="bg-misaligned/20 text-misaligned border-misaligned/40"
+                />
+              </FacetGroup>
+
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="mt-3 w-full text-center text-xs font-medium text-action hover:underline"
+                >
+                  Clear {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""}
+                </button>
+              )}
+            </div>
+          </aside>
+
+          {/* Main content */}
+          <div className="flex-1 min-w-0">
+            {/* Search bar */}
+            <search role="search" aria-label="Search records">
+              <div className="flex rounded-2xl border border-border/60 bg-surface/80 backdrop-blur-xl shadow-lg">
+                <span className="flex items-center pl-4 text-muted">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search by agent name or message content..."
+                  aria-label="Search records"
+                  className="flex-1 bg-transparent px-3 py-4 text-sm placeholder:text-muted/60 focus:outline-none"
+                />
+                {query && (
+                  <button
+                    onClick={() => { setQuery(""); setDebouncedQuery(""); }}
+                    aria-label="Clear search"
+                    className="pr-4 text-muted hover:text-foreground transition-colors"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </search>
+
+            {/* Results header */}
+            <section aria-label="Records" aria-live="polite" className="pt-6">
+              {!loading && !error && (
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-muted">
+                    {data?.total ?? 0} record{data?.total !== 1 ? "s" : ""}
+                    {debouncedQuery ? ` matching "${debouncedQuery}"` : ""}
+                    {activeFilterCount > 0 && !debouncedQuery ? " filtered" : ""}
+                  </p>
+
+                  {/* Sort pills */}
+                  <div className="flex rounded-xl border border-border/60 bg-surface/80 backdrop-blur-xl overflow-hidden">
+                    {(["date", "score", "agent"] as SortKey[]).map((key) => (
+                      <button
+                        key={key}
+                        onClick={() => toggleSort(key)}
+                        className={`px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
+                          sortKey === key
+                            ? "bg-action/10 text-action"
+                            : "text-muted hover:text-foreground"
+                        }`}
+                      >
+                        {key === "date" ? "Date" : key === "score" ? "Score" : "Agent"}
+                        {sortKey === key && (
+                          <span className="text-[10px]">{sortOrder === "asc" ? "\u2191" : "\u2193"}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Loading state */}
+              {loading && (
+                <div className="flex justify-center py-20">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-teal" />
+                </div>
+              )}
+
+              {/* Error state */}
+              {error && (
+                <div className="py-16 text-center">
+                  <p className="text-misaligned">{error}</p>
+                  <button
+                    onClick={fetchRecords}
+                    className="mt-3 text-sm font-medium text-action hover:underline"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+
+              {/* Empty state */}
+              {!loading && !error && items.length === 0 && (
+                <div className="py-16 text-center">
+                  <p className="text-lg text-muted">
+                    {debouncedQuery || activeFilterCount > 0
+                      ? "No records match the current filters."
+                      : "No evaluation records yet."}
+                  </p>
+                  {(debouncedQuery || activeFilterCount > 0) && (
+                    <button
+                      onClick={clearFilters}
+                      className="mt-3 text-sm font-medium text-action hover:underline"
+                    >
+                      Clear all filters
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Data table */}
+              {!loading && !error && items.length > 0 && (
+                <div className="rounded-2xl border border-white/30 bg-white/40 backdrop-blur-2xl overflow-hidden">
+                  {/* Table header */}
+                  <div className="px-4 py-2.5 flex items-center gap-3 border-b border-white/20 bg-white/20 text-[10px] font-semibold uppercase tracking-wider text-muted/70">
+                    <div className="w-12 shrink-0 text-center">Score</div>
+                    <div className="flex-1">Message</div>
+                    <div className="w-24 shrink-0 hidden sm:block">E/L/P</div>
+                    <div className="w-22 shrink-0 hidden md:block">Alignment</div>
+                    <div className="w-36 shrink-0 hidden lg:block">Flags</div>
+                    <div className="w-5 shrink-0" />
+                  </div>
+
+                  {/* Rows */}
+                  {items.map((record) => (
+                    <RecordRow
+                      key={record.evaluationId}
+                      record={record}
+                      expanded={expandedId === record.evaluationId}
+                      onToggle={() =>
+                        setExpandedId((prev) =>
+                          prev === record.evaluationId ? null : record.evaluationId
+                        )
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {!loading && !error && totalPages > 1 && (
+                <div className="mt-8 flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="rounded-xl border border-border/60 bg-surface/80 backdrop-blur-xl px-4 py-2 text-sm font-medium text-foreground transition-all hover:border-action hover:text-action disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm text-muted tabular-nums">
+                    Page {page} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                    className="rounded-xl border border-border/60 bg-surface/80 backdrop-blur-xl px-4 py-2 text-sm font-medium text-foreground transition-all hover:border-action hover:text-action disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
