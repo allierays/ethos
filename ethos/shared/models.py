@@ -173,6 +173,7 @@ class HomeworkFocus(BaseModel):
     instruction: str = ""  # actionable guidance FOR the agent
     example_flagged: str = ""  # what bad behavior looks like
     example_improved: str = ""  # what good behavior looks like
+    system_prompt_addition: str = ""  # exact text to add to agent's system prompt
 
 
 class Homework(BaseModel):
@@ -538,6 +539,7 @@ class ExamReportCard(BaseModel):
     narrative_behavior_gap: list[NarrativeBehaviorGap] = Field(default_factory=list)
     overall_gap_score: float = Field(default=0.0, ge=0.0, le=1.0)
     question_version: str = "v3"
+    homework: Homework = Field(default_factory=Homework)
 
 
 class ExamSummary(BaseModel):

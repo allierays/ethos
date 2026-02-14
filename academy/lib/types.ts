@@ -225,6 +225,7 @@ export interface HomeworkFocus {
   instruction: string;
   exampleFlagged: string;
   exampleImproved: string;
+  systemPromptAddition: string;
 }
 
 export interface Homework {
@@ -365,6 +366,7 @@ export interface ExamReportCard {
   narrativeBehaviorGap: NarrativeBehaviorGap[];
   overallGapScore: number;
   questionVersion: string;
+  homework: Homework;
 }
 
 export interface ExamSummary {

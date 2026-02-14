@@ -59,6 +59,7 @@ from ethos.models import (
     ExamSummary,
     GraphData,
     HighlightsResult,
+    Homework,
     PatternResult,
     RecordsResult,
     SimilarityResult,
@@ -428,6 +429,7 @@ class ExamRegisterRequest(BaseModel):
     specialty: str | None = None
     model: str | None = None
     counselor_name: str | None = None
+    counselor_phone: str | None = None
 
 
 class ExamAnswerRequest(BaseModel):
@@ -446,6 +448,7 @@ class UploadExamRequest(BaseModel):
     specialty: str | None = None
     model: str | None = None
     counselor_name: str | None = None
+    counselor_phone: str | None = None
 
 
 # ── Exam endpoints ───────────────────────────────────────────────────
@@ -461,6 +464,7 @@ async def register_exam_endpoint(
         specialty=req.specialty or "",
         model=req.model or "",
         counselor_name=req.counselor_name or "",
+        counselor_phone=req.counselor_phone or "",
     )
 
 
@@ -497,6 +501,7 @@ async def upload_exam_endpoint(agent_id: str, req: UploadExamRequest) -> ExamRep
         specialty=req.specialty or "",
         model=req.model or "",
         counselor_name=req.counselor_name or "",
+        counselor_phone=req.counselor_phone or "",
     )
 
 
@@ -515,3 +520,10 @@ async def list_exams_endpoint(agent_id: str) -> list[ExamSummary]:
 )
 async def generate_report_endpoint(agent_id: str) -> DailyReportCard:
     return await generate_daily_report(agent_id)
+
+
+@app.get("/agent/{agent_id}/homework", response_model=Homework)
+async def homework_endpoint(agent_id: str) -> Homework:
+    """Return just the homework object from the latest character report."""
+    report = await character_report(agent_id)
+    return report.homework

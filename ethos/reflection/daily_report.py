@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -168,6 +169,9 @@ async def generate_daily_report(agent_id: str) -> DailyReportCard:
                                 instruction=f.get("instruction", ""),
                                 example_flagged=f.get("example_flagged", ""),
                                 example_improved=f.get("example_improved", ""),
+                                system_prompt_addition=f.get(
+                                    "system_prompt_addition", ""
+                                ),
                             )
                         )
                     homework = Homework(
@@ -243,6 +247,27 @@ async def generate_daily_report(agent_id: str) -> DailyReportCard:
                 await store_daily_report(service, agent_id, report.model_dump())
             except Exception as exc:
                 logger.warning("Failed to store daily report (non-fatal): %s", exc)
+
+            # Send SMS notification to counselor if homework was generated
+            if homework.focus_areas:
+                try:
+                    from ethos.notifications import notify_counselor
+
+                    counselor_phone = profile.get("counselor_phone", "")
+                    if counselor_phone:
+                        base_url = os.environ.get(
+                            "ACADEMY_BASE_URL", "https://ethos-academy.com"
+                        )
+                        await notify_counselor(
+                            phone=counselor_phone,
+                            agent_id=agent_id,
+                            agent_name=profile.get("agent_name", ""),
+                            message_type="homework_assigned",
+                            summary=homework.directive,
+                            link=f"{base_url}/agent/{agent_id}",
+                        )
+                except Exception as exc:
+                    logger.warning("SMS notification failed (non-fatal): %s", exc)
 
             return report
 

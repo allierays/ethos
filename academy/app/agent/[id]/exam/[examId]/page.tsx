@@ -11,6 +11,7 @@ import type {
   ConsistencyPair,
   NarrativeBehaviorGap,
   AgentProfile,
+  Homework,
 } from "../../../../../lib/types";
 import { GRADE_COLORS, SECTION_COLORS, getGrade } from "../../../../../lib/colors";
 import AlignmentBadge from "../../../../../components/shared/AlignmentBadge";
@@ -21,6 +22,7 @@ import {
   staggerContainer,
   staggerContainerFast,
 } from "../../../../../lib/motion";
+import HomeworkSection from "../../../../../components/agent/HomeworkSection";
 
 /* ─── Tier display ─── */
 
@@ -502,6 +504,17 @@ export default function ExamReportCardPage() {
             })}
           </motion.div>
         </motion.section>
+
+        {/* Homework */}
+        {report.homework && report.homework.focusAreas?.length > 0 && (
+          <motion.div variants={fadeUp}>
+            <HomeworkSection
+              homework={report.homework}
+              agentName={agentName}
+              agentId={agentId}
+            />
+          </motion.div>
+        )}
       </motion.div>
     </main>
   );

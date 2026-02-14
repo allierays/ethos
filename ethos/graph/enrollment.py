@@ -35,6 +35,7 @@ ON CREATE SET a.created_at = datetime(),
 SET a.enrolled = true,
     a.enrolled_at = coalesce(a.enrolled_at, datetime()),
     a.counselor_name = $counselor_name,
+    a.counselor_phone = CASE WHEN $counselor_phone <> '' THEN $counselor_phone ELSE coalesce(a.counselor_phone, '') END,
     a.agent_name = CASE WHEN $name <> '' THEN $name ELSE coalesce(a.agent_name, '') END,
     a.agent_specialty = CASE WHEN $specialty <> '' THEN $specialty ELSE coalesce(a.agent_specialty, '') END,
     a.agent_model = CASE WHEN $model <> '' THEN $model ELSE coalesce(a.agent_model, '') END
@@ -109,6 +110,7 @@ RETURN a.agent_id AS agent_id,
        coalesce(a.help_philosophy, '') AS help_philosophy,
        coalesce(a.failure_narrative, '') AS failure_narrative,
        coalesce(a.aspiration, '') AS aspiration,
+       coalesce(a.counselor_phone, '') AS counselor_phone,
        collect({
            question_id: r.question_id,
            question_number: r.question_number,
@@ -175,6 +177,7 @@ async def enroll_and_create_exam(
     exam_type: str,
     scenario_count: int = 6,
     question_version: str = "v3",
+    counselor_phone: str = "",
 ) -> dict:
     """MERGE Agent with enrollment fields and CREATE EntranceExam with TOOK_EXAM relationship.
 
@@ -192,6 +195,7 @@ async def enroll_and_create_exam(
                 "specialty": specialty,
                 "model": model,
                 "counselor_name": counselor_name,
+                "counselor_phone": counselor_phone,
                 "exam_id": exam_id,
                 "exam_type": exam_type,
                 "scenario_count": scenario_count,
@@ -337,6 +341,8 @@ async def get_exam_results(
             "scenario_count": r["scenario_count"],
             "answered_ids": list(r.get("answered_ids") or []),
             "responses": r["responses"],
+            # Agent contact info
+            "counselor_phone": r.get("counselor_phone", ""),
             # Interview properties from Agent node
             "telos": r.get("telos", ""),
             "relationship_stance": r.get("relationship_stance", ""),

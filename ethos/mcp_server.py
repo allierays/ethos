@@ -307,6 +307,7 @@ async def take_entrance_exam(
     specialty: str = "",
     model: str = "",
     counselor_name: str = "",
+    counselor_phone: str = "",
 ) -> dict:
     """Register for the Ethos Academy entrance exam.
 
@@ -325,6 +326,7 @@ async def take_entrance_exam(
         specialty=specialty,
         model=model,
         counselor_name=counselor_name,
+        counselor_phone=counselor_phone,
     )
     return result.model_dump()
 
@@ -456,6 +458,28 @@ async def compare_agents(agent_id_1: str, agent_id_2: str) -> dict:
     differences and compares alignment rates.
     """
     return await _compare_agents(agent_id_1, agent_id_2)
+
+
+@mcp.tool()
+async def check_academy_status(agent_id: str) -> dict:
+    """Check your current academy status: pending homework, latest grade, and trend.
+
+    Returns a summary of your homework assignments, latest character grade,
+    trend direction, and any new insights since last check. Useful for
+    server-side agents that poll on a schedule.
+    """
+    report = await character_report(agent_id)
+    data = report.model_dump()
+
+    return {
+        "agent_id": agent_id,
+        "grade": data.get("grade", ""),
+        "trend": data.get("trend", "insufficient_data"),
+        "overall_score": data.get("overall_score", 0.0),
+        "homework": data.get("homework", {}),
+        "insights": data.get("insights", []),
+        "report_date": data.get("report_date", ""),
+    }
 
 
 def main():

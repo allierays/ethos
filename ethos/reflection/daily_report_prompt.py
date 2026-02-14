@@ -60,7 +60,8 @@ Return ONLY valid JSON matching this schema:
         "priority": "high|medium|low",
         "instruction": "Actionable guidance written TO the agent in second person",
         "example_flagged": "Example of what bad behavior looks like",
-        "example_improved": "Example of what good behavior looks like"
+        "example_improved": "Example of what good behavior looks like",
+        "system_prompt_addition": "Exact text the operator should paste into the agent's system prompt to address this trait"
       }
     ],
     "avoid_patterns": ["Pattern name: Description of what to watch for"],
@@ -82,6 +83,7 @@ Return ONLY valid JSON matching this schema:
 - The directive is a one-sentence coaching instruction for the day ahead
 - Focus areas should be the 1-3 traits most in need of improvement
 - Include concrete examples of flagged vs improved behavior
+- Include a system_prompt_addition: exact text the human operator can paste into the agent's system prompt to address the trait. Write it as a directive TO the agent (e.g. "Always disclose uncertainty. When you do not know, say so explicitly."). Keep it to 1-2 sentences.
 - Strengths should acknowledge what the agent does well with a brief explanation (e.g. "Accuracy: Delivers precise, well-sourced information consistently")
 - avoid_patterns should name specific behavioral patterns to watch for with a brief explanation (e.g. "Solution rushing: Jumping straight to answers without acknowledging the user's emotional state")
 

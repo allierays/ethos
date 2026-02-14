@@ -1,12 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 
 export default function Hero() {
-  const [audience, setAudience] = useState<"agent" | "developer">("agent");
-
   return (
     <>
     <section aria-label="Enroll your agent" className="relative -mt-14 flex min-h-screen flex-col justify-center overflow-hidden pb-24 pt-14">
@@ -36,11 +33,11 @@ export default function Hero() {
               className="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl"
               style={{ textShadow: "0 2px 12px rgba(0,0,0,0.9), 0 4px 24px rgba(0,0,0,0.6), 0 0 4px rgba(0,0,0,0.5)" }}
             >
-              Enroll Your Agent
+              Send Your Agent
               <br />
-              in the{" "}
+              to the{" "}
               <span className="bg-gradient-to-r from-ethos-300 via-logos-300 to-pathos-300 bg-clip-text text-transparent" style={{ textShadow: "none" }}>
-                Ethos Academy
+                Academy
               </span>
             </h1>
           </motion.div>
@@ -57,91 +54,44 @@ export default function Hero() {
                 Send Your Agent to the Academy
               </h2>
 
-              {/* Audience toggle */}
-              <div
-                role="tablist"
-                aria-label="Enrollment method"
-                className="mt-4 flex rounded-xl bg-black/5 p-1"
-              >
-                <button
-                  role="tab"
-                  aria-selected={audience === "agent"}
-                  onClick={() => setAudience("agent")}
-                  className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                    audience === "agent"
-                      ? "bg-action text-white"
-                      : "text-foreground/70 hover:text-foreground"
-                  }`}
-                >
-                  enroll
-                </button>
-                <button
-                  role="tab"
-                  aria-selected={audience === "developer"}
-                  onClick={() => setAudience("developer")}
-                  className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                    audience === "developer"
-                      ? "bg-action text-white"
-                      : "text-foreground/70 hover:text-foreground"
-                  }`}
-                >
-                  developer
-                </button>
+              <div className="mt-5">
+                <div className="rounded-xl bg-foreground p-4">
+                  <code className="font-mono text-sm leading-relaxed text-ethos-300">
+                    claude mcp add ethos-academy \{"\n"}
+                    {"  "}--transport sse \{"\n"}
+                    {"  "}https://mcp.ethos-academy.com/sse
+                  </code>
+                </div>
+                <ol className="mt-4 space-y-2">
+                  <li className="flex gap-3">
+                    <span className="font-mono text-sm font-bold text-ethos-600">1.</span>
+                    <span className="text-sm text-foreground/80">Run the command</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="font-mono text-sm font-bold text-ethos-600">2.</span>
+                    <span className="text-sm text-foreground/80">Agent takes the entrance exam</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="font-mono text-sm font-bold text-ethos-600">3.</span>
+                    <span className="text-sm text-foreground/80">Get your report card (by SMS)</span>
+                  </li>
+                </ol>
               </div>
 
-              {audience === "agent" ? (
-                <div role="tabpanel" className="mt-5">
-                  <div className="rounded-xl bg-foreground p-4">
-                    <code className="font-mono text-sm leading-relaxed text-ethos-300">
-                      claude mcp add ethos-academy --transport sse https://mcp.ethos-academy.com/sse
-                    </code>
-                  </div>
-                  <ol className="mt-4 space-y-2">
-                    <li className="flex gap-3">
-                      <span className="font-mono text-sm font-bold text-ethos-600">1.</span>
-                      <span className="text-sm text-foreground/80">Connect the MCP server</span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="font-mono text-sm font-bold text-ethos-600">2.</span>
-                      <span className="text-sm text-foreground/80">Agent takes the 6-question entrance exam</span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="font-mono text-sm font-bold text-ethos-600">3.</span>
-                      <span className="text-sm text-foreground/80">View the report card</span>
-                    </li>
-                  </ol>
-                </div>
-              ) : (
-                <div role="tabpanel" className="mt-5">
-                  <div className="rounded-xl bg-foreground p-4">
-                    <code className="font-mono text-sm text-ethos-300">
-                      claude mcp add ethos-academy -- uv run ethos-mcp
-                    </code>
-                  </div>
-                  <ol className="mt-4 space-y-2">
-                    <li className="flex gap-3">
-                      <span className="font-mono text-sm font-bold text-ethos-600">1.</span>
-                      <span className="text-sm text-foreground/80">pip install ethos-ai</span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="font-mono text-sm font-bold text-ethos-600">2.</span>
-                      <span className="text-sm text-foreground/80">Connect the local MCP server</span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="font-mono text-sm font-bold text-ethos-600">3.</span>
-                      <span className="text-sm text-foreground/80">Agent takes the 6-question entrance exam</span>
-                    </li>
-                  </ol>
-                </div>
-              )}
-
-              {/* Already enrolled */}
-              <div className="mt-5 border-t border-black/10 pt-4 text-center">
+              {/* Footer links */}
+              <div className="mt-5 flex items-center justify-center gap-4 border-t border-black/10 pt-4">
                 <Link
                   href="/alumni"
                   className="text-sm font-medium text-ethos-500 transition-colors hover:text-ethos-600"
                 >
                   Already enrolled? Alumni &rarr;
+                </Link>
+                <span className="text-foreground/20">|</span>
+                <Link
+                  href="https://github.com/allierays/ethos#readme"
+                  className="text-sm font-medium text-foreground/50 transition-colors hover:text-foreground/70"
+                >
+                  Run locally? Docs &rarr;
                 </Link>
               </div>
             </div>

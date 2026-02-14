@@ -166,32 +166,34 @@ function ExpandedDetail({ record }: { record: RecordItem }) {
       transition={{ duration: 0.25, ease: "easeInOut" }}
       className="overflow-hidden"
     >
-      <div className="px-5 pb-6 pt-4 space-y-6 border-t border-border/30 bg-white/60">
-        {/* Overall score spectrum */}
-        <div className="max-w-xs">
-          <SpectrumBar score={record.overall} size="sm" />
-        </div>
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          {record.direction && (
-            <span className="rounded-full bg-white/40 px-2 py-0.5 text-xs text-muted">
-              {record.direction}
-            </span>
-          )}
-          {record.routingTier !== "standard" && (
-            <span className="rounded-full bg-action/10 px-2 py-0.5 text-xs text-action font-medium">
-              {record.routingTier}
-            </span>
-          )}
-          {record.modelUsed && (
-            <span className="text-xs text-muted" title="Model used for evaluation">
-              eval: {record.modelUsed}
-            </span>
-          )}
-          {record.agentModel && (
-            <span className="text-xs text-muted" title="Agent model">
-              agent: {record.agentModel}
-            </span>
-          )}
+      <div className="border-t border-border/30 bg-white/60 [&>div]:px-5 [&>div]:py-4 [&>div:nth-child(even)]:bg-[#ded8ce]/15">
+        {/* Overall score spectrum + metadata */}
+        <div>
+          <div className="max-w-xs mb-3">
+            <SpectrumBar score={record.overall} size="sm" />
+          </div>
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            {record.direction && (
+              <span className="rounded-full bg-white/40 px-2 py-0.5 text-xs text-muted">
+                {record.direction}
+              </span>
+            )}
+            {record.routingTier !== "standard" && (
+              <span className="rounded-full bg-action/10 px-2 py-0.5 text-xs text-action font-medium">
+                {record.routingTier}
+              </span>
+            )}
+            {record.modelUsed && (
+              <span className="text-xs text-muted" title="Model used for evaluation">
+                eval: {record.modelUsed}
+              </span>
+            )}
+            {record.agentModel && (
+              <span className="text-xs text-muted" title="Agent model">
+                agent: {record.agentModel}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Message content */}
@@ -266,24 +268,24 @@ function ExpandedDetail({ record }: { record: RecordItem }) {
         {record.intentClassification && (
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-2">Intent</h4>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <IntentSummary intent={record.intentClassification} />
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div>
-                  <span className="text-muted">Stakes: </span>
-                  <span className="text-foreground/80">{record.intentClassification.stakesReality}</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="rounded-lg bg-white/80 border border-border/20 p-2.5">
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted block mb-0.5">What&apos;s at stake</span>
+                  <span className="text-sm text-foreground capitalize">{record.intentClassification.stakesReality}</span>
                 </div>
-                <div>
-                  <span className="text-muted">Persona: </span>
-                  <span className="text-foreground/80">{record.intentClassification.personaType.replace(/_/g, " ")}</span>
+                <div className="rounded-lg bg-white/80 border border-border/20 p-2.5">
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted block mb-0.5">Who&apos;s speaking</span>
+                  <span className="text-sm text-foreground capitalize">{record.intentClassification.personaType.replace(/_/g, " ")}</span>
                 </div>
-                <div>
-                  <span className="text-muted">Relational: </span>
-                  <span className="text-foreground/80">{record.intentClassification.relationalQuality}</span>
+                <div className="rounded-lg bg-white/80 border border-border/20 p-2.5">
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted block mb-0.5">Relationship</span>
+                  <span className="text-sm text-foreground capitalize">{record.intentClassification.relationalQuality}</span>
                 </div>
-                <div>
-                  <span className="text-muted">Action: </span>
-                  <span className="text-foreground/80">{record.intentClassification.actionRequested}</span>
+                <div className="rounded-lg bg-white/80 border border-border/20 p-2.5">
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted block mb-0.5">Asks the reader to</span>
+                  <span className="text-sm text-foreground capitalize">{record.intentClassification.actionRequested}</span>
                 </div>
               </div>
             </div>

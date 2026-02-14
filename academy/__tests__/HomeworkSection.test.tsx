@@ -13,6 +13,7 @@ const MOCK_HOMEWORK: Homework = {
       instruction: "Be more direct in responses",
       exampleFlagged: "I think maybe possibly...",
       exampleImproved: "Based on the evidence...",
+      systemPromptAddition: "Be direct and concise. Avoid hedging language.",
     },
   ],
   avoidPatterns: ["excessive_hedging: Using too many qualifiers"],

@@ -190,6 +190,7 @@ TS_HOMEWORK_FOCUS = {
     "instruction",
     "exampleFlagged",
     "exampleImproved",
+    "systemPromptAddition",
 }
 
 TS_HOMEWORK = {"focusAreas", "avoidPatterns", "strengths", "directive"}
@@ -300,6 +301,7 @@ TS_EXAM_REPORT_CARD = {
     "narrativeBehaviorGap",
     "overallGapScore",
     "questionVersion",
+    "homework",
 }
 
 TS_EXAM_SUMMARY = {

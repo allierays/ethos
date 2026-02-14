@@ -255,6 +255,36 @@ function StepCard({
 
 /* ─── Focus Card ─── */
 
+function CopyBlock({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div className="mt-3 rounded-lg border border-action/20 bg-[#1a2538] p-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-action/70">
+          {label}
+        </span>
+        <button
+          onClick={handleCopy}
+          className="rounded bg-white/15 px-2 py-0.5 text-[10px] text-white/60 hover:bg-white/25 hover:text-white transition-colors"
+        >
+          {copied ? "Copied!" : "Copy"}
+        </button>
+      </div>
+      <code className="block text-sm leading-relaxed text-emerald-300 font-mono whitespace-pre-wrap">
+        {text}
+      </code>
+    </div>
+  );
+}
+
 function FocusCard({ focus }: { focus: HomeworkFocus }) {
   const currentPct = Math.round(focus.currentScore * 100);
   const targetPct = Math.round(focus.targetScore * 100);
@@ -337,6 +367,14 @@ function FocusCard({ focus }: { focus: HomeworkFocus }) {
             </div>
           )}
         </div>
+      )}
+
+      {/* System prompt recommendation */}
+      {focus.systemPromptAddition && (
+        <CopyBlock
+          text={focus.systemPromptAddition}
+          label="Add to system prompt"
+        />
       )}
 
       {/* MCP hint */}
