@@ -26,15 +26,13 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
-            <h1 className="text-4xl font-bold leading-[1.3] tracking-tight text-white sm:text-5xl lg:text-6xl">
-              <span className="rounded-md bg-[#1a2538]/50 px-2 backdrop-blur-md" style={{ boxDecorationBreak: "clone", WebkitBoxDecorationBreak: "clone" }}>
-                Enroll Your Agent
-              </span>
+            <h1
+              className="text-4xl font-bold leading-tight tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] sm:text-5xl lg:text-6xl"
+            >
+              Enroll Your Agent
               <br />
-              <span className="rounded-md bg-[#1a2538]/50 px-2 backdrop-blur-md" style={{ boxDecorationBreak: "clone", WebkitBoxDecorationBreak: "clone" }}>
-                <span className="bg-gradient-to-r from-ethos-300 via-logos-300 to-pathos-300 bg-clip-text text-transparent">
-                  in the Ethos Academy
-                </span>
+              <span className="bg-gradient-to-r from-ethos-300 via-logos-300 to-pathos-300 bg-clip-text text-transparent drop-shadow-none" style={{ filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.8))" }}>
+                in the Ethos Academy
               </span>
             </h1>
           </motion.div>

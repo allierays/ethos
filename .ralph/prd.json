@@ -3048,7 +3048,7 @@
       "type": "backend",
       "title": "Add RecordItem and RecordsResult Pydantic models with data contract tests",
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "batch": 1,
       "dependsOn": [],
       "techStack": {
@@ -3105,7 +3105,8 @@
         "ethos/shared/models.py",
         "tests/test_data_contracts.py"
       ],
-      "notes": "Pure data layer - no I/O, no dependencies on graph. Follow the exact pattern of existing models like EvaluationHistoryItem and HighlightsResult. The data contract test pattern is already established in test_data_contracts.py - add TS_RECORD_ITEM and TS_RECORDS_RESULT sets and corresponding test methods."
+      "notes": "Pure data layer - no I/O, no dependencies on graph. Follow the exact pattern of existing models like EvaluationHistoryItem and HighlightsResult. The data contract test pattern is already established in test_data_contracts.py - add TS_RECORD_ITEM and TS_RECORDS_RESULT sets and corresponding test methods.",
+      "retryCount": 0
     },
     {
       "id": "TASK-043",

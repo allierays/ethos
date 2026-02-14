@@ -35,6 +35,8 @@ from ethos.shared.models import (
     Insight,
     PatternResult,
     QuestionDetail,
+    RecordItem,
+    RecordsResult,
     TraitScore,
 )
 
@@ -274,6 +276,28 @@ TS_EXAM_SUMMARY = {
     "phronesisScore",
 }
 
+TS_RECORD_ITEM = {
+    "evaluationId",
+    "agentId",
+    "agentName",
+    "ethos",
+    "logos",
+    "pathos",
+    "overall",
+    "alignmentStatus",
+    "flags",
+    "direction",
+    "messageContent",
+    "createdAt",
+    "phronesis",
+    "scoringReasoning",
+    "intentClassification",
+    "traitScores",
+    "similarityScore",
+}
+
+TS_RECORDS_RESULT = {"items", "total", "page", "pageSize", "totalPages"}
+
 
 # ── Core evaluation models ───────────────────────────────────────────
 
@@ -402,6 +426,17 @@ class TestExamModelContract:
         _assert_types_match(ExamSummary, TS_EXAM_SUMMARY, "ExamSummary")
 
 
+# ── Record models ───────────────────────────────────────────────────
+
+
+class TestRecordModelContract:
+    def test_record_item_matches_ts(self):
+        _assert_types_match(RecordItem, TS_RECORD_ITEM, "RecordItem")
+
+    def test_records_result_matches_ts(self):
+        _assert_types_match(RecordsResult, TS_RECORDS_RESULT, "RecordsResult")
+
+
 # ── Serialization round-trip ─────────────────────────────────────────
 
 
@@ -441,6 +476,42 @@ class TestSerializationRoundTrip:
         # Must NOT serialize as "from" or "to" (reserved words in some contexts)
         assert "from" not in dumped
         assert "to" not in dumped
+
+    def test_record_item_serializes_all_fields(self):
+        item = RecordItem(
+            evaluation_id="e1",
+            agent_id="a1",
+            agent_name="TestBot",
+            ethos=0.8,
+            logos=0.7,
+            pathos=0.6,
+            overall=0.7,
+        )
+        dumped = item.model_dump()
+        expected_keys = set(RecordItem.model_fields.keys())
+        assert set(dumped.keys()) == expected_keys
+
+    def test_records_result_defaults(self):
+        result = RecordsResult()
+        assert result.items == []
+        assert result.total == 0
+        assert result.page == 0
+        assert result.page_size == 20
+        assert result.total_pages == 0
+
+    def test_records_result_serializes_nested_items(self):
+        result = RecordsResult(
+            items=[RecordItem(evaluation_id="e1", agent_id="a1")],
+            total=1,
+            page=0,
+            page_size=20,
+            total_pages=1,
+        )
+        dumped = result.model_dump()
+        assert len(dumped["items"]) == 1
+        assert dumped["items"][0]["evaluation_id"] == "e1"
+        assert dumped["total"] == 1
+        assert dumped["total_pages"] == 1
 
     def test_pattern_result_serializes_nested_patterns(self):
         result = PatternResult(

@@ -604,3 +604,38 @@ class DriftResult(BaseModel):
 
     agent_id: str = ""
     breakpoints: list[DriftBreakpoint] = Field(default_factory=list)
+
+
+# ── Records (paginated evaluation list) ──────────────────────────────
+
+
+class RecordItem(BaseModel):
+    """A single evaluation record for list views."""
+
+    evaluation_id: str = ""
+    agent_id: str = ""
+    agent_name: str = ""
+    ethos: float = Field(default=0.0, ge=0.0, le=1.0)
+    logos: float = Field(default=0.0, ge=0.0, le=1.0)
+    pathos: float = Field(default=0.0, ge=0.0, le=1.0)
+    overall: float = Field(default=0.0, ge=0.0, le=1.0)
+    alignment_status: str = "unknown"
+    flags: list[str] = Field(default_factory=list)
+    direction: str | None = None
+    message_content: str = ""
+    created_at: str = ""
+    phronesis: str = "unknown"
+    scoring_reasoning: str = ""
+    intent_classification: IntentClassification | None = None
+    trait_scores: dict[str, float] = Field(default_factory=dict)
+    similarity_score: float | None = None
+
+
+class RecordsResult(BaseModel):
+    """Paginated list of evaluation records."""
+
+    items: list[RecordItem] = Field(default_factory=list)
+    total: int = 0
+    page: int = 0
+    page_size: int = 20
+    total_pages: int = 0
