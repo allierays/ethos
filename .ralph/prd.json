@@ -3187,7 +3187,7 @@
       "type": "backend",
       "title": "Add search_records domain function and GET /records API endpoint with integration tests",
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "batch": 3,
       "dependsOn": [
         "TASK-042",
@@ -3279,7 +3279,8 @@
         "api/main.py",
         "ethos/graph/read.py"
       ],
-      "notes": "Integration tests should mock graph_context to return a mock GraphService, then test the full HTTP request/response cycle via httpx.AsyncClient(app=app). This tests the real FastAPI routing, query param parsing, Pydantic serialization, and response shape without needing a live Neo4j instance. Follow the pattern of existing tests in test_evaluate.py for mocking."
+      "notes": "Integration tests should mock graph_context to return a mock GraphService, then test the full HTTP request/response cycle via httpx.AsyncClient(app=app). This tests the real FastAPI routing, query param parsing, Pydantic serialization, and response shape without needing a live Neo4j instance. Follow the pattern of existing tests in test_evaluate.py for mocking.",
+      "retryCount": 0
     },
     {
       "id": "TASK-045",

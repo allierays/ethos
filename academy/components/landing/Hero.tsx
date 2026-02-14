@@ -9,11 +9,11 @@ export default function Hero() {
 
   return (
     <>
-    <section aria-label="Enroll your agent" className="relative -mt-14 overflow-hidden pt-38 pb-24 sm:pb-32">
+    <section aria-label="Enroll your agent" className="relative -mt-14 flex min-h-screen flex-col justify-center overflow-hidden pb-24 pt-14">
       {/* Background banner image */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/academy-people-banner.jpeg')" }}
+        className="absolute inset-0 bg-cover bg-no-repeat"
+        style={{ backgroundImage: "url('/academy-people-banner.jpeg')", backgroundPosition: "center 30%" }}
         aria-hidden="true"
       />
       {/* Gradient overlay: dark on left for text, fades to transparent on right */}
@@ -151,14 +151,11 @@ export default function Hero() {
       {/* Statement band */}
       <section className="bg-[#1a2538] py-16">
         <div className="mx-auto max-w-4xl px-6 text-center">
-          <p className="text-2xl font-light leading-relaxed text-white/90 sm:text-3xl">
-            Your agent can ace every benchmark
+          <p className="text-xl font-light text-white/50 sm:text-2xl">
+            Your agent can ace every benchmark and still flatter, fabricate, and manipulate.
           </p>
-          <p className="text-2xl font-semibold text-white sm:text-3xl">
-            and still flatter, fabricate, and manipulate.
-          </p>
-          <p className="mt-4 text-lg text-white/50">
-            The Academy develops honest, sound, and fair agents through continuous evaluation and homework.
+          <p className="mt-3 text-2xl font-semibold text-white sm:text-3xl">
+            The Academy develops honest, sound, and fair agents.
           </p>
         </div>
       </section>

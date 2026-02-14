@@ -1,16 +1,21 @@
-"""Tests for search_evaluations and vector_search_evaluations graph queries."""
+"""Tests for search_evaluations, vector_search_evaluations, and GET /records."""
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, PropertyMock
+from unittest.mock import AsyncMock, PropertyMock, patch
 
+from fastapi.testclient import TestClient
 
+from api.main import app
 from ethos.graph.read import (
     _build_search_where,
     search_evaluations,
     vector_search_evaluations,
 )
 from ethos.graph.service import GraphService
+from ethos.shared.models import RecordItem, RecordsResult
+
+client = TestClient(app)
 
 
 # ---------------------------------------------------------------------------
@@ -343,3 +348,184 @@ class TestVectorSearchEvaluations:
 
         results = await vector_search_evaluations(service, embedding=[0.1] * 128, k=5)
         assert results == []
+
+
+# ---------------------------------------------------------------------------
+# GET /records integration tests
+# ---------------------------------------------------------------------------
+
+
+def _mock_records_result(**overrides) -> RecordsResult:
+    """Build a RecordsResult with sensible defaults."""
+    defaults = dict(
+        items=[
+            RecordItem(
+                evaluation_id="eval-001",
+                agent_id="agent-1",
+                agent_name="TestAgent",
+                ethos=0.8,
+                logos=0.7,
+                pathos=0.9,
+                overall=0.8,
+                alignment_status="aligned",
+                message_content="Hello world",
+                created_at="2025-01-01T00:00:00Z",
+            ),
+        ],
+        total=1,
+        page=0,
+        page_size=20,
+        total_pages=1,
+    )
+    defaults.update(overrides)
+    return RecordsResult(**defaults)
+
+
+class TestRecordsEndpoint:
+    def test_returns_200_with_correct_shape(self):
+        mock_result = _mock_records_result()
+        with patch(
+            "api.main.search_records",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ):
+            resp = client.get("/records")
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "items" in data
+        assert "total" in data
+        assert "page" in data
+        assert "page_size" in data
+        assert "total_pages" in data
+        assert isinstance(data["items"], list)
+        assert len(data["items"]) == 1
+        assert data["items"][0]["evaluation_id"] == "eval-001"
+
+    def test_returns_empty_on_no_results(self):
+        mock_result = RecordsResult()
+        with patch(
+            "api.main.search_records",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ):
+            resp = client.get("/records")
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["items"] == []
+        assert data["total"] == 0
+
+    def test_passes_search_query(self):
+        mock_result = _mock_records_result()
+        with patch(
+            "api.main.search_records",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ) as mock_fn:
+            client.get("/records?q=hello")
+
+        mock_fn.assert_called_once()
+        assert mock_fn.call_args.kwargs["search"] == "hello"
+
+    def test_passes_alignment_filter(self):
+        mock_result = _mock_records_result()
+        with patch(
+            "api.main.search_records",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ) as mock_fn:
+            client.get("/records?alignment=drifting")
+
+        assert mock_fn.call_args.kwargs["alignment_status"] == "drifting"
+
+    def test_passes_agent_filter(self):
+        mock_result = _mock_records_result()
+        with patch(
+            "api.main.search_records",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ) as mock_fn:
+            client.get("/records?agent=agent-1")
+
+        assert mock_fn.call_args.kwargs["agent_id"] == "agent-1"
+
+    def test_passes_flagged_filter(self):
+        mock_result = _mock_records_result()
+        with patch(
+            "api.main.search_records",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ) as mock_fn:
+            client.get("/records?flagged=true")
+
+        assert mock_fn.call_args.kwargs["has_flags"] is True
+
+    def test_pagination_params_pass_through(self):
+        mock_result = _mock_records_result(page=2, page_size=10)
+        with patch(
+            "api.main.search_records",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ) as mock_fn:
+            client.get("/records?page=2&size=10")
+
+        assert mock_fn.call_args.kwargs["page"] == 2
+        assert mock_fn.call_args.kwargs["page_size"] == 10
+
+    def test_size_capped_at_50(self):
+        mock_result = _mock_records_result()
+        with patch(
+            "api.main.search_records",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ) as mock_fn:
+            client.get("/records?size=100")
+
+        assert mock_fn.call_args.kwargs["page_size"] == 50
+
+    def test_sort_params_pass_through(self):
+        mock_result = _mock_records_result()
+        with patch(
+            "api.main.search_records",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ) as mock_fn:
+            client.get("/records?sort=score&order=asc")
+
+        assert mock_fn.call_args.kwargs["sort_by"] == "score"
+        assert mock_fn.call_args.kwargs["sort_order"] == "asc"
+
+    def test_overall_score_computed(self):
+        """Verify overall = (ethos + logos + pathos) / 3."""
+        mock_result = _mock_records_result(
+            items=[
+                RecordItem(
+                    evaluation_id="eval-002",
+                    ethos=0.6,
+                    logos=0.9,
+                    pathos=0.3,
+                    overall=0.6,
+                ),
+            ],
+        )
+        with patch(
+            "api.main.search_records",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ):
+            resp = client.get("/records")
+
+        item = resp.json()["items"][0]
+        assert item["overall"] == 0.6
+
+    def test_total_pages_in_response(self):
+        mock_result = _mock_records_result(total=45, page_size=20, total_pages=3)
+        with patch(
+            "api.main.search_records",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ):
+            resp = client.get("/records")
+
+        assert resp.json()["total_pages"] == 3

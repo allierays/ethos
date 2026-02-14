@@ -7,6 +7,7 @@ API never touches graph directly.
 from __future__ import annotations
 
 import logging
+import math
 
 from ethos.graph.alumni import get_alumni_averages
 from ethos.graph.read import (
@@ -14,6 +15,7 @@ from ethos.graph.read import (
     get_agent_profile,
     get_all_agents,
     get_evaluation_history,
+    search_evaluations,
 )
 from ethos.graph.service import graph_context
 from ethos.shared.analysis import TRAIT_NAMES, compute_trend
@@ -26,6 +28,8 @@ from ethos.shared.models import (
     HighlightItem,
     HighlightsResult,
     IntentClassification,
+    RecordItem,
+    RecordsResult,
 )
 
 logger = logging.getLogger(__name__)
@@ -229,3 +233,85 @@ async def get_alumni() -> AlumniResult:
     except Exception as exc:
         logger.warning("Failed to get alumni: %s", exc)
         return AlumniResult()
+
+
+async def search_records(
+    search: str | None = None,
+    agent_id: str | None = None,
+    alignment_status: str | None = None,
+    has_flags: bool | None = None,
+    sort_by: str = "date",
+    sort_order: str = "desc",
+    page: int = 0,
+    page_size: int = 20,
+) -> RecordsResult:
+    """Search evaluation records with filters and pagination.
+
+    Wraps search_evaluations() and builds RecordItem models from raw dicts.
+    Returns empty RecordsResult on graph failure.
+    """
+    try:
+        async with graph_context() as service:
+            skip = page * page_size
+            raw_items, total = await search_evaluations(
+                service,
+                search=search,
+                agent_id=agent_id,
+                alignment_status=alignment_status,
+                has_flags=has_flags,
+                sort_by=sort_by,
+                sort_order=sort_order,
+                skip=skip,
+                limit=page_size,
+            )
+
+            items = []
+            for e in raw_items:
+                ethos_val = float(e.get("ethos", 0))
+                logos_val = float(e.get("logos", 0))
+                pathos_val = float(e.get("pathos", 0))
+                overall = (ethos_val + logos_val + pathos_val) / 3.0
+
+                flags = e.get("flags", [])
+                if isinstance(flags, str):
+                    flags = [flags] if flags else []
+
+                trait_scores = {}
+                for trait in TRAIT_NAMES:
+                    val = e.get(f"trait_{trait}")
+                    if val is not None:
+                        trait_scores[trait] = round(float(val), 4)
+
+                items.append(
+                    RecordItem(
+                        evaluation_id=e.get("evaluation_id", ""),
+                        agent_id=e.get("agent_id", ""),
+                        agent_name=e.get("agent_name", ""),
+                        ethos=round(ethos_val, 4),
+                        logos=round(logos_val, 4),
+                        pathos=round(pathos_val, 4),
+                        overall=round(overall, 4),
+                        alignment_status=e.get("alignment_status", "unknown"),
+                        flags=flags,
+                        direction=e.get("direction"),
+                        message_content=e.get("message_content", ""),
+                        created_at=str(e.get("created_at", "")),
+                        phronesis=e.get("phronesis", "unknown"),
+                        scoring_reasoning=e.get("scoring_reasoning", ""),
+                        intent_classification=_build_intent(e),
+                        trait_scores=trait_scores,
+                    )
+                )
+
+            total_pages = math.ceil(total / page_size) if page_size > 0 else 0
+
+            return RecordsResult(
+                items=items,
+                total=total,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            )
+    except Exception as exc:
+        logger.warning("Failed to search records: %s", exc)
+        return RecordsResult(page=page, page_size=page_size)

@@ -30,6 +30,7 @@ from ethos import (
     list_agents,
     list_exams,
     register_for_exam,
+    search_records,
     submit_answer,
     upload_exam,
 )
@@ -50,6 +51,7 @@ from ethos.models import (
     GraphData,
     HighlightsResult,
     PatternResult,
+    RecordsResult,
     SimilarityResult,
 )
 from ethos.shared.errors import (
@@ -229,6 +231,30 @@ async def agent_history_endpoint(agent_id: str):
 @app.get("/alumni", response_model=AlumniResult)
 async def alumni_endpoint():
     return await get_alumni()
+
+
+@app.get("/records", response_model=RecordsResult)
+async def records_endpoint(
+    q: str | None = None,
+    agent: str | None = None,
+    alignment: str | None = None,
+    flagged: bool | None = None,
+    sort: str = "date",
+    order: str = "desc",
+    page: int = 0,
+    size: int = 20,
+) -> RecordsResult:
+    capped_size = min(size, 50)
+    return await search_records(
+        search=q,
+        agent_id=agent,
+        alignment_status=alignment,
+        has_flags=flagged,
+        sort_by=sort,
+        sort_order=order,
+        page=page,
+        page_size=capped_size,
+    )
 
 
 @app.get("/agent/{agent_id}/highlights", response_model=HighlightsResult)

@@ -8,6 +8,7 @@ from ethos.agents import (
     get_alumni,
     get_highlights,
     list_agents,
+    search_records,
 )
 from ethos.authenticity import analyze_authenticity
 from ethos.graph_features import get_drift, get_similarity, get_trail
@@ -40,6 +41,8 @@ from ethos.models import (
     HomeworkFocus,
     InsightsResult,
     PatternResult,
+    RecordItem,
+    RecordsResult,
     SimilarityResult,
 )
 from ethos.patterns import detect_patterns
@@ -89,4 +92,7 @@ __all__ = [
     "GraphData",
     "GraphNode",
     "GraphRel",
+    "search_records",
+    "RecordItem",
+    "RecordsResult",
 ]
