@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { getHighlights } from "../../lib/api";
@@ -188,9 +188,24 @@ function DetailSection({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  // When a non-default section opens, keep its button visible so the user
+  // doesn't lose context about what they clicked.
+  useEffect(() => {
+    if (open && !defaultOpen && btnRef.current) {
+      // Small delay lets the DOM settle after content appears.
+      const id = setTimeout(() => {
+        btnRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 60);
+      return () => clearTimeout(id);
+    }
+  }, [open, defaultOpen]);
+
   return (
     <div>
       <button
+        ref={btnRef}
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2.5 w-full rounded-lg bg-[#ded8ce]/30 px-3 py-2 group hover:bg-[#ded8ce]/50 transition-colors border-l-3"
         style={{ borderLeftColor: accent ?? "transparent" }}
@@ -212,14 +227,17 @@ function DetailSection({
           {title}
         </h4>
       </button>
-      <AnimatePresence>
+      {/* initial={false} prevents defaultOpen sections from animating on mount,
+          avoiding nested height animations fighting with the parent ExpandedHighlight.
+          Opacity-only animation avoids gradual height changes that fight browser
+          scroll anchoring and cause the page to jump. */}
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
           >
             <div className="pt-2">{children}</div>
           </motion.div>

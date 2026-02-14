@@ -317,7 +317,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
             </ResponsiveContainer>
           </div>
 
-          {/* Dimension summary stats (expandable with trait habits) */}
+          {/* Dimension summary cards with expandable trait habits */}
           {first && last && (
             <div className="mt-4 grid grid-cols-3 gap-3">
               {dims.map((dim) => {
@@ -329,7 +329,14 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                 const dimHabits = habits.filter((h) => h.trait.dimension === dim.key);
                 const hasHabits = history.length > 0;
                 return (
-                  <div key={dim.key} className="rounded-lg glass overflow-hidden">
+                  <div
+                    key={dim.key}
+                    className="rounded-lg glass overflow-hidden transition-shadow"
+                    style={{
+                      borderLeft: `3px solid ${dim.color}`,
+                      boxShadow: isExpanded ? `0 0 0 1px ${dim.color}25` : undefined,
+                    }}
+                  >
                     <button
                       type="button"
                       className="w-full p-3 text-center transition-colors hover:bg-foreground/[0.02]"
@@ -369,7 +376,16 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                       </div>
                       {hasHabits && (
                         <p className="mt-2 text-[10px] text-foreground/40 flex items-center justify-center gap-1">
-                          <span className={`transition-transform inline-block ${isExpanded ? "rotate-90" : ""}`}>&#9654;</span>
+                          <svg
+                            className={`h-2.5 w-2.5 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          >
+                            <path d="M3 5l3 3 3-3" />
+                          </svg>
                           4 traits
                         </p>
                       )}
@@ -383,15 +399,20 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden"
                         >
-                          <div className="border-t border-foreground/[0.06] px-3 pb-3 pt-2.5 space-y-2.5">
+                          <div className="px-3 pb-3 pt-2 space-y-3" style={{ borderTop: `1px solid ${dim.color}20` }}>
                             {dimHabits.map((habit) => {
                               const config = STATUS_CONFIG[habit.status];
+                              const visible = habit.scores.slice(-MAX_SQUARES);
+                              const emptyCount = Math.max(0, MAX_SQUARES - visible.length);
                               return (
                                 <div key={habit.trait.key}>
                                   <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <span className={`h-2 w-2 rounded-full ${config.dotClass}`} />
-                                      <span className="text-sm text-[#1a2538]">
+                                    <div className="flex items-center gap-1.5">
+                                      <span
+                                        className="h-1.5 w-1.5 rounded-full"
+                                        style={{ backgroundColor: dim.color }}
+                                      />
+                                      <span className="text-xs text-[#1a2538]">
                                         <GlossaryTerm slug={habit.trait.slug}>{habit.trait.label}</GlossaryTerm>
                                       </span>
                                     </div>
@@ -399,22 +420,22 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                                       {config.label}
                                     </span>
                                   </div>
-                                  <div className="mt-1.5 flex gap-[3px]">
-                                    {habit.scores.map((score, i) => (
+                                  <div className="mt-1 flex gap-[2px]">
+                                    {visible.map((score, i) => (
                                       <div
                                         key={i}
-                                        className="h-[14px] w-[14px] rounded-[3px]"
+                                        className="h-[10px] w-[10px] rounded-[2px]"
                                         style={{
                                           backgroundColor: dim.color,
                                           opacity: scoreToLevel(score),
                                         }}
-                                        title={`Eval ${i + 1}: ${Math.round(score * 100)}%`}
+                                        title={`Eval ${habit.scores.length - visible.length + i + 1}: ${Math.round(score * 100)}%`}
                                       />
                                     ))}
-                                    {Array.from({ length: MAX_SQUARES - habit.scores.length }).map((_, i) => (
+                                    {Array.from({ length: emptyCount }).map((_, i) => (
                                       <div
                                         key={`empty-${i}`}
-                                        className="h-[14px] w-[14px] rounded-[3px] bg-foreground/[0.04] border border-foreground/[0.06]"
+                                        className="h-[10px] w-[10px] rounded-[2px] bg-foreground/[0.04] border border-foreground/[0.06]"
                                       />
                                     ))}
                                   </div>
