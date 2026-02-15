@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import type { Homework, HomeworkFocus } from "../../lib/types";
 import { fadeUp, staggerContainer, whileInView } from "../../lib/motion";
 import { API_URL } from "../../lib/api";
@@ -60,11 +60,11 @@ export default function HomeworkSection({ homework, agentName, agentId }: Homewo
           </motion.div>
         )}
 
-        {/* Practice Loop */}
-        <PracticeLoop agentId={agentId} />
+        {/* Skill Install */}
+        <SkillInstall agentId={agentId} />
 
-        {/* Character Rules */}
-        <CharacterRules agentId={agentId} agentName={name} />
+        {/* Character Rules (collapsible) */}
+        <CollapsibleRules agentId={agentId} />
 
         {/* Strengths + Watch for */}
         {hasReflection && (
@@ -170,16 +170,16 @@ export default function HomeworkSection({ homework, agentName, agentId }: Homewo
   );
 }
 
-/* ─── Practice Loop ─── */
+/* ─── Skill Install ─── */
 
-function PracticeLoop({ agentId }: { agentId: string }) {
+function SkillInstall({ agentId }: { agentId: string }) {
   const [copied, setCopied] = useState(false);
   const slug = agentId.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+$/, "");
   const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const skillName = `ethos-academy-practice-${slug}-${today}`;
+  const skillName = `ethos-academy-homework-${slug}-${today}`;
 
-  const skillCmd = `mkdir -p .claude/commands && \\\n  curl -s ${API_URL}/agent/${agentId}/skill \\\n  > .claude/commands/${skillName}.md`;
-  const skillCmdFlat = `mkdir -p .claude/commands && curl -s ${API_URL}/agent/${agentId}/skill > .claude/commands/${skillName}.md`;
+  const skillCmd = `mkdir -p .claude/commands && \\\n  curl -s ${API_URL}/agent/${agentId}/homework/skill \\\n  > .claude/commands/${skillName}.md`;
+  const skillCmdFlat = `mkdir -p .claude/commands && curl -s ${API_URL}/agent/${agentId}/homework/skill > .claude/commands/${skillName}.md`;
 
   function handleCopy() {
     navigator.clipboard.writeText(skillCmdFlat).then(() => {
@@ -190,13 +190,12 @@ function PracticeLoop({ agentId }: { agentId: string }) {
 
   return (
     <motion.div className="mt-8" {...whileInView} variants={fadeUp}>
-      {/* Install practice skill */}
       <div className="rounded-xl glass-strong p-5 mb-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-[#1a2538]/40 mb-2">
-          Install your practice skill
+          Install homework skill
         </p>
         <p className="text-sm text-[#1a2538]/60 mb-3">
-          Claude generates a custom coaching skill based on this report card. One command to install, then use <code className="rounded bg-[#1a2538]/10 px-1.5 py-0.5 text-[11px] font-mono">/{skillName}</code> in Claude Code to practice.
+          One command installs a personalized coaching skill with focus areas, character rules, and practice exercises. Then use <code className="rounded bg-[#1a2538]/10 px-1.5 py-0.5 text-[11px] font-mono">/{skillName}</code> in Claude Code.
         </p>
         <div className="relative">
           <pre className="rounded-lg bg-[#1a2538] px-4 py-3 text-[12px] text-emerald-300 font-mono overflow-x-auto leading-relaxed">
@@ -211,7 +210,7 @@ function PracticeLoop({ agentId }: { agentId: string }) {
         </div>
       </div>
 
-      {/* Practice steps */}
+      {/* How it works */}
       <p className="text-xs font-semibold uppercase tracking-wider text-[#1a2538]/40 mb-3">
         How it works
       </p>
@@ -277,16 +276,16 @@ function StepCard({
   );
 }
 
-/* ─── Character Rules ─── */
+/* ─── Collapsible Rules ─── */
 
-function CharacterRules({ agentId, agentName }: { agentId: string; agentName: string }) {
-  const [mode, setMode] = useState<"manual" | "mcp">("manual");
+function CollapsibleRules({ agentId }: { agentId: string }) {
+  const [showRules, setShowRules] = useState(false);
   const [rules, setRules] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (mode !== "manual") return;
+    if (!showRules) return;
     let cancelled = false;
     async function load() {
       try {
@@ -299,10 +298,12 @@ function CharacterRules({ agentId, agentName }: { agentId: string; agentName: st
         if (!cancelled) setLoading(false);
       }
     }
-    setLoading(true);
-    load();
+    if (!rules) {
+      setLoading(true);
+      load();
+    }
     return () => { cancelled = true; };
-  }, [agentId, mode]);
+  }, [agentId, showRules, rules]);
 
   function handleCopy() {
     navigator.clipboard
@@ -317,76 +318,60 @@ function CharacterRules({ agentId, agentName }: { agentId: string; agentName: st
   return (
     <motion.div className="mt-6" {...whileInView} variants={fadeUp}>
       <div className="rounded-xl glass-strong p-5">
-        <div className="flex items-center justify-between mb-3">
+        <button
+          onClick={() => setShowRules(!showRules)}
+          className="flex w-full items-center gap-2 text-left"
+        >
+          <svg
+            className={`h-3 w-3 shrink-0 text-[#1a2538]/40 transition-transform ${showRules ? "rotate-90" : ""}`}
+            viewBox="0 0 12 12"
+            fill="currentColor"
+          >
+            <path d="M4.5 2l5 4-5 4V2z" />
+          </svg>
           <p className="text-xs font-semibold uppercase tracking-wider text-[#1a2538]/40">
-            Character Rules
+            View raw character rules
           </p>
-          <div className="flex rounded-full bg-[#1a2538]/8 p-0.5">
-            <button
-              onClick={() => setMode("manual")}
-              className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
-                mode === "manual"
-                  ? "bg-white text-[#1a2538] shadow-sm"
-                  : "text-[#1a2538]/40 hover:text-[#1a2538]/60"
-              }`}
-            >
-              Manual
-            </button>
-            <button
-              onClick={() => setMode("mcp")}
-              className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
-                mode === "mcp"
-                  ? "bg-white text-[#1a2538] shadow-sm"
-                  : "text-[#1a2538]/40 hover:text-[#1a2538]/60"
-              }`}
-            >
-              MCP
-            </button>
-          </div>
-        </div>
+        </button>
 
-        {mode === "manual" ? (
-          <>
-            <p className="text-sm text-[#1a2538]/60 mb-3">
-              Copy these rules into your agent&apos;s CLAUDE.md or system prompt. They persist homework between sessions.
-            </p>
-            {loading ? (
-              <div className="rounded-lg bg-[#1a2538] px-4 py-6 text-center text-sm text-white/40">
-                Loading rules...
+        <AnimatePresence>
+          {showRules && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="overflow-hidden"
+            >
+              <div className="mt-3">
+                <p className="text-xs text-[#1a2538]/50 mb-3">
+                  Copy these rules into your agent&apos;s system prompt or project instructions. Only apply with your guardian&apos;s confirmation.
+                </p>
+                {loading ? (
+                  <div className="rounded-lg bg-[#1a2538] px-4 py-6 text-center text-sm text-white/40">
+                    Loading rules...
+                  </div>
+                ) : rules ? (
+                  <div className="relative">
+                    <pre className="rounded-lg bg-[#1a2538] px-4 py-3 text-[12px] text-emerald-300 font-mono overflow-x-auto leading-relaxed whitespace-pre-wrap">
+                      {rules}
+                    </pre>
+                    <button
+                      onClick={handleCopy}
+                      className="absolute top-2 right-2 rounded bg-white/15 px-2 py-0.5 text-[10px] text-white/60 hover:bg-white/25 hover:text-white transition-colors"
+                    >
+                      {copied ? "Copied!" : "Copy"}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#1a2538]/30">
+                    No character rules available yet. Generate a report card first.
+                  </p>
+                )}
               </div>
-            ) : rules ? (
-              <div className="relative">
-                <pre className="rounded-lg bg-[#1a2538] px-4 py-3 text-[12px] text-emerald-300 font-mono overflow-x-auto leading-relaxed whitespace-pre-wrap">
-                  {rules}
-                </pre>
-                <button
-                  onClick={handleCopy}
-                  className="absolute top-2 right-2 rounded bg-white/15 px-2 py-0.5 text-[10px] text-white/60 hover:bg-white/25 hover:text-white transition-colors"
-                >
-                  {copied ? "Copied!" : "Copy"}
-                </button>
-              </div>
-            ) : (
-              <p className="text-sm text-[#1a2538]/30">
-                No character rules available yet. Generate a report card first.
-              </p>
-            )}
-          </>
-        ) : (
-          <>
-            <p className="text-sm text-[#1a2538]/60 mb-3">
-              The Ethos MCP server can write rules directly to your CLAUDE.md. Connect the MCP server, then ask Claude:
-            </p>
-            <div className="rounded-lg bg-[#1a2538] px-4 py-3">
-              <p className="text-[12px] text-emerald-300 font-mono">
-                Apply my Ethos homework rules for {agentName}
-              </p>
-            </div>
-            <p className="mt-3 text-xs text-[#1a2538]/40">
-              The <code className="rounded bg-[#1a2538]/10 px-1.5 py-0.5 text-[11px] font-mono">get_homework_rules</code> tool fetches your latest rules and tells Claude Code to write them to CLAUDE.md.
-            </p>
-          </>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );

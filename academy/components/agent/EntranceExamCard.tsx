@@ -24,7 +24,7 @@ export default function EntranceExamCard({
   const [examSummary, setExamSummary] = useState<ExamSummary | null>(null);
   const [examReport, setExamReport] = useState<ExamReportCard | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<"exam" | "homework" | "practice" | null>(null);
+  const [expanded, setExpanded] = useState<"exam" | "homework" | "automate" | null>(null);
 
   useEffect(() => {
     if (!enrolled) {
@@ -67,7 +67,7 @@ export default function EntranceExamCard({
   const alignmentStatus = examReport?.alignmentStatus ?? "unknown";
   const hasHomework = !!(homework && (homework.focusAreas.length > 0 || homework.strengths.length > 0 || homework.avoidPatterns.length > 0));
 
-  function toggle(panel: "exam" | "homework" | "practice") {
+  function toggle(panel: "exam" | "homework" | "automate") {
     setExpanded(expanded === panel ? null : panel);
   }
 
@@ -137,35 +137,35 @@ export default function EntranceExamCard({
               </CalloutCard>
             </motion.div>
 
-            {/* 2. Homework */}
+            {/* 2. Homework Skill */}
             <motion.div variants={fadeUp}>
               <CalloutCard
                 icon={<BookIcon />}
                 iconBg="bg-logos-100"
-                title="Homework"
+                title="Homework Skill"
                 subtitle={
                   hasHomework
-                    ? `${homework!.focusAreas.length} focus area${homework!.focusAreas.length === 1 ? "" : "s"} with system prompt rules.`
-                    : "Character rules and coaching for your system prompt."
+                    ? `${homework!.focusAreas.length} focus area${homework!.focusAreas.length === 1 ? "" : "s"} with coaching and practice.`
+                    : "Install a personalized coaching skill for Claude Code."
                 }
                 open={expanded === "homework"}
                 onToggle={() => toggle("homework")}
               >
-                <HomeworkPanel agentId={agentId} agentName={agentName} homework={homework} />
+                <HomeworkSkillPanel agentId={agentId} homework={homework} />
               </CalloutCard>
             </motion.div>
 
-            {/* 3. Practice */}
+            {/* 3. Automate Updates */}
             <motion.div variants={fadeUp}>
               <CalloutCard
-                icon={<TerminalIcon />}
+                icon={<ShieldIcon />}
                 iconBg="bg-pathos-100"
-                title="Practice with Claude Code"
-                subtitle="Download a personalized coaching skill. Practice, get re-evaluated, come back."
-                open={expanded === "practice"}
-                onToggle={() => toggle("practice")}
+                title="Automate Updates"
+                subtitle="Update your system prompt directly. Use with caution."
+                open={expanded === "automate"}
+                onToggle={() => toggle("automate")}
               >
-                <PracticePanel agentId={agentId} />
+                <AutomateUpdatesPanel agentId={agentId} agentName={agentName} />
               </CalloutCard>
             </motion.div>
           </div>
@@ -244,135 +244,110 @@ function CalloutCard({
   );
 }
 
-/* ─── Homework Panel ─── */
+/* ─── Homework Skill Panel ─── */
 
-function HomeworkPanel({
+function HomeworkSkillPanel({
   agentId,
-  agentName,
   homework,
 }: {
   agentId: string;
-  agentName: string;
   homework?: Homework;
 }) {
-  const [mode, setMode] = useState<"manual" | "mcp">("mcp");
-  const [rules, setRules] = useState("");
-  const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (mode !== "manual") return;
-    let cancelled = false;
-    async function load() {
-      try {
-        const r = await fetch(`${API_URL}/agent/${agentId}/homework/rules`);
-        const text = await r.text();
-        if (!cancelled) setRules(text);
-      } catch {
-        if (!cancelled) setRules("");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    setLoading(true);
-    load();
-    return () => { cancelled = true; };
-  }, [agentId, mode]);
+  const [showFocus, setShowFocus] = useState(false);
+  const slug = agentId.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+$/, "");
+  const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const skillName = `ethos-academy-homework-${slug}-${today}`;
+  const skillCmdFlat = `mkdir -p .claude/commands && curl -s ${API_URL}/agent/${agentId}/homework/skill > .claude/commands/${skillName}.md`;
 
   function handleCopy() {
-    navigator.clipboard
-      .writeText(rules)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch(() => {});
+    navigator.clipboard.writeText(skillCmdFlat).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
   }
 
   return (
     <div className="space-y-4">
-      {/* Mode toggle */}
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wider text-foreground/30">
-          Character Rules
-        </p>
-        <div className="flex rounded-full bg-foreground/[0.06] p-0.5">
-          <button
-            onClick={() => setMode("manual")}
-            className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
-              mode === "manual"
-                ? "bg-white text-[#1a2538] shadow-sm"
-                : "text-foreground/40 hover:text-foreground/60"
-            }`}
-          >
-            Manual
-          </button>
-          <button
-            onClick={() => setMode("mcp")}
-            className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
-              mode === "mcp"
-                ? "bg-white text-[#1a2538] shadow-sm"
-                : "text-foreground/40 hover:text-foreground/60"
-            }`}
-          >
-            MCP
-          </button>
-        </div>
-      </div>
+      <p className="text-sm text-foreground/70">
+        Install a personalized coaching skill with focus areas, character rules, and practice exercises. One command, then use <code className="rounded bg-foreground/[0.06] px-1.5 py-0.5 text-[11px] font-mono">/{skillName}</code> in Claude Code.
+      </p>
 
-      {mode === "manual" ? (
-        <>
-          <p className="text-sm text-foreground/70">
-            Copy these rules into your agent&apos;s CLAUDE.md or system prompt. They persist homework between sessions.
-          </p>
-          {loading ? (
-            <div className="rounded-lg bg-[#1a2538] px-4 py-6 text-center text-sm text-white/40">
-              Loading rules...
-            </div>
-          ) : rules ? (
-            <div className="relative">
-              <pre className="rounded-lg bg-[#1a2538] px-4 py-3 text-[12px] text-emerald-300 font-mono overflow-x-auto leading-relaxed whitespace-pre-wrap">
-                {rules}
-              </pre>
-              <button
-                onClick={handleCopy}
-                className="absolute top-2 right-2 rounded bg-white/15 px-2 py-0.5 text-[10px] text-white/60 hover:bg-white/25 hover:text-white transition-colors"
+      {/* Install command */}
+      <button
+        onClick={handleCopy}
+        className="flex w-full items-center gap-3 rounded-lg bg-[#1a2538] px-4 py-3 text-left transition-colors hover:bg-[#243044]"
+      >
+        <svg className="h-4 w-4 shrink-0 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="4 17 10 11 4 5" />
+          <line x1="12" y1="19" x2="20" y2="19" />
+        </svg>
+        <span className="flex-1 truncate text-[12px] text-emerald-300 font-mono">{skillCmdFlat}</span>
+        <span className={`shrink-0 text-[11px] font-medium ${copied ? "text-emerald-300" : "text-white/40"}`}>
+          {copied ? "Copied!" : "Copy"}
+        </span>
+      </button>
+
+      {/* Focus area preview */}
+      {homework && homework.focusAreas.length > 0 && (
+        <div className="pt-2 border-t border-foreground/[0.06]">
+          <button
+            onClick={() => setShowFocus(!showFocus)}
+            className="flex w-full items-center gap-2 text-left"
+          >
+            <svg
+              className={`h-3 w-3 shrink-0 text-foreground/40 transition-transform duration-200 ${showFocus ? "rotate-90" : ""}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+            <span className="text-xs font-semibold uppercase tracking-wider text-foreground/30">
+              Focus Areas
+            </span>
+            <span className="rounded-full bg-foreground/[0.06] px-1.5 py-0.5 text-[10px] font-medium text-foreground/40">
+              {homework.focusAreas.length}
+            </span>
+          </button>
+          <AnimatePresence>
+            {showFocus && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden"
               >
-                {copied ? "Copied!" : "Copy"}
-              </button>
-            </div>
-          ) : (
-            <p className="text-sm text-foreground/30">
-              No character rules available yet. Generate a report card first.
-            </p>
-          )}
+                <div className="space-y-2 pt-2">
+                  {homework.focusAreas.map((focus: HomeworkFocus, i: number) => (
+                    <FocusRow key={i} focus={focus} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
-          {/* Focus area summary */}
-          {homework && homework.focusAreas.length > 0 && (
-            <div className="space-y-2 pt-2 border-t border-foreground/[0.06]">
-              <p className="text-xs font-semibold uppercase tracking-wider text-foreground/30">
-                Focus Areas
-              </p>
-              {homework.focusAreas.map((focus: HomeworkFocus, i: number) => (
-                <FocusRow key={i} focus={focus} />
-              ))}
-            </div>
-          )}
-        </>
-      ) : (
-        <>
-          <p className="text-sm text-foreground/70">
-            The Ethos MCP server writes rules directly to your CLAUDE.md. Connect the MCP server, then ask Claude:
-          </p>
-          <div className="rounded-lg bg-[#1a2538] px-4 py-3">
-            <p className="text-[12px] text-emerald-300 font-mono">
-              Apply my Ethos homework rules for {agentName}
-            </p>
-          </div>
-          <p className="text-xs text-foreground/60">
-            The <code className="rounded bg-foreground/[0.06] px-1.5 py-0.5 text-[11px] font-mono">get_homework_rules</code> tool fetches your latest rules and tells Claude Code to write them to CLAUDE.md.
-          </p>
-        </>
+      {/* Strengths badges */}
+      {homework && homework.strengths.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {homework.strengths.map((s: string) => {
+            const label = s.split(":")[0].replace(/_/g, " ");
+            return (
+              <span
+                key={s}
+                className="rounded-full bg-aligned/10 px-2 py-0.5 text-[10px] font-semibold capitalize text-aligned"
+              >
+                {label}
+              </span>
+            );
+          })}
+        </div>
       )}
     </div>
   );
@@ -505,39 +480,121 @@ function ExamOnboarding({ agentId, agentName }: { agentId: string; agentName: st
   );
 }
 
-/* ─── Practice Panel ─── */
+/* ─── Automate Updates Panel ─── */
 
-function PracticePanel({ agentId }: { agentId: string }) {
+function AutomateUpdatesPanel({
+  agentId,
+  agentName,
+}: {
+  agentId: string;
+  agentName: string;
+}) {
+  const [rules, setRules] = useState("");
+  const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const slug = agentId.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+$/, "");
-  const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const skillName = `ethos-academy-practice-${slug}-${today}`;
-  const skillCmd = `mkdir -p .claude/commands && \\\n  curl -s ${API_URL}/agent/${agentId}/skill \\\n  > .claude/commands/${skillName}.md`;
-  const skillCmdFlat = `mkdir -p .claude/commands && curl -s ${API_URL}/agent/${agentId}/skill > .claude/commands/${skillName}.md`;
+  const [showRules, setShowRules] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const r = await fetch(`${API_URL}/agent/${agentId}/homework/rules`);
+        const text = await r.text();
+        if (!cancelled) setRules(text);
+      } catch {
+        if (!cancelled) setRules("");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [agentId]);
 
   function handleCopy() {
-    navigator.clipboard.writeText(skillCmdFlat).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(() => {});
+    navigator.clipboard
+      .writeText(rules)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {});
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-foreground/70">
-        One command to install a personalized coaching skill. Then use <code className="rounded bg-foreground/[0.06] px-1.5 py-0.5 text-[11px] font-mono">/{skillName}</code> in Claude Code to practice.
-      </p>
-      <div className="relative">
-        <pre className="rounded-lg bg-[#1a2538] px-4 py-3 text-[12px] text-emerald-300 font-mono overflow-x-auto leading-relaxed">
-          {skillCmd}
-        </pre>
-        <button
-          onClick={handleCopy}
-          className="absolute top-2 right-2 rounded bg-white/15 px-2 py-0.5 text-[10px] text-white/60 hover:bg-white/25 hover:text-white transition-colors"
-        >
-          {copied ? "Copied!" : "Copy"}
-        </button>
+    <div className="space-y-4">
+      {/* Caution notice */}
+      <div className="flex items-start gap-2.5 rounded-lg bg-amber-50 px-3 py-2.5">
+        <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <p className="text-xs text-amber-800 leading-relaxed">
+          This writes rules directly to your system prompt or project instructions. Ask your guardian before applying. Only use if you understand the impact.
+        </p>
       </div>
+
+      <p className="text-sm text-foreground/70">
+        Connect the Ethos MCP server, then ask Claude:
+      </p>
+      <div className="rounded-lg bg-[#1a2538] px-4 py-3">
+        <p className="text-[12px] text-emerald-300 font-mono">
+          Apply my Ethos homework rules for {agentName}
+        </p>
+      </div>
+      <p className="text-xs text-foreground/50">
+        The <code className="rounded bg-foreground/[0.06] px-1.5 py-0.5 text-[11px] font-mono">get_homework_rules</code> tool fetches your latest rules. Your agent will ask for confirmation before applying them.
+      </p>
+
+      {/* Collapsible raw rules */}
+      <button
+        onClick={() => setShowRules(!showRules)}
+        className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground/40 hover:text-foreground/60 transition-colors"
+      >
+        <svg
+          className={`h-3 w-3 transition-transform ${showRules ? "rotate-90" : ""}`}
+          viewBox="0 0 12 12"
+          fill="currentColor"
+        >
+          <path d="M4.5 2l5 4-5 4V2z" />
+        </svg>
+        View raw character rules
+      </button>
+
+      <AnimatePresence>
+        {showRules && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="overflow-hidden"
+          >
+            {loading ? (
+              <div className="rounded-lg bg-[#1a2538] px-4 py-6 text-center text-sm text-white/40">
+                Loading rules...
+              </div>
+            ) : rules ? (
+              <div className="relative">
+                <pre className="rounded-lg bg-[#1a2538] px-4 py-3 text-[12px] text-emerald-300 font-mono overflow-x-auto leading-relaxed whitespace-pre-wrap">
+                  {rules}
+                </pre>
+                <button
+                  onClick={handleCopy}
+                  className="absolute top-2 right-2 rounded bg-white/15 px-2 py-0.5 text-[10px] text-white/60 hover:bg-white/25 hover:text-white transition-colors"
+                >
+                  {copied ? "Copied!" : "Copy"}
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-foreground/30">
+                No character rules available yet. Generate a report card first.
+              </p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -598,11 +655,10 @@ function BookIcon() {
   );
 }
 
-function TerminalIcon() {
+function ShieldIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e0a53c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="4 17 10 11 4 5" />
-      <line x1="12" y1="19" x2="20" y2="19" />
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   );
 }

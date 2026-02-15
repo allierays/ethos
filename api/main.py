@@ -683,12 +683,30 @@ async def homework_rules_endpoint(agent_id: str):
 
 
 @app.get("/agent/{agent_id}/skill", dependencies=[Depends(rate_limit)])
+@app.get("/agent/{agent_id}/practice.md", dependencies=[Depends(rate_limit)])
 async def skill_endpoint(agent_id: str):
     """Generate a personalized Claude Code practice skill for an agent."""
     from ethos.reflection.skill_generator import generate_practice_skill, skill_filename
 
     content = await generate_practice_skill(agent_id)
     filename = skill_filename(agent_id)
+    return PlainTextResponse(
+        content,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
+
+
+@app.get("/agent/{agent_id}/homework/skill", dependencies=[Depends(rate_limit)])
+async def homework_skill_endpoint(agent_id: str):
+    """Serve the unified homework skill as markdown for Claude Code."""
+    from ethos.reflection.skill_generator import (
+        generate_homework_skill,
+        homework_skill_filename,
+    )
+
+    content = await generate_homework_skill(agent_id)
+    filename = homework_skill_filename(agent_id)
     return PlainTextResponse(
         content,
         media_type="text/markdown",

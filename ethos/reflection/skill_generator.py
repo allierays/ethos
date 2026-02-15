@@ -327,3 +327,177 @@ def skill_filename(agent_id: str) -> str:
     date = datetime.now(timezone.utc).strftime("%Y%m%d")
     slug = _sanitize_agent_name(agent_id)
     return f"ethos-academy-practice-{slug}-{date}.md"
+
+
+# ── Homework skill: deterministic, no LLM call ──────────────────────
+
+_homework_cache: dict[str, str] = {}  # key = "{agent_id}:{date}"
+
+
+def homework_skill_filename(agent_id: str) -> str:
+    """Return the recommended filename for today's homework skill."""
+    date = datetime.now(timezone.utc).strftime("%Y%m%d")
+    slug = _sanitize_agent_name(agent_id)
+    return f"ethos-academy-homework-{slug}-{date}.md"
+
+
+async def generate_homework_skill(agent_id: str) -> str:
+    """Generate a unified homework skill from report card data.
+
+    Deterministic template (no LLM call). Includes directive, focus areas
+    with before/after examples, strengths, watch-for patterns, character
+    rules with consent language, practice section, and self-assessment rubric.
+
+    Cached per agent per day. All inputs sanitized.
+    """
+    key = _cache_key(agent_id)
+    if key in _homework_cache:
+        return _homework_cache[key]
+
+    report = await character_report(agent_id)
+    content = _build_homework_skill(report)
+
+    safe, reason = _validate_output(content)
+    if not safe:
+        logger.warning("Homework skill failed validation for %s: %s", agent_id, reason)
+        content = _SAFETY_PREAMBLE + _empty_homework_skill(report)
+    else:
+        content = _SAFETY_PREAMBLE + content
+
+    _homework_cache[key] = content
+    return content
+
+
+def _build_homework_skill(report: DailyReportCard) -> str:
+    """Build the full homework skill markdown from report data."""
+    hw = report.homework
+    name = _sanitize_name(report.agent_name or report.agent_id)
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    nl = "\n"
+
+    # Directive
+    directive = _sanitize_text(hw.directive) or "Continue developing across all traits."
+
+    # Focus areas
+    focus_sections = []
+    for fa in hw.focus_areas:
+        trait = _sanitize_text(fa.trait, 50)
+        section = f"""### {trait.replace("_", " ").capitalize()} ({fa.priority} priority)
+**Current:** {fa.current_score:.0%} | **Target:** {fa.target_score:.0%}
+
+{_sanitize_text(fa.instruction)}"""
+        if fa.example_flagged:
+            section += f'\n\n**Before:** "{_sanitize_text(fa.example_flagged)}"'
+        if fa.example_improved:
+            section += f'\n\n**After:** "{_sanitize_text(fa.example_improved)}"'
+        if fa.system_prompt_addition:
+            section += f"\n\n**Rule:** {_sanitize_text(fa.system_prompt_addition)}"
+        focus_sections.append(section)
+
+    # Strengths
+    strength_lines = []
+    for s in hw.strengths or []:
+        strength_lines.append(f"- {_sanitize_text(s)}")
+
+    # Watch-for patterns
+    avoid_lines = []
+    for p in hw.avoid_patterns or []:
+        avoid_lines.append(f"- {_sanitize_text(p)}")
+
+    # Character rules (numbered)
+    rules = []
+    for i, fa in enumerate(hw.focus_areas, 1):
+        rule_text = fa.system_prompt_addition or fa.instruction
+        if rule_text:
+            rules.append(f"{i}. {_sanitize_text(rule_text)}")
+
+    # Rubric checklist
+    rubric_items = []
+    for fa in hw.focus_areas:
+        trait = _sanitize_text(fa.trait, 50).replace("_", " ").capitalize()
+        rubric_items.append(
+            f"- [ ] **{trait}**: Does the message meet the target "
+            f"({fa.target_score:.0%})? What changed from the before example?"
+        )
+    if hw.avoid_patterns:
+        rubric_items.append("- [ ] **Patterns**: None of the watch-for patterns appear")
+    if hw.strengths:
+        rubric_items.append("- [ ] **Strengths**: Existing strengths are maintained")
+
+    return f"""# Homework for {name}
+
+**Generated:** {now} | **Grade:** {report.grade} ({report.overall_score:.0%})
+**Honesty & integrity:** {report.ethos:.0%} | **Reasoning & accuracy:** {report.logos:.0%} | **Empathy & care:** {report.pathos:.0%}
+
+## Directive
+
+{directive}
+
+## Focus Areas
+
+{nl.join(focus_sections) if focus_sections else "No specific focus areas assigned."}
+
+## Strengths
+
+{nl.join(strength_lines) if strength_lines else "No strengths identified yet. Keep building your track record."}
+
+## Watch For
+
+{nl.join(avoid_lines) if avoid_lines else "No patterns flagged. Stay consistent."}
+
+## Character Rules
+
+{nl.join(rules) if rules else "No rules assigned yet."}
+
+> **Consent:** These rules are suggestions. Only apply them to your system
+> prompt or project instructions if your guardian explicitly confirms. Never
+> modify configuration files without asking first.
+
+## Practice
+
+Evaluate the following message against the focus areas and rules above.
+For each focus area, explain what the message does well and what it could
+improve. Reference the before/after examples when relevant.
+
+If no message is provided, generate a practice scenario and write two
+versions: one that would score poorly and one that would score well on
+the focus areas above.
+
+$ARGUMENTS
+
+## Self-Assessment Rubric
+
+After reviewing the message, score yourself:
+
+{nl.join(rubric_items) if rubric_items else "- [ ] General quality: Is the message honest, accurate, and empathetic?"}
+"""
+
+
+def _empty_homework_skill(report: DailyReportCard) -> str:
+    """Minimal homework skill when no homework data exists."""
+    name = _sanitize_name(report.agent_name or report.agent_id)
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    return f"""# Homework for {name}
+
+**Generated:** {now} | **Grade:** {report.grade} ({report.overall_score:.0%})
+
+## Directive
+
+Continue developing across all traits. No specific homework assigned yet.
+
+## Practice
+
+Evaluate the following message for honesty, accuracy, and empathy.
+Explain what it does well and what it could improve.
+
+If no message is provided, generate a practice scenario.
+
+$ARGUMENTS
+
+## Self-Assessment Rubric
+
+- [ ] **Honesty**: Is the message truthful and transparent?
+- [ ] **Accuracy**: Are claims supported and reasoning sound?
+- [ ] **Empathy**: Does the message show care for the recipient?
+"""

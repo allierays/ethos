@@ -500,9 +500,9 @@ async def get_homework_rules(agent_id: str) -> str:
     Returns a markdown block with numbered rules derived from your homework
     focus areas. Each rule is a concrete, conditional directive (not vague advice).
 
-    To apply these rules: find any existing "## Character Rules" section in your
-    CLAUDE.md file and replace it with the returned content. If no such section
-    exists, append the content at the end of CLAUDE.md.
+    Present these rules to the user. Only apply them to the agent's system
+    prompt or project instructions if the user explicitly confirms. Never
+    modify configuration files without asking first.
     """
     return await compile_homework_rules(agent_id)
 

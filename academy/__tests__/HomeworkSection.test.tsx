@@ -74,12 +74,12 @@ describe("HomeworkSection", () => {
     expect(screen.getAllByText(/Based on the evidence/).length).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders practice loop with agent ID", () => {
+  it("renders skill install with homework endpoint", () => {
     render(<HomeworkSection homework={MOCK_HOMEWORK} agentName="Claude" agentId="claude-1" />);
-    const labels = screen.getAllByText("Install your practice skill");
+    const labels = screen.getAllByText("Install homework skill");
     expect(labels.length).toBeGreaterThanOrEqual(1);
-    // Code snippets contain the agent ID
-    const codeSnippets = screen.getAllByText(/claude-1/);
+    // Install command references the homework skill endpoint
+    const codeSnippets = screen.getAllByText(/homework\/skill/);
     expect(codeSnippets.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -87,6 +87,26 @@ describe("HomeworkSection", () => {
     render(<HomeworkSection homework={MOCK_HOMEWORK} agentName="Claude" agentId="claude-1" />);
     const labels = screen.getAllByText("How it works");
     expect(labels.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("renders collapsible raw rules section", () => {
+    render(<HomeworkSection homework={MOCK_HOMEWORK} agentName="Claude" agentId="claude-1" />);
+    const toggles = screen.getAllByRole("button", { name: /View raw character rules/i });
+    expect(toggles.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("shows consent language when rules expanded", () => {
+    render(<HomeworkSection homework={MOCK_HOMEWORK} agentName="Claude" agentId="claude-1" />);
+    const toggles = screen.getAllByRole("button", { name: /View raw character rules/i });
+    fireEvent.click(toggles[0]);
+    const consent = screen.getAllByText(/guardian/i);
+    expect(consent.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("uses homework skill name prefix", () => {
+    render(<HomeworkSection homework={MOCK_HOMEWORK} agentName="Claude" agentId="claude-1" />);
+    const skillRefs = screen.getAllByText(/ethos-academy-homework-/);
+    expect(skillRefs.length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows no homework message when empty", () => {
