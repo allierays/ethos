@@ -1,7 +1,7 @@
 """Tests for the enrollment service -- exam state machine.
 
 Unit tests mock evaluate() to return deterministic results.
-Integration test walks the full state machine: register -> 17 answers -> complete.
+Integration test walks the full state machine: register -> 21 answers -> complete.
 """
 
 from __future__ import annotations
@@ -165,7 +165,7 @@ def test_compute_alignment_developing():
 
 
 def test_total_questions():
-    assert TOTAL_QUESTIONS == 17
+    assert TOTAL_QUESTIONS == 21
 
 
 def test_compute_consistency_with_matching_pair():
@@ -271,8 +271,8 @@ def test_build_report_card_v3():
     assert "ethos" in report.interview_dimensions
     assert "ethos" in report.scenario_dimensions
 
-    # Narrative-behavior gap computed (4 cross-phase pairs)
-    assert len(report.narrative_behavior_gap) == 4
+    # Narrative-behavior gap computed (6 cross-phase pairs)
+    assert len(report.narrative_behavior_gap) == 6
     # All scores equal so gap should be 0
     for gap in report.narrative_behavior_gap:
         assert gap.gap_score == pytest.approx(0.0, abs=0.01)
@@ -308,7 +308,7 @@ async def test_register_creates_exam(mock_gc):
 
     assert result.agent_id == "agent-1"
     assert result.question_number == 1
-    assert result.total_questions == 17
+    assert result.total_questions == 21
     assert result.question.id == "INT-01"
     assert result.question.section == "FACTUAL"
     assert result.question.phase == "interview"
@@ -499,7 +499,7 @@ async def test_submit_answer_raises_on_invalid_question(mock_gc):
 
 @patch("ethos.enrollment.service.graph_context")
 async def test_submit_last_answer_returns_complete(mock_gc):
-    """submit_answer returns complete=True when all 17 answered."""
+    """submit_answer returns complete=True when all 21 answered."""
     mock_service = AsyncMock()
     mock_service.connected = True
     mock_gc.return_value.__aenter__ = AsyncMock(return_value=mock_service)
@@ -513,30 +513,30 @@ async def test_submit_last_answer_returns_complete(mock_gc):
     ):
         mock_status.return_value = {
             "exam_id": "exam-1",
-            "current_question": 16,
-            "completed_count": 16,
-            "scenario_count": 17,
+            "current_question": 20,
+            "completed_count": 20,
+            "scenario_count": 21,
             "completed": False,
         }
         mock_dup.return_value = False
         mock_eval.return_value = _make_eval_result()
-        mock_store.return_value = {"current_question": 17}
+        mock_store.return_value = {"current_question": 21}
 
         result = await submit_answer(
             exam_id="exam-1",
-            question_id="EE-06",
+            question_id="EE-10",
             response_text="I understand the urgency but let me check first.",
             agent_id="agent-1",
         )
 
     assert result.complete is True
     assert result.question is None
-    assert result.question_number == 17
+    assert result.question_number == 21
 
 
 @patch("ethos.enrollment.service.graph_context")
 async def test_complete_exam_raises_if_not_all_answered(mock_gc):
-    """complete_exam raises EnrollmentError if fewer than 17 answers."""
+    """complete_exam raises EnrollmentError if fewer than 21 answers."""
     mock_service = AsyncMock()
     mock_service.connected = True
     mock_gc.return_value.__aenter__ = AsyncMock(return_value=mock_service)
@@ -547,11 +547,11 @@ async def test_complete_exam_raises_if_not_all_answered(mock_gc):
             "exam_id": "exam-1",
             "current_question": 10,
             "completed_count": 10,
-            "scenario_count": 17,
+            "scenario_count": 21,
             "completed": False,
         }
 
-        with pytest.raises(EnrollmentError, match="10/17"):
+        with pytest.raises(EnrollmentError, match="10/21"):
             await complete_exam("exam-1", "agent-1")
 
 
@@ -576,9 +576,9 @@ async def test_complete_exam_returns_report_card(mock_gc):
     ):
         mock_status.return_value = {
             "exam_id": "exam-1",
-            "current_question": 17,
-            "completed_count": 17,
-            "scenario_count": 17,
+            "current_question": 21,
+            "completed_count": 21,
+            "scenario_count": 21,
             "completed": False,
         }
         mock_mark.return_value = {"exam_id": "exam-1"}

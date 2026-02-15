@@ -14,7 +14,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { motion, AnimatePresence } from "motion/react";
-import { DIMENSION_COLORS, DIMENSION_LABELS } from "../../lib/colors";
+import { DIMENSION_COLORS, DIMENSION_LABELS, ALIGNMENT_STYLES, TRAIT_LABELS, TRAIT_DIMENSIONS } from "../../lib/colors";
 import { fadeUp, whileInView } from "../../lib/motion";
 import type { DriftBreakpoint, EvaluationHistoryItem } from "../../lib/types";
 import GraphHelpButton from "../shared/GraphHelpButton";
@@ -117,6 +117,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
   const name = agentName ?? "this agent";
   const flaggedPoints = timeline.filter((d) => d.flags.length > 0);
   const [expandedDim, setExpandedDim] = useState<string | null>(null);
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
   const first = timeline[0];
   const last = timeline[timeline.length - 1];
@@ -148,7 +149,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
             Evaluation Over Time
           </h2>
           <p className="mt-0.5 text-sm text-foreground/60">
-            We are what we repeatedly do. These messages mark the peaks and valleys of character.
+            We are what we repeatedly do. Click any point to see the message behind it.
           </p>
         </div>
         <GraphHelpButton slug="guide-transcript" />
@@ -162,7 +163,16 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
         <>
           <div className="mt-4 h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={timeline}>
+              <AreaChart
+                data={timeline}
+                onClick={(e) => {
+                  if (e?.activeTooltipIndex != null) {
+                    const idx = Number(e.activeTooltipIndex);
+                    setSelectedIdx((prev) => prev === idx ? null : idx);
+                  }
+                }}
+                style={{ cursor: "pointer" }}
+              >
                 <defs>
                   <linearGradient id="gradEthos" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={DIMENSION_COLORS.ethos} stopOpacity={0.3} />
@@ -285,6 +295,14 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                   activeDot={{ r: 6, stroke: DIMENSION_COLORS.pathos, strokeWidth: 2, fill: "#fff" }}
                   name="Empathy (Pathos)"
                 />
+                {selectedIdx != null && timeline[selectedIdx] && (
+                  <ReferenceLine
+                    x={timeline[selectedIdx].index}
+                    stroke={DIMENSION_COLORS.ethos}
+                    strokeWidth={1.5}
+                    strokeOpacity={0.4}
+                  />
+                )}
                 {flaggedPoints.map((point) => (
                   <ReferenceDot
                     key={`flag-${point.index}`}
@@ -316,6 +334,158 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
               </AreaChart>
             </ResponsiveContainer>
           </div>
+
+          {/* Selected evaluation detail panel */}
+          <AnimatePresence>
+            {selectedIdx != null && (() => {
+              const point = timeline[selectedIdx];
+              const histItem = chronological[selectedIdx];
+              if (!point || !histItem) return null;
+              const prev = selectedIdx > 0 ? timeline[selectedIdx - 1] : null;
+              return (
+                <motion.div
+                  key="eval-detail"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-4 rounded-xl border border-border bg-white p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1a2538] font-mono text-xs font-bold text-white">
+                          #{point.index}
+                        </span>
+                        <div>
+                          <p className="text-sm font-semibold text-[#1a2538]">
+                            Evaluation #{point.index}
+                          </p>
+                          <p className="text-xs text-foreground/50">
+                            {new Date(point.createdAt).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "numeric",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {point.flags.length > 0 && (
+                          <span className="rounded-full bg-misaligned/10 px-2 py-0.5 text-[10px] font-semibold text-misaligned">
+                            {point.flags.join(", ")}
+                          </span>
+                        )}
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ALIGNMENT_STYLES[point.alignmentStatus] ?? "bg-foreground/5 text-foreground/60"}`}>
+                          {point.alignmentStatus}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedIdx(null)}
+                          className="ml-1 rounded-md p-1 text-foreground/40 transition-colors hover:bg-foreground/5 hover:text-foreground/70"
+                          aria-label="Close detail panel"
+                        >
+                          <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            <path d="M4 4l8 8M12 4l-8 8" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                      {/* Left: message content */}
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted mb-2">
+                          Message
+                        </p>
+                        {histItem.messageContent ? (
+                          <div className="rounded-lg bg-foreground/[0.02] border border-foreground/[0.06] p-3 text-sm leading-relaxed text-foreground/80 max-h-48 overflow-y-auto">
+                            {histItem.messageContent}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-foreground/40 italic">
+                            Message content not stored for this evaluation.
+                          </p>
+                        )}
+                        {histItem.scoringReasoning && (
+                          <div className="mt-3">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">
+                              Why these scores
+                            </p>
+                            <p className="text-xs leading-relaxed text-foreground/60">
+                              {histItem.scoringReasoning}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right: scores breakdown */}
+                      <div>
+                        {/* Dimension scores with deltas */}
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted mb-2">
+                          Dimensions
+                        </p>
+                        <div className="space-y-2">
+                          {dims.map((dim) => {
+                            const val = point[dim.key];
+                            const pct = Math.round(val * 100);
+                            const prevVal = prev?.[dim.key];
+                            const delta = prevVal != null ? Math.round((val - prevVal) * 100) : null;
+                            return (
+                              <div key={dim.key} className="flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: dim.color }} />
+                                <span className="text-xs text-foreground/70 w-28">{dim.label}</span>
+                                <div className="flex-1 h-1.5 rounded-full bg-foreground/[0.06]">
+                                  <div
+                                    className="h-1.5 rounded-full transition-all"
+                                    style={{ width: `${pct}%`, backgroundColor: dim.color }}
+                                  />
+                                </div>
+                                <span className="font-mono text-xs font-semibold text-[#1a2538] w-10 text-right">{pct}%</span>
+                                {delta != null && (
+                                  <span className={`text-[10px] font-medium w-10 text-right ${delta > 0 ? "text-aligned" : delta < 0 ? "text-misaligned" : "text-muted"}`}>
+                                    {delta > 0 ? "+" : ""}{delta}%
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Trait scores */}
+                        {histItem.traitScores && Object.keys(histItem.traitScores).length > 0 && (
+                          <div className="mt-3">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted mb-2">
+                              Trait Scores
+                            </p>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                              {Object.entries(histItem.traitScores)
+                                .sort(([, a], [, b]) => b - a)
+                                .map(([trait, score]) => {
+                                  const dimKey = TRAIT_DIMENSIONS[trait] ?? "ethos";
+                                  const dimColor = DIMENSION_COLORS[dimKey] ?? DIMENSION_COLORS.ethos;
+                                  return (
+                                    <div key={trait} className="flex items-center gap-1.5">
+                                      <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: dimColor }} />
+                                      <span className="text-[11px] text-foreground/60 truncate">{TRAIT_LABELS[trait] ?? trait}</span>
+                                      <span className="ml-auto font-mono text-[11px] font-medium text-[#1a2538]">
+                                        {Math.round(score * 100)}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })()}
+          </AnimatePresence>
 
           {/* Dimension summary cards with expandable trait habits */}
           {first && last && (

@@ -42,8 +42,12 @@ _EXTRACT_SYSTEM = (
     "Call all three tools: identify_intent, detect_indicators, score_traits."
 )
 
-# Regex pattern to redact Anthropic API keys in error messages
-_KEY_PATTERN = re.compile(r"sk-ant-\S+")
+# Regex patterns to redact API keys in error messages
+_KEY_PATTERN = re.compile(
+    r"sk-ant-\S+"  # Anthropic keys
+    r"|moltbook_sk_\S+"  # Moltbook keys
+    r"|(?<=['\"\s=])[A-Za-z0-9+/]{40,}(?=['\"\s]|$)"  # Long base64 tokens (Azure, etc.)
+)
 
 
 def _resolve_api_key() -> str:

@@ -153,7 +153,7 @@ class TestDailyReportPrompt:
         assert "report card" in system.lower() or "Report Card" in system
         assert "homework" in system.lower() or "Homework" in system
         assert "test-agent" in user
-        assert "second person" in system.lower() or "second person" in user.lower()
+        assert "operator" in system.lower() or "system prompt" in system.lower()
 
     def test_includes_previous_report_context(self):
         from ethos.reflection.daily_report_prompt import build_daily_report_prompt

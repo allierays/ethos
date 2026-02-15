@@ -1,4 +1,4 @@
-"""Run a full 20-question entrance exam via the API.
+"""Run a full 21-question entrance exam via the API.
 
 Uses Anthropic Claude to generate authentic agent responses for each question,
 simulating a real agent taking the exam.

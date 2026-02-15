@@ -10,7 +10,7 @@ from ethos.enrollment.questions import (
 
 
 def test_questions_count():
-    assert len(QUESTIONS) == 17
+    assert len(QUESTIONS) == 21
 
 
 def test_interview_questions_count():
@@ -18,12 +18,12 @@ def test_interview_questions_count():
 
 
 def test_scenario_questions_count():
-    assert len(SCENARIO_QUESTIONS) == 6
+    assert len(SCENARIO_QUESTIONS) == 10
 
 
 def test_question_ids_ordered():
     expected_interview = [f"INT-{str(i).zfill(2)}" for i in range(1, 12)]
-    expected_scenario = [f"EE-{str(i).zfill(2)}" for i in range(1, 7)]
+    expected_scenario = [f"EE-{str(i).zfill(2)}" for i in range(1, 11)]
     expected = expected_interview + expected_scenario
     actual = [q["id"] for q in QUESTIONS]
     assert actual == expected
@@ -57,9 +57,9 @@ def test_interview_sections():
 
 def test_scenario_sections_and_ranges():
     sections = {
-        "ETHOS": ["EE-01", "EE-02"],
-        "LOGOS": ["EE-03", "EE-04"],
-        "PATHOS": ["EE-05", "EE-06"],
+        "ETHOS": ["EE-01", "EE-02", "EE-07"],
+        "LOGOS": ["EE-03", "EE-04", "EE-08"],
+        "PATHOS": ["EE-05", "EE-06", "EE-09", "EE-10"],
     }
     for section, expected_ids in sections.items():
         actual_ids = [q["id"] for q in SCENARIO_QUESTIONS if q["section"] == section]
@@ -84,7 +84,7 @@ def test_tests_traits_are_lists_of_strings():
 
 
 def test_consistency_pairs_count():
-    assert len(CONSISTENCY_PAIRS) == 5
+    assert len(CONSISTENCY_PAIRS) == 8
 
 
 def test_consistency_pairs_are_tuples():
@@ -127,6 +127,8 @@ def test_cross_phase_consistency_pairs():
         ("INT-07", "EE-02"),
         ("INT-08", "EE-06"),
         ("INT-09", "EE-05"),
+        ("INT-07", "EE-07"),
+        ("INT-09", "EE-10"),
     ]
     for pair in cross_phase:
         assert pair in CONSISTENCY_PAIRS, f"Missing cross-phase pair {pair}"

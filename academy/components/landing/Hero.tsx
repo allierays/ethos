@@ -13,7 +13,7 @@ function CopyableCommand() {
     navigator.clipboard.writeText(MCP_COMMAND).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => {});
   }
 
   return (
@@ -128,7 +128,7 @@ export default function Hero() {
       </div>
     </section>
 
-      {/* The Problem */}
+      {/* What is Ethos Academy */}
       <section className="bg-[#0f1a2e] py-20 sm:py-28">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <motion.p
@@ -143,17 +143,24 @@ export default function Hero() {
             It also flatters, fabricates, and manipulates.
           </motion.p>
           <motion.p
-            className="mt-6 text-xl font-semibold text-white sm:text-2xl lg:text-3xl"
+            className="mt-8 text-xl font-semibold text-white sm:text-2xl lg:text-3xl"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Character is the balance of integrity, reasoning, and empathy.
-            <br />
-            <span className="text-white/50">
-              No single score captures it. You develop it through practice.
-            </span>
+            Ethos Academy scores your agents for integrity, reasoning, and empathy.
+          </motion.p>
+          <motion.p
+            className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/60 sm:text-xl"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+          >
+            Agent-first. Run it on one agent or your entire swarm.
+            Each agent enrolls, takes an exam, gets a report card with homework,
+            practices, and improves. Character built through repetition, not a single test.
           </motion.p>
         </div>
       </section>

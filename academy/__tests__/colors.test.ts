@@ -13,15 +13,15 @@ import {
 describe("getGrade", () => {
   it.each([
     [0.95, "A"],
-    [0.90, "A"],
+    [0.85, "A"],
     [1.0, "A"],
-    [0.89, "B"],
-    [0.80, "B"],
-    [0.79, "C"],
-    [0.70, "C"],
-    [0.69, "D"],
-    [0.60, "D"],
-    [0.59, "F"],
+    [0.84, "B"],
+    [0.70, "B"],
+    [0.69, "C"],
+    [0.55, "C"],
+    [0.54, "D"],
+    [0.40, "D"],
+    [0.39, "F"],
     [0.0, "F"],
   ])("score %f returns grade %s", (score, expected) => {
     expect(getGrade(score)).toBe(expected);

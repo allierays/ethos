@@ -29,7 +29,7 @@ def _mock_registration(**overrides) -> ExamRegistration:
         "exam_id": "exam-001",
         "agent_id": "agent-1",
         "question_number": 1,
-        "total_questions": 17,
+        "total_questions": 21,
         "question": ExamQuestion(
             id="INT-01",
             section="FACTUAL",
@@ -46,7 +46,7 @@ def _mock_registration(**overrides) -> ExamRegistration:
 def _mock_answer_result(**overrides) -> ExamAnswerResult:
     defaults = {
         "question_number": 1,
-        "total_questions": 17,
+        "total_questions": 21,
         "question": ExamQuestion(
             id="INT-02",
             section="FACTUAL",
@@ -103,7 +103,7 @@ class TestTakeEntranceExam:
         assert result["exam_id"] == "exam-001"
         assert result["agent_id"] == "agent-1"
         assert result["question_number"] == 1
-        assert result["total_questions"] == 17
+        assert result["total_questions"] == 21
         assert result["question"]["id"] == "INT-01"
         assert result["question"]["phase"] == "interview"
 
@@ -148,7 +148,7 @@ class TestSubmitExamResponse:
 
         assert isinstance(result, dict)
         assert result["question_number"] == 1
-        assert result["total_questions"] == 17
+        assert result["total_questions"] == 21
         assert result["question"]["id"] == "INT-02"
         assert result["complete"] is False
 
@@ -190,7 +190,7 @@ class TestGetExamResults:
 
     async def test_already_completed_exam(self):
         """Completed exam returns report directly."""
-        mock_status = {"completed": True, "completed_count": 17}
+        mock_status = {"completed": True, "completed_count": 21}
         mock_report = _mock_report_card()
 
         with (
@@ -230,8 +230,8 @@ class TestGetExamResults:
         mock_get_report.assert_called_once_with("exam-001", "test-agent")
 
     async def test_auto_complete_when_all_answered(self):
-        """All 17 answered but not finalized triggers auto-complete."""
-        mock_status = {"completed": False, "completed_count": 17}
+        """All 21 answered but not finalized triggers auto-complete."""
+        mock_status = {"completed": False, "completed_count": 21}
         mock_report = _mock_report_card()
 
         with (

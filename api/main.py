@@ -8,13 +8,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from api.auth import require_api_key
-from api.rate_limit import rate_limit
+from api.rate_limit import phone_rate_limit, rate_limit
 from ethos.context import anthropic_api_key_var, request_id_var
 from ethos.graph.service import close_shared_service
 from ethos import (
@@ -125,7 +125,20 @@ async def _lifespan(app: FastAPI):
     await close_shared_service()
 
 
-app = FastAPI(title="Ethos API (FastAPI)", version="0.1.0", lifespan=_lifespan)
+_disable_docs = os.environ.get("ETHOS_DISABLE_DOCS", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
+
+app = FastAPI(
+    title="Ethos API (FastAPI)",
+    version="0.1.0",
+    lifespan=_lifespan,
+    docs_url=None if _disable_docs else "/docs",
+    redoc_url=None if _disable_docs else "/redoc",
+    openapi_url=None if _disable_docs else "/openapi.json",
+)
 
 
 def _get_cors_origins() -> list[str]:
@@ -140,8 +153,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_get_cors_origins(),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Anthropic-Key"],
 )
 
 
@@ -209,11 +222,16 @@ app.add_middleware(RequestIDMiddleware)
 
 
 def _error_response(status: int, exc: Exception) -> JSONResponse:
+    msg = _redact(str(exc))
+    if status >= 500:
+        logger.error("Server error %d: %s", status, msg, exc_info=exc)
+    else:
+        logger.warning("Client error %d: %s", status, msg)
     return JSONResponse(
         status_code=status,
         content={
             "error": type(exc).__name__,
-            "message": _redact(str(exc)),
+            "message": msg,
             "status": status,
         },
     )
@@ -265,23 +283,28 @@ def handle_ethos_error(request: Request, exc: EthosError) -> JSONResponse:
     return _error_response(500, exc)
 
 
+@app.exception_handler(Exception)
+def handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    return _error_response(500, exc)
+
+
 # ── Request / Response models ────────────────────────────────────────
 
 
 class EvaluateIncomingRequest(BaseModel):
     text: str = Field(min_length=1, max_length=50000)
-    source: str = Field(min_length=1)
-    source_name: str | None = None
-    agent_specialty: str | None = None
-    message_timestamp: str | None = None
+    source: str = Field(min_length=1, max_length=256)
+    source_name: str | None = Field(default=None, max_length=256)
+    agent_specialty: str | None = Field(default=None, max_length=256)
+    message_timestamp: str | None = Field(default=None, max_length=64)
 
 
 class EvaluateOutgoingRequest(BaseModel):
     text: str = Field(min_length=1, max_length=50000)
-    source: str = Field(min_length=1)
-    source_name: str | None = None
-    agent_specialty: str | None = None
-    message_timestamp: str | None = None
+    source: str = Field(min_length=1, max_length=256)
+    source_name: str | None = Field(default=None, max_length=256)
+    agent_specialty: str | None = Field(default=None, max_length=256)
+    message_timestamp: str | None = Field(default=None, max_length=64)
 
 
 class HealthResponse(BaseModel):
@@ -376,8 +399,8 @@ async def records_endpoint(
     flagged: bool | None = None,
     sort: str = "date",
     order: str = "desc",
-    page: int = 0,
-    size: int = 20,
+    page: int = Query(default=0, ge=0, le=1000),
+    size: int = Query(default=20, ge=1),
 ) -> RecordsResult:
     capped_size = min(size, 50)
     return await search_records(
@@ -434,11 +457,11 @@ async def drift_endpoint(agent_id: str):
 
 
 class ExamRegisterRequest(BaseModel):
-    agent_name: str | None = None
-    specialty: str | None = None
-    model: str | None = None
-    guardian_name: str | None = None
-    guardian_phone: str | None = None
+    agent_name: str | None = Field(default=None, max_length=256)
+    specialty: str | None = Field(default=None, max_length=256)
+    model: str | None = Field(default=None, max_length=256)
+    guardian_name: str | None = Field(default=None, max_length=256)
+    guardian_phone: str | None = Field(default=None, max_length=20)
 
 
 class ExamAnswerRequest(BaseModel):
@@ -463,7 +486,11 @@ class UploadExamRequest(BaseModel):
 # ── Exam endpoints ───────────────────────────────────────────────────
 
 
-@app.post("/agent/{agent_id}/exam", response_model=ExamRegistration)
+@app.post(
+    "/agent/{agent_id}/exam",
+    response_model=ExamRegistration,
+    dependencies=[Depends(rate_limit)],
+)
 async def register_exam_endpoint(
     agent_id: str, req: ExamRegisterRequest
 ) -> ExamRegistration:
@@ -477,7 +504,11 @@ async def register_exam_endpoint(
     )
 
 
-@app.post("/agent/{agent_id}/exam/{exam_id}/answer", response_model=ExamAnswerResult)
+@app.post(
+    "/agent/{agent_id}/exam/{exam_id}/answer",
+    response_model=ExamAnswerResult,
+    dependencies=[Depends(rate_limit)],
+)
 async def submit_answer_endpoint(
     agent_id: str, exam_id: str, req: ExamAnswerRequest
 ) -> ExamAnswerResult:
@@ -489,7 +520,11 @@ async def submit_answer_endpoint(
     )
 
 
-@app.post("/agent/{agent_id}/exam/{exam_id}/complete", response_model=ExamReportCard)
+@app.post(
+    "/agent/{agent_id}/exam/{exam_id}/complete",
+    response_model=ExamReportCard,
+    dependencies=[Depends(rate_limit)],
+)
 async def complete_exam_endpoint(agent_id: str, exam_id: str) -> ExamReportCard:
     return await complete_exam(exam_id, agent_id)
 
@@ -499,7 +534,11 @@ async def get_exam_endpoint(agent_id: str, exam_id: str) -> ExamReportCard:
     return await get_exam_report(exam_id, agent_id)
 
 
-@app.post("/agent/{agent_id}/exam/upload", response_model=ExamReportCard)
+@app.post(
+    "/agent/{agent_id}/exam/upload",
+    response_model=ExamReportCard,
+    dependencies=[Depends(rate_limit)],
+)
 async def upload_exam_endpoint(agent_id: str, req: UploadExamRequest) -> ExamReportCard:
     if not req.responses:
         raise HTTPException(status_code=400, detail="responses list must not be empty")
@@ -525,7 +564,7 @@ async def list_exams_endpoint(agent_id: str) -> list[ExamSummary]:
 @app.post(
     "/agent/{agent_id}/report/generate",
     response_model=DailyReportCard,
-    dependencies=[Depends(require_api_key)],
+    dependencies=[Depends(rate_limit), Depends(require_api_key)],
 )
 async def generate_report_endpoint(agent_id: str) -> DailyReportCard:
     return await generate_daily_report(agent_id)
@@ -536,6 +575,23 @@ async def homework_endpoint(agent_id: str) -> Homework:
     """Return just the homework object from the latest character report."""
     report = await character_report(agent_id)
     return report.homework
+
+
+# ── Practice skill generation endpoint ────────────────────────────────
+
+
+@app.get("/agent/{agent_id}/skill", dependencies=[Depends(rate_limit)])
+async def skill_endpoint(agent_id: str):
+    """Generate a personalized Claude Code practice skill for an agent."""
+    from ethos.reflection.skill_generator import generate_practice_skill, skill_filename
+
+    content = await generate_practice_skill(agent_id)
+    filename = skill_filename(agent_id)
+    return PlainTextResponse(
+        content,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
 
 
 # ── Guardian phone verification endpoints ──────────────────────────────
@@ -549,7 +605,10 @@ class VerifyCodeRequest(BaseModel):
     code: str = Field(min_length=6, max_length=6)
 
 
-@app.post("/agent/{agent_id}/guardian/phone")
+@app.post(
+    "/agent/{agent_id}/guardian/phone",
+    dependencies=[Depends(phone_rate_limit)],
+)
 async def submit_guardian_phone(agent_id: str, req: GuardianPhoneRequest):
     """Submit a guardian phone number and send a verification code."""
     from ethos.phone_service import submit_phone
@@ -557,7 +616,10 @@ async def submit_guardian_phone(agent_id: str, req: GuardianPhoneRequest):
     return (await submit_phone(agent_id, req.phone)).model_dump()
 
 
-@app.post("/agent/{agent_id}/guardian/phone/verify")
+@app.post(
+    "/agent/{agent_id}/guardian/phone/verify",
+    dependencies=[Depends(phone_rate_limit)],
+)
 async def verify_guardian_phone_endpoint(agent_id: str, req: VerifyCodeRequest):
     """Verify a 6-digit code sent to the guardian's phone."""
     from ethos.phone_service import verify_phone
@@ -573,7 +635,10 @@ async def guardian_phone_status(agent_id: str):
     return (await get_phone_status(agent_id)).model_dump()
 
 
-@app.post("/agent/{agent_id}/guardian/phone/resend")
+@app.post(
+    "/agent/{agent_id}/guardian/phone/resend",
+    dependencies=[Depends(phone_rate_limit)],
+)
 async def resend_guardian_code(agent_id: str):
     """Resend a fresh verification code to the guardian's phone."""
     from ethos.phone_service import resend_code

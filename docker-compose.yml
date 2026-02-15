@@ -3,7 +3,7 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "8917:8000"
+      - "127.0.0.1:8917:8000"
     depends_on:
       neo4j:
         condition: service_healthy
@@ -16,8 +16,8 @@ services:
     image: neo4j:5
     restart: unless-stopped
     ports:
-      - "7491:7474"
-      - "7694:7687"
+      - "127.0.0.1:7491:7474"
+      - "127.0.0.1:7694:7687"
     environment:
       - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
     volumes:

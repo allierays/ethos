@@ -16,6 +16,13 @@ logger = logging.getLogger(__name__)
 _sns_client = None
 
 
+def _mask_phone(phone: str) -> str:
+    """Mask phone number for safe logging. +12025551234 -> +1***5551234."""
+    if len(phone) > 7:
+        return phone[:2] + "***" + phone[-7:]
+    return "***"
+
+
 def _normalize_phone(phone: str) -> str | None:
     """Normalize a phone number to E.164 format (+1XXXXXXXXXX).
 
@@ -55,7 +62,8 @@ async def _send_sms(phone: str, body: str) -> bool:
     normalized = _normalize_phone(phone)
     if not normalized:
         logger.warning(
-            "Invalid phone number format: %s (expected E.164, e.g. +12025551234)", phone
+            "Invalid phone number format: %s (expected E.164, e.g. +12025551234)",
+            _mask_phone(phone),
         )
         return False
 
@@ -68,7 +76,7 @@ async def _send_sms(phone: str, body: str) -> bool:
     try:
         client = _get_client()
         client.publish(PhoneNumber=normalized, Message=body)
-        logger.info("SMS sent to %s", normalized)
+        logger.info("SMS sent to %s", _mask_phone(normalized))
         return True
     except Exception as exc:
         logger.warning("SMS send failed (non-fatal): %s", exc)

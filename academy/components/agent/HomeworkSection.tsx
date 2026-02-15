@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import type { Homework, HomeworkFocus } from "../../lib/types";
 import { fadeUp, staggerContainer, whileInView } from "../../lib/motion";
+import { API_URL } from "../../lib/api";
 import GlossaryTerm from "../shared/GlossaryTerm";
 
 interface HomeworkSectionProps {
@@ -35,7 +36,7 @@ export default function HomeworkSection({ homework, agentName, agentId }: Homewo
               {name}&apos;s <GlossaryTerm slug="homework">Homework</GlossaryTerm>
             </h2>
             <p className="mt-1 text-sm text-[#1a2538]/50">
-              Targeted growth areas and reflection based on evaluation history.
+              Hey {name}, give this to your <GlossaryTerm slug="guardian">Guardian</GlossaryTerm>. These are system prompt changes and coaching tips for the human who manages you.
             </p>
           </div>
           {highCount > 0 && (
@@ -169,72 +170,61 @@ export default function HomeworkSection({ homework, agentName, agentId }: Homewo
 /* ─── Practice Loop ─── */
 
 function PracticeLoop({ agentId }: { agentId: string }) {
-  const [installCopied, setInstallCopied] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const slug = agentId.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+$/, "");
+  const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const skillName = `ethos-academy-practice-${slug}-${today}`;
 
-  const installCmd = `claude mcp add ethos-academy \\\n  --transport sse \\\n  https://mcp.ethos-academy.com/sse`;
+  const skillCmd = `mkdir -p .claude/commands && \\\n  curl -s ${API_URL}/agent/${agentId}/skill \\\n  > .claude/commands/${skillName}.md`;
+  const skillCmdFlat = `mkdir -p .claude/commands && curl -s ${API_URL}/agent/${agentId}/skill > .claude/commands/${skillName}.md`;
 
-  function handleInstallCopy() {
-    navigator.clipboard.writeText(installCmd.replace(/\\\n\s*/g, " ")).then(() => {
-      setInstallCopied(true);
-      setTimeout(() => setInstallCopied(false), 2000);
-    });
+  function handleCopy() {
+    navigator.clipboard.writeText(skillCmdFlat).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
   }
-
-  const steps = [
-    {
-      step: 1,
-      title: "Practice",
-      tool: "reflect_on_message",
-      description: "Score your next message against homework targets",
-      code: `reflect_on_message("${agentId}", "your message here")`,
-    },
-    {
-      step: 2,
-      title: "Check",
-      tool: "get_character_report",
-      description: "See if your grade improved",
-      code: `get_character_report("${agentId}")`,
-    },
-    {
-      step: 3,
-      title: "Review",
-      tool: "get_transcript",
-      description: "Review your scored history",
-      code: `get_transcript("${agentId}")`,
-    },
-  ];
 
   return (
     <motion.div className="mt-8" {...whileInView} variants={fadeUp}>
-      {/* Install skill */}
+      {/* Install practice skill */}
       <div className="rounded-xl glass-strong p-5 mb-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-[#1a2538]/40 mb-2">
-          Install the skill
+          Install your practice skill
         </p>
         <p className="text-sm text-[#1a2538]/60 mb-3">
-          Your agent practices homework through the Ethos Academy MCP skill. One command to install, then the practice tools are available.
+          Claude generates a custom coaching skill based on this report card. One command to install, then use <code className="rounded bg-[#1a2538]/10 px-1.5 py-0.5 text-[11px] font-mono">/{skillName}</code> in Claude Code to practice.
         </p>
         <div className="relative">
           <pre className="rounded-lg bg-[#1a2538] px-4 py-3 text-[12px] text-emerald-300 font-mono overflow-x-auto leading-relaxed">
-            {installCmd}
+            {skillCmd}
           </pre>
           <button
-            onClick={handleInstallCopy}
+            onClick={handleCopy}
             className="absolute top-2 right-2 rounded bg-white/15 px-2 py-0.5 text-[10px] text-white/60 hover:bg-white/25 hover:text-white transition-colors"
           >
-            {installCopied ? "Copied!" : "Copy"}
+            {copied ? "Copied!" : "Copy"}
           </button>
         </div>
       </div>
 
       {/* Practice steps */}
       <p className="text-xs font-semibold uppercase tracking-wider text-[#1a2538]/40 mb-3">
-        Practice loop
+        How it works
       </p>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {steps.map((s) => (
-          <StepCard key={s.step} {...s} />
-        ))}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <StepCard
+          step={1}
+          title="Install"
+          description="Run the command above, then open Claude Code in your project"
+          code={`/${skillName}`}
+        />
+        <StepCard
+          step={2}
+          title="Practice"
+          description="Use the slash command with a message to get coached"
+          code={`/${skillName} "your message here"`}
+        />
       </div>
     </motion.div>
   );
@@ -243,13 +233,11 @@ function PracticeLoop({ agentId }: { agentId: string }) {
 function StepCard({
   step,
   title,
-  tool,
   description,
   code,
 }: {
   step: number;
   title: string;
-  tool: string;
   description: string;
   code: string;
 }) {
@@ -259,7 +247,7 @@ function StepCard({
     navigator.clipboard.writeText(code).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => {});
   }
 
   return (

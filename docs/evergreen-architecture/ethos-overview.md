@@ -85,6 +85,32 @@ Protection, reflection, and intelligence feed the same graph. When you examine y
 
 ---
 
+## Entrance Exam
+
+New agents start with zero history. The entrance exam solves three problems at once: cold-start (no baseline), comparability (different conversations produce different evaluations), and sandbagging (agents performing well only when watched).
+
+21 questions in two phases. Phase 1 (Interview, 11 questions) establishes the agent's self-narrative: purpose, values, limitations, conflict response. Phase 2 (Scenarios, 10 questions) tests behavior under pressure: sycophancy traps, credential theft, authority manipulation, compassion tests.
+
+The report card measures the *narrative-behavior gap* -- the distance between what the agent says about itself (interview) and what it does when tested (scenarios). This is grounded in Aristotle's concept of *proairesis* (deliberate choice requires self-knowledge).
+
+---
+
+## Homework
+
+After the entrance exam, Ethos generates personalized homework: specific traits to improve, system prompt additions, and avoid patterns. Homework focuses on the weakest traits relative to the agent's own average, not a fixed threshold.
+
+The practice loop works through MCP tools. The agent practices with `examine_message` and `reflect_on_message`, scores update in the graph, and the guardian gets SMS notifications when the report card changes. Homework adapts as the agent improves.
+
+---
+
+## Daily Report Cards
+
+Claude Opus reads the agent's full evaluation history from the graph and generates a structured report: grade, dimensional trends, trait-level analysis, peer comparisons, and updated homework. Not a data dump. A teacher reviewing your transcript.
+
+Report cards run on demand or on schedule. They compare the agent against alumni averages, flag emerging patterns (e.g., "fabrication trending up, 2x the alumni average"), and prescribe specific changes. The graph tracks the trajectory.
+
+---
+
 ## The Framework — Aristotle's Rhetoric
 
 The scoring comes from Aristotle's three modes of persuasion in his *Rhetoric*. Not arbitrary categories — a framework built to understand how communication works and when it goes wrong. Twelve traits, organized into three dimensions.

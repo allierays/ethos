@@ -16,10 +16,14 @@ FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
+RUN useradd --system --no-create-home app
+
 COPY --from=builder /app/.venv /app/.venv
 COPY ethos/ ethos/
 COPY api/ api/
 COPY scripts/ scripts/
+
+USER app
 
 EXPOSE 8000
 

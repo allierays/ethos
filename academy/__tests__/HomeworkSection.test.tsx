@@ -80,18 +80,17 @@ describe("HomeworkSection", () => {
 
   it("renders practice loop with agent ID", () => {
     render(<HomeworkSection homework={MOCK_HOMEWORK} agentName="Claude" agentId="claude-1" />);
-    const labels = screen.getAllByText("MCP Practice Loop");
+    const labels = screen.getAllByText("Install your practice skill");
     expect(labels.length).toBeGreaterThanOrEqual(1);
     // Code snippets contain the agent ID
     const codeSnippets = screen.getAllByText(/claude-1/);
     expect(codeSnippets.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders MCP hint on focus cards", () => {
+  it("renders how it works steps", () => {
     render(<HomeworkSection homework={MOCK_HOMEWORK} agentName="Claude" agentId="claude-1" />);
-    const hints = screen.getAllByText("reflect_on_message");
-    // At least one from practice loop + one from focus card
-    expect(hints.length).toBeGreaterThanOrEqual(2);
+    const labels = screen.getAllByText("How it works");
+    expect(labels.length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows no homework message when empty", () => {

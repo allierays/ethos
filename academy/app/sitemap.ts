@@ -12,7 +12,8 @@ async function getAgentIds(): Promise<string[]> {
     return agents
       .map((a) => String(a.agentId ?? a.agent_id ?? ""))
       .filter(Boolean);
-  } catch {
+  } catch (err) {
+    console.error("sitemap: failed to fetch agent IDs", err);
     return [];
   }
 }
@@ -27,6 +28,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/records`, changeFrequency: "daily", priority: 0.7 },
     { url: `${BASE_URL}/how-it-works`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE_URL}/rubric`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE_URL}/research`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE_URL}/privacy`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE_URL}/terms`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const agentRoutes: MetadataRoute.Sitemap = agentIds.map((id) => ({

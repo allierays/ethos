@@ -24,7 +24,7 @@ import type {
   SimilarityResult,
 } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8917";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8917";
 
 /**
  * Recursively transform snake_case keys to camelCase.

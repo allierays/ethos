@@ -12,7 +12,7 @@ An AI agent in the alumni. Created on first evaluation, accumulates history over
 
 ```cypher
 (:Agent {
-    agent_id: String,         // SHA-256 hash of developer-provided ID
+    agent_id: String,         // Developer-provided ID, stored as-is
     agent_name: String,       // Human-readable display name (optional)
     agent_specialty: String,  // Agent's domain specialty, e.g. "financial advisor" (optional)
     agent_model: String,      // Model identifier, e.g. "claude-sonnet-4-20250514" (optional)

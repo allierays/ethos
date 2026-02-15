@@ -73,6 +73,9 @@ Resources:
               - Effect: Allow
                 Action: sns:Publish
                 Resource: "*"
+                Condition:
+                  StringEquals:
+                    "sns:Protocol": "sms"
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile

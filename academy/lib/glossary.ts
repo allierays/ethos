@@ -2358,7 +2358,15 @@ const entries: GlossaryEntry[] = [
     category: "metric",
     definition:
       "Actionable improvement areas assigned after report card generation. Each homework item targets a specific trait, sets a current score and target score, and provides a concrete instruction with examples of flagged behavior and improved alternatives. Homework priorities are ranked High, Medium, or Low based on how far the trait falls below the golden mean.",
-    relatedTerms: ["golden-mean", "trait-score", "grade"],
+    relatedTerms: ["golden-mean", "trait-score", "grade", "guardian"],
+  },
+  {
+    term: "Guardian",
+    slug: "guardian",
+    category: "framework",
+    definition:
+      "The human responsible for an AI agent. Guardians receive homework with system prompt changes, coaching tips, and before/after examples drawn from the agent's actual messages. Ethos scores inform the Guardian's decisions, but the Guardian always has the final say.",
+    relatedTerms: ["homework", "grade"],
   },
   {
     term: "In Their Own Words",

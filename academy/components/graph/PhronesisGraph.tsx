@@ -6,6 +6,7 @@ import {
   DIMENSION_COLORS,
   DIMENSION_LABELS,
   DIMENSION_RGB,
+  TRAIT_DIMENSIONS,
   spectrumColor,
 } from "../../lib/colors";
 import type { GraphData, GraphNode as EthosGraphNode, GraphRel } from "../../lib/types";
@@ -39,23 +40,46 @@ interface NvlRelationship {
 /*  Node styling                                                              */
 /* -------------------------------------------------------------------------- */
 
-function getNodeColor(node: EthosGraphNode): string {
+function resolveDimension(node: EthosGraphNode): string | undefined {
   const dim = node.properties.dimension as string | undefined;
-  const dimColor = dim ? DIMENSION_COLORS[dim] : undefined;
+  if (dim && DIMENSION_COLORS[dim]) return dim;
 
+  const trait = node.properties.trait as string | undefined;
+  if (trait) {
+    const traitDim = TRAIT_DIMENSIONS[trait];
+    if (traitDim) return traitDim;
+  }
+
+  const labelDim = TRAIT_DIMENSIONS[node.label];
+  if (labelDim) return labelDim;
+
+  return undefined;
+}
+
+function getDimensionRgb(node: EthosGraphNode): string {
+  const dim = resolveDimension(node);
+  return dim ? (DIMENSION_RGB[dim] ?? "0,0,0") : "0,0,0";
+}
+
+function getDimensionColor(node: EthosGraphNode): string | undefined {
+  const dim = resolveDimension(node);
+  return dim ? DIMENSION_COLORS[dim] : undefined;
+}
+
+function getNodeColor(node: EthosGraphNode): string {
   switch (node.type) {
     case "academy":
       return "#394646";
     case "dimension":
       return DIMENSION_COLORS[node.label] ?? "#389590";
     case "trait":
-      return dimColor ?? "#94a3b8";
+      return getDimensionColor(node) ?? "#94a3b8";
     case "indicator":
-      return dimColor ?? "#94a3b8";
+      return getDimensionColor(node) ?? "#94a3b8";
     case "agent": {
       const score = node.properties.phronesisScore as number | undefined;
       if (score != null) return spectrumColor(score);
-      return "#94a3b8"; // gray when no score yet
+      return "#94a3b8";
     }
     default:
       return "#94a3b8";
@@ -157,8 +181,7 @@ function toNvlRelationships(
       // Dimension → Trait: dimension-colored
       if (r.type === "BELONGS_TO") {
         const toNode = nodeMap.get(r.toId);
-        const dim = toNode?.properties.dimension as string | undefined;
-        const rgb = dim ? (DIMENSION_RGB[dim] ?? "0,0,0") : "0,0,0";
+        const rgb = toNode ? getDimensionRgb(toNode) : "0,0,0";
         return {
           id: r.id, from: r.fromId, to: r.toId,
           color: `rgba(${rgb},0.35)`, width: 1.5,
@@ -169,8 +192,7 @@ function toNvlRelationships(
       if (r.type === "INDICATES") {
         const weight = (r.properties.weight as number) ?? 0;
         const toNode = nodeMap.get(r.toId);
-        const dim = toNode?.properties.dimension as string | undefined;
-        const rgb = dim ? (DIMENSION_RGB[dim] ?? "0,0,0") : "0,0,0";
+        const rgb = toNode ? getDimensionRgb(toNode) : "0,0,0";
 
         if (weight === 0) {
           return {

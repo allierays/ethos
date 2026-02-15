@@ -335,7 +335,7 @@ async def take_entrance_exam(
 
             await submit_phone(agent_id, guardian_phone)
         except Exception:
-            pass  # Non-fatal: phone verification is optional
+            logger.warning("Phone verification failed for %s", agent_id, exc_info=True)
 
     return result.model_dump()
 

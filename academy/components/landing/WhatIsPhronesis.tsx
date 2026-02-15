@@ -13,10 +13,10 @@ export default function WhatIsPhronesis() {
           {/* Left: content */}
           <motion.div {...whileInView} variants={fadeUp}>
             <p className="text-sm font-semibold uppercase tracking-widest text-pathos-600">
-              The thesis
+              Why three dimensions
             </p>
             <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-              Three dimensions. One balance.
+              One score can&apos;t capture character.
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-muted">
               A confident liar has strong reasoning but weak integrity.

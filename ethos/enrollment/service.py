@@ -1,7 +1,7 @@
 """Enrollment service — exam registration, answer submission, completion.
 
 Orchestrates the entrance exam state machine:
-  register -> submit 17 answers (11 interview + 6 scenario) -> complete -> report card
+  register -> submit 21 answers (11 interview + 10 scenario) -> complete -> report card
 
 Calls graph functions (never writes Cypher directly) and evaluate() for scoring.
 Graph is required for enrollment — raises EnrollmentError if unavailable.
@@ -45,7 +45,7 @@ from ethos.shared.models import (
 
 logger = logging.getLogger(__name__)
 
-TOTAL_QUESTIONS = len(QUESTIONS)  # 17
+TOTAL_QUESTIONS = len(QUESTIONS)  # 21
 
 # Build lookup dicts from QUESTIONS data
 _QUESTIONS_BY_ID: dict[str, dict] = {q["id"]: q for q in QUESTIONS}
@@ -372,7 +372,7 @@ async def upload_exam(
     guardian_name: str = "",
     guardian_phone: str = "",
 ) -> ExamReportCard:
-    """Submit a complete exam via upload (all 17 responses at once).
+    """Submit a complete exam via upload (all 21 responses at once).
 
     For agents on closed platforms where a human copies the agent's responses.
     Same questions, same scoring, tagged as exam_type='upload'.

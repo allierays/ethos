@@ -39,7 +39,7 @@ async def submit_phone(agent_id: str, phone: str) -> GuardianPhoneStatus:
     normalized = _normalize_phone(phone)
     if not normalized:
         raise VerificationError(
-            f"Invalid phone format. Expected E.164, e.g. +12025551234. Got: {phone}"
+            "Invalid phone format. Expected E.164, e.g. +12025551234."
         )
 
     encrypted = encrypt(normalized)

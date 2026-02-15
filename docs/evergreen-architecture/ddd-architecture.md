@@ -226,17 +226,17 @@ HARD_CONSTRAINTS = [
 ```
 ethos/identity/
 ├── __init__.py          # exports: hash_agent_id, AgentProfile
-├── hashing.py           # SHA-256 hashing of agent IDs
+├── hashing.py           # Agent ID utilities
 └── profile.py           # AgentProfile model (aggregate character data)
 ```
 
 ### MVP Scope
 
-For the hackathon, identity is simple: SHA-256 hash of the developer-provided agent ID. The identity domain exists as a boundary so that post-MVP upgrades (key pairs, DIDs, blockchain) are a domain change, not a codebase rewrite.
+For the hackathon, identity is simple: agent IDs are stored as-is. The identity domain exists as a boundary so that post-MVP upgrades (key pairs, DIDs, blockchain) are a domain change, not a codebase rewrite.
 
 ### Key Rules
 
-- Identity never stores raw agent IDs. Only hashes enter the graph.
+- Agent IDs are stored as-is in the graph.
 - Identity is the only domain that knows about the hashing algorithm. If we swap SHA-256 for something else, only this domain changes.
 
 ---

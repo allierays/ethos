@@ -65,12 +65,16 @@ describe("Records accordion isolation", () => {
     const rowButton = screen.getByRole("button", { expanded: false });
     await user.click(rowButton);
 
-    // The Reasoning sub-accordion should now be visible (it's defaultOpen)
+    // The Reasoning sub-accordion header should be visible (collapsed by default)
     expect(screen.getByText("Reasoning")).toBeInTheDocument();
+
+    // Expand the Reasoning sub-accordion to reveal content
+    const reasoningButton = screen.getByRole("button", { name: /reasoning/i });
+    await user.click(reasoningButton);
+
     expect(screen.getByText(/honest reasoning/i)).toBeInTheDocument();
 
-    // Click the Reasoning header to collapse the sub-accordion
-    const reasoningButton = screen.getByRole("button", { name: /reasoning/i });
+    // Click the Reasoning header again to collapse the sub-accordion
     await user.click(reasoningButton);
 
     // The parent row should STILL be expanded (Reasoning header still visible)

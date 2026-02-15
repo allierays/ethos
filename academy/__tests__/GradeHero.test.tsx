@@ -109,8 +109,8 @@ describe("GradeHero", () => {
     const names = screen.getAllByText("Test Agent");
     expect(names.length).toBeGreaterThanOrEqual(1);
     // With no report, grade comes from getGrade(phronesisScore / 100).
-    // phronesisScore = 78, getGrade(0.78) = "C"
-    const gradeElements = screen.getAllByText("C");
+    // phronesisScore = 78, getGrade(0.78) = "B"
+    const gradeElements = screen.getAllByText("B");
     expect(gradeElements.length).toBeGreaterThanOrEqual(1);
   });
 

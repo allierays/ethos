@@ -270,6 +270,7 @@ TS_QUESTION_DETAIL = {
     "section",
     "prompt",
     "responseSummary",
+    "scoringReasoning",
     "traitScores",
     "detectedIndicators",
     "phase",

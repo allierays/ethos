@@ -43,7 +43,7 @@ function getNodeColor(node: EthosGraphNode): string {
       return dim ? (DIMENSION_COLORS[dim] ?? "#94a3b8") : "#94a3b8";
     }
     case "constitutional_value":
-      return "#8b5cf6";
+      return "#2e4a6e";
     case "pattern": {
       const severity = node.properties.severity as string | undefined;
       return severity

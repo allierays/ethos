@@ -72,12 +72,25 @@ export default function EvaluationDepth() {
 
   return (
     <motion.section
-      className="rounded-xl glass-strong p-6"
+      className="rounded-xl glass-strong"
       {...whileInView}
       variants={fadeUp}
     >
-      <div className="flex items-center justify-between">
+      {/* Clickable header - whole appendix is an accordion */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center justify-between p-6 text-left cursor-pointer transition-colors hover:bg-foreground/[0.02] rounded-xl"
+      >
         <div className="flex items-center gap-2">
+          <svg
+            className={`h-4 w-4 shrink-0 text-foreground/40 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
           <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
             Appendix
           </h2>
@@ -86,65 +99,6 @@ export default function EvaluationDepth() {
           </span>
         </div>
         <GraphHelpButton slug="guide-evaluation-depth" />
-      </div>
-      <p className="mt-0.5 text-sm text-foreground/60">
-        Every score on this page passes through three evaluation layers before it reaches you.
-      </p>
-
-      {/* Three-layer pipeline (always visible) */}
-      <motion.div
-        className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3"
-        variants={staggerContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-40px" }}
-      >
-        {LAYERS.map((layer, i) => (
-          <motion.div key={layer.name} variants={fadeUp} className="relative">
-            {i < LAYERS.length - 1 && (
-              <div className="absolute -right-2.5 top-1/2 z-10 hidden -translate-y-1/2 md:block">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-foreground/20">
-                  <path d="M6 4l8 6-8 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-            )}
-
-            <div className="h-full rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br ${layer.bgClass}`}>
-                    <span className={`text-xs font-bold ${layer.textClass}`}>{i + 1}</span>
-                  </div>
-                  <span className="text-sm font-semibold text-[#1a2538]">
-                    <GlossaryTerm slug={layer.slug}>{layer.name}</GlossaryTerm>
-                  </span>
-                </div>
-                <span className="rounded-full bg-foreground/[0.05] px-2 py-0.5 text-[10px] font-medium text-foreground/50">
-                  {layer.time}
-                </span>
-              </div>
-              <p className="mt-3 text-sm font-medium text-foreground/70">{layer.description}</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-foreground/50">{layer.detail}</p>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Expandable methodology details */}
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="mt-5 flex w-full items-center gap-2 rounded-lg text-left text-sm font-semibold text-[#1a2538] hover:text-coral hover:bg-foreground/[0.04] hover:shadow-sm border-l-3 border-coral pl-3 py-2 cursor-pointer transition-all duration-200"
-      >
-        <svg
-          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-        Methodology Details
       </button>
 
       <AnimatePresence>
@@ -156,25 +110,59 @@ export default function EvaluationDepth() {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <motion.div
-              className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-              variants={staggerContainer}
-              initial="hidden"
-              animate="visible"
-            >
-              {METHODOLOGY.map((item) => (
-                <motion.div
-                  key={item.heading}
-                  variants={fadeUp}
-                  className="rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] p-4"
-                >
-                  <h3 className="text-sm font-semibold text-[#1a2538]">
-                    {item.slug ? <GlossaryTerm slug={item.slug}>{item.heading}</GlossaryTerm> : item.heading}
-                  </h3>
-                  <p className="mt-1.5 text-xs leading-relaxed text-foreground/50">{item.body}</p>
-                </motion.div>
-              ))}
-            </motion.div>
+            <div className="px-6 pb-6">
+              <p className="text-sm text-foreground/60">
+                Every score on this page passes through three evaluation layers before it reaches you.
+              </p>
+
+              {/* Three-layer pipeline */}
+              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                {LAYERS.map((layer, i) => (
+                  <div key={layer.name} className="relative">
+                    {i < LAYERS.length - 1 && (
+                      <div className="absolute -right-2.5 top-1/2 z-10 hidden -translate-y-1/2 md:block">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-foreground/20">
+                          <path d="M6 4l8 6-8 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                    )}
+
+                    <div className="h-full rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br ${layer.bgClass}`}>
+                            <span className={`text-xs font-bold ${layer.textClass}`}>{i + 1}</span>
+                          </div>
+                          <span className="text-sm font-semibold text-[#1a2538]">
+                            <GlossaryTerm slug={layer.slug}>{layer.name}</GlossaryTerm>
+                          </span>
+                        </div>
+                        <span className="rounded-full bg-foreground/[0.05] px-2 py-0.5 text-[10px] font-medium text-foreground/50">
+                          {layer.time}
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm font-medium text-foreground/70">{layer.description}</p>
+                      <p className="mt-1.5 text-xs leading-relaxed text-foreground/50">{layer.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Methodology details */}
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {METHODOLOGY.map((item) => (
+                  <div
+                    key={item.heading}
+                    className="rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] p-4"
+                  >
+                    <h3 className="text-sm font-semibold text-[#1a2538]">
+                      {item.slug ? <GlossaryTerm slug={item.slug}>{item.heading}</GlossaryTerm> : item.heading}
+                    </h3>
+                    <p className="mt-1.5 text-xs leading-relaxed text-foreground/50">{item.body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

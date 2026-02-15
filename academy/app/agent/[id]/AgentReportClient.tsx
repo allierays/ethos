@@ -79,6 +79,8 @@ export default function AgentReportClient({
 
   return (
     <>
+      <h1 className="sr-only">{agentName} Report Card</h1>
+
       {/* Entrance Exam baseline */}
       {profile.enrolled && (
         <div className="mx-auto max-w-7xl px-6 pt-8">
@@ -89,11 +91,6 @@ export default function AgentReportClient({
           />
         </div>
       )}
-
-      {/* Guardian notifications */}
-      <div className="mx-auto max-w-7xl px-6 pt-4">
-        <GuardianNotifications agentId={agentId} agentName={agentName} />
-      </div>
 
       {/* Full-width hero banner */}
       <GradeHero profile={profile} report={report} timeline={timeline} />
@@ -190,6 +187,11 @@ export default function AgentReportClient({
           <EvaluationDepth />
         </div>
       </motion.section>
+
+      {/* Guardian notifications — footer */}
+      <div className="mx-auto max-w-7xl px-6 pb-8">
+        <GuardianNotifications agentId={agentId} agentName={agentName} />
+      </div>
 
     </>
   );

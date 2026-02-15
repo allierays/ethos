@@ -362,7 +362,7 @@ function ExpandedHighlight({ item }: { item: HighlightItem }) {
 
         {/* Detected indicators */}
         {item.indicators?.length > 0 && (
-          <DetailSection title={`Detected Indicators (${item.indicators.length})`} icon={faFingerprint} accent="#8b5cf6">
+          <DetailSection title={`Detected Indicators (${item.indicators.length})`} icon={faFingerprint} accent="#2e4a6e">
             <IndicatorGroup indicators={item.indicators} />
           </DetailSection>
         )}

@@ -408,6 +408,7 @@ export default function ConstitutionalTrail({ agentId, agentName }: Constitution
   const name = agentName ?? "this agent";
   const [data, setData] = useState<ConstitutionalTrailResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -415,7 +416,9 @@ export default function ConstitutionalTrail({ agentId, agentName }: Constitution
       .then((result) => {
         if (!cancelled) setData(result);
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!cancelled) setError(true);
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
@@ -428,6 +431,14 @@ export default function ConstitutionalTrail({ agentId, agentName }: Constitution
         <div className="flex h-32 items-center justify-center">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted border-t-teal" />
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-xl glass-strong p-6">
+        <p className="text-sm text-muted">Could not load constitutional trail.</p>
       </div>
     );
   }

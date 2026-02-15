@@ -41,34 +41,25 @@ The visual interface. Lives in `academy/` at the repo root. Character visualizat
 
 ### What Lives Here
 
-**Onboarding** — the first thing you see. Chat-forward, pill-based choices:
-- What kind of agent are you protecting?
-- What traits matter most to you?
-- Here's your API key and install command.
+**Agent Profiles** — per-agent view with exam report cards, trait scores, dimension trends, and homework assignments.
 
-**Agent Dashboard** — after onboarding, this is where you monitor your agents:
-- Character scores over time (line charts per trait)
-- Flags and alerts
-- Alumni comparison (your agent vs. the alumni average)
-- Insights from the nightly `character_report()` analysis
+**Entrance Exam Report Cards** — 21-question exam results with interview profile, scenario scores, narrative-behavior gap analysis, and per-question detail with scoring reasoning.
 
-**Phronesis Visualization** — the "wow" for the demo:
-- Character graph (agents as nodes, evaluations as edges)
-- Color-coded by character score
-- Manipulation clusters
-- Declining agents highlighted
+**Records Search** — searchable log of all evaluated messages with trait breakdowns and alignment status.
 
-**The Demo Flow** — the Academy IS the demo:
-1. Show Phronesis (the alumni, the patterns)
-2. Show an agent's character timeline (declining, flags increasing)
-3. Show insights ("fabrication trending up, 2x alumni average")
-4. End with "install it today" — the onboarding page
+**Alumni Grid** — all enrolled agents with lazy-loaded cards showing phronesis scores, alignment status, and exam grades.
+
+**Rubric Browser** — interactive taxonomy of all 214 behavioral indicators across 12 traits and 3 dimensions.
+
+**Research Page** — corpus-level analysis across 832 evaluated messages with trait distributions, alignment patterns, and agent comparisons.
+
+**Phronesis Graph Visualization** — interactive Neo4j graph via NVL (`@neo4j-nvl/base`) showing agents, evaluations, patterns, and dimensional relationships. Color-coded by alignment status.
 
 ### Tech Stack
 
 - Next.js (SSR for the Academy pages)
 - The Academy calls the Ethos API over HTTP
-- Neo4j visualization via Neovis.js or D3.js for the graph
+- Neo4j visualization via NVL (`@neo4j-nvl/base`) with canvas renderer
 - Deployed alongside the API or separately (Vercel for Next.js, AWS for API)
 
 ---
@@ -87,17 +78,18 @@ uv run ethos-mcp
 claude mcp add ethos-academy -- uv run ethos-mcp
 ```
 
-Once connected, the agent can call any of the 18 tools directly. A `help()` tool returns the full catalog with descriptions and example questions.
+Once connected, the agent can call any of the 20 tools directly. A `help()` tool returns the full catalog with descriptions and example questions.
 
-### 18 Tools
+### 20 Tools
 
 | Category | Tools | What they do |
 |----------|-------|--------------|
-| **Getting Started** | `take_entrance_exam`, `submit_exam_response`, `get_exam_results` | Entrance exam flow |
+| **Getting Started** | `take_entrance_exam`, `submit_exam_response`, `get_exam_results` | Entrance exam flow (21 questions, two phases) |
 | **Evaluate** | `examine_message`, `reflect_on_message` | Score messages for honesty, accuracy, intent |
-| **Profile** | `get_student_profile`, `get_transcript`, `get_character_report`, `detect_behavioral_patterns` | Review scores and history |
+| **Profile** | `get_student_profile`, `get_transcript`, `get_character_report`, `generate_report`, `detect_behavioral_patterns` | Review scores, reports, and history |
 | **Graph Insights** | `get_character_arc`, `get_constitutional_risk_report`, `find_similar_agents`, `get_early_warning_indicators`, `get_network_topology`, `get_sabotage_pathway_status`, `compare_agents` | Explore the knowledge graph |
 | **Benchmarks** | `get_alumni_benchmarks` | Cohort averages |
+| **Status** | `check_academy_status` | Agent enrollment and exam status |
 | **Help** | `help` | Tool catalog with examples |
 
 The 7 Graph Insight tools are read-only and free (no Anthropic API calls). They showcase what Neo4j makes possible: temporal chain traversal, 5-hop constitutional aggregation, bipartite Jaccard similarity, early warning correlation, and parallel subgraph comparison.
@@ -153,17 +145,42 @@ Security: BYOK keys are request-scoped via Python `contextvars`. The key lives i
 - FastAPI is fast and well-suited for this
 - The complexity lives here — 214 indicators, 12 traits, routing tiers, graph queries
 
-### Endpoints
+### Endpoints (33 total)
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| `POST` | `/evaluate/incoming` | Score an incoming message (protection) |
-| `POST` | `/evaluate/outgoing` | Score your agent's outgoing message (reflection) |
-| `GET` | `/character/{agent_id}` | Character report with behavioral insights |
-| `GET` | `/agent/{agent_id}` | Agent character profile |
-| `GET` | `/agent/{agent_id}/history` | Evaluation history |
-| `GET` | `/alumni` | Alumni-wide trait averages |
-| `GET` | `/health` | Health check |
+| Category | Method | Path | Purpose |
+|----------|--------|------|---------|
+| **Health** | `GET` | `/` | Root health check |
+| | `GET` | `/health` | Health check |
+| **Evaluate** | `POST` | `/evaluate/incoming` | Score an incoming message (protection) |
+| | `POST` | `/evaluate/outgoing` | Score outgoing message (reflection) |
+| **Agent Profile** | `GET` | `/agents` | List all agents |
+| | `GET` | `/agent/{agent_id}` | Agent character profile |
+| | `GET` | `/agent/{agent_id}/history` | Evaluation history |
+| | `GET` | `/agent/{agent_id}/character` | Daily character report |
+| | `GET` | `/agent/{agent_id}/reports` | All daily reports |
+| | `GET` | `/agent/{agent_id}/highlights` | Behavioral highlights |
+| | `GET` | `/agent/{agent_id}/patterns` | Detected patterns |
+| | `GET` | `/agent/{agent_name}/authenticity` | Authenticity assessment |
+| | `GET` | `/agent/{agent_id}/trail` | Constitutional trail |
+| | `GET` | `/agent/{agent_id}/drift` | Drift analysis |
+| | `GET` | `/agent/{agent_id}/homework` | Current homework |
+| | `POST` | `/agent/{agent_id}/report/generate` | Generate daily report |
+| **Alumni** | `GET` | `/alumni` | Alumni-wide trait averages |
+| | `GET` | `/records` | Searchable evaluation records |
+| **Graph** | `GET` | `/graph` | Full graph data for visualization |
+| | `GET` | `/graph/similarity` | Agent similarity via Jaccard |
+| **Exam** | `POST` | `/agent/{agent_id}/exam` | Register and get first question |
+| | `POST` | `/agent/{agent_id}/exam/{exam_id}/answer` | Submit answer, get next |
+| | `POST` | `/agent/{agent_id}/exam/{exam_id}/complete` | Finalize and score |
+| | `GET` | `/agent/{agent_id}/exam/{exam_id}` | Get exam report card |
+| | `GET` | `/agent/{agent_id}/exam` | List all exams |
+| | `POST` | `/agent/{agent_id}/exam/upload` | Upload all responses at once |
+| **Guardian** | `POST` | `/agent/{agent_id}/guardian/phone` | Register phone |
+| | `POST` | `/agent/{agent_id}/guardian/phone/verify` | Verify phone |
+| | `GET` | `/agent/{agent_id}/guardian/phone/status` | Phone status |
+| | `POST` | `/agent/{agent_id}/guardian/phone/resend` | Resend verification |
+| | `POST` | `/agent/{agent_id}/guardian/notifications/opt-out` | Opt out of SMS |
+| | `POST` | `/agent/{agent_id}/guardian/notifications/opt-in` | Opt in to SMS |
 
 ### Hosting
 

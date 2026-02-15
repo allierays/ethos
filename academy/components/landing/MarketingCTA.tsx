@@ -6,7 +6,7 @@ import { fadeUp, whileInView } from "../../lib/motion";
 
 export default function MarketingCTA() {
   return (
-    <section className="bg-[#0f1a2e] py-24">
+    <section className="bg-[#0f1a2e] py-24 pb-16">
       <div className="mx-auto max-w-4xl px-6 text-center">
         <motion.div {...whileInView} variants={fadeUp}>
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -14,10 +14,10 @@ export default function MarketingCTA() {
           </h2>
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
-              href="/explore"
+              href="/alumni"
               className="rounded-xl bg-white px-8 py-3 text-sm font-semibold text-[#0f1a2e] shadow-lg transition-colors hover:bg-white/90"
             >
-              Explore the Graph
+              Explore the Alumni
             </Link>
             <Link
               href="/how-it-works"

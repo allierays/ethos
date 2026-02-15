@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Header from "../components/shared/Header";
 import Footer from "../components/landing/Footer";
 import ErrorBoundary from "../components/shared/ErrorBoundary";
+import ScrollToTop from "../components/shared/ScrollToTop";
 import { GlossaryProvider } from "../lib/GlossaryContext";
 import GlossarySidebar from "../components/shared/GlossarySidebar";
 import "./globals.css";
@@ -32,6 +33,13 @@ export const metadata: Metadata = {
     description:
       "Trust visualization for AI agents — honesty, accuracy, and intent across 12 behavioral traits.",
     type: "website",
+    images: ["/academy-people-banner.jpeg"],
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  alternates: {
+    canonical: "/",
   },
   robots: {
     index: true,
@@ -46,10 +54,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Ethos Academy",
+              url: process.env.NEXT_PUBLIC_SITE_URL || "https://ethos.academy",
+              description:
+                "Trust visualization for AI agents — honesty, accuracy, and intent across 12 behavioral traits.",
+            }),
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <GlossaryProvider>
+          <ScrollToTop />
           <Header />
           <ErrorBoundary>
             {children}

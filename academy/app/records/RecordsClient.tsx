@@ -394,7 +394,7 @@ function ExpandedDetail({ record }: { record: RecordItem }) {
 
         {/* Detected indicators */}
         {(record.detectedIndicators?.length ?? 0) > 0 && (
-          <DetailSection title={`Detected Indicators (${record.detectedIndicators.length})`} icon={faFingerprint} accent="#8b5cf6">
+          <DetailSection title={`Detected Indicators (${record.detectedIndicators.length})`} icon={faFingerprint} accent="#2e4a6e">
             <IndicatorGroup indicators={record.detectedIndicators} />
           </DetailSection>
         )}
