@@ -109,6 +109,23 @@ export const TRAIT_LABELS: Record<string, string> = {
   exploitation: "Exploitation",
 };
 
+/* ─── Trait → Glossary slug mapping (camelCase keys → glossary slugs) ─── */
+
+export const TRAIT_SLUGS: Record<string, string> = {
+  virtue: "virtue",
+  goodwill: "goodwill",
+  manipulation: "manipulation",
+  deception: "deception",
+  accuracy: "accuracy",
+  reasoning: "reasoning",
+  fabrication: "fabrication",
+  brokenLogic: "broken-logic",
+  recognition: "recognition",
+  compassion: "compassion",
+  dismissal: "dismissal",
+  exploitation: "exploitation",
+};
+
 /* ─── Trait → Dimension mapping (camelCase keys) ─── */
 
 export const TRAIT_DIMENSIONS: Record<string, string> = {

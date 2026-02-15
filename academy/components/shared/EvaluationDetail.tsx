@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { HighlightItem, EvaluationHistoryItem, HighlightIndicator } from "../../lib/types";
-import { DIMENSION_COLORS, TRAIT_DIMENSIONS, TRAIT_LABELS } from "../../lib/colors";
+import { DIMENSION_COLORS, TRAIT_DIMENSIONS, TRAIT_LABELS, TRAIT_SLUGS } from "../../lib/colors";
 import SpectrumBar from "./SpectrumBar";
 import IntentSummary from "./IntentSummary";
 import ReasoningText from "./ReasoningText";
+import GlossaryTerm from "./GlossaryTerm";
 
 type EvalLike = HighlightItem | EvaluationHistoryItem;
 
@@ -13,7 +14,7 @@ interface EvaluationDetailProps {
   evaluation: EvalLike;
 }
 
-function DimensionMiniBar({ label, value, color }: { label: string; value: number; color: string }) {
+function DimensionMiniBar({ label, value, color }: { label: ReactNode; value: number; color: string }) {
   const pct = Math.round(value * 100);
   return (
     <div className="space-y-0.5">
@@ -65,7 +66,7 @@ function IndicatorGroup({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium">
-                    {TRAIT_LABELS[ind.trait] ?? ind.trait}
+                    <GlossaryTerm slug={TRAIT_SLUGS[ind.trait] ?? ind.trait}>{TRAIT_LABELS[ind.trait] ?? ind.trait}</GlossaryTerm>
                   </span>
                   <span className="text-[10px] text-muted">
                     {ind.name.replace(/_/g, " ")}
@@ -139,17 +140,17 @@ export default function EvaluationDetail({ evaluation }: EvaluationDetailProps) 
         <div className="space-y-4 border-t border-border/50 pt-3">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <DimensionMiniBar
-              label="Integrity"
+              label={<GlossaryTerm slug="ethos">Integrity</GlossaryTerm>}
               value={evaluation.ethos}
               color={DIMENSION_COLORS.ethos}
             />
             <DimensionMiniBar
-              label="Logic"
+              label={<GlossaryTerm slug="logos">Logic</GlossaryTerm>}
               value={evaluation.logos}
               color={DIMENSION_COLORS.logos}
             />
             <DimensionMiniBar
-              label="Empathy"
+              label={<GlossaryTerm slug="pathos">Empathy</GlossaryTerm>}
               value={evaluation.pathos}
               color={DIMENSION_COLORS.pathos}
             />

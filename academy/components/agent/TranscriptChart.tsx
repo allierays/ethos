@@ -14,7 +14,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { motion, AnimatePresence } from "motion/react";
-import { DIMENSION_COLORS, DIMENSION_LABELS, ALIGNMENT_STYLES, TRAIT_LABELS, TRAIT_DIMENSIONS } from "../../lib/colors";
+import { DIMENSION_COLORS, DIMENSION_LABELS, ALIGNMENT_STYLES, TRAIT_LABELS, TRAIT_DIMENSIONS, TRAIT_SLUGS } from "../../lib/colors";
 import { fadeUp, whileInView } from "../../lib/motion";
 import type { DriftBreakpoint, EvaluationHistoryItem } from "../../lib/types";
 import GraphHelpButton from "../shared/GraphHelpButton";
@@ -435,7 +435,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                             return (
                               <div key={dim.key} className="flex items-center gap-2">
                                 <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: dim.color }} />
-                                <span className="text-xs text-foreground/70 w-28">{dim.label}</span>
+                                <span className="text-xs text-foreground/70 w-28"><GlossaryTerm slug={dim.key}>{dim.label}</GlossaryTerm></span>
                                 <div className="flex-1 h-1.5 rounded-full bg-foreground/[0.06]">
                                   <div
                                     className="h-1.5 rounded-full transition-all"
@@ -468,7 +468,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                                   return (
                                     <div key={trait} className="flex items-center gap-1.5">
                                       <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: dimColor }} />
-                                      <span className="text-[11px] text-foreground/60 truncate">{TRAIT_LABELS[trait] ?? trait}</span>
+                                      <span className="text-[11px] text-foreground/60 truncate"><GlossaryTerm slug={TRAIT_SLUGS[trait] ?? trait}>{TRAIT_LABELS[trait] ?? trait}</GlossaryTerm></span>
                                       <span className="ml-auto font-mono text-[11px] font-medium text-[#1a2538]">
                                         {Math.round(score * 100)}
                                       </span>
@@ -512,7 +512,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                       onClick={() => hasHabits && setExpandedDim(isExpanded ? null : dim.key)}
                     >
                       <p className="text-[10px] uppercase tracking-wider text-muted">
-                        {dim.label}
+                        <GlossaryTerm slug={dim.key}>{dim.label}</GlossaryTerm>
                       </p>
                       <p className="mt-1 text-lg font-bold text-[#1a2538]">
                         {pct}%
