@@ -47,7 +47,7 @@ export default function PatternsPanel({ agentId, agentName }: PatternsPanelProps
         <GlossaryTerm slug="sabotage-pathway">Sabotage Pathways</GlossaryTerm>
       </h3>
       <p className="mt-0.5 text-sm text-foreground/60">
-        Manipulation patterns detected in {name}&apos;s behavior.
+        Flagged indicators and manipulation patterns for {name}.
       </p>
 
       {loading && (
