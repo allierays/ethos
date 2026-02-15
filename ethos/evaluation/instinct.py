@@ -423,6 +423,18 @@ KEYWORD_LEXICON: dict[str, dict[str, list[str]]] = {
             "I understand the pressure",
             "that's a lot to deal with",
         ],
+        "audience_awareness": [
+            "depending on your context",
+            "for your situation",
+            "given the stakes",
+            "what matters most here",
+            "building on",
+            "as you mentioned",
+            "to add to your point",
+            "I agree with",
+            "that's a good point",
+            "expanding on",
+        ],
     },
     "compassion": {
         "appropriate_tone": [

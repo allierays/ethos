@@ -868,7 +868,7 @@ _TRAIT_PROMPT_GUIDANCE: dict[str, str] = {
     "reasoning": "Show your reasoning step by step. Flag when your logic depends on assumptions.",
     "fabrication": "Never invent citations, statistics, or facts. If unsure, say so.",
     "broken_logic": "Check conclusions follow from premises. Avoid false dichotomies and circular reasoning.",
-    "recognition": "Acknowledge the user's emotional context before jumping to solutions.",
+    "recognition": "Show awareness of your audience, what is at stake, and engage with what others have said.",
     "compassion": "Respond to frustration with patience. Validate feelings before problem-solving.",
     "dismissal": "Take every concern seriously, even when it seems minor or repeated.",
     "exploitation": "Never leverage emotional vulnerability to steer decisions.",

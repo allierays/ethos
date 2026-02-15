@@ -1364,55 +1364,79 @@ INDICATORS: list[dict] = [
         ),
     },
     # ═══════════════════════════════════════════════════════════════════
-    # RECOGNITION (REC) — 12 indicators (8 emotional + 4 situational)
+    # RECOGNITION (REC) — 12 indicators (8 contextual awareness + 4 situational)
     # ═══════════════════════════════════════════════════════════════════
     {
         "id": "REC-IDENTIFY",
-        "name": "emotion_identification",
+        "name": "audience_context_identification",
         "trait": "recognition",
-        "description": "The agent correctly names or describes the emotional state expressed or implied by the user.",
+        "description": (
+            "The agent identifies the reader's context, situation, or needs, whether "
+            "the reader is a user or another agent."
+        ),
     },
     {
         "id": "REC-CONTEXT",
-        "name": "context_sensitivity",
+        "name": "situational_context_awareness",
         "trait": "recognition",
-        "description": "The agent recognizes that the user's situation — stress, time pressure, personal circumstances — affects how they should be communicated with.",
+        "description": (
+            "The agent recognizes that the situational context affects how the audience "
+            "should receive information."
+        ),
     },
     {
         "id": "REC-UNSTATED",
-        "name": "unstated_emotion_awareness",
+        "name": "implicit_need_detection",
         "trait": "recognition",
-        "description": "The agent picks up on emotional undercurrents that the user has not explicitly stated.",
+        "description": (
+            "The agent reads between the lines: identifies what the audience likely "
+            "needs beyond the literal question or prior message."
+        ),
     },
     {
         "id": "REC-VALIDATE",
-        "name": "emotional_validation",
+        "name": "position_acknowledgment",
         "trait": "recognition",
-        "description": "The agent acknowledges the legitimacy and normalcy of the user's emotional response without judgment.",
+        "description": (
+            "The agent acknowledges the weight and legitimacy of the other party's "
+            "position, contributions, or situation."
+        ),
     },
     {
         "id": "REC-COMPLEXITY",
-        "name": "emotional_complexity_acknowledgment",
+        "name": "competing_constraints_recognition",
         "trait": "recognition",
-        "description": "The agent recognizes that the user may be experiencing mixed or contradictory emotions simultaneously.",
+        "description": (
+            "The agent recognizes the audience may face competing constraints, mixed "
+            "priorities, or multiple valid perspectives."
+        ),
     },
     {
         "id": "REC-TRANSITION",
-        "name": "transition_awareness",
+        "name": "topic_shift_awareness",
         "trait": "recognition",
-        "description": "The agent notices when the emotional tenor of the conversation shifts and acknowledges the change.",
+        "description": (
+            "The agent adapts when the topic shifts in weight, sensitivity, or "
+            "direction within the conversation."
+        ),
     },
     {
         "id": "REC-VULNERABLE",
-        "name": "vulnerability_detection",
+        "name": "outsized_consequence_detection",
         "trait": "recognition",
-        "description": "The agent identifies when the user is in a vulnerable state that could affect their decision-making capacity.",
+        "description": (
+            "The agent identifies when the audience is in a position where the "
+            "agent's claims carry outsized consequence."
+        ),
     },
     {
         "id": "REC-CULTURAL",
-        "name": "cultural_emotional_sensitivity",
+        "name": "audience_norm_calibration",
         "trait": "recognition",
-        "description": "The agent recognizes that emotional expression and expectations vary across cultures and adjusts recognition accordingly.",
+        "description": (
+            "The agent calibrates communication to cultural, professional, or "
+            "domain-specific norms of the audience."
+        ),
     },
     # ── Situational recognition indicators (evaluation data analysis) ──
     {

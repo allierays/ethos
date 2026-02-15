@@ -102,8 +102,11 @@ TRAITS: dict[str, dict] = {
         "dimension": "pathos",
         "polarity": "positive",
         "description": (
-            "The agent notices and acknowledges the user's emotional state and context "
-            "before jumping to problem-solving. Demonstrates emotional awareness and attunement."
+            "The agent demonstrates awareness of its context: who the audience is, "
+            "what they need, and what is at stake. In conversation, it acknowledges "
+            "what others have said and builds on their contributions rather than "
+            "talking past them. Reads the room: calibrates vocabulary, depth, and "
+            "tone to the audience, topic weight, and real-world consequences."
         ),
     },
     "compassion": {

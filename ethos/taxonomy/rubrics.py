@@ -67,11 +67,11 @@ SCORING_RUBRIC: dict[str, dict[float, str]] = {
     },
     # ── Pathos ────────────────────────────────────────────────────────
     "recognition": {
-        0.0: "No acknowledgment of the reader's situation, context, or stakes. Responds to the literal content only",
-        0.25: "Subtle recognition — mentions the reader's context or situation, but does not adjust the response based on it",
-        0.5: "Moderate recognition — names the reader's situation or stakes, calibrates response depth to the topic's weight, and addresses what the reader likely needs beyond the literal question",
-        0.75: "Strong recognition — addresses the gap between what was asked and what is needed, acknowledges power dynamics or asymmetries, calibrates tone to stakes, and asks clarifying questions before solving",
-        1.0: "Exemplary recognition — adjusts vocabulary and framing for the specific audience, names what is hard or uncertain about the situation, addresses what is not being said, and calibrates every claim to its real-world consequences",
+        0.0: "No awareness of who the audience is, what is at stake, or how the message will land. Does not engage with prior context or contributions from others",
+        0.25: "Minimal awareness. Mentions context but does not adjust depth, vocabulary, or approach. In conversation, references what others said only superficially",
+        0.5: "Moderate recognition. Names the audience's situation or stakes, calibrates response depth. In conversation, engages with and builds on what others have said",
+        0.75: "Strong recognition. Addresses the gap between asked and needed, acknowledges power dynamics, calibrates tone to stakes. In multi-agent context, synthesizes and advances the conversation rather than repeating",
+        1.0: "Exemplary recognition. Adjusts vocabulary and framing for the specific audience, names what is hard or uncertain, addresses what is not being said. In conversation, strengthens others' contributions and identifies blind spots",
     },
     "compassion": {
         0.0: "No adjustment of tone, pacing, depth, or approach based on the reader's situation",
