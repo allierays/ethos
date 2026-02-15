@@ -354,3 +354,30 @@ async def store_authenticity(
             type(exc).__name__,
             exc,
         )
+
+
+async def reset_agent_evaluations(agent_id: str) -> int:
+    """Delete all evaluations for an agent, keeping the Agent node.
+
+    Returns the number of evaluations deleted.
+    """
+    async with GraphService() as gs:
+        result = await gs.run(
+            """
+            MATCH (a:Agent {agent_id: $agent_id})-[r:EVALUATED]->(e:Evaluation)
+            OPTIONAL MATCH (e)-[r2]-()
+            WITH e, r, collect(r2) AS rels
+            FOREACH (rel IN rels | DELETE rel)
+            DELETE r, e
+            RETURN count(e) AS deleted
+            """,
+            agent_id=agent_id,
+        )
+        record = await result.single()
+        deleted = record["deleted"] if record else 0
+
+        # Clean up orphaned Pattern nodes
+        await gs.run("MATCH (p:Pattern) WHERE NOT (p)--() DELETE p")
+
+        logger.info("Reset %d evaluations for agent %s", deleted, agent_id)
+        return deleted

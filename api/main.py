@@ -762,3 +762,18 @@ async def opt_in_notifications(agent_id: str):
     from ethos.phone_service import opt_in
 
     return (await opt_in(agent_id)).model_dump()
+
+
+# ── Admin endpoints ──────────────────────────────────────────────────
+
+
+@app.delete(
+    "/admin/agent/{agent_id}/evaluations",
+    dependencies=[Depends(require_api_key)],
+)
+async def reset_agent_evaluations_endpoint(agent_id: str):
+    """Delete all evaluations for an agent (keeps agent node)."""
+    from ethos.graph.write import reset_agent_evaluations
+
+    deleted = await reset_agent_evaluations(agent_id)
+    return {"agent_id": agent_id, "evaluations_deleted": deleted}
