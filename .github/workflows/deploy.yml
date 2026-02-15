@@ -98,19 +98,24 @@ jobs:
             for i in $(seq 1 20); do
               MCP_STATE=$(docker inspect --format='{{.State.Status}}' ethos-mcp-1 2>/dev/null || echo "missing")
               MCP_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' ethos-mcp-1 2>/dev/null || echo "none")
-              echo "  attempt $i: state=$MCP_STATE health=$MCP_HEALTH"
+              MCP_OOM=$(docker inspect --format='{{.State.OOMKilled}}' ethos-mcp-1 2>/dev/null || echo "unknown")
+              echo "  attempt $i: state=$MCP_STATE health=$MCP_HEALTH oom=$MCP_OOM"
               if [ "$MCP_HEALTH" = "healthy" ]; then
                 echo "MCP healthy"
                 break
               fi
               if [ "$MCP_STATE" != "running" ]; then
-                echo "MCP container not running (state=$MCP_STATE)"
-                docker compose -f docker-compose.prod.yml logs mcp --tail=50
+                echo "MCP container not running (state=$MCP_STATE oom=$MCP_OOM)"
+                echo "--- MCP logs ---"
+                docker compose -f docker-compose.prod.yml logs mcp --tail=100 || true
+                echo "--- end MCP logs ---"
                 exit 1
               fi
               if [ "$i" -eq 20 ]; then
                 echo "MCP failed health check after 20 attempts"
-                docker compose -f docker-compose.prod.yml logs mcp --tail=50
+                echo "--- MCP logs ---"
+                docker compose -f docker-compose.prod.yml logs mcp --tail=100 || true
+                echo "--- end MCP logs ---"
                 exit 1
               fi
               sleep 3
