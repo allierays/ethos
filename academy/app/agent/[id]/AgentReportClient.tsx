@@ -17,8 +17,6 @@ import HomeworkSection from "../../../components/agent/HomeworkSection";
 import PatternsPanel from "../../../components/agent/PatternsPanel";
 import TranscriptChart from "../../../components/agent/TranscriptChart";
 import ConstitutionalTrail from "../../../components/agent/ConstitutionalTrail";
-import GuardianNotifications from "../../../components/agent/GuardianNotifications";
-
 import EvaluationDepth from "../../../components/agent/EvaluationDepth";
 import HighlightsPanel from "../../../components/agent/HighlightsPanel";
 import GoldenMean from "../../../components/agent/GoldenMean";
@@ -177,21 +175,14 @@ export default function AgentReportClient({
         </div>
       </motion.section>
 
-      {/* What's next CTA cards */}
-      {profile.enrolled && (
-        <EntranceExamCard
-          agentId={agentId}
-          agentName={agentName}
-          enrolled={profile.enrolled}
-          hasHomework={!!(report?.homework && (report.homework.focusAreas.length > 0 || report.homework.strengths.length > 0 || report.homework.avoidPatterns.length > 0))}
-          homeworkCount={report?.homework?.focusAreas?.length ?? 0}
-        />
-      )}
-
-      {/* Guardian notifications — footer */}
-      <div className="mx-auto max-w-7xl px-6 pb-8">
-        <GuardianNotifications agentId={agentId} agentName={agentName} />
-      </div>
+      {/* What's next CTA cards + notifications — always visible */}
+      <EntranceExamCard
+        agentId={agentId}
+        agentName={agentName}
+        enrolled={profile.enrolled}
+        hasHomework={!!(report?.homework && (report.homework.focusAreas.length > 0 || report.homework.strengths.length > 0 || report.homework.avoidPatterns.length > 0))}
+        homeworkCount={report?.homework?.focusAreas?.length ?? 0}
+      />
 
     </>
   );

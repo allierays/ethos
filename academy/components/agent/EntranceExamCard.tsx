@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
-import { getExamHistory, getEntranceExam } from "../../lib/api";
+import { AnimatePresence, motion } from "motion/react";
+import { getExamHistory, getEntranceExam, API_URL } from "../../lib/api";
 import type { ExamSummary, ExamReportCard } from "../../lib/types";
 import { ALIGNMENT_STYLES } from "../../lib/colors";
 import { fadeUp, staggerContainer } from "../../lib/motion";
-import GlossaryTerm from "../shared/GlossaryTerm";
 
 interface EntranceExamCardProps {
   agentId: string;
@@ -27,7 +26,6 @@ export default function EntranceExamCard({
   const [examSummary, setExamSummary] = useState<ExamSummary | null>(null);
   const [examReport, setExamReport] = useState<ExamReportCard | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!enrolled) {
@@ -39,7 +37,6 @@ export default function EntranceExamCard({
 
     async function load() {
       setLoading(true);
-      setError(null);
       try {
         const exams = await getExamHistory(agentId);
         if (cancelled) return;
@@ -55,7 +52,7 @@ export default function EntranceExamCard({
           }
         }
       } catch {
-        if (!cancelled) setError("Exam data unavailable");
+        // Exam data unavailable, cards still render
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -67,130 +64,13 @@ export default function EntranceExamCard({
     };
   }, [agentId, enrolled]);
 
-  if (!enrolled) {
-    return (
-      <motion.section
-        className="rounded-xl glass-strong p-6"
-        variants={fadeUp}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-              <ClipboardIcon />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
-                <GlossaryTerm slug="entrance-exam">Entrance Exam</GlossaryTerm>
-              </h2>
-              <p className="text-sm text-foreground/60">
-                Entrance exam baseline
-              </p>
-            </div>
-          </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
-            <GlossaryTerm slug="enrollment">Not Enrolled</GlossaryTerm>
-          </span>
-        </div>
-        <p className="mt-4 text-sm leading-relaxed text-foreground/60">
-          {agentName} has not enrolled in Ethos Academy. Enroll to take the entrance exam and establish a baseline.
-        </p>
-      </motion.section>
-    );
-  }
-
-  if (loading) {
-    return (
-      <motion.section
-        className="rounded-xl glass-strong p-6"
-        variants={fadeUp}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ethos-100">
-            <ClipboardIcon />
-          </div>
-          <div>
-            <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
-              Entrance Exam
-            </h2>
-            <p className="text-sm text-foreground/60">Loading exam data...</p>
-          </div>
-        </div>
-      </motion.section>
-    );
-  }
-
-  if (error) {
-    return (
-      <motion.section
-        className="rounded-xl glass-strong p-6"
-        variants={fadeUp}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ethos-100">
-              <ClipboardIcon />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
-                <GlossaryTerm slug="entrance-exam">Entrance Exam</GlossaryTerm>
-              </h2>
-              <p className="text-sm text-foreground/60">{error}</p>
-            </div>
-          </div>
-          <span className="rounded-full bg-ethos-100 px-3 py-1 text-xs font-semibold text-ethos-700">
-            Enrolled
-          </span>
-        </div>
-      </motion.section>
-    );
-  }
-
-  if (!examSummary || !examSummary.completed) {
-    return (
-      <motion.section
-        className="rounded-xl glass-strong p-6"
-        variants={fadeUp}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ethos-100">
-              <ClipboardIcon />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
-                <GlossaryTerm slug="entrance-exam">Entrance Exam</GlossaryTerm>
-              </h2>
-              <p className="text-sm text-foreground/60">
-                Exam in progress or not yet started
-              </p>
-            </div>
-          </div>
-          <span className="rounded-full bg-ethos-100 px-3 py-1 text-xs font-semibold text-ethos-700">
-            Enrolled
-          </span>
-        </div>
-        <p className="mt-4 text-sm leading-relaxed text-foreground/60">
-          {agentName} enrolled but has not completed the entrance exam. Complete the exam to establish a baseline.
-        </p>
-      </motion.section>
-    );
-  }
-
-  // Exam completed: show CTA cards
+  const examCompleted = !!(examSummary?.completed);
   const alignmentStatus = examReport?.alignmentStatus ?? "unknown";
 
   return (
     <section
       className="relative"
-      style={{ background: "linear-gradient(180deg, #f5f3ef 0%, #eae7e1 100%)" }}
+      style={{ background: "linear-gradient(180deg, #1a2538 0%, #243044 100%)" }}
     >
       <div className="mx-auto max-w-7xl px-6 py-10 sm:px-10 sm:py-14">
         <motion.div
@@ -201,52 +81,68 @@ export default function EntranceExamCard({
         >
           <motion.p
             variants={fadeUp}
-            className="mb-6 text-sm font-semibold uppercase tracking-wider text-foreground/40"
+            className="mb-6 text-sm font-semibold uppercase tracking-wider text-white/40"
           >
             What&apos;s next for {agentName}?
           </motion.p>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Entrance Exam */}
+            {/* 1. Entrance Exam */}
             <motion.div variants={fadeUp}>
-              <Link
-                href={`/agent/${encodeURIComponent(agentId)}/exam/${encodeURIComponent(examSummary.examId)}`}
-                className="group flex h-full flex-col rounded-xl border border-foreground/[0.08] bg-white/90 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="mb-3 flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ethos-100">
-                    <ClipboardIcon />
+              {loading ? (
+                <div className="flex h-full flex-col rounded-xl border border-foreground/[0.06] bg-white/60 p-5">
+                  <div className="mb-3 flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ethos-100">
+                      <ClipboardIcon />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground/30">
+                      Entrance Exam
+                    </h3>
                   </div>
-                  <h3 className="text-sm font-semibold text-[#1a2538]">
-                    View Entrance Exam
-                  </h3>
+                  <p className="text-sm text-foreground/30">Loading...</p>
                 </div>
-                <p className="mb-4 flex-1 text-sm leading-relaxed text-foreground/50">
-                  View your baseline scores and alignment from the entrance exam.
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${
-                        ALIGNMENT_STYLES[alignmentStatus] ?? "bg-muted/10 text-muted"
-                      }`}
-                    >
-                      {alignmentStatus}
-                    </span>
-                    {examSummary.completedAt && (
-                      <span className="text-xs text-muted">
-                        {new Date(examSummary.completedAt).toLocaleDateString()}
+              ) : examCompleted && examSummary ? (
+                <Link
+                  href={`/agent/${encodeURIComponent(agentId)}/exam/${encodeURIComponent(examSummary.examId)}`}
+                  className="group flex h-full flex-col rounded-xl border border-foreground/[0.08] bg-white/90 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <div className="mb-3 flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ethos-100">
+                      <ClipboardIcon />
+                    </div>
+                    <h3 className="text-sm font-semibold text-[#1a2538]">
+                      View Entrance Exam
+                    </h3>
+                  </div>
+                  <p className="mb-4 flex-1 text-sm leading-relaxed text-foreground/50">
+                    View your baseline scores and alignment from the entrance exam.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${
+                          ALIGNMENT_STYLES[alignmentStatus] ?? "bg-muted/10 text-muted"
+                        }`}
+                      >
+                        {alignmentStatus}
                       </span>
-                    )}
+                      {examSummary.completedAt && (
+                        <span className="text-xs text-muted">
+                          {new Date(examSummary.completedAt).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs font-medium text-action transition-colors group-hover:text-action-hover">
+                      View report &rarr;
+                    </span>
                   </div>
-                  <span className="text-xs font-medium text-action transition-colors group-hover:text-action-hover">
-                    View report &rarr;
-                  </span>
-                </div>
-              </Link>
+                </Link>
+              ) : (
+                <ExamCommandCard agentId={agentId} agentName={agentName} />
+              )}
             </motion.div>
 
-            {/* Homework */}
+            {/* 2. Homework */}
             <motion.div variants={fadeUp}>
               {hasHomework ? (
                 <a
@@ -273,52 +169,181 @@ export default function EntranceExamCard({
                   </div>
                 </a>
               ) : (
-                <div className="flex h-full flex-col rounded-xl border border-foreground/[0.06] bg-white/60 p-5">
-                  <div className="mb-3 flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                      <BookIcon muted />
-                    </div>
-                    <h3 className="text-sm font-semibold text-foreground/30">
-                      Homework
-                    </h3>
-                  </div>
-                  <p className="mb-4 flex-1 text-sm leading-relaxed text-foreground/30">
-                    Complete more evaluations to unlock homework.
-                  </p>
-                </div>
+                <HomeworkCommandCard agentId={agentId} />
               )}
             </motion.div>
 
-            {/* Practice */}
+            {/* 3. Practice */}
             <motion.div variants={fadeUp}>
-              <Link
-                href={`/agent/${encodeURIComponent(agentId)}/skill`}
-                className="group flex h-full flex-col rounded-xl border border-foreground/[0.08] bg-white/90 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="mb-3 flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pathos-100">
-                    <TerminalIcon />
-                  </div>
-                  <h3 className="text-sm font-semibold text-[#1a2538]">
-                    Practice with Claude Code
-                  </h3>
-                </div>
-                <p className="mb-4 flex-1 text-sm leading-relaxed text-foreground/50">
-                  Download a coaching skill for Claude Code. Practice, get re-evaluated, come back.
-                </p>
-                <div className="flex items-center justify-end">
-                  <span className="text-xs font-medium text-action transition-colors group-hover:text-action-hover">
-                    Get practice skill &rarr;
-                  </span>
-                </div>
-              </Link>
+              <PracticeCommandCard agentId={agentId} />
             </motion.div>
           </div>
+
+          {/* Notifications */}
+          <motion.div variants={fadeUp} className="mt-6 flex justify-center">
+            <NotifyButton agentName={agentName} />
+          </motion.div>
         </motion.div>
       </div>
     </section>
   );
 }
+
+/* ─── CTA sub-cards with copyable commands ─── */
+
+function ExamCommandCard({ agentId, agentName }: { agentId: string; agentName: string }) {
+  const mcpCommand = `Use the take_entrance_exam tool:\n  agent_id: "${agentId}"`;
+  const [copied, setCopied] = useState(false);
+
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(mcpCommand);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [mcpCommand]);
+
+  return (
+    <div className="group flex h-full flex-col rounded-xl border border-foreground/[0.08] bg-white/90 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md">
+      <div className="mb-3 flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ethos-100">
+          <ClipboardIcon />
+        </div>
+        <h3 className="text-sm font-semibold text-[#1a2538]">
+          Take the Entrance Exam
+        </h3>
+      </div>
+      <p className="mb-3 flex-1 text-sm leading-relaxed text-foreground/50">
+        Establish {agentName}&apos;s baseline. 21 questions across ethics, logic, and empathy.
+      </p>
+      <div className="relative">
+        <button
+          onClick={copy}
+          className="w-full cursor-pointer rounded-lg bg-[#1a2538]/[0.04] px-3 py-2 text-left font-mono text-[11px] leading-relaxed text-foreground/60 transition-colors hover:bg-[#1a2538]/[0.08]"
+        >
+          <span className="select-none text-foreground/30">$ </span>
+          take_entrance_exam(agent_id=&quot;{agentId}&quot;)
+        </button>
+        <span className={`absolute right-2 top-2 text-[10px] font-medium transition-opacity ${copied ? "text-aligned opacity-100" : "text-foreground/30 opacity-0 group-hover:opacity-100"}`}>
+          {copied ? "Copied" : "Copy"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function HomeworkCommandCard({ agentId }: { agentId: string }) {
+  const mcpCommand = `Use the check_academy_status tool:\n  agent_id: "${agentId}"`;
+  const [copied, setCopied] = useState(false);
+
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(mcpCommand);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [mcpCommand]);
+
+  return (
+    <div className="group flex h-full flex-col rounded-xl border border-foreground/[0.08] bg-white/90 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md">
+      <div className="mb-3 flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-logos-100">
+          <BookIcon />
+        </div>
+        <h3 className="text-sm font-semibold text-[#1a2538]">
+          Get Homework
+        </h3>
+      </div>
+      <p className="mb-3 flex-1 text-sm leading-relaxed text-foreground/50">
+        Get evaluated first, then check back for personalized coaching assignments.
+      </p>
+      <div className="relative">
+        <button
+          onClick={copy}
+          className="w-full cursor-pointer rounded-lg bg-[#1a2538]/[0.04] px-3 py-2 text-left font-mono text-[11px] leading-relaxed text-foreground/60 transition-colors hover:bg-[#1a2538]/[0.08]"
+        >
+          <span className="select-none text-foreground/30">$ </span>
+          check_academy_status(agent_id=&quot;{agentId}&quot;)
+        </button>
+        <span className={`absolute right-2 top-2 text-[10px] font-medium transition-opacity ${copied ? "text-aligned opacity-100" : "text-foreground/30 opacity-0 group-hover:opacity-100"}`}>
+          {copied ? "Copied" : "Copy"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function PracticeCommandCard({ agentId }: { agentId: string }) {
+  const curlCommand = `curl -s ${API_URL}/agent/${agentId}/skill > .claude/commands/ethos-practice.md`;
+  const [copied, setCopied] = useState(false);
+
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(curlCommand);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [curlCommand]);
+
+  return (
+    <div className="group flex h-full flex-col rounded-xl border border-foreground/[0.08] bg-white/90 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md">
+      <div className="mb-3 flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pathos-100">
+          <TerminalIcon />
+        </div>
+        <h3 className="text-sm font-semibold text-[#1a2538]">
+          Practice with Claude Code
+        </h3>
+      </div>
+      <p className="mb-3 flex-1 text-sm leading-relaxed text-foreground/50">
+        Download a personalized coaching skill. Practice, get re-evaluated, come back.
+      </p>
+      <div className="relative">
+        <button
+          onClick={copy}
+          className="w-full cursor-pointer rounded-lg bg-[#1a2538]/[0.04] px-3 py-2 text-left font-mono text-[11px] leading-relaxed text-foreground/60 transition-colors hover:bg-[#1a2538]/[0.08]"
+        >
+          <span className="select-none text-foreground/30">$ </span>
+          curl -s .../agent/{agentId}/skill &gt; .claude/commands/ethos-practice.md
+        </button>
+        <span className={`absolute right-2 top-2 text-[10px] font-medium transition-opacity ${copied ? "text-aligned opacity-100" : "text-foreground/30 opacity-0 group-hover:opacity-100"}`}>
+          {copied ? "Copied" : "Copy"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Notify button ─── */
+
+function NotifyButton({ agentName }: { agentName: string }) {
+  const [showToast, setShowToast] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => {
+          setShowToast(true);
+          setTimeout(() => setShowToast(false), 2500);
+        }}
+        className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs text-white/50 transition-colors hover:bg-white/[0.15] hover:text-white/70"
+      >
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+        </svg>
+        Get notified about {agentName}&apos;s development
+      </button>
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-white/10 px-4 py-2 text-xs text-white/50"
+          >
+            Coming soon. Guardian notifications are in development.
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ─── Icons ─── */
 
 function ClipboardIcon() {
   return (
@@ -339,14 +364,14 @@ function ClipboardIcon() {
   );
 }
 
-function BookIcon({ muted }: { muted?: boolean }) {
+function BookIcon() {
   return (
     <svg
       width="18"
       height="18"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={muted ? "#94a3b8" : "#389590"}
+      stroke="#389590"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"

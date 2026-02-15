@@ -10,6 +10,7 @@ import logging
 import math
 
 from ethos.graph.service import GraphService
+from ethos.identity.model import parse_model
 from ethos.shared.models import AuthenticityResult, EvaluationResult
 
 logger = logging.getLogger(__name__)
@@ -207,7 +208,7 @@ async def store_evaluation(
         "routing_tier": result.routing_tier,
         "keyword_density": result.keyword_density,
         "model_used": result.model_used,
-        "agent_model": result.agent_model,
+        "agent_model": parse_model(result.agent_model) if result.agent_model else "",
         "alignment_status": result.alignment_status,
         "phronesis_trend": "insufficient_data",
         "trait_variance": trait_variance,
