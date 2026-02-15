@@ -49,13 +49,17 @@ async def submit_phone(agent_id: str, phone: str) -> GuardianPhoneStatus:
 
     async with graph_context() as service:
         if not service.connected:
-            raise VerificationError("Graph unavailable")
+            raise VerificationError(
+                "Unable to reach the database right now. Please try again shortly."
+            )
 
         stored = await store_guardian_phone(
             service, agent_id, encrypted, code_hashed, expires
         )
         if not stored:
-            raise VerificationError("Failed to store phone number")
+            raise VerificationError(
+                "Unable to save your phone number right now. Please try again shortly."
+            )
 
     # Send verification SMS (non-blocking, best-effort)
     sms_sent = False
@@ -89,21 +93,25 @@ async def verify_phone(agent_id: str, code: str) -> GuardianPhoneStatus:
 
     async with graph_context() as service:
         if not service.connected:
-            raise VerificationError("Graph unavailable")
+            raise VerificationError(
+                "Unable to reach the database right now. Please try again shortly."
+            )
 
         status = await get_guardian_phone_status(service, agent_id)
         if not status or not status.get("encrypted_phone"):
-            raise VerificationError("No phone number on file for this agent")
+            raise VerificationError("No phone number on file. Call submit_phone first.")
 
         # Check expiry
         if is_expired(status.get("expires", "")):
-            raise VerificationError("Verification code expired. Request a new one.")
+            raise VerificationError(
+                "Verification code expired. Call resend_code to get a fresh one."
+            )
 
         # Check attempt limit
         attempts = status.get("attempts", 0)
         if attempts >= MAX_VERIFICATION_ATTEMPTS:
             raise VerificationError(
-                "Too many failed attempts. Request a new verification code."
+                "Too many failed attempts. Call resend_code to get a fresh code."
             )
 
         # Try to verify
@@ -143,7 +151,9 @@ async def opt_out(agent_id: str) -> GuardianPhoneStatus:
     """Opt out of SMS notifications."""
     async with graph_context() as service:
         if not service.connected:
-            raise VerificationError("Graph unavailable")
+            raise VerificationError(
+                "Unable to reach the database right now. Please try again shortly."
+            )
         await set_notification_opt_out(service, agent_id, opted_out=True)
         status = await get_guardian_phone_status(service, agent_id)
 
@@ -158,7 +168,9 @@ async def opt_in(agent_id: str) -> GuardianPhoneStatus:
     """Opt back in to SMS notifications."""
     async with graph_context() as service:
         if not service.connected:
-            raise VerificationError("Graph unavailable")
+            raise VerificationError(
+                "Unable to reach the database right now. Please try again shortly."
+            )
         await set_notification_opt_out(service, agent_id, opted_out=False)
         status = await get_guardian_phone_status(service, agent_id)
 
@@ -176,11 +188,13 @@ async def resend_code(agent_id: str) -> GuardianPhoneStatus:
     """
     async with graph_context() as service:
         if not service.connected:
-            raise VerificationError("Graph unavailable")
+            raise VerificationError(
+                "Unable to reach the database right now. Please try again shortly."
+            )
 
         status = await get_guardian_phone_status(service, agent_id)
         if not status or not status.get("encrypted_phone"):
-            raise VerificationError("No phone number on file for this agent")
+            raise VerificationError("No phone number on file. Call submit_phone first.")
 
         # Decrypt to send SMS
         phone = decrypt(status["encrypted_phone"])
@@ -192,7 +206,9 @@ async def resend_code(agent_id: str) -> GuardianPhoneStatus:
             service, agent_id, status["encrypted_phone"], code_hashed, expires
         )
         if not stored:
-            raise VerificationError("Failed to update verification code")
+            raise VerificationError(
+                "Unable to generate a new code right now. Please try again shortly."
+            )
 
     sms_sent = False
     try:
