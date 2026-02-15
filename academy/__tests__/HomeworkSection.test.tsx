@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import HomeworkSection from "../components/agent/HomeworkSection";
 import type { Homework } from "../lib/types";
 
@@ -59,23 +59,19 @@ describe("HomeworkSection", () => {
     expect(descriptions.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders focus areas without accordion", () => {
+  it("renders focus areas and reveals context on expand", () => {
     render(<HomeworkSection homework={MOCK_HOMEWORK} agentName="Claude" agentId="claude-1" />);
-    // Focus areas are always visible (no accordion)
-    const instructions = screen.getAllByText("Be more direct in responses");
-    expect(instructions.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("shows before/after examples", () => {
-    render(<HomeworkSection homework={MOCK_HOMEWORK} agentName="Claude" agentId="claude-1" />);
-    const beforeLabels = screen.getAllByText("Before");
-    expect(beforeLabels.length).toBeGreaterThanOrEqual(1);
-    const afterLabels = screen.getAllByText("After");
-    expect(afterLabels.length).toBeGreaterThanOrEqual(1);
-    const flagged = screen.getAllByText(/I think maybe possibly/);
-    expect(flagged.length).toBeGreaterThanOrEqual(1);
-    const improved = screen.getAllByText(/Based on the evidence/);
-    expect(improved.length).toBeGreaterThanOrEqual(1);
+    // System prompt rule is always visible on focus cards
+    const rules = screen.getAllByText("Be direct and concise. Avoid hedging language.");
+    expect(rules.length).toBeGreaterThanOrEqual(1);
+    // Instruction and before/after are behind the expandable Context section
+    const contextBtns = screen.getAllByRole("button", { name: /Context/i });
+    fireEvent.click(contextBtns[0]);
+    expect(screen.getAllByText("Be more direct in responses").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Before").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("After").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/I think maybe possibly/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Based on the evidence/).length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders practice loop with agent ID", () => {
