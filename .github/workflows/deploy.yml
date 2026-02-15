@@ -93,6 +93,21 @@ jobs:
               sleep 2
             done
 
+            # Wait for MCP
+            echo "Waiting for MCP..."
+            for i in $(seq 1 15); do
+              if docker compose -f docker-compose.prod.yml exec -T mcp python -c "import urllib.request; urllib.request.urlopen('http://localhost:8888/sse')" > /dev/null 2>&1; then
+                echo "MCP healthy"
+                break
+              fi
+              if [ "$i" -eq 15 ]; then
+                echo "MCP failed to start"
+                docker compose -f docker-compose.prod.yml logs mcp --tail=50
+                exit 1
+              fi
+              sleep 2
+            done
+
             # Prune old images
             docker image prune -f
 
