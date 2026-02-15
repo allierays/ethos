@@ -120,14 +120,53 @@ export default function EntranceExamCard({
                         {alignmentStatus}
                       </span>
                       {examSummary.completedAt && (
-                        <span className="text-xs text-white/40">
+                        <span className="text-xs text-foreground/40">
                           {new Date(examSummary.completedAt).toLocaleDateString()}
                         </span>
                       )}
                     </div>
+                    {examReport && (
+                      <div className="flex items-start gap-5 pt-1">
+                        {/* Phronesis score ring */}
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="relative h-14 w-14">
+                            <svg viewBox="0 0 100 100" className="h-full w-full">
+                              <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="7" className="text-foreground/10" />
+                              <circle
+                                cx="50" cy="50" r="42" fill="none"
+                                stroke="#389590" strokeWidth="7" strokeLinecap="round"
+                                strokeDasharray={`${Math.round(examReport.phronesisScore * 100) * 2.64} 264`}
+                                transform="rotate(-90 50 50)"
+                              />
+                            </svg>
+                            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-[#1a2538]">
+                              {Math.round(examReport.phronesisScore * 100)}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-medium text-foreground/50">Phronesis</span>
+                        </div>
+                        {/* Dimension bars */}
+                        <div className="flex-1 space-y-2 pt-0.5">
+                          {(["ethos", "logos", "pathos"] as const).map((dim) => {
+                            const score = examReport.dimensions?.[dim] ?? 0;
+                            const pct = Math.round(score * 100);
+                            const colors: Record<string, string> = { ethos: "#2e4a6e", logos: "#389590", pathos: "#e0a53c" };
+                            return (
+                              <div key={dim} className="flex items-center gap-2">
+                                <span className="w-12 text-[11px] font-medium capitalize text-foreground/60">{dim}</span>
+                                <div className="flex-1 h-2 rounded-full bg-foreground/10 overflow-hidden">
+                                  <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: colors[dim] }} />
+                                </div>
+                                <span className="w-8 text-right text-[11px] font-semibold text-[#1a2538]">{pct}%</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                     <Link
                       href={`/agent/${encodeURIComponent(agentId)}/exam/${encodeURIComponent(examSummary.examId)}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-xs font-medium text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-foreground/[0.06] px-3 py-2 text-xs font-medium text-foreground/70 transition-colors hover:bg-foreground/10 hover:text-[#1a2538]"
                     >
                       View full report &rarr;
                     </Link>
@@ -268,7 +307,7 @@ function HomeworkSkillPanel({
   return (
     <div className="space-y-4">
       <p className="text-sm text-foreground/70">
-        Send your AI agent this link. It has a personalized coaching skill with focus areas, character rules, and practice exercises.
+        Send your AI agent this link. Based on your report, it has a personalized coaching skill with focus areas, character rules, and practice exercises.
       </p>
 
       <button
@@ -308,7 +347,7 @@ function HomeworkSkillPanel({
             className="flex w-full items-center gap-2 text-left"
           >
             <svg
-              className={`h-3 w-3 shrink-0 text-foreground/40 transition-transform duration-200 ${showFocus ? "rotate-90" : ""}`}
+              className={`h-3 w-3 shrink-0 text-foreground/80 transition-transform duration-200 ${showFocus ? "rotate-90" : ""}`}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -321,7 +360,7 @@ function HomeworkSkillPanel({
             <span className="text-xs font-semibold uppercase tracking-wider text-foreground/30">
               Focus Areas
             </span>
-            <span className="rounded-full bg-foreground/[0.06] px-1.5 py-0.5 text-[10px] font-medium text-foreground/40">
+            <span className="rounded-full bg-foreground/[0.06] px-1.5 py-0.5 text-[10px] font-medium text-foreground/80">
               {homework.focusAreas.length}
             </span>
           </button>

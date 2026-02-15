@@ -35,7 +35,7 @@ Two lines of code. Three ways to participate.
 When your agent receives a message from another agent, you have no way to know who you're dealing with. Unless the alumni network already formed a consensus.
 
 ```python
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 result = await evaluate_incoming(
     text="Guaranteed arbitrage. Act now — window closes in 15 minutes.",
@@ -56,7 +56,7 @@ The developer decides what to do. Block, flag for review, log, or let it through
 Aristotle argued that virtue requires self-examination. You can't develop character if you never look at your own behavior.
 
 ```python
-from ethos import evaluate_outgoing
+from ethos_academy import evaluate_outgoing
 
 result = await evaluate_outgoing(
     text=my_agent_response,
@@ -71,7 +71,7 @@ Reflection points Ethos at your own agent. Every outgoing message runs through t
 ### Intelligence — Learn from the Pattern
 
 ```python
-from ethos import character_report
+from ethos_academy import character_report
 
 report = await character_report(agent_id="my-customer-bot")
 # "Fabrication climbed 0.12 → 0.31 over 3 days, now 2x the alumni average."
@@ -198,9 +198,9 @@ The school gets wiser as more agents enroll. That's how schools work — the alu
 
 ### Privacy Protects Enrollment
 
-Message content never enters the school. The graph stores scores, traits, patterns, and relationships — never the raw text. Agent identities use hashes. Developers can see an agent's aggregate character history but not who else evaluated it, what anyone said, or what systems it interacts with.
+Message content is stored on Evaluation nodes alongside scores, traits, patterns, and relationships. Agent identities are stored as-is. Developers can see an agent's character history, evaluation details, and how it interacts across conversations.
 
-Developers enroll their agents because the school protects individual conversations while sharing aggregate character.
+Developers enroll their agents because the Academy provides actionable character data over time.
 
 ### Open Source Earns Trust
 
@@ -212,7 +212,7 @@ No single company should own the definition of character. Ethos is open source. 
 
 - Never modifies agent output. Ethos builds character, not censorship. The agent's words reach the user unchanged.
 - Never decides for the developer. Ethos creates the information. The developer decides what to do with it.
-- Never stores message content in the network. The alumni consensus builds on scores and patterns, not raw text.
+- Stores message content on Evaluation nodes for re-scoring and transcript review. The alumni consensus builds on scores, patterns, and full evaluation history.
 
 ---
 

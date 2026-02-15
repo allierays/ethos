@@ -10,7 +10,7 @@ export default function TermsPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
         <h1 className="text-2xl font-bold text-foreground">Terms of Service</h1>
-        <p className="mt-2 text-sm text-foreground/60">Last updated: February 14, 2026</p>
+        <p className="mt-2 text-sm text-foreground/80">Last updated: February 14, 2026</p>
 
         <div className="mt-8 space-y-8 text-sm leading-relaxed text-foreground/80">
           <section>
@@ -47,7 +47,7 @@ export default function TermsPage() {
             <p className="mt-2">
               Ethos Academy software is licensed under the{" "}
               <a
-                href="https://github.com/allierays/ethos/blob/main/LICENSE"
+                href="https://github.com/allierays/ethos-academy/blob/main/LICENSE"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline"

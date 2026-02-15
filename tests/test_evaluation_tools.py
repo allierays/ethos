@@ -8,8 +8,8 @@ Schema drift here silently breaks LLM evaluation behavior.
 from __future__ import annotations
 
 
-from ethos.evaluation.tools import EVALUATION_TOOLS
-from ethos.taxonomy.traits import DIMENSIONS, TRAITS
+from ethos_academy.evaluation.tools import EVALUATION_TOOLS
+from ethos_academy.taxonomy.traits import DIMENSIONS, TRAITS
 
 
 # ---------------------------------------------------------------------------

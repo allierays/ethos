@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from ethos.reflection.instinct import scan_history
-from ethos.shared.models import ReflectionInstinctResult
+from ethos_academy.reflection.instinct import scan_history
+from ethos_academy.shared.models import ReflectionInstinctResult
 
 
 def _make_profile(

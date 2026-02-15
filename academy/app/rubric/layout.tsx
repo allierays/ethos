@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Rubric",
   description:
-    "The Ethos behavioral rubric: 3 dimensions, 12 traits, and 214 indicators for measuring AI agent honesty, reasoning, and emotional intelligence.",
+    "3 dimensions, 12 traits, 214 indicators. The rubric the Academy uses to score every message for honesty, reasoning, and empathy.",
 };
 
 export default function RubricLayout({

@@ -24,8 +24,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from ethos.evaluate import evaluate  # noqa: E402
-from ethos.graph.service import graph_context  # noqa: E402
+from ethos_academy.evaluate import evaluate  # noqa: E402
+from ethos_academy.graph.service import graph_context  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)

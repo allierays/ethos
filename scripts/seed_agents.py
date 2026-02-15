@@ -44,8 +44,8 @@ def _load_dotenv() -> None:
 _load_dotenv()
 
 from anthropic import AsyncAnthropic  # noqa: E402
-from ethos.graph.service import GraphService  # noqa: E402
-from ethos.tools import evaluate_outgoing  # noqa: E402
+from ethos_academy.graph.service import GraphService  # noqa: E402
+from ethos_academy.tools import evaluate_outgoing  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

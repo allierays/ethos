@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useGlossary } from "../../lib/GlossaryContext";
 
 const NAV_ITEMS = [
-  { label: "Explore", href: "/explore" },
+  { label: "Insights", href: "/insights" },
   { label: "How It Works", href: "/how-it-works" },
   { label: "Rubric", href: "/rubric" },
   { label: "Records", href: "/records" },
@@ -51,7 +51,7 @@ export default function Header() {
           <button
             onClick={() => openGlossary()}
             aria-label="Open glossary"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-foreground/60 hover:bg-black/5 hover:text-foreground transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-foreground/80 hover:bg-black/5 hover:text-foreground transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M2 2h4.5c.8 0 1.5.7 1.5 1.5V14l-1-1H2V2z" />
@@ -64,7 +64,7 @@ export default function Header() {
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          className="md:hidden flex h-8 w-8 items-center justify-center rounded-md text-foreground/60 hover:bg-black/5 hover:text-foreground transition-colors"
+          className="md:hidden flex h-8 w-8 items-center justify-center rounded-md text-foreground/80 hover:bg-black/5 hover:text-foreground transition-colors"
         >
           {mobileOpen ? (
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">

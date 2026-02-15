@@ -450,6 +450,39 @@ function AlignmentScaleDiagram() {
 }
 
 // ---------------------------------------------------------------------------
+// Phronesis Convergence Diagram
+// ---------------------------------------------------------------------------
+
+function PhronesisConvergence({ onSelect }: { onSelect: (slug: string) => void }) {
+  const pillars = [
+    { slug: "ethos", label: "Ethos", sub: "Integrity", color: "#2e4a6e", x: 55 },
+    { slug: "logos", label: "Logos", sub: "Reasoning", color: "#389590", x: 140 },
+    { slug: "pathos", label: "Pathos", sub: "Empathy", color: "#e0a53c", x: 225 },
+  ];
+  const cx = 140;
+  const cy = 130;
+
+  return (
+    <svg viewBox="0 0 280 170" className="w-full" role="img" aria-label="Three dimensions converge into phronesis">
+      {pillars.map((p, i) => (
+        <motion.line key={`conv-${p.slug}`} x1={p.x} y1={46} x2={cx} y2={cy - 16} stroke={p.color} strokeWidth={1.5} strokeOpacity={0.35} initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.6, delay: 0.3 + i * 0.1, ease: "easeOut" }} />
+      ))}
+      {pillars.map((p, i) => (
+        <motion.g key={p.slug} initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 300, damping: 18, delay: i * 0.1 }} style={{ originX: `${p.x}px`, originY: "32px" }}>
+          <circle cx={p.x} cy={32} r={14} fill={p.color} className="cursor-pointer hover:brightness-110 transition-[filter]" role="button" aria-label={`Go to ${p.label}`} tabIndex={0} onClick={() => onSelect(p.slug)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(p.slug); } }} />
+          <text x={p.x} y={32} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="600" pointerEvents="none">{p.label[0]}</text>
+          <text x={p.x} y={56} textAnchor="middle" fill={p.color} fontSize="9" fontWeight="600">{p.label}</text>
+          <text x={p.x} y={67} textAnchor="middle" fill="#94a3b8" fontSize="7">{p.sub}</text>
+        </motion.g>
+      ))}
+      <motion.circle cx={cx} cy={cy} r={22} fill="#389590" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.5 }} />
+      <motion.text x={cx} y={cy - 4} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="8" fontWeight="700" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>Phronesis</motion.text>
+      <motion.text x={cx} y={cy + 8} textAnchor="middle" dominantBaseline="central" fill="white" fillOpacity={0.7} fontSize="7" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>Practical Wisdom</motion.text>
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // TermDetail (enhanced)
 // ---------------------------------------------------------------------------
 
@@ -476,10 +509,12 @@ function TermDetail({
       >
         <AccentBar color={accentColor} />
 
-        {/* Diagram */}
-        <motion.div variants={staggerChild}>
-          <ConstellationDiagram entry={entry} onSelect={onSelect} />
-        </motion.div>
+        {/* Diagram (skip for phronesis, which uses its own convergence diagram) */}
+        {entry.slug !== "phronesis" && (
+          <motion.div variants={staggerChild}>
+            <ConstellationDiagram entry={entry} onSelect={onSelect} />
+          </motion.div>
+        )}
 
         {/* Title */}
         <motion.div variants={staggerChild} className="flex items-center gap-2">
@@ -554,6 +589,49 @@ function TermDetail({
             </p>
             <AlignmentScaleDiagram />
           </motion.div>
+        )}
+
+        {/* Phronesis: convergence diagram + quote */}
+        {entry.slug === "phronesis" && (
+          <>
+            <motion.div variants={staggerChild} className="mt-5">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted mb-2">
+                Three Dimensions, One Wisdom
+              </p>
+              <PhronesisConvergence onSelect={onSelect} />
+            </motion.div>
+            <motion.div
+              variants={staggerChild}
+              className="mt-4 rounded-lg border-l-2 border-[#389590]/40 bg-[#389590]/5 px-4 py-3"
+            >
+              <p className="text-[13px] italic leading-relaxed text-foreground/70">
+                &ldquo;We are what we repeatedly do. Excellence, then, is not an act, but a habit.&rdquo;
+              </p>
+              <p className="mt-1.5 text-[11px] font-medium text-muted">
+                Attributed to Aristotle via Will Durant
+              </p>
+            </motion.div>
+            <motion.div variants={staggerChild} className="mt-4">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted mb-2">
+                How It Works
+              </p>
+              <div className="space-y-2">
+                {[
+                  { step: "1", text: "Each message adds an Evaluation node to the graph" },
+                  { step: "2", text: "PRECEDES chains track character over time" },
+                  { step: "3", text: "Patterns emerge: improving, stable, or declining" },
+                  { step: "4", text: "Homework rules turn scores into practice" },
+                ].map((item) => (
+                  <div key={item.step} className="flex items-start gap-2">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#389590]/10 text-[10px] font-bold text-[#389590]">
+                      {item.step}
+                    </span>
+                    <p className="text-[12px] leading-snug text-foreground/70">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </>
         )}
 
         {/* Related chips */}
@@ -659,7 +737,7 @@ function TermList({ onSelect, search }: { onSelect: (slug: string) => void; sear
               <div key={traitSlug}>
                 <button
                   onClick={() => onSelect(traitSlug)}
-                  className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-semibold text-foreground/60 hover:text-foreground transition-colors"
+                  className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
                 >
                   <span
                     className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"

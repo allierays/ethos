@@ -178,7 +178,7 @@ export default function GraphPreview() {
         <div className="flex items-center gap-2">
           <GraphHelpButton slug="guide-phronesis-graph" />
           <Link
-            href="/explore"
+            href="/insights"
             className="text-sm text-action hover:text-action-hover transition-colors"
           >
             Open Full &rarr;

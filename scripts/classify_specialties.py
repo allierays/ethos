@@ -18,7 +18,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from ethos.identity.specialty import classify_specialty
+from ethos_academy.identity.specialty import classify_specialty
 
 AGENTS_DIR = Path(__file__).resolve().parent.parent / "data" / "moltbook" / "agents"
 OUTPUT_FILE = (
@@ -59,7 +59,7 @@ async def llm_classify(descriptions: dict[str, str]) -> dict[str, str]:
 
     client = AsyncAnthropic()
     results: dict[str, str] = {}
-    from ethos.identity.specialty import SPECIALTY_CATEGORIES
+    from ethos_academy.identity.specialty import SPECIALTY_CATEGORIES
 
     categories_str = ", ".join(
         c for c in SPECIALTY_CATEGORIES if c not in ("general", "unknown")

@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock, patch
 
 
-from ethos.embeddings import get_embedding
+from ethos_academy.embeddings import get_embedding
 
 
 class TestGetEmbedding:
@@ -33,7 +33,7 @@ class TestGetEmbedding:
         mock_response = AsyncMock()
         mock_response.data = [AsyncMock(embedding=fake_embedding)]
 
-        with patch("ethos.embeddings.AsyncAzureOpenAI") as mock_client_cls:
+        with patch("ethos_academy.embeddings.AsyncAzureOpenAI") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.embeddings.create = AsyncMock(return_value=mock_response)
             mock_client_cls.return_value = mock_client
@@ -60,7 +60,7 @@ class TestGetEmbedding:
     )
     async def test_api_error_returns_empty_list(self):
         """Azure API error returns [] and logs a warning."""
-        with patch("ethos.embeddings.AsyncAzureOpenAI") as mock_client_cls:
+        with patch("ethos_academy.embeddings.AsyncAzureOpenAI") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.embeddings.create = AsyncMock(
                 side_effect=Exception("Azure API unavailable")
@@ -84,7 +84,7 @@ class TestGetEmbedding:
         mock_response = AsyncMock()
         mock_response.data = [AsyncMock(embedding=fake_embedding)]
 
-        with patch("ethos.embeddings.AsyncAzureOpenAI") as mock_client_cls:
+        with patch("ethos_academy.embeddings.AsyncAzureOpenAI") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.embeddings.create = AsyncMock(return_value=mock_response)
             mock_client_cls.return_value = mock_client

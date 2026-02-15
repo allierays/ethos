@@ -139,7 +139,7 @@ Before demo, have these browser tabs pre-loaded:
 | `academy/components/agent/HomeworkSection.tsx` | Renders focus areas with before/after examples |
 | `academy/app/agent/[id]/page.tsx` | Report card renders all sections with seeded data |
 | `academy/app/alumni/page.tsx` | Alumni grid looks good with 4-5 agents |
-| `ethos/mcp_server.py` | `take_entrance_exam`, `submit_exam_response`, `reflect_on_message` all work |
+| `ethos_academy/mcp_server.py` | `take_entrance_exam`, `submit_exam_response`, `reflect_on_message` all work |
 
 ## Verification
 

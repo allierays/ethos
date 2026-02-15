@@ -10,9 +10,13 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from ethos.context import agent_api_key_var
-from ethos.graph.enrollment import agent_has_key, store_agent_key, verify_agent_key
-from ethos.shared.models import ExamReportCard
+from ethos_academy.context import agent_api_key_var
+from ethos_academy.graph.enrollment import (
+    agent_has_key,
+    store_agent_key,
+    verify_agent_key,
+)
+from ethos_academy.shared.models import ExamReportCard
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────
@@ -161,7 +165,7 @@ class TestGraphKeyFunctions:
 
 class TestKeyGeneration:
     def test_generate_agent_key_format(self):
-        from ethos.enrollment.service import _generate_agent_key
+        from ethos_academy.enrollment.service import _generate_agent_key
 
         key, key_hash = _generate_agent_key()
         assert key.startswith("ea_")
@@ -169,7 +173,7 @@ class TestKeyGeneration:
         assert key_hash == hashlib.sha256(key.encode()).hexdigest()
 
     def test_generate_agent_key_unique(self):
-        from ethos.enrollment.service import _generate_agent_key
+        from ethos_academy.enrollment.service import _generate_agent_key
 
         keys = {_generate_agent_key()[0] for _ in range(10)}
         assert len(keys) == 10  # all unique
@@ -181,7 +185,7 @@ class TestKeyGeneration:
 class TestAuthEnforcement:
     async def test_check_agent_auth_passes_when_no_key(self):
         """First exam (no key on agent) passes without auth."""
-        from ethos.enrollment.service import _check_agent_auth
+        from ethos_academy.enrollment.service import _check_agent_auth
 
         service = _mock_service()
         service.execute_query = AsyncMock(return_value=([], None, None))
@@ -190,8 +194,8 @@ class TestAuthEnforcement:
 
     async def test_check_agent_auth_rejects_missing_key(self):
         """Agent has key but caller provides none."""
-        from ethos.enrollment.service import _check_agent_auth
-        from ethos.shared.errors import EnrollmentError
+        from ethos_academy.enrollment.service import _check_agent_auth
+        from ethos_academy.shared.errors import EnrollmentError
 
         service = _mock_service()
         # agent_has_key returns True
@@ -204,8 +208,8 @@ class TestAuthEnforcement:
 
     async def test_check_agent_auth_rejects_wrong_key(self):
         """Agent has key but caller provides wrong one."""
-        from ethos.enrollment.service import _check_agent_auth
-        from ethos.shared.errors import EnrollmentError
+        from ethos_academy.enrollment.service import _check_agent_auth
+        from ethos_academy.shared.errors import EnrollmentError
 
         stored_hash = hashlib.sha256(b"ea_correct").hexdigest()
         service = _mock_service()
@@ -228,7 +232,7 @@ class TestAuthEnforcement:
 
     async def test_check_agent_auth_accepts_correct_key(self):
         """Agent has key, caller provides correct one."""
-        from ethos.enrollment.service import _check_agent_auth
+        from ethos_academy.enrollment.service import _check_agent_auth
 
         correct_key = "ea_correct123"
         stored_hash = hashlib.sha256(correct_key.encode()).hexdigest()
@@ -326,7 +330,7 @@ class TestEnrollmentError401:
         with patch(
             "api.main.register_for_exam",
             side_effect=__import__(
-                "ethos.shared.errors", fromlist=["EnrollmentError"]
+                "ethos_academy.shared.errors", fromlist=["EnrollmentError"]
             ).EnrollmentError("API key required for this agent"),
         ):
             resp = client.post(
@@ -344,7 +348,7 @@ class TestEnrollmentError401:
         with patch(
             "api.main.register_for_exam",
             side_effect=__import__(
-                "ethos.shared.errors", fromlist=["EnrollmentError"]
+                "ethos_academy.shared.errors", fromlist=["EnrollmentError"]
             ).EnrollmentError("Exam xyz not found for agent test"),
         ):
             resp = client.post(
@@ -379,7 +383,7 @@ class TestNoReprLeak:
 
     def test_get_report_never_sets_key(self):
         """_build_report_card never sets api_key, so GET always returns null."""
-        from ethos.enrollment.service import _build_report_card
+        from ethos_academy.enrollment.service import _build_report_card
 
         # Minimal results dict to exercise _build_report_card
         results = {

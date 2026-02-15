@@ -5,7 +5,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from ethos.reflection.intuition import (
+from ethos_academy.reflection.intuition import (
     _compute_balance_trend,
     _compute_character_drift,
     _compute_cohort_anomalies,
@@ -13,7 +13,7 @@ from ethos.reflection.intuition import (
     _detect_history_anomalies,
     intuit_history,
 )
-from ethos.shared.models import ReflectionIntuitionResult
+from ethos_academy.shared.models import ReflectionIntuitionResult
 
 
 def _make_eval(
@@ -43,7 +43,7 @@ class TestIntuitHistory:
     async def test_returns_default_when_graph_unavailable(self):
         mock_ctx, _ = _mock_graph_context(connected=False)
 
-        with patch("ethos.reflection.intuition.graph_context", mock_ctx):
+        with patch("ethos_academy.reflection.intuition.graph_context", mock_ctx):
             result = await intuit_history("test-agent")
 
         assert isinstance(result, ReflectionIntuitionResult)
@@ -53,19 +53,19 @@ class TestIntuitHistory:
         mock_ctx, _ = _mock_graph_context(connected=True)
 
         with (
-            patch("ethos.reflection.intuition.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.intuition.graph_context", mock_ctx),
             patch(
-                "ethos.reflection.intuition.get_agent_profile",
+                "ethos_academy.reflection.intuition.get_agent_profile",
                 new_callable=AsyncMock,
                 return_value={},
             ),
             patch(
-                "ethos.reflection.intuition.get_evaluation_history",
+                "ethos_academy.reflection.intuition.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=[],
             ),
             patch(
-                "ethos.reflection.intuition.get_alumni_averages",
+                "ethos_academy.reflection.intuition.get_alumni_averages",
                 new_callable=AsyncMock,
                 return_value={"trait_averages": {}},
             ),
@@ -80,7 +80,7 @@ class TestIntuitHistory:
             raise RuntimeError("Connection refused")
             yield  # noqa: unreachable
 
-        with patch("ethos.reflection.intuition.graph_context", failing_ctx):
+        with patch("ethos_academy.reflection.intuition.graph_context", failing_ctx):
             result = await intuit_history("agent-1")
 
         assert isinstance(result, ReflectionIntuitionResult)

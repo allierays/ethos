@@ -25,7 +25,7 @@ Read the following files to understand the current graph implementation:
 - Always hash agent IDs with `hash_agent_id()` before graph operations
 - Always check `service.connected` before querying
 - Always wrap in try/except, return graceful defaults
-- Never store message content — only scores and metadata
+- Store message content on Evaluation nodes alongside scores and metadata
 - Use `$param` parameters, never string interpolation
 - MERGE for Agent nodes, CREATE for Evaluation nodes
 - Log at `warning` level on failure, never raise

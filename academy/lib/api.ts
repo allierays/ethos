@@ -7,6 +7,7 @@ import type {
   AgentProfile,
   AgentSummary,
   AlumniResult,
+  CohortInsightsResult,
   ConstitutionalTrailResult,
   DailyReportCard,
   DriftResult,
@@ -228,6 +229,13 @@ export async function getTrail(
  */
 export async function getSimilarity(): Promise<SimilarityResult> {
   return fetchApi<SimilarityResult>("/graph/similarity");
+}
+
+/**
+ * Get cohort-wide insights: constitutional alignment, depth distribution, alumni averages.
+ */
+export async function getCohortInsights(): Promise<CohortInsightsResult> {
+  return fetchApi<CohortInsightsResult>("/graph/insights");
 }
 
 /**

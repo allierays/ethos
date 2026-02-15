@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from anthropic import AsyncAnthropic  # noqa: E402
-from ethos import evaluate_outgoing  # noqa: E402
+from ethos_academy import evaluate_outgoing  # noqa: E402
 
 CONCURRENCY = 5
 CURATE_MODEL = "claude-haiku-4-5-20251001"

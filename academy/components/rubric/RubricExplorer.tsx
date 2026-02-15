@@ -72,7 +72,7 @@ function TraitCard({
       <div className={`h-1 rounded-t-xl bg-gradient-to-r ${colors.bar}`} />
       <div className="p-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-foreground/60">
+          <span className="text-sm font-medium text-foreground/80">
             {trait.polarity === "positive" ? "+" : "\u2212"}
           </span>
           <h3 className="text-base font-bold text-foreground">{trait.name}</h3>
@@ -146,7 +146,7 @@ function DetailPanel({
           </button>
         </div>
 
-        <p className="mt-3 text-sm leading-relaxed text-foreground/60">
+        <p className="mt-3 text-sm leading-relaxed text-foreground/80">
           {trait.description}
         </p>
 
@@ -158,7 +158,7 @@ function DetailPanel({
               className="border-b border-border/30 pb-3 last:border-0 last:pb-0"
             >
               <div className="flex items-start gap-2">
-                <span className="mt-0.5 shrink-0 rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-[9px] font-medium text-foreground/50">
+                <span className="mt-0.5 shrink-0 rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-[9px] font-medium text-foreground/70">
                   {ind.id}
                 </span>
                 <div className="min-w-0">
@@ -243,7 +243,7 @@ function DesktopExplorer() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.2 }}
-          className="mt-6 text-sm leading-relaxed text-foreground/60"
+          className="mt-6 text-sm leading-relaxed text-foreground/80"
         >
           {dimension.description}
         </motion.p>

@@ -11,8 +11,17 @@ from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 
 from api.main import app
-from ethos.shared.errors import ConfigError, EvaluationError, GraphUnavailableError
-from ethos.shared.models import DailyReportCard, Homework, HomeworkFocus, Insight
+from ethos_academy.shared.errors import (
+    ConfigError,
+    EvaluationError,
+    GraphUnavailableError,
+)
+from ethos_academy.shared.models import (
+    DailyReportCard,
+    Homework,
+    HomeworkFocus,
+    Insight,
+)
 
 client = TestClient(app)
 

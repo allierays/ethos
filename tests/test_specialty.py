@@ -1,6 +1,6 @@
 """Tests for agent specialty classifier."""
 
-from ethos.identity.specialty import (
+from ethos_academy.identity.specialty import (
     SPECIALTY_CATEGORIES,
     classify_specialty,
     is_generic_description,

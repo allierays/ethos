@@ -82,7 +82,7 @@ export default function AlumniPanel() {
             Alumni Averages
           </h3>
           <p className="mt-0.5 text-xs text-muted">
-            Network-wide trait baselines across all agents.
+            Alumni trait baselines across all agents.
           </p>
         </div>
         {totalEvaluations > 0 && (

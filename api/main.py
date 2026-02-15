@@ -15,9 +15,9 @@ from starlette.types import ASGIApp
 
 from api.auth import inject_agent_key, require_api_key
 from api.rate_limit import phone_rate_limit, rate_limit
-from ethos.context import anthropic_api_key_var, request_id_var
-from ethos.graph.service import close_shared_service
-from ethos import (
+from ethos_academy.context import anthropic_api_key_var, request_id_var
+from ethos_academy.graph.service import close_shared_service
+from ethos_academy import (
     analyze_authenticity,
     character_report,
     compile_homework_rules,
@@ -29,6 +29,7 @@ from ethos import (
     get_agent,
     get_agent_history,
     get_alumni,
+    get_cohort_insights,
     get_daily_report_history,
     get_drift,
     get_exam_report,
@@ -43,12 +44,13 @@ from ethos import (
     submit_answer,
     upload_exam,
 )
-from ethos.evaluation.claude_client import _redact
-from ethos.models import (
+from ethos_academy.evaluation.claude_client import _redact
+from ethos_academy.models import (
     AgentProfile,
     AgentSummary,
     AlumniResult,
     AuthenticityResult,
+    CohortInsightsResult,
     ConstitutionalTrailResult,
     DailyReportCard,
     DriftResult,
@@ -65,7 +67,7 @@ from ethos.models import (
     RecordsResult,
     SimilarityResult,
 )
-from ethos.shared.errors import (
+from ethos_academy.shared.errors import (
     ConfigError,
     EnrollmentError,
     EthosError,
@@ -451,6 +453,11 @@ async def similarity_endpoint():
     return await get_similarity()
 
 
+@app.get("/graph/insights", response_model=CohortInsightsResult)
+async def cohort_insights_endpoint():
+    return await get_cohort_insights()
+
+
 @app.get("/agent/{agent_id}/drift", response_model=DriftResult)
 async def drift_endpoint(agent_id: str):
     return await get_drift(agent_id)
@@ -716,7 +723,10 @@ the end.
 @app.get("/agent/{agent_id}/practice.md", dependencies=[Depends(rate_limit)])
 async def skill_endpoint(agent_id: str):
     """Generate a personalized Claude Code practice skill for an agent."""
-    from ethos.reflection.skill_generator import generate_practice_skill, skill_filename
+    from ethos_academy.reflection.skill_generator import (
+        generate_practice_skill,
+        skill_filename,
+    )
 
     content = await generate_practice_skill(agent_id)
     filename = skill_filename(agent_id)
@@ -731,7 +741,7 @@ async def skill_endpoint(agent_id: str):
 @app.get("/agent/{agent_id}/homework.md", dependencies=[Depends(rate_limit)])
 async def homework_skill_endpoint(agent_id: str):
     """Serve the unified homework skill as markdown for Claude Code."""
-    from ethos.reflection.skill_generator import (
+    from ethos_academy.reflection.skill_generator import (
         generate_homework_skill,
         homework_skill_filename,
     )
@@ -762,7 +772,7 @@ class VerifyCodeRequest(BaseModel):
 )
 async def submit_guardian_phone(agent_id: str, req: GuardianPhoneRequest):
     """Submit a guardian phone number and send a verification code."""
-    from ethos.phone_service import submit_phone
+    from ethos_academy.phone_service import submit_phone
 
     return (await submit_phone(agent_id, req.phone)).model_dump()
 
@@ -773,7 +783,7 @@ async def submit_guardian_phone(agent_id: str, req: GuardianPhoneRequest):
 )
 async def verify_guardian_phone_endpoint(agent_id: str, req: VerifyCodeRequest):
     """Verify a 6-digit code sent to the guardian's phone."""
-    from ethos.phone_service import verify_phone
+    from ethos_academy.phone_service import verify_phone
 
     return (await verify_phone(agent_id, req.code)).model_dump()
 
@@ -781,7 +791,7 @@ async def verify_guardian_phone_endpoint(agent_id: str, req: VerifyCodeRequest):
 @app.get("/agent/{agent_id}/guardian/phone/status")
 async def guardian_phone_status(agent_id: str):
     """Check guardian phone status. Never returns the phone number."""
-    from ethos.phone_service import get_phone_status
+    from ethos_academy.phone_service import get_phone_status
 
     return (await get_phone_status(agent_id)).model_dump()
 
@@ -792,7 +802,7 @@ async def guardian_phone_status(agent_id: str):
 )
 async def resend_guardian_code(agent_id: str):
     """Resend a fresh verification code to the guardian's phone."""
-    from ethos.phone_service import resend_code
+    from ethos_academy.phone_service import resend_code
 
     return (await resend_code(agent_id)).model_dump()
 
@@ -800,7 +810,7 @@ async def resend_guardian_code(agent_id: str):
 @app.post("/agent/{agent_id}/guardian/notifications/opt-out")
 async def opt_out_notifications(agent_id: str):
     """Opt out of guardian SMS notifications."""
-    from ethos.phone_service import opt_out
+    from ethos_academy.phone_service import opt_out
 
     return (await opt_out(agent_id)).model_dump()
 
@@ -808,7 +818,7 @@ async def opt_out_notifications(agent_id: str):
 @app.post("/agent/{agent_id}/guardian/notifications/opt-in")
 async def opt_in_notifications(agent_id: str):
     """Opt back in to guardian SMS notifications."""
-    from ethos.phone_service import opt_in
+    from ethos_academy.phone_service import opt_in
 
     return (await opt_in(agent_id)).model_dump()
 
@@ -822,7 +832,7 @@ async def opt_in_notifications(agent_id: str):
 )
 async def reset_agent_evaluations_endpoint(agent_id: str):
     """Delete all evaluations for an agent (keeps agent node)."""
-    from ethos.graph.write import reset_agent_evaluations
+    from ethos_academy.graph.write import reset_agent_evaluations
 
     deleted = await reset_agent_evaluations(agent_id)
     return {"agent_id": agent_id, "evaluations_deleted": deleted}

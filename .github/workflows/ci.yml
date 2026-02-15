@@ -33,7 +33,7 @@ jobs:
         run: uv run ruff format --check .
 
       - name: Bandit security scan
-        run: uvx bandit -c pyproject.toml -r ethos/ api/ scripts/
+        run: uvx bandit -c pyproject.toml -r ethos_academy/ api/ scripts/
 
       - name: Run tests
         run: uv run pytest -v

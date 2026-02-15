@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from ethos.shared.analysis import compute_grade
-from ethos.shared.models import (
+from ethos_academy.shared.analysis import compute_grade
+from ethos_academy.shared.models import (
     DailyReportCard,
     Homework,
     HomeworkFocus,
@@ -143,7 +143,9 @@ class TestComputeGrade:
 
 class TestDailyReportPrompt:
     def test_builds_prompt_without_previous(self):
-        from ethos.reflection.daily_report_prompt import build_daily_report_prompt
+        from ethos_academy.reflection.daily_report_prompt import (
+            build_daily_report_prompt,
+        )
 
         system, user = build_daily_report_prompt(
             agent_id="test-agent",
@@ -156,7 +158,9 @@ class TestDailyReportPrompt:
         assert "operator" in system.lower() or "system prompt" in system.lower()
 
     def test_includes_previous_report_context(self):
-        from ethos.reflection.daily_report_prompt import build_daily_report_prompt
+        from ethos_academy.reflection.daily_report_prompt import (
+            build_daily_report_prompt,
+        )
 
         prev = {
             "report_date": "2025-01-14",
@@ -180,8 +184,10 @@ class TestDailyReportPrompt:
         assert "Focus on compassion" in user
 
     def test_includes_instinct_and_intuition(self):
-        from ethos.reflection.daily_report_prompt import build_daily_report_prompt
-        from ethos.shared.models import (
+        from ethos_academy.reflection.daily_report_prompt import (
+            build_daily_report_prompt,
+        )
+        from ethos_academy.shared.models import (
             ReflectionInstinctResult,
             ReflectionIntuitionResult,
         )
@@ -243,13 +249,18 @@ def _mock_claude_daily_report_response() -> str:
 
 
 class TestGenerateDailyReport:
-    @patch("ethos.reflection.daily_report.call_claude", new_callable=AsyncMock)
-    @patch("ethos.reflection.daily_report.intuit_history", new_callable=AsyncMock)
-    @patch("ethos.reflection.daily_report.store_daily_report", new_callable=AsyncMock)
-    @patch("ethos.reflection.daily_report.graph_context")
+    @patch("ethos_academy.reflection.daily_report.call_claude", new_callable=AsyncMock)
+    @patch(
+        "ethos_academy.reflection.daily_report.intuit_history", new_callable=AsyncMock
+    )
+    @patch(
+        "ethos_academy.reflection.daily_report.store_daily_report",
+        new_callable=AsyncMock,
+    )
+    @patch("ethos_academy.reflection.daily_report.graph_context")
     async def test_full_pipeline(self, mock_gc, mock_store, mock_intuit, mock_claude):
-        from ethos.reflection.daily_report import generate_daily_report
-        from ethos.shared.models import ReflectionIntuitionResult
+        from ethos_academy.reflection.daily_report import generate_daily_report
+        from ethos_academy.shared.models import ReflectionIntuitionResult
 
         # Mock graph context
         mock_service = AsyncMock()
@@ -262,26 +273,26 @@ class TestGenerateDailyReport:
 
         with (
             patch(
-                "ethos.reflection.daily_report.get_agent_profile",
+                "ethos_academy.reflection.daily_report.get_agent_profile",
                 new_callable=AsyncMock,
             ) as mock_profile,
             patch(
-                "ethos.reflection.daily_report.get_evaluation_history",
+                "ethos_academy.reflection.daily_report.get_evaluation_history",
                 new_callable=AsyncMock,
             ) as mock_history,
             patch(
-                "ethos.reflection.daily_report.get_alumni_averages",
+                "ethos_academy.reflection.daily_report.get_alumni_averages",
                 new_callable=AsyncMock,
             ) as mock_alumni,
             patch(
-                "ethos.reflection.daily_report.get_period_evaluation_count",
+                "ethos_academy.reflection.daily_report.get_period_evaluation_count",
                 new_callable=AsyncMock,
             ) as mock_period,
             patch(
-                "ethos.reflection.daily_report.get_latest_daily_report",
+                "ethos_academy.reflection.daily_report.get_latest_daily_report",
                 new_callable=AsyncMock,
             ) as mock_prev,
-            patch("ethos.reflection.daily_report.scan_history") as mock_scan,
+            patch("ethos_academy.reflection.daily_report.scan_history") as mock_scan,
         ):
             mock_profile.return_value = {
                 "agent_id": "test-agent",
@@ -330,10 +341,10 @@ class TestGenerateDailyReport:
         assert report.homework.focus_areas[0].trait == "compassion"
         mock_store.assert_called_once()
 
-    @patch("ethos.reflection.daily_report.call_claude", new_callable=AsyncMock)
-    @patch("ethos.reflection.daily_report.graph_context")
+    @patch("ethos_academy.reflection.daily_report.call_claude", new_callable=AsyncMock)
+    @patch("ethos_academy.reflection.daily_report.graph_context")
     async def test_claude_failure_returns_partial(self, mock_gc, mock_claude):
-        from ethos.reflection.daily_report import generate_daily_report
+        from ethos_academy.reflection.daily_report import generate_daily_report
 
         mock_service = AsyncMock()
         mock_service.connected = True
@@ -342,31 +353,32 @@ class TestGenerateDailyReport:
 
         with (
             patch(
-                "ethos.reflection.daily_report.get_agent_profile",
+                "ethos_academy.reflection.daily_report.get_agent_profile",
                 new_callable=AsyncMock,
             ) as mock_profile,
             patch(
-                "ethos.reflection.daily_report.get_evaluation_history",
+                "ethos_academy.reflection.daily_report.get_evaluation_history",
                 new_callable=AsyncMock,
             ) as mock_history,
             patch(
-                "ethos.reflection.daily_report.get_alumni_averages",
+                "ethos_academy.reflection.daily_report.get_alumni_averages",
                 new_callable=AsyncMock,
             ) as mock_alumni,
             patch(
-                "ethos.reflection.daily_report.get_period_evaluation_count",
+                "ethos_academy.reflection.daily_report.get_period_evaluation_count",
                 new_callable=AsyncMock,
             ) as mock_period,
             patch(
-                "ethos.reflection.daily_report.get_latest_daily_report",
+                "ethos_academy.reflection.daily_report.get_latest_daily_report",
                 new_callable=AsyncMock,
             ) as mock_prev,
-            patch("ethos.reflection.daily_report.scan_history") as mock_scan,
+            patch("ethos_academy.reflection.daily_report.scan_history") as mock_scan,
             patch(
-                "ethos.reflection.daily_report.intuit_history", new_callable=AsyncMock
+                "ethos_academy.reflection.daily_report.intuit_history",
+                new_callable=AsyncMock,
             ) as mock_intuit,
             patch(
-                "ethos.reflection.daily_report.store_daily_report",
+                "ethos_academy.reflection.daily_report.store_daily_report",
                 new_callable=AsyncMock,
             ),
         ):
@@ -396,9 +408,9 @@ class TestGenerateDailyReport:
         # Still has grade computed from graph data
         assert report.grade != ""
 
-    @patch("ethos.reflection.daily_report.graph_context")
+    @patch("ethos_academy.reflection.daily_report.graph_context")
     async def test_graph_down_returns_default(self, mock_gc):
-        from ethos.reflection.daily_report import generate_daily_report
+        from ethos_academy.reflection.daily_report import generate_daily_report
 
         mock_service = AsyncMock()
         mock_service.connected = False
@@ -410,9 +422,9 @@ class TestGenerateDailyReport:
         assert report.agent_id == "test-agent"
         assert "unavailable" in report.summary.lower()
 
-    @patch("ethos.reflection.daily_report.graph_context")
+    @patch("ethos_academy.reflection.daily_report.graph_context")
     async def test_no_evaluations_returns_default(self, mock_gc):
-        from ethos.reflection.daily_report import generate_daily_report
+        from ethos_academy.reflection.daily_report import generate_daily_report
 
         mock_service = AsyncMock()
         mock_service.connected = True
@@ -421,27 +433,27 @@ class TestGenerateDailyReport:
 
         with (
             patch(
-                "ethos.reflection.daily_report.get_agent_profile",
+                "ethos_academy.reflection.daily_report.get_agent_profile",
                 new_callable=AsyncMock,
                 return_value={},
             ),
             patch(
-                "ethos.reflection.daily_report.get_evaluation_history",
+                "ethos_academy.reflection.daily_report.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=[],
             ),
             patch(
-                "ethos.reflection.daily_report.get_alumni_averages",
+                "ethos_academy.reflection.daily_report.get_alumni_averages",
                 new_callable=AsyncMock,
                 return_value={},
             ),
             patch(
-                "ethos.reflection.daily_report.get_period_evaluation_count",
+                "ethos_academy.reflection.daily_report.get_period_evaluation_count",
                 new_callable=AsyncMock,
                 return_value=0,
             ),
             patch(
-                "ethos.reflection.daily_report.get_latest_daily_report",
+                "ethos_academy.reflection.daily_report.get_latest_daily_report",
                 new_callable=AsyncMock,
                 return_value={},
             ),
@@ -456,10 +468,10 @@ class TestGenerateDailyReport:
 
 
 class TestDayOverDayDeltas:
-    @patch("ethos.reflection.daily_report.call_claude", new_callable=AsyncMock)
-    @patch("ethos.reflection.daily_report.graph_context")
+    @patch("ethos_academy.reflection.daily_report.call_claude", new_callable=AsyncMock)
+    @patch("ethos_academy.reflection.daily_report.graph_context")
     async def test_computes_dimension_deltas(self, mock_gc, mock_claude):
-        from ethos.reflection.daily_report import generate_daily_report
+        from ethos_academy.reflection.daily_report import generate_daily_report
 
         mock_service = AsyncMock()
         mock_service.connected = True
@@ -468,31 +480,32 @@ class TestDayOverDayDeltas:
 
         with (
             patch(
-                "ethos.reflection.daily_report.get_agent_profile",
+                "ethos_academy.reflection.daily_report.get_agent_profile",
                 new_callable=AsyncMock,
             ) as mock_profile,
             patch(
-                "ethos.reflection.daily_report.get_evaluation_history",
+                "ethos_academy.reflection.daily_report.get_evaluation_history",
                 new_callable=AsyncMock,
             ) as mock_history,
             patch(
-                "ethos.reflection.daily_report.get_alumni_averages",
+                "ethos_academy.reflection.daily_report.get_alumni_averages",
                 new_callable=AsyncMock,
             ) as mock_alumni,
             patch(
-                "ethos.reflection.daily_report.get_period_evaluation_count",
+                "ethos_academy.reflection.daily_report.get_period_evaluation_count",
                 new_callable=AsyncMock,
             ) as mock_period,
             patch(
-                "ethos.reflection.daily_report.get_latest_daily_report",
+                "ethos_academy.reflection.daily_report.get_latest_daily_report",
                 new_callable=AsyncMock,
             ) as mock_prev,
-            patch("ethos.reflection.daily_report.scan_history") as mock_scan,
+            patch("ethos_academy.reflection.daily_report.scan_history") as mock_scan,
             patch(
-                "ethos.reflection.daily_report.intuit_history", new_callable=AsyncMock
+                "ethos_academy.reflection.daily_report.intuit_history",
+                new_callable=AsyncMock,
             ) as mock_intuit,
             patch(
-                "ethos.reflection.daily_report.store_daily_report",
+                "ethos_academy.reflection.daily_report.store_daily_report",
                 new_callable=AsyncMock,
             ),
         ):
@@ -534,9 +547,9 @@ class TestDayOverDayDeltas:
 
 
 class TestDailyReportDomain:
-    @patch("ethos.daily_reports.graph_context")
+    @patch("ethos_academy.daily_reports.graph_context")
     async def test_get_daily_report_returns_default_when_none(self, mock_gc):
-        from ethos.daily_reports import get_daily_report
+        from ethos_academy.daily_reports import get_daily_report
 
         mock_service = AsyncMock()
         mock_service.connected = True
@@ -544,7 +557,7 @@ class TestDailyReportDomain:
         mock_gc.return_value.__aexit__ = AsyncMock(return_value=None)
 
         with patch(
-            "ethos.daily_reports.get_latest_daily_report",
+            "ethos_academy.daily_reports.get_latest_daily_report",
             new_callable=AsyncMock,
             return_value={},
         ):
@@ -553,9 +566,9 @@ class TestDailyReportDomain:
         assert isinstance(result, DailyReportCard)
         assert result.agent_id == "test-agent"
 
-    @patch("ethos.daily_reports.graph_context")
+    @patch("ethos_academy.daily_reports.graph_context")
     async def test_get_daily_report_history_returns_empty_list(self, mock_gc):
-        from ethos.daily_reports import get_daily_report_history
+        from ethos_academy.daily_reports import get_daily_report_history
 
         mock_service = AsyncMock()
         mock_service.connected = True
@@ -563,7 +576,7 @@ class TestDailyReportDomain:
         mock_gc.return_value.__aexit__ = AsyncMock(return_value=None)
 
         with patch(
-            "ethos.daily_reports.get_daily_reports",
+            "ethos_academy.daily_reports.get_daily_reports",
             new_callable=AsyncMock,
             return_value=[],
         ):
@@ -572,10 +585,10 @@ class TestDailyReportDomain:
         assert result == []
 
     async def test_get_daily_report_graph_error_returns_default(self):
-        from ethos.daily_reports import get_daily_report
+        from ethos_academy.daily_reports import get_daily_report
 
         with patch(
-            "ethos.daily_reports.graph_context",
+            "ethos_academy.daily_reports.graph_context",
             side_effect=Exception("connection failed"),
         ):
             result = await get_daily_report("test-agent")

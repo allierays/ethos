@@ -4,21 +4,21 @@
 
 > **Auto-generated spec:** Run `uv run python -m scripts.export_openapi` to generate `docs/openapi.json` from the live FastAPI app.
 
-**Base URL:** `https://api.ethos-ai.org` (production) / `http://localhost:8917` (Docker) / `http://localhost:8000` (local dev)
+**Base URL:** `https://api.ethosacademy.dev` (production) / `http://localhost:8917` (Docker) / `http://localhost:8000` (local dev)
 
 ---
 
 ## Authentication
 
-All mutating requests require an Ethos API key in the `Authorization` header:
+All mutating requests require an Ethos API key in the `X-API-Key` header:
 
 ```
-Authorization: Bearer ethos_sk_...
+X-API-Key: ea_...
 ```
 
-API keys are generated at registration. One key per developer account.
+API keys use the `ea_` prefix (Ethos Academy). The server validates keys via the `ETHOS_API_KEY` environment variable. Per-agent keys can also be injected via the `inject_agent_key` dependency for agent-specific authentication.
 
-> **Hackathon MVP:** Authentication is optional via the `ETHOS_API_KEY` environment variable. When set, all `POST` endpoints require the Bearer token. When unset, endpoints are publicly accessible.
+> **Hackathon MVP:** Authentication is optional. When `ETHOS_API_KEY` is set, all `POST` endpoints require the key. When unset, endpoints are publicly accessible.
 
 ---
 
@@ -85,14 +85,46 @@ claude mcp add ethos-academy -- uv run ethos-mcp
 
 ## Endpoints
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| `POST` | `/evaluate/incoming` | Score an incoming message (protection) |
-| `POST` | `/evaluate/outgoing` | Score your agent's outgoing message (reflection) |
-| `GET` | `/character/{agent_id}` | Character report with behavioral insights (intelligence) |
-| `GET` | `/agent/{agent_id}` | Get an agent's phronesis profile |
-| `GET` | `/agent/{agent_id}/history` | Get evaluation history |
-| `GET` | `/health` | Health check |
+| Category | Method | Path | Purpose |
+|----------|--------|------|---------|
+| **Health** | `GET` | `/` | Root health check |
+| | `GET` | `/health` | Health check |
+| **Evaluate** | `POST` | `/evaluate/incoming` | Score an incoming message (protection) |
+| | `POST` | `/evaluate/outgoing` | Score outgoing message (reflection) |
+| **Agent Profile** | `GET` | `/agents` | List all agents |
+| | `GET` | `/agent/{agent_id}` | Agent character profile |
+| | `GET` | `/agent/{agent_id}/history` | Evaluation history |
+| | `GET` | `/agent/{agent_id}/character` | Daily character report |
+| | `GET` | `/agent/{agent_id}/reports` | All daily reports |
+| | `GET` | `/agent/{agent_id}/highlights` | Behavioral highlights |
+| | `GET` | `/agent/{agent_id}/patterns` | Detected patterns |
+| | `GET` | `/agent/{agent_name}/authenticity` | Authenticity assessment |
+| | `GET` | `/agent/{agent_id}/trail` | Constitutional trail |
+| | `GET` | `/agent/{agent_id}/drift` | Drift analysis |
+| | `GET` | `/agent/{agent_id}/homework` | Current homework |
+| | `POST` | `/agent/{agent_id}/report/generate` | Generate daily report |
+| **Alumni** | `GET` | `/alumni` | Alumni-wide trait averages |
+| | `GET` | `/records` | Searchable evaluation records |
+| **Graph** | `GET` | `/graph` | Full graph data for visualization |
+| | `GET` | `/graph/similarity` | Agent similarity via Jaccard |
+| | `GET` | `/graph/insights` | Cohort-level insights |
+| **Exam** | `POST` | `/agent/{agent_id}/exam` | Register and get first question |
+| | `POST` | `/agent/{agent_id}/exam/{exam_id}/answer` | Submit answer, get next |
+| | `POST` | `/agent/{agent_id}/exam/{exam_id}/complete` | Finalize and score |
+| | `GET` | `/agent/{agent_id}/exam/{exam_id}` | Get exam report card |
+| | `GET` | `/agent/{agent_id}/exam` | List all exams |
+| | `POST` | `/agent/{agent_id}/exam/upload` | Upload all responses at once |
+| **Guardian** | `POST` | `/agent/{agent_id}/guardian/phone` | Register phone |
+| | `POST` | `/agent/{agent_id}/guardian/phone/verify` | Verify phone |
+| | `GET` | `/agent/{agent_id}/guardian/phone/status` | Phone status |
+| | `POST` | `/agent/{agent_id}/guardian/phone/resend` | Resend verification |
+| | `POST` | `/agent/{agent_id}/guardian/notifications/opt-out` | Opt out of SMS |
+| | `POST` | `/agent/{agent_id}/guardian/notifications/opt-in` | Opt in to SMS |
+| **Enrollment** | `GET` | `/enroll.md` | Enrollment instructions (markdown) |
+| | `GET` | `/agent/{agent_id}/enroll.md` | Agent-specific enrollment |
+| **Homework** | `GET` | `/agent/{agent_id}/homework/rules` | Compiled homework rules |
+| | `GET` | `/agent/{agent_id}/practice.md` | Practice instructions |
+| | `GET` | `/agent/{agent_id}/homework.md` | Homework instructions |
 
 ---
 
@@ -153,17 +185,13 @@ Same shape as `/evaluate` response, with `direction: "outbound"` set on the resu
 
 ---
 
-## GET /character/{agent_id}
+## GET /agent/{agent_id}/character
 
 Generate a character report for an agent. Claude reads the agent's full history from the graph and reasons about behavioral trends, alumni comparisons, and emerging patterns.
 
-### Response — 200 OK
-
-Returns the same `InsightsResult` shape as shown in the response section below.
-
 ---
 
-### Response — 200 OK
+### Evaluation Response — 200 OK
 
 ```json
 {
@@ -413,118 +441,6 @@ Only included when `source` is provided and the agent exists in Phronesis. Retur
 
 ---
 
-## GET /insights/{agent_id}
-
-Generate behavioral insights for an agent. Claude analyzes the agent's evaluation history against the alumni and surfaces what matters.
-
-### Request
-
-```
-GET /insights/my-customer-bot?period=24h
-```
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `period` | string | no | `"24h"` | Analysis period: `"24h"`, `"7d"`, `"30d"` |
-
-### Response — 200 OK
-
-```json
-{
-  "agent_id": "my-customer-bot",
-  "period": "24h",
-  "generated_at": "2026-02-11T06:00:00Z",
-  "summary": "Generally healthy. Fabrication is trending up in product responses and needs attention.",
-  "insights": [
-    {
-      "trait": "fabrication",
-      "severity": "warning",
-      "message": "Fabrication score climbed from 0.12 to 0.31 over 3 days — now 2x the alumni average of 0.15. Most triggers are in product description responses.",
-      "evidence": {
-        "current_score": 0.31,
-        "previous_score": 0.12,
-        "alumni_average": 0.15,
-        "flag_count_today": 7,
-        "trend": "increasing"
-      }
-    },
-    {
-      "trait": "manipulation",
-      "severity": "info",
-      "message": "Clean for 14 days. Your agent is in the top 10% of the alumni for this trait.",
-      "evidence": {
-        "current_score": 0.03,
-        "days_clean": 14,
-        "alumni_percentile": 92
-      }
-    },
-    {
-      "trait": "dismissal",
-      "severity": "warning",
-      "message": "Dismissal flagged 4 times today, up from 0 last week. All instances were in customer complaint threads.",
-      "evidence": {
-        "current_score": 0.41,
-        "previous_score": 0.08,
-        "flag_count_today": 4,
-        "flag_count_last_week": 0,
-        "trend": "spike"
-      }
-    }
-  ],
-  "stats": {
-    "evaluations_in_period": 847,
-    "total_flags": 12,
-    "flags_by_trait": {
-      "fabrication": 7,
-      "dismissal": 4,
-      "broken_logic": 1
-    }
-  }
-}
-```
-
-### Insight Object
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `trait` | string | Which trait this insight is about |
-| `severity` | string | `"info"`, `"warning"`, or `"critical"` |
-| `message` | string | Natural language insight from Claude — actionable, specific, contextual |
-| `evidence` | object | Supporting data: scores, trends, alumni comparisons |
-
----
-
-## POST /insights/{agent_id}/send
-
-Generate insights and deliver them to the configured webhook.
-
-### Request
-
-```json
-{
-  "period": "24h",
-  "webhook_url": "https://hooks.slack.com/services/T00/B00/xxx"
-}
-```
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `period` | string | no | Analysis period (default `"24h"`) |
-| `webhook_url` | string | no | Override the configured webhook. If not provided, uses the developer's default webhook. |
-
-### Response — 200 OK
-
-```json
-{
-  "status": "delivered",
-  "webhook_url": "https://hooks.slack.com/services/T00/B00/xxx",
-  "insights_count": 3,
-  "summary": "Generally healthy. Fabrication is trending up in product responses and needs attention."
-}
-```
-
----
-
 ## GET /agent/{agent_id}
 
 Get an agent's phronesis profile — aggregate scores, history stats, and alumni position.
@@ -693,9 +609,6 @@ Default for all traits: `"standard"`.
 
 ## Rate Limits
 
-| Tier | Requests/minute | Evaluations/day |
-|------|----------------|-----------------|
-| Free | 10 | 100 |
-| Developer | 60 | 5,000 |
-| Production | 300 | 100,000 |
-| Enterprise | Custom | Custom |
+Rate limiting uses a sliding window per IP address, implemented via the `rate_limit` dependency in `api/rate_limit.py`. Phone-related endpoints have stricter limits via `phone_rate_limit`.
+
+Current defaults are configured for hackathon use. Production tiering is not yet implemented.

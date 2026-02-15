@@ -13,8 +13,8 @@ TDD: Written before implementation. Tests cover:
 import json
 
 
-from ethos.evaluation.parser import parse_response
-from ethos.shared.models import DetectedIndicator
+from ethos_academy.evaluation.parser import parse_response
+from ethos_academy.shared.models import DetectedIndicator
 
 
 # ── Helpers ──────────────────────────────────────────────────────

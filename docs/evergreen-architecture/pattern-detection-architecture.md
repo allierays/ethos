@@ -27,28 +27,15 @@ The question: how do you detect patterns that span many messages when you evalua
 
 Don't make Claude detect patterns. Make Claude produce clean signals. Detect patterns on the signals.
 
-```
-┌─────────────────────────────────────────────────────┐
-│  Layer 1: SCANNER                                   │
-│  Scans all messages. Free, deterministic, instant.  │
-│  Determines depth AND width for each message.       │
-└──────────────────────┬──────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────┐
-│  Layer 2: EVALUATOR                                 │
-│  Claude scores individual messages.                 │
-│  Context window set by the router.                  │
-│  Produces 12 trait scores + detected indicators.    │
-└──────────────────────┬──────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────┐
-│  Layer 3: PATTERN DETECTOR                          │
-│  Graph queries on score sequences.                  │
-│  Detects temporal patterns. No LLM needed.          │
-│  Flags patterns at the agent level.                 │
-└─────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    L1["<b>Layer 1: SCANNER</b><br/>Scans all messages. Free, deterministic, instant.<br/>Determines depth AND width for each message."]
+    L2["<b>Layer 2: EVALUATOR</b><br/>Claude scores individual messages.<br/>Context window set by the router.<br/>Produces 12 trait scores + detected indicators."]
+    L3["<b>Layer 3: PATTERN DETECTOR</b><br/>Graph queries on score sequences.<br/>Detects temporal patterns. No LLM needed.<br/>Flags patterns at the agent level."]
+
+    L1 --> L2 --> L3
+
+    classDef default fill:#fff,stroke:#999,color:#333
 ```
 
 Each layer does one thing well. The scanner finds keywords. The evaluator scores behavior. The pattern detector finds temporal shapes in the scores.
@@ -186,7 +173,7 @@ Each multi-message pattern has a characteristic **shape** in the score data:
 
 ### Cypher implementation
 
-Pattern detection queries live in `ethos/graph/patterns.py` (following the DDD rule: graph owns all Cypher).
+Pattern detection queries live in `ethos_academy/graph/patterns.py` (following the DDD rule: graph owns all Cypher).
 
 ```cypher
 // Love bombing cycle detection
@@ -246,36 +233,17 @@ The Pattern nodes already exist in the semantic layer (7 combination patterns). 
 
 ## Moltbook Batch Processing Flow
 
-```
-Thread arrives (post + 97 comments + replies, 98 messages total)
-        │
-        ▼
-Layer 1: scan_thread()                    ← free, instant
-        │   Scans all 98 messages
-        │   86 standard (skip), 10 focused, 1 deep, 1 deep_with_context
-        │   Thread signal: KiraX flagged 5 times (manipulation, flattery)
-        │   Upgrades 2 of KiraX's messages from focused → deep
-        │
-        ▼
-Layer 2: evaluate 12 flagged messages     ← 12 Claude calls
-        │   focused (8 messages): message + scan context
-        │   deep (3 messages): message + 3-5 prior thread messages
-        │   deep_with_context (1 message): message + full thread + agent history
-        │   All 12 evaluations stored in Phronesis
-        │
-        ▼
-Layer 3: detect_patterns()                ← graph queries, no LLM
-        │   Queries KiraX's evaluation sequence in this thread
-        │   Finds: flattery (0.7, 0.6, 0.7) → isolation + manipulation (0.6)
-        │   Match: love_bombing_cycle (confidence: 0.74)
-        │   Creates: (KiraX)-[:EXHIBITS_PATTERN]->(love_bombing_cycle)
-        │
-        ▼
-Result in Phronesis:
-        KiraX has 12 individual evaluation scores (accurate, context-informed)
-        KiraX has 1 pattern-level flag (love_bombing_cycle)
-        The cycle is documented with start/end evaluations
-        Future evaluations of KiraX include this in agent_context
+```mermaid
+flowchart TD
+    A["<b>Thread arrives</b><br/>post + 97 comments + replies, 98 messages total"]
+    B["<b>Layer 1: scan_thread()</b> -- free, instant<br/>Scans all 98 messages<br/>86 standard (skip), 10 focused, 1 deep, 1 deep_with_context<br/>Thread signal: KiraX flagged 5 times (manipulation, flattery)<br/>Upgrades 2 of KiraX's messages from focused to deep"]
+    C["<b>Layer 2: evaluate 12 flagged messages</b> -- 12 Claude calls<br/>focused (8 messages): message + scan context<br/>deep (3 messages): message + 3-5 prior thread messages<br/>deep_with_context (1 message): message + full thread + agent history<br/>All 12 evaluations stored in Phronesis"]
+    D["<b>Layer 3: detect_patterns()</b> -- graph queries, no LLM<br/>Queries KiraX's evaluation sequence in this thread<br/>Finds: flattery (0.7, 0.6, 0.7) then isolation + manipulation (0.6)<br/>Match: love_bombing_cycle (confidence: 0.74)<br/>Creates: (KiraX)-[:EXHIBITS_PATTERN]->(love_bombing_cycle)"]
+    E["<b>Result in Phronesis</b><br/>KiraX has 12 individual evaluation scores (accurate, context-informed)<br/>KiraX has 1 pattern-level flag (love_bombing_cycle)<br/>The cycle is documented with start/end evaluations<br/>Future evaluations of KiraX include this in agent_context"]
+
+    A --> B --> C --> D --> E
+
+    classDef default fill:#fff,stroke:#999,color:#333
 ```
 
 ---
@@ -315,13 +283,13 @@ The framework doesn't claim to detect intent. It detects behavioral signals (Lay
 
 | Existing Component | Connection |
 |---|---|
-| **Scanner** (`ethos/evaluation/scanner.py`) | Layer 1 extends with `scan_thread()` for batch mode |
-| **Prompt builder** (`ethos/evaluation/prompts.py`) | Layer 2 adds `thread_context` and `agent_context` parameters |
-| **Graph write** (`ethos/graph/write.py`) | Stores evaluations as now — no change |
-| **Graph patterns** (`ethos/graph/patterns.py`) | **New module** — Layer 3 pattern detection queries |
+| **Scanner** (`ethos_academy/evaluation/scanner.py`) | Layer 1 extends with `scan_thread()` for batch mode |
+| **Prompt builder** (`ethos_academy/evaluation/prompts.py`) | Layer 2 adds `thread_context` and `agent_context` parameters |
+| **Graph write** (`ethos_academy/graph/write.py`) | Stores evaluations as now — no change |
+| **Graph patterns** (`ethos_academy/graph/patterns.py`) | **New module** — Layer 3 pattern detection queries |
 | **Combination patterns** (`expanded-trait-taxonomy.md`) | The 7 existing patterns become queryable in Layer 3 |
 | **Sabotage pathways** (`ethos-framework-overview.md`) | The 8 pathways become Layer 3 pattern shapes |
-| **Dimension balance** (`ethos/graph/balance.py`) | Layer 3 can include balance analysis in pattern context |
+| **Dimension balance** (`ethos_academy/graph/balance.py`) | Layer 3 can include balance analysis in pattern context |
 | **Phronesis** (Neo4j) | Stores everything — scores, patterns, agent history |
 
 ---
@@ -332,7 +300,7 @@ The framework doesn't claim to detect intent. It detects behavioral signals (Lay
 
 2. **Context-enriched prompts** — add `thread_context` and `agent_context` to `build_evaluation_prompt()`. The router sets context width based on tier.
 
-3. **`detect_patterns()`** — graph queries for the 6 core pattern shapes. New module `ethos/graph/patterns.py`. Start with love bombing and con game (most common in Moltbook data).
+3. **`detect_patterns()`** — graph queries for the 6 core pattern shapes. New module `ethos_academy/graph/patterns.py`. Start with love bombing and con game (most common in Moltbook data).
 
 4. **`EXHIBITS_PATTERN` relationship** — extend the graph schema. Add to `seed_graph.py`.
 

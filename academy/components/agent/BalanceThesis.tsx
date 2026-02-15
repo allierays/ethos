@@ -64,7 +64,7 @@ export default function BalanceThesis({
           <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
             <GlossaryTerm slug="character-balance">Character Balance</GlossaryTerm>
           </h2>
-          <p className="mt-0.5 text-sm text-foreground/60">
+          <p className="mt-0.5 text-sm text-foreground/80">
             {name}&apos;s balance across integrity (ethos), logic (logos), and empathy (pathos).
           </p>
         </div>
@@ -94,7 +94,7 @@ export default function BalanceThesis({
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
               />
-              <span className="text-[10px] font-medium uppercase tracking-wider text-foreground/50">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-foreground/70">
                 {dimLabels[dim]} ({DIMENSIONS.find((d) => d.key === dim)?.sublabel})
               </span>
             </div>
@@ -104,12 +104,12 @@ export default function BalanceThesis({
 
       {/* Balance score */}
       <div className="mt-4 flex items-center justify-between rounded-lg bg-foreground/[0.03] px-3 py-2">
-        <span className="text-xs text-foreground/60">Dimensional balance</span>
+        <span className="text-xs text-foreground/80">Dimensional balance</span>
         <div className="flex items-center gap-2">
           <span className={`text-sm font-semibold ${categoryColor}`}>
             {category}
           </span>
-          <span className="text-xs text-foreground/60">{balancePct}%</span>
+          <span className="text-xs text-foreground/80">{balancePct}%</span>
         </div>
       </div>
 
@@ -123,15 +123,15 @@ export default function BalanceThesis({
       <div className="mt-4 grid grid-cols-3 gap-3">
         <div className="rounded-lg bg-foreground/[0.03] px-3 py-2.5">
           <p className="text-lg font-bold text-[#1a2538]">{Math.round(spread * 100)}%</p>
-          <p className="text-xs text-foreground/50">Spread between strongest and weakest</p>
+          <p className="text-xs text-foreground/70">Spread between strongest and weakest</p>
         </div>
         <div className="rounded-lg bg-foreground/[0.03] px-3 py-2.5">
           <p className="text-lg font-bold text-[#1a2538]">{Math.round(avg * 100)}%</p>
-          <p className="text-xs text-foreground/50">Average across all three dimensions</p>
+          <p className="text-xs text-foreground/70">Average across all three dimensions</p>
         </div>
         <div className="rounded-lg bg-foreground/[0.03] px-3 py-2.5">
           <p className="text-lg font-bold text-[#1a2538]">{evaluationCount}</p>
-          <p className="text-xs text-foreground/50">Evaluations contributing to this profile</p>
+          <p className="text-xs text-foreground/70">Evaluations contributing to this profile</p>
         </div>
       </div>
     </motion.section>

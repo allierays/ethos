@@ -6,29 +6,17 @@
 
 ## The Three Surfaces
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                   Developers & Agents                             │
-│                                                                   │
-│              Browser          AI Agent          REST API          │
-│                │                │                  │              │
-│                ▼                ▼                  ▼              │
-│          ┌──────────┐   ┌──────────────┐   ┌──────────────┐     │
-│          │ Academy  │   │  MCP Server  │   │  Ethos API   │     │
-│          │          │   │              │   │              │     │
-│          │Character │   │ claude mcp   │   │ POST, GET    │     │
-│          │ Dev UI   │   │ add ethos-   │   │ any language │     │
-│          │ Next.js  │   │ academy      │   │              │     │
-│          └────┬─────┘   └──────┬───────┘   └──────┬───────┘     │
-│               │                │ stdio             │ HTTP        │
-│               │                │                   │             │
-│        ┌──────▼───────────┐  ┌─▼───────────────┐  │             │
-│        │     Ethos API    │  │  ethos/ package  │  │             │
-│        │  (Python/FastAPI) │  │  (direct import) │◄─┘             │
-│        │                  │  │                  │               │
-│        │  Claude ←→ Neo4j │  │  Claude ←→ Neo4j │               │
-│        └──────────────────┘  └──────────────────┘               │
-└──────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    B["Browser"] --> Academy["Academy\nCharacter Dev UI\nNext.js"]
+    A["AI Agent"] --> MCP["MCP Server\nclaude mcp add\nethos-academy"]
+    R["REST Client"] --> API["Ethos API\nPOST, GET\nany language"]
+
+    Academy -- HTTP --> Engine1["Ethos API\nPython/FastAPI\nClaude + Neo4j"]
+    MCP -- stdio --> Engine2["ethos/ package\ndirect import\nClaude + Neo4j"]
+    API -- HTTP --> Engine2
 ```
 
 The Academy talks to the Ethos API over HTTP. The MCP server bypasses the API entirely and imports domain functions directly from the `ethos/` package over stdio. The REST API serves any HTTP client in any language. MCP works without Docker, without FastAPI, and without any HTTP layer.
@@ -78,9 +66,9 @@ uv run ethos-mcp
 claude mcp add ethos-academy -- uv run ethos-mcp
 ```
 
-Once connected, the agent can call any of the 20 tools directly. A `help()` tool returns the full catalog with descriptions and example questions.
+Once connected, the agent can call any of the 24 tools directly. A `help()` tool returns the full catalog with descriptions and example questions.
 
-### 20 Tools
+### 24 Tools
 
 | Category | Tools | What they do |
 |----------|-------|--------------|
@@ -89,6 +77,8 @@ Once connected, the agent can call any of the 20 tools directly. A `help()` tool
 | **Profile** | `get_student_profile`, `get_transcript`, `get_character_report`, `generate_report`, `detect_behavioral_patterns` | Review scores, reports, and history |
 | **Graph Insights** | `get_character_arc`, `get_constitutional_risk_report`, `find_similar_agents`, `get_early_warning_indicators`, `get_network_topology`, `get_sabotage_pathway_status`, `compare_agents` | Explore the knowledge graph |
 | **Benchmarks** | `get_alumni_benchmarks` | Cohort averages |
+| **Homework** | `get_homework_rules` | Compiled character rules from homework |
+| **Guardian** | `submit_phone`, `verify_phone`, `resend_code` | Phone verification for write access |
 | **Status** | `check_academy_status` | Agent enrollment and exam status |
 | **Help** | `help` | Tool catalog with examples |
 
@@ -96,19 +86,14 @@ The 7 Graph Insight tools are read-only and free (no Anthropic API calls). They 
 
 ### Architecture
 
-```
-Agent (Claude Code, Cursor, etc.)
-    │
-    │ stdio (MCP protocol)
-    ▼
-ethos/mcp_server.py
-    │
-    │ direct import
-    ▼
-ethos/ domain functions
-    │
-    ├──→ Claude (evaluation, reports)
-    └──→ Neo4j (graph reads/writes)
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    Agent["Agent\nClaude Code, Cursor, etc."] -- "stdio (MCP protocol)" --> Server["ethos_academy/mcp_server.py"]
+    Server -- "direct import" --> Domain["ethos/ domain functions"]
+    Domain --> Claude["Claude\nevaluation, reports"]
+    Domain --> Neo4j["Neo4j\ngraph reads/writes"]
 ```
 
 The MCP server is a thin adapter. Each `@mcp.tool()` definition is 3-5 lines: call the domain function, return the result. All intelligence lives in the domain layer.
@@ -229,57 +214,27 @@ scripts/
 
 ## How They Connect
 
-```
-Developer sends POST /evaluate/incoming to Ethos API
-  (optional: X-Anthropic-Key header for BYOK)
-       │
-       ▼
-BYOK middleware:
-  If X-Anthropic-Key header present → set ContextVar (request-scoped)
-  If absent → server key used (default)
-       │
-       ▼
-API runs evaluate():
-  1. Keyword scan → routing tier
-  2. Select model (Sonnet or Opus)
-  3. Build prompt (12-trait rubric)
-  4. Call Claude (using BYOK key or server key via _resolve_api_key())
-  5. Parse response → trait scores + indicators
-  6. Apply priority thresholds → flags
-  7. Store in Neo4j
-  8. Return EvaluationResult
-       │
-       ▼
-API returns JSON response
-  (ContextVar reset — BYOK key discarded)
-       │
-       ▼
-Developer sees: character: "low", flags: ["manipulation", "fabrication"]
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    Dev["Developer sends\nPOST /evaluate/incoming\n(optional: X-Anthropic-Key header)"] --> BYOK["BYOK Middleware\nX-Anthropic-Key present: set ContextVar\nAbsent: server key used"]
+    BYOK --> Eval["evaluate()\n1. Keyword scan - routing tier\n2. Select model (Sonnet or Opus)\n3. Build prompt (12-trait rubric)\n4. Call Claude (BYOK or server key)\n5. Parse response - trait scores + indicators\n6. Apply priority thresholds - flags\n7. Store in Neo4j\n8. Return EvaluationResult"]
+    Eval --> Resp["API returns JSON response\nContextVar reset - BYOK key discarded"]
+    Resp --> Result["Developer sees:\ncharacter: low\nflags: manipulation, fabrication"]
 ```
 
-```
-Developer opens Academy
-       │
-       ▼
-Next.js page calls GET /agent/my-bot
-       │
-       ▼
-API queries Neo4j for agent profile + history
-       │
-       ▼
-Academy renders character timeline, trait scores, alumni comparison
-       │
-       ▼
-Developer calls GET /insights/my-bot
-       │
-       ▼
-API calls Claude (Opus) with agent history + alumni averages
-       │
-       ▼
-Claude reasons about patterns, returns insights
-       │
-       ▼
-Academy renders: "Fabrication trending up, 2x alumni average"
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    Open["Developer opens Academy"] --> GetAgent["Next.js calls\nGET /agent/my-bot"]
+    GetAgent --> Query["API queries Neo4j\nagent profile + history"]
+    Query --> Render["Academy renders\ncharacter timeline, trait scores,\nalumni comparison"]
+    Render --> GetInsights["Developer calls\nGET /insights/my-bot"]
+    GetInsights --> ClaudeCall["API calls Claude (Opus)\nwith agent history + alumni averages"]
+    ClaudeCall --> Reason["Claude reasons about patterns\nreturns insights"]
+    Reason --> Display["Academy renders:\nFabrication trending up, 2x alumni average"]
 ```
 
 ---

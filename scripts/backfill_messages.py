@@ -33,7 +33,7 @@ if env_path.exists():
             if key and key not in os.environ:
                 os.environ[key] = value
 
-from ethos.graph.service import GraphService  # noqa: E402
+from ethos_academy.graph.service import GraphService  # noqa: E402
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 RESULTS_DIR = DATA_DIR / "results"

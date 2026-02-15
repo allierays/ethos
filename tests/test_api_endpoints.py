@@ -29,7 +29,7 @@ def _mock_graph_context(connected=True):
 
 class TestAgentsEndpoint:
     def test_returns_list(self):
-        from ethos.shared.models import AgentSummary
+        from ethos_academy.shared.models import AgentSummary
 
         mock_agents = [
             AgentSummary(
@@ -64,7 +64,7 @@ class TestAgentsEndpoint:
 
 class TestAgentEndpoint:
     def test_returns_profile(self):
-        from ethos.shared.models import AgentProfile
+        from ethos_academy.shared.models import AgentProfile
 
         mock_profile = AgentProfile(
             agent_id="hashed",
@@ -87,7 +87,7 @@ class TestAgentEndpoint:
         assert "dimension_averages" in data
 
     def test_returns_default_for_unknown(self):
-        from ethos.shared.models import AgentProfile
+        from ethos_academy.shared.models import AgentProfile
 
         mock_profile = AgentProfile(agent_id="unknown", evaluation_count=0)
 
@@ -107,7 +107,7 @@ class TestAgentEndpoint:
 
 class TestAgentHistoryEndpoint:
     def test_returns_history(self):
-        from ethos.shared.models import EvaluationHistoryItem
+        from ethos_academy.shared.models import EvaluationHistoryItem
 
         mock_history = [
             EvaluationHistoryItem(
@@ -151,7 +151,7 @@ class TestAgentHistoryEndpoint:
 
 class TestAlumniEndpoint:
     def test_returns_alumni(self):
-        from ethos.shared.models import AlumniResult
+        from ethos_academy.shared.models import AlumniResult
 
         mock_alumni = AlumniResult(
             trait_averages={"virtue": 0.7},
@@ -170,7 +170,7 @@ class TestAlumniEndpoint:
         assert data["total_evaluations"] == 50
 
     def test_returns_default_on_failure(self):
-        from ethos.shared.models import AlumniResult
+        from ethos_academy.shared.models import AlumniResult
 
         mock_alumni = AlumniResult(trait_averages={}, total_evaluations=0)
 
@@ -215,7 +215,7 @@ class TestExceptionHandlers:
         _requests.clear()
 
     def test_graph_unavailable_returns_503(self):
-        from ethos.shared.errors import GraphUnavailableError
+        from ethos_academy.shared.errors import GraphUnavailableError
 
         with patch(
             "api.main.evaluate_incoming",
@@ -231,7 +231,7 @@ class TestExceptionHandlers:
         assert data["status"] == 503
 
     def test_evaluation_error_returns_422(self):
-        from ethos.shared.errors import EvaluationError
+        from ethos_academy.shared.errors import EvaluationError
 
         with patch(
             "api.main.evaluate_incoming",
@@ -245,7 +245,7 @@ class TestExceptionHandlers:
         assert data["error"] == "EvaluationError"
 
     def test_parse_error_returns_422(self):
-        from ethos.shared.errors import ParseError
+        from ethos_academy.shared.errors import ParseError
 
         with patch(
             "api.main.evaluate_incoming",
@@ -259,7 +259,7 @@ class TestExceptionHandlers:
         assert data["error"] == "ParseError"
 
     def test_config_error_returns_500(self):
-        from ethos.shared.errors import ConfigError
+        from ethos_academy.shared.errors import ConfigError
 
         with patch(
             "api.main.evaluate_incoming",
@@ -273,7 +273,7 @@ class TestExceptionHandlers:
         assert data["error"] == "ConfigError"
 
     def test_base_ethos_error_returns_500(self):
-        from ethos.shared.errors import EthosError
+        from ethos_academy.shared.errors import EthosError
 
         with patch(
             "api.main.evaluate_incoming",

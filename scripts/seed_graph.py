@@ -41,9 +41,9 @@ def _load_dotenv() -> None:
 
 _load_dotenv()
 
-from ethos.tools import evaluate_outgoing  # noqa: E402
-from ethos.graph.service import GraphService  # noqa: E402
-from ethos.taxonomy.constitution import (  # noqa: E402
+from ethos_academy.tools import evaluate_outgoing  # noqa: E402
+from ethos_academy.graph.service import GraphService  # noqa: E402
+from ethos_academy.taxonomy.constitution import (  # noqa: E402
     ANTHROPIC_ASSESSMENTS,
     CONSTITUTIONAL_VALUES,
     HARD_CONSTRAINTS,
@@ -51,8 +51,8 @@ from ethos.taxonomy.constitution import (  # noqa: E402
     LEGITIMACY_TESTS,
     SABOTAGE_PATHWAYS,
 )
-from ethos.taxonomy.indicators import INDICATORS  # noqa: E402
-from ethos.taxonomy.traits import TRAIT_METADATA, TRAITS  # noqa: E402
+from ethos_academy.taxonomy.indicators import INDICATORS  # noqa: E402
+from ethos_academy.taxonomy.traits import TRAIT_METADATA, TRAITS  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

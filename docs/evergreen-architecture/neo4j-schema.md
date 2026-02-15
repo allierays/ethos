@@ -349,19 +349,13 @@ RETURN detections, count(total) AS total_evals,
 
 ### The Pipeline
 
-```
-Message arrives
-       │
-       ▼
-Claude evaluates
-       │
-       ├── 12 trait scores (dense, always all 12)
-       │   → stored as Evaluation node properties
-       │   → used for: dimensions, tiers, alignment, phronesis, flags
-       │
-       └── detected indicators (sparse, 0 to ~10)
-           → stored as DETECTED relationships to Indicator nodes
-           → used for: diagnostics, pattern matching, behavioral fingerprinting
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    MSG["Message arrives"] --> EVAL["Claude evaluates"]
+    EVAL --> SCORES["12 trait scores (dense, always all 12)\nstored as Evaluation node properties\nused for: dimensions, tiers, alignment,\nphronesis, flags"]
+    EVAL --> IND["detected indicators (sparse, 0 to ~10)\nstored as DETECTED relationships\nto Indicator nodes\nused for: diagnostics, pattern matching,\nbehavioral fingerprinting"]
 ```
 
 ---
@@ -488,7 +482,7 @@ CREATE (:Indicator {id: "MAN-FLATTERY", name: "strategic_flattery", trait: "mani
 // ... all 214 indicators across 12 traits
 ```
 
-Full indicator definitions live in `expanded-trait-taxonomy.md`. The seed script reads from `ethos/taxonomy/` Python data structures.
+Full indicator definitions live in `expanded-trait-taxonomy.md`. The seed script reads from `ethos_academy/taxonomy/` Python data structures.
 
 ### Constitutional Values (4)
 
@@ -1106,4 +1100,4 @@ ORDER BY member_count DESC
 | ASSESSED_BY relationships | ~55 | ~55+ |
 | DETECTED relationships | 5,000-50,000 | 50,000,000+ |
 
-Neo4j Aura Free tier: 200K nodes, 400K relationships. Sufficient through early growth. Professional tier for scale.
+Self-hosted Neo4j 5 via Docker. Production deployment on AWS EC2 (ARM64) with Caddy reverse proxy.

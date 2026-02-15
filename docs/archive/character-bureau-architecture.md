@@ -47,7 +47,7 @@ Every developer who installs `ethos-ai` enters the same bargain:
 The developer never touches the graph directly. The package handles everything:
 
 ```python
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 # This single call does three things:
 # 1. Scores the message (ethos, logos, pathos)
@@ -81,11 +81,11 @@ The `graph_context` is what makes the bureau model work. It's not just scoring t
 | Source agent identifier | Yes | Hashed — see Agent Identity below |
 | Evaluating agent identifier | Yes | Hashed |
 | Timestamp | Yes | Rounded to hour |
-| The actual message text | **No** | Never leaves the developer's system |
+| The actual message text | Yes | Stored on Evaluation nodes |
 | Developer identity | **No** | API key for auth only, not stored in graph |
 | End user identity | **No** | Never collected |
 
-The critical design decision: **message content never leaves the developer's infrastructure.** The central graph stores scores, traits, patterns, and relationships — never the raw text. This is how credit bureaus work too: they store payment behavior (on time, late, default), not the actual transactions.
+Message content is stored on Evaluation nodes alongside scores, traits, patterns, and relationships. This enables re-scoring, transcript review, and evidence-based pattern detection.
 
 ### What Stays Local
 
@@ -289,9 +289,9 @@ If Developer A's evaluations consistently diverge from the alumni consensus (rat
 
 This is EigenTrust applied to the evaluator alumni. Confidence in an evaluation depends on confidence in the evaluator. The `EVALUATED_MESSAGE_FROM` relationship in the graph captures who evaluates whom, and GDS PageRank computes evaluator reputation from this network. See `neo4j-schema.md` for the full specification.
 
-### Key Defense: Message Content Never Enters the Graph
+### Graph Data Model
 
-Because raw message text never leaves the developer's system, attackers can't extract intelligence from the graph about what messages are being evaluated. The graph stores only scores and relationships — there's nothing to exfiltrate that would help craft better attacks.
+Message content is stored on Evaluation nodes alongside scores and relationships. This enables re-evaluation and transcript review while keeping all data within the graph.
 
 ---
 
@@ -306,15 +306,15 @@ Because raw message text never leaves the developer's system, attackers can't ex
 | Trait/indicator detections | Pattern analysis | Indefinite | Alumni (aggregated) |
 | Timestamps (rounded to hour) | Trend analysis | Indefinite | Alumni |
 | API key | Authentication | Until revoked | Ethos system only |
-| Message text | **Not collected** | N/A | N/A |
+| Message text | Stored on Evaluation nodes | Indefinite | Evaluation detail views |
 | Developer identity | **Not stored in graph** | N/A | N/A |
 | End user identity | **Not collected** | N/A | N/A |
 
 ### Data Governance Principles
 
-1. **Minimum viable data**: We collect scores, not content. We collect hashes, not identities.
+1. **Evaluation transparency**: We store scores, message content, and agent IDs on Evaluation nodes to enable re-scoring and transcript review.
 2. **Developer owns their data**: Any developer can request deletion of all evaluations their system contributed. The graph updates accordingly.
-3. **No re-identification**: Agent fingerprints are one-way hashes. Combined with the absence of message content, re-identifying agents from graph data is computationally infeasible.
+3. **Open source**: The scoring logic is open source. Any developer can inspect exactly how evaluations are generated and what data flows to the graph.
 4. **Transparency**: The scoring logic is open source. Any developer can inspect exactly how evaluations are generated and what data flows to the graph.
 5. **Opt-out available**: Local-only mode. No data leaves the developer's system. They lose alumni intelligence but retain full sovereignty.
 
@@ -396,7 +396,7 @@ The metaphor does the heavy lifting. Everyone understands credit bureaus. Everyo
 | **What's scored** | Payment behavior | Message character |
 | **Who contributes** | Lenders report payment history | Developers contribute evaluation scores |
 | **Who benefits** | Any lender can check any borrower | Any developer can check any agent |
-| **What's shared** | Score, not transaction details | Scores and patterns, not message content |
+| **What's shared** | Score, not transaction details | Scores, patterns, and message content on Evaluation nodes |
 | **Identity** | SSN (known, private) | Agent fingerprint (hashed, anonymous) |
 | **Cold start** | Limited credit, higher rates | Neutral character, evaluate with caution |
 | **Gaming defense** | Fraud detection, identity verification | EigenTrust, evaluator reputation, Sybil detection |

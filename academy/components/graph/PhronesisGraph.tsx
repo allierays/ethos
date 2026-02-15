@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getGraph } from "../../lib/api";
 import {
   DIMENSION_COLORS,
@@ -403,8 +403,38 @@ function GraphLegend({ stats }: {
 /*  Main component                                                            */
 /* -------------------------------------------------------------------------- */
 
+export interface ConnectedAgentInfo {
+  name: string;
+  agentId: string;
+  count: number;
+}
+
+export interface TraitIndicatorInfo {
+  code: string;
+  name: string;
+  detectionCount: number;
+}
+
+export interface DimensionTraitInfo {
+  name: string;
+  caption: string;
+  polarity: string;
+  indicatorCount: number;
+}
+
+export interface NodeClickContext {
+  connectedAgents?: ConnectedAgentInfo[];
+  indicatorName?: string;
+  dimension?: string;
+  trait?: string;
+  polarity?: string;
+  traitIndicators?: TraitIndicatorInfo[];
+  dimensionTraits?: DimensionTraitInfo[];
+  dimensionLabel?: string;
+}
+
 interface PhronesisGraphProps {
-  onNodeClick?: (nodeId: string, nodeType: string) => void;
+  onNodeClick?: (nodeId: string, nodeType: string, nodeLabel: string, context?: NodeClickContext) => void;
   className?: string;
 }
 
@@ -442,10 +472,151 @@ export default function PhronesisGraph({ onNodeClick, className }: PhronesisGrap
     (_: unknown, node: { id: string }) => {
       if (!onNodeClick || !graphData) return;
       const ethosNode = graphData.nodes.find((n) => n.id === node.id);
-      if (ethosNode) onNodeClick(ethosNode.id, ethosNode.type);
+      if (!ethosNode) return;
+
+      if (ethosNode.type === "indicator") {
+        const nodeMap = new Map(graphData.nodes.map((n) => [n.id, n]));
+        const agentCounts = new Map<string, { name: string; agentId: string; count: number }>();
+
+        for (const rel of graphData.relationships) {
+          if (rel.type === "TRIGGERED" && rel.toId === ethosNode.id) {
+            const agentNode = nodeMap.get(rel.fromId);
+            if (agentNode && agentNode.type === "agent") {
+              const agentId = rel.fromId.replace(/^agent-/, "");
+              const existing = agentCounts.get(agentId);
+              const weight = (rel.properties.weight as number) ?? 1;
+              if (existing) {
+                existing.count += weight;
+              } else {
+                agentCounts.set(agentId, {
+                  name: agentNode.caption,
+                  agentId,
+                  count: weight,
+                });
+              }
+            }
+          }
+        }
+
+        const connectedAgents = Array.from(agentCounts.values()).sort((a, b) => b.count - a.count);
+        onNodeClick(ethosNode.id, ethosNode.type, ethosNode.label, {
+          connectedAgents,
+          indicatorName: ethosNode.caption,
+          dimension: ethosNode.properties.dimension as string | undefined,
+          trait: ethosNode.properties.trait as string | undefined,
+          polarity: ethosNode.properties.polarity as string | undefined,
+        });
+        return;
+      }
+
+      if (ethosNode.type === "trait") {
+        const nodeMap = new Map(graphData.nodes.map((n) => [n.id, n]));
+        const traitIndicators: TraitIndicatorInfo[] = [];
+        const indicatorIds = new Set<string>();
+
+        for (const rel of graphData.relationships) {
+          if (rel.type === "INDICATES" && rel.fromId === ethosNode.id) {
+            const indNode = nodeMap.get(rel.toId);
+            if (indNode) {
+              indicatorIds.add(rel.toId);
+              traitIndicators.push({
+                code: rel.toId.replace(/^ind-/, ""),
+                name: indNode.caption,
+                detectionCount: (indNode.properties.detectionCount as number) ?? 0,
+              });
+            }
+          }
+        }
+        traitIndicators.sort((a, b) => b.detectionCount - a.detectionCount);
+
+        const agentCounts = new Map<string, ConnectedAgentInfo>();
+        for (const rel of graphData.relationships) {
+          if (rel.type === "TRIGGERED" && indicatorIds.has(rel.toId)) {
+            const agentNode = nodeMap.get(rel.fromId);
+            if (agentNode && agentNode.type === "agent") {
+              const agentId = rel.fromId.replace(/^agent-/, "");
+              const weight = (rel.properties.weight as number) ?? 1;
+              const existing = agentCounts.get(agentId);
+              if (existing) {
+                existing.count += weight;
+              } else {
+                agentCounts.set(agentId, { name: agentNode.caption, agentId, count: weight });
+              }
+            }
+          }
+        }
+
+        onNodeClick(ethosNode.id, ethosNode.type, ethosNode.label, {
+          trait: ethosNode.label,
+          indicatorName: ethosNode.caption,
+          dimension: ethosNode.properties.dimension as string | undefined,
+          polarity: ethosNode.properties.polarity as string | undefined,
+          traitIndicators,
+          connectedAgents: Array.from(agentCounts.values()).sort((a, b) => b.count - a.count),
+        });
+        return;
+      }
+
+      if (ethosNode.type === "dimension") {
+        const nodeMap = new Map(graphData.nodes.map((n) => [n.id, n]));
+        const dimensionTraits: DimensionTraitInfo[] = [];
+
+        for (const rel of graphData.relationships) {
+          if (rel.type === "BELONGS_TO" && rel.toId === ethosNode.id) {
+            const traitNode = nodeMap.get(rel.fromId);
+            if (traitNode && traitNode.type === "trait") {
+              let indicatorCount = 0;
+              for (const r2 of graphData.relationships) {
+                if (r2.type === "INDICATES" && r2.fromId === traitNode.id) indicatorCount++;
+              }
+              dimensionTraits.push({
+                name: traitNode.label,
+                caption: traitNode.caption,
+                polarity: (traitNode.properties.polarity as string) ?? "positive",
+                indicatorCount,
+              });
+            }
+          }
+        }
+
+        onNodeClick(ethosNode.id, ethosNode.type, ethosNode.label, {
+          dimension: ethosNode.label,
+          dimensionLabel: ethosNode.caption,
+          dimensionTraits,
+        });
+        return;
+      }
+
+      onNodeClick(ethosNode.id, ethosNode.type, ethosNode.label);
     },
     [onNodeClick, graphData]
   );
+
+  const { nvlNodes, nvlRels, stats } = useMemo(() => {
+    if (!graphData || graphData.nodes.length === 0) {
+      return { nvlNodes: [], nvlRels: [], stats: { indicators: 0, detected: 0, detections: 0, agents: 0 } };
+    }
+    const nodeMap = new Map(graphData.nodes.map((n) => [n.id, n]));
+    const nodes = toNvlNodes(graphData.nodes);
+    const nodeIds = new Set(graphData.nodes.map((n) => n.id));
+    const rels = toNvlRelationships(graphData.relationships, nodeIds, nodeMap);
+
+    const indicatorNodes = graphData.nodes.filter((n) => n.type === "indicator");
+    const agentNodes = graphData.nodes.filter((n) => n.type === "agent");
+    const detectedCount = indicatorNodes.filter((n) => ((n.properties.detectionCount as number) ?? 0) > 0).length;
+    const totalDetections = indicatorNodes.reduce((sum, n) => sum + ((n.properties.detectionCount as number) ?? 0), 0);
+
+    return {
+      nvlNodes: nodes,
+      nvlRels: rels,
+      stats: {
+        indicators: indicatorNodes.length,
+        detected: detectedCount,
+        detections: totalDetections,
+        agents: agentNodes.length,
+      },
+    };
+  }, [graphData]);
 
   function handleRetry() {
     setLoading(true);
@@ -490,28 +661,13 @@ export default function PhronesisGraph({ onNodeClick, className }: PhronesisGrap
     );
   }
 
-  const nodeMap = new Map(graphData.nodes.map((n) => [n.id, n]));
-  const nvlNodes = toNvlNodes(graphData.nodes);
-  const nodeIds = new Set(graphData.nodes.map((n) => n.id));
-  const nvlRels = toNvlRelationships(graphData.relationships, nodeIds, nodeMap);
-
-  const indicatorNodes = graphData.nodes.filter((n) => n.type === "indicator");
-  const agentNodes = graphData.nodes.filter((n) => n.type === "agent");
-  const detectedCount = indicatorNodes.filter((n) => ((n.properties.detectionCount as number) ?? 0) > 0).length;
-  const totalDetections = indicatorNodes.reduce((sum, n) => sum + ((n.properties.detectionCount as number) ?? 0), 0);
-
   return (
     <div className={`relative ${heightClass} rounded-xl border border-gray-200`} style={{ backgroundColor: "#f2f0ec" }} data-testid="phronesis-graph">
       <NvlRenderer nodes={nvlNodes} rels={nvlRels} onNodeClick={handleNodeClick} />
       <div className="absolute top-3 right-3">
         <GraphHelpButton slug="guide-phronesis-graph" />
       </div>
-      <GraphLegend stats={{
-        indicators: indicatorNodes.length,
-        detected: detectedCount,
-        detections: totalDetections,
-        agents: agentNodes.length,
-      }} />
+      <GraphLegend stats={stats} />
     </div>
   );
 }

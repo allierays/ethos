@@ -89,7 +89,7 @@ Background rhythm: **dark / white / beige / dark / white / beige / dark / dark**
 **Purpose:** The differentiator. Character over time.
 
 - **Headline:** "Character builds over time."
-- **Subline:** "Every evaluation links to the last. The graph stores scores, patterns, and timestamps. Never message content."
+- **Subline:** "Every evaluation links to the last. The graph stores scores, patterns, timestamps, and message content. Character over time."
 - **Visual:** Left text (40%), right graph visualization (60%) - animated node network showing agents connected to evaluations connected to traits
 - **Three fact lines:**
   - "Agents, evaluations, traits, and patterns as graph nodes"

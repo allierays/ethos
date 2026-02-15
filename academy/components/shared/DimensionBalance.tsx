@@ -51,7 +51,7 @@ export default function DimensionBalance({
           <h3 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
             {title}
           </h3>
-          <p className="mt-0.5 text-sm text-foreground/60">
+          <p className="mt-0.5 text-sm text-foreground/80">
             Integrity, logic, and empathy relative to each other.
           </p>
         </div>

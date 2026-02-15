@@ -63,7 +63,7 @@ function TraitAccordion({ trait }: { trait: Trait }) {
               {trait.indicators.length}
             </span>
           </div>
-          <p className="mt-2 text-xs leading-relaxed text-foreground/60">
+          <p className="mt-2 text-xs leading-relaxed text-foreground/80">
             {trait.description}
           </p>
         </div>
@@ -99,7 +99,7 @@ function TraitAccordion({ trait }: { trait: Trait }) {
                     className="border-b border-border/30 pb-2.5 last:border-0 last:pb-0"
                   >
                     <div className="flex gap-2">
-                      <span className="mt-0.5 shrink-0 rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-[9px] font-medium text-foreground/50">
+                      <span className="mt-0.5 shrink-0 rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-[9px] font-medium text-foreground/70">
                         {ind.id}
                       </span>
                       <div className="min-w-0">
@@ -158,7 +158,7 @@ function DimensionAccordion({ dimension }: { dimension: Dimension }) {
               </h3>
             </div>
             <p className="mt-0.5 text-xs font-medium text-muted">{dimension.name}</p>
-            <p className="mt-2 text-sm leading-relaxed text-foreground/60">
+            <p className="mt-2 text-sm leading-relaxed text-foreground/80">
               {dimension.description}
             </p>
             <p className="mt-2 font-mono text-[10px] text-muted">

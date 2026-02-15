@@ -110,7 +110,7 @@ function IndicatorGroup({ indicators }: { indicators: HighlightIndicator[] }) {
             </span>
           </div>
           {ind.evidence && (
-            <p className="text-xs text-foreground/60 leading-relaxed border-l-2 border-muted/20 pl-2.5 mt-2">
+            <p className="text-xs text-foreground/80 leading-relaxed border-l-2 border-muted/20 pl-2.5 mt-2">
               {ind.evidence}
             </p>
           )}

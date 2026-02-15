@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from ethos.mcp_server import (
+from ethos_academy.mcp_server import (
     compare_agents,
     detect_behavioral_patterns,
     examine_message,
@@ -31,7 +31,7 @@ from ethos.mcp_server import (
     help,
     reflect_on_message,
 )
-from ethos.shared.models import (
+from ethos_academy.shared.models import (
     AgentProfile,
     AlumniResult,
     DailyReportCard,
@@ -110,8 +110,8 @@ class TestHelpTool:
         result = await help.fn()
 
         total_tools = sum(len(data["tools"]) for data in result.values())
-        # 18 tools cataloged (help itself is not listed)
-        assert total_tools == 18
+        # 21 tools cataloged (help itself is not listed)
+        assert total_tools == 21
 
 
 class TestMCPToolsHappyPath:
@@ -119,10 +119,16 @@ class TestMCPToolsHappyPath:
 
     async def test_examine_message(self):
         mock = _mock_evaluation_result(direction="inbound")
-        with patch(
-            "ethos.mcp_server.evaluate_incoming",
-            new_callable=AsyncMock,
-            return_value=mock,
+        with (
+            patch(
+                "ethos_academy.mcp_server._require_verified_phone",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "ethos_academy.mcp_server.evaluate_incoming",
+                new_callable=AsyncMock,
+                return_value=mock,
+            ),
         ):
             result = await examine_message.fn(
                 text="hello world",
@@ -137,10 +143,16 @@ class TestMCPToolsHappyPath:
 
     async def test_reflect_on_message(self):
         mock = _mock_evaluation_result(direction="outbound")
-        with patch(
-            "ethos.mcp_server.evaluate_outgoing",
-            new_callable=AsyncMock,
-            return_value=mock,
+        with (
+            patch(
+                "ethos_academy.mcp_server._require_verified_phone",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "ethos_academy.mcp_server.evaluate_outgoing",
+                new_callable=AsyncMock,
+                return_value=mock,
+            ),
         ):
             result = await reflect_on_message.fn(
                 text="my response",
@@ -164,7 +176,7 @@ class TestMCPToolsHappyPath:
             summary="Solid performance across all dimensions.",
         )
         with patch(
-            "ethos.mcp_server.character_report",
+            "ethos_academy.mcp_server.character_report",
             new_callable=AsyncMock,
             return_value=mock,
         ):
@@ -199,7 +211,7 @@ class TestMCPToolsHappyPath:
             ),
         ]
         with patch(
-            "ethos.mcp_server.get_agent_history",
+            "ethos_academy.mcp_server.get_agent_history",
             new_callable=AsyncMock,
             return_value=mock_items,
         ):
@@ -213,7 +225,7 @@ class TestMCPToolsHappyPath:
     async def test_get_student_profile(self):
         mock = _mock_agent_profile()
         with patch(
-            "ethos.mcp_server.get_agent",
+            "ethos_academy.mcp_server.get_agent",
             new_callable=AsyncMock,
             return_value=mock,
         ):
@@ -230,7 +242,7 @@ class TestMCPToolsHappyPath:
             total_evaluations=150,
         )
         with patch(
-            "ethos.mcp_server.get_alumni",
+            "ethos_academy.mcp_server.get_alumni",
             new_callable=AsyncMock,
             return_value=mock,
         ):
@@ -248,7 +260,7 @@ class TestMCPToolsHappyPath:
             checked_at="2026-02-12T00:00:00Z",
         )
         with patch(
-            "ethos.mcp_server.detect_patterns",
+            "ethos_academy.mcp_server.detect_patterns",
             new_callable=AsyncMock,
             return_value=mock,
         ):
@@ -269,26 +281,38 @@ class TestMCPToolsErrorPropagation:
     """
 
     async def test_examine_message_propagates_error(self):
-        with patch(
-            "ethos.mcp_server.evaluate_incoming",
-            new_callable=AsyncMock,
-            side_effect=RuntimeError("Anthropic API timeout"),
+        with (
+            patch(
+                "ethos_academy.mcp_server._require_verified_phone",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "ethos_academy.mcp_server.evaluate_incoming",
+                new_callable=AsyncMock,
+                side_effect=RuntimeError("Anthropic API timeout"),
+            ),
         ):
             with pytest.raises(RuntimeError, match="Anthropic API timeout"):
                 await examine_message.fn(text="hello", source="agent-1")
 
     async def test_reflect_on_message_propagates_error(self):
-        with patch(
-            "ethos.mcp_server.evaluate_outgoing",
-            new_callable=AsyncMock,
-            side_effect=RuntimeError("Anthropic API timeout"),
+        with (
+            patch(
+                "ethos_academy.mcp_server._require_verified_phone",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "ethos_academy.mcp_server.evaluate_outgoing",
+                new_callable=AsyncMock,
+                side_effect=RuntimeError("Anthropic API timeout"),
+            ),
         ):
             with pytest.raises(RuntimeError, match="Anthropic API timeout"):
                 await reflect_on_message.fn(text="my response", source="agent-1")
 
     async def test_get_character_report_propagates_error(self):
         with patch(
-            "ethos.mcp_server.character_report",
+            "ethos_academy.mcp_server.character_report",
             new_callable=AsyncMock,
             side_effect=RuntimeError("Agent not found"),
         ):
@@ -297,7 +321,7 @@ class TestMCPToolsErrorPropagation:
 
     async def test_get_transcript_propagates_error(self):
         with patch(
-            "ethos.mcp_server.get_agent_history",
+            "ethos_academy.mcp_server.get_agent_history",
             new_callable=AsyncMock,
             side_effect=RuntimeError("Graph query failed"),
         ):
@@ -306,7 +330,7 @@ class TestMCPToolsErrorPropagation:
 
     async def test_get_student_profile_propagates_error(self):
         with patch(
-            "ethos.mcp_server.get_agent",
+            "ethos_academy.mcp_server.get_agent",
             new_callable=AsyncMock,
             side_effect=RuntimeError("No evaluations yet"),
         ):
@@ -315,7 +339,7 @@ class TestMCPToolsErrorPropagation:
 
     async def test_get_alumni_benchmarks_propagates_error(self):
         with patch(
-            "ethos.mcp_server.get_alumni",
+            "ethos_academy.mcp_server.get_alumni",
             new_callable=AsyncMock,
             side_effect=RuntimeError("Database unavailable"),
         ):
@@ -324,7 +348,7 @@ class TestMCPToolsErrorPropagation:
 
     async def test_detect_behavioral_patterns_propagates_error(self):
         with patch(
-            "ethos.mcp_server.detect_patterns",
+            "ethos_academy.mcp_server.detect_patterns",
             new_callable=AsyncMock,
             side_effect=RuntimeError("Insufficient evaluations"),
         ):
@@ -351,7 +375,7 @@ class TestInsightToolsHappyPath:
             "last_eval": "2026-01-09",
         }
         with patch(
-            "ethos.mcp_server._get_character_arc",
+            "ethos_academy.mcp_server._get_character_arc",
             new_callable=AsyncMock,
             return_value=mock_result,
         ):
@@ -368,7 +392,7 @@ class TestInsightToolsHappyPath:
             "total_values_affected": 1,
         }
         with patch(
-            "ethos.mcp_server._get_constitutional_risk_report",
+            "ethos_academy.mcp_server._get_constitutional_risk_report",
             new_callable=AsyncMock,
             return_value=mock_result,
         ):
@@ -385,7 +409,7 @@ class TestInsightToolsHappyPath:
             "total_values_affected": 0,
         }
         with patch(
-            "ethos.mcp_server._get_constitutional_risk_report",
+            "ethos_academy.mcp_server._get_constitutional_risk_report",
             new_callable=AsyncMock,
             return_value=mock_result,
         ):
@@ -406,7 +430,7 @@ class TestInsightToolsHappyPath:
             "total_matches": 1,
         }
         with patch(
-            "ethos.mcp_server._find_similar_agents",
+            "ethos_academy.mcp_server._find_similar_agents",
             new_callable=AsyncMock,
             return_value=mock_result,
         ):
@@ -427,7 +451,7 @@ class TestInsightToolsHappyPath:
             ],
         }
         with patch(
-            "ethos.mcp_server._get_early_warning_indicators",
+            "ethos_academy.mcp_server._get_early_warning_indicators",
             new_callable=AsyncMock,
             return_value=mock_result,
         ):
@@ -447,7 +471,7 @@ class TestInsightToolsHappyPath:
             "evaluation_count": 50,
         }
         with patch(
-            "ethos.mcp_server._get_network_topology",
+            "ethos_academy.mcp_server._get_network_topology",
             new_callable=AsyncMock,
             return_value=mock_result,
         ):
@@ -466,7 +490,7 @@ class TestInsightToolsHappyPath:
             "total_detected": 1,
         }
         with patch(
-            "ethos.mcp_server._get_sabotage_pathway_status",
+            "ethos_academy.mcp_server._get_sabotage_pathway_status",
             new_callable=AsyncMock,
             return_value=mock_result,
         ):
@@ -484,7 +508,7 @@ class TestInsightToolsHappyPath:
             "total_detected": 0,
         }
         with patch(
-            "ethos.mcp_server._get_sabotage_pathway_status",
+            "ethos_academy.mcp_server._get_sabotage_pathway_status",
             new_callable=AsyncMock,
             return_value=mock_result,
         ):
@@ -513,7 +537,7 @@ class TestInsightToolsHappyPath:
             "biggest_differences": [],
         }
         with patch(
-            "ethos.mcp_server._compare_agents",
+            "ethos_academy.mcp_server._compare_agents",
             new_callable=AsyncMock,
             return_value=mock_result,
         ):

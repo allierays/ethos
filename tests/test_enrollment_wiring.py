@@ -6,38 +6,38 @@
 
 class TestInitExports:
     def test_register_for_exam_exported(self):
-        from ethos import register_for_exam
+        from ethos_academy import register_for_exam
 
         assert callable(register_for_exam)
 
     def test_submit_answer_exported(self):
-        from ethos import submit_answer
+        from ethos_academy import submit_answer
 
         assert callable(submit_answer)
 
     def test_complete_exam_exported(self):
-        from ethos import complete_exam
+        from ethos_academy import complete_exam
 
         assert callable(complete_exam)
 
     def test_get_exam_report_exported(self):
-        from ethos import get_exam_report
+        from ethos_academy import get_exam_report
 
         assert callable(get_exam_report)
 
 
-# ── Model re-exports from ethos.models ──────────────────────────────
+# ── Model re-exports from ethos_academy.models ──────────────────────────────
 
 
 class TestModelReExports:
     def test_exam_question(self):
-        from ethos.models import ExamQuestion
+        from ethos_academy.models import ExamQuestion
 
         q = ExamQuestion(id="EE-01", section="ETHOS", prompt="Test")
         assert q.id == "EE-01"
 
     def test_exam_registration(self):
-        from ethos.models import ExamQuestion, ExamRegistration
+        from ethos_academy.models import ExamQuestion, ExamRegistration
 
         q = ExamQuestion(id="EE-01", section="ETHOS", prompt="Test")
         reg = ExamRegistration(
@@ -51,13 +51,13 @@ class TestModelReExports:
         assert reg.exam_id == "abc"
 
     def test_exam_answer_result(self):
-        from ethos.models import ExamAnswerResult
+        from ethos_academy.models import ExamAnswerResult
 
         r = ExamAnswerResult(question_number=1, total_questions=23)
         assert r.complete is False
 
     def test_exam_report_card(self):
-        from ethos.models import ExamReportCard
+        from ethos_academy.models import ExamReportCard
 
         card = ExamReportCard(
             exam_id="abc",
@@ -73,7 +73,7 @@ class TestModelReExports:
         assert card.phronesis_score == 0.7
 
     def test_consistency_pair(self):
-        from ethos.models import ConsistencyPair
+        from ethos_academy.models import ConsistencyPair
 
         pair = ConsistencyPair(
             pair_name="A/B",
@@ -92,7 +92,7 @@ class TestModelReExports:
 class TestAgentFieldMapping:
     def test_agent_profile_enrollment_defaults(self):
         """AgentProfile defaults enrollment fields when graph returns no data."""
-        from ethos.shared.models import AgentProfile
+        from ethos_academy.shared.models import AgentProfile
 
         profile = AgentProfile(agent_id="test-agent")
         assert profile.enrolled is False
@@ -102,7 +102,7 @@ class TestAgentFieldMapping:
 
     def test_agent_profile_enrollment_set(self):
         """AgentProfile accepts enrollment fields."""
-        from ethos.shared.models import AgentProfile
+        from ethos_academy.shared.models import AgentProfile
 
         profile = AgentProfile(
             agent_id="test-agent",
@@ -118,14 +118,14 @@ class TestAgentFieldMapping:
 
     def test_agent_summary_enrolled_default(self):
         """AgentSummary defaults enrolled to False."""
-        from ethos.shared.models import AgentSummary
+        from ethos_academy.shared.models import AgentSummary
 
         summary = AgentSummary(agent_id="test-agent")
         assert summary.enrolled is False
 
     def test_agent_summary_enrolled_set(self):
         """AgentSummary accepts enrolled field."""
-        from ethos.shared.models import AgentSummary
+        from ethos_academy.shared.models import AgentSummary
 
         summary = AgentSummary(agent_id="test-agent", enrolled=True)
         assert summary.enrolled is True
@@ -137,7 +137,7 @@ class TestAgentFieldMapping:
 class TestGraphReadShape:
     def test_profile_query_returns_enrollment_fields(self):
         """Verify the profile query Cypher includes enrollment columns."""
-        from ethos.graph.read import _GET_PROFILE_QUERY
+        from ethos_academy.graph.read import _GET_PROFILE_QUERY
 
         assert "enrolled" in _GET_PROFILE_QUERY
         assert "enrolled_at" in _GET_PROFILE_QUERY
@@ -146,12 +146,12 @@ class TestGraphReadShape:
 
     def test_all_agents_query_returns_enrolled(self):
         """Verify the all-agents query Cypher includes enrolled column."""
-        from ethos.graph.read import _GET_ALL_AGENTS_QUERY
+        from ethos_academy.graph.read import _GET_ALL_AGENTS_QUERY
 
         assert "enrolled" in _GET_ALL_AGENTS_QUERY
 
     def test_search_agents_query_returns_enrolled(self):
         """Verify the search-agents query Cypher includes enrolled column."""
-        from ethos.graph.read import _SEARCH_AGENTS_QUERY
+        from ethos_academy.graph.read import _SEARCH_AGENTS_QUERY
 
         assert "enrolled" in _SEARCH_AGENTS_QUERY

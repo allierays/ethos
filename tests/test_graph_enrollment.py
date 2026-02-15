@@ -5,7 +5,7 @@ Unit tests that mock GraphService. No live Neo4j required.
 
 from unittest.mock import AsyncMock, PropertyMock
 
-from ethos.graph.enrollment import (
+from ethos_academy.graph.enrollment import (
     check_duplicate_answer,
     enroll_and_create_exam,
     get_agent_exams,

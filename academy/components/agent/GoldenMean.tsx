@@ -104,7 +104,7 @@ export default function GoldenMean({ traitAverages, agentName }: GoldenMeanProps
           <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
             <GlossaryTerm slug="golden-mean">The Golden Mean</GlossaryTerm>
           </h2>
-          <p className="mt-0.5 text-sm text-foreground/60">
+          <p className="mt-0.5 text-sm text-foreground/80">
             Where {name} falls between deficiency and excess.
           </p>
         </div>
@@ -177,10 +177,10 @@ export default function GoldenMean({ traitAverages, agentName }: GoldenMeanProps
 
               {/* Deficiency / Excess labels */}
               <div className="mt-1 flex justify-between">
-                <span className="text-[10px] font-medium text-foreground/60">
+                <span className="text-[10px] font-medium text-foreground/80">
                   <GlossaryTerm slug={spec.negativeSlug}>{spec.deficiency}</GlossaryTerm>
                 </span>
-                <span className="text-[10px] font-medium text-foreground/60">
+                <span className="text-[10px] font-medium text-foreground/80">
                   {spec.excess}
                 </span>
               </div>

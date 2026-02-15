@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import re
 
-from ethos.shared.models import (
+from ethos_academy.shared.models import (
     AgentProfile,
     AgentSummary,
     AlumniResult,

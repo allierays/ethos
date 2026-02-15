@@ -27,7 +27,7 @@ export default function GuardianNotifications({ agentId, agentName }: Props) {
           setShowToast(true);
           setTimeout(() => setShowToast(false), 2500);
         }}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] px-4 py-3 text-sm text-foreground/60 transition-colors hover:bg-foreground/[0.04] hover:text-foreground/80"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] px-4 py-3 text-sm text-foreground/80 transition-colors hover:bg-foreground/[0.04] hover:text-foreground/80"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
@@ -41,7 +41,7 @@ export default function GuardianNotifications({ agentId, agentName }: Props) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="mt-2 rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] px-4 py-3 text-center text-sm text-foreground/60"
+            className="mt-2 rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] px-4 py-3 text-center text-sm text-foreground/80"
           >
             Coming soon. Guardian notifications are in development.
           </motion.div>
@@ -126,14 +126,14 @@ export default function GuardianNotifications({ agentId, agentName }: Props) {
   //         <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
   //           Verified
   //         </span>
-  //         <span className="text-sm text-foreground/60">
+  //         <span className="text-sm text-foreground/80">
   //           Guardian notifications {status.optedOut ? "paused" : "active"}
   //         </span>
   //       </div>
   //       <button
   //         onClick={handleToggleNotifications}
   //         disabled={loading}
-  //         className="text-sm text-foreground/50 hover:text-foreground/70 underline"
+  //         className="text-sm text-foreground/70 hover:text-foreground/70 underline"
   //       >
   //         {status.optedOut ? "Resume" : "Pause"}
   //       </button>
@@ -146,7 +146,7 @@ export default function GuardianNotifications({ agentId, agentName }: Props) {
   //   return (
   //     <button
   //       onClick={() => setExpanded(true)}
-  //       className="flex w-full items-center justify-center gap-2 rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] px-4 py-3 text-sm text-foreground/60 transition-colors hover:bg-foreground/[0.04] hover:text-foreground/80"
+  //       className="flex w-full items-center justify-center gap-2 rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] px-4 py-3 text-sm text-foreground/80 transition-colors hover:bg-foreground/[0.04] hover:text-foreground/80"
   //     >
   //       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
   //         <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
@@ -166,10 +166,10 @@ export default function GuardianNotifications({ agentId, agentName }: Props) {
   //         className="rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] p-4 space-y-3"
   //       >
   //         <div className="flex items-center justify-between">
-  //           <p className="text-sm text-foreground/60">
+  //           <p className="text-sm text-foreground/80">
   //             Enter the 6-digit code sent to your phone.
   //           </p>
-  //           <button onClick={() => setExpanded(false)} className="text-xs text-foreground/40 hover:text-foreground/60">
+  //           <button onClick={() => setExpanded(false)} className="text-xs text-foreground/80 hover:text-foreground/80">
   //             Close
   //           </button>
   //         </div>
@@ -206,10 +206,10 @@ export default function GuardianNotifications({ agentId, agentName }: Props) {
   //       className="rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] p-4 space-y-3"
   //     >
   //       <div className="flex items-center justify-between">
-  //         <p className="text-sm text-foreground/60">
+  //         <p className="text-sm text-foreground/80">
   //           Get notified about {agentName || "this agent"}&apos;s progress via SMS.
   //         </p>
-  //         <button onClick={() => setExpanded(false)} className="text-xs text-foreground/40 hover:text-foreground/60">
+  //         <button onClick={() => setExpanded(false)} className="text-xs text-foreground/80 hover:text-foreground/80">
   //           Close
   //         </button>
   //       </div>
@@ -229,14 +229,14 @@ export default function GuardianNotifications({ agentId, agentName }: Props) {
   //           Send code
   //         </button>
   //       </div>
-  //       <p className="text-[11px] leading-relaxed text-foreground/40">
+  //       <p className="text-[11px] leading-relaxed text-foreground/80">
   //         By submitting your phone number, you consent to receive SMS notifications
   //         from Ethos Academy about {agentName || "your agent"}&apos;s evaluation
   //         results and homework assignments. Message frequency varies. Msg &amp; data
   //         rates may apply. Reply STOP to opt out at any time. Reply HELP for help.{" "}
-  //         <a href="/privacy" className="underline hover:text-foreground/60">Privacy Policy</a>{" "}
+  //         <a href="/privacy" className="underline hover:text-foreground/80">Privacy Policy</a>{" "}
   //         &middot;{" "}
-  //         <a href="/terms" className="underline hover:text-foreground/60">Terms</a>
+  //         <a href="/terms" className="underline hover:text-foreground/80">Terms</a>
   //       </p>
   //       {error && <p className="text-sm text-red-600">{error}</p>}
   //     </motion.div>

@@ -163,7 +163,7 @@ export default function Invitation() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/explore"
+              href="/insights"
               className="text-sm font-semibold text-foreground transition-colors hover:text-foreground/70"
             >
               Explore the Graph
@@ -177,7 +177,7 @@ export default function Invitation() {
             </Link>
             <span className="text-foreground/20">|</span>
             <a
-              href="https://github.com/allierays/ethos"
+              href="https://github.com/allierays/ethos-academy"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground transition-colors hover:text-foreground/70"

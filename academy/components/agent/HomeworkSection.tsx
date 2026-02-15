@@ -190,7 +190,7 @@ function SkillInstall({ agentId }: { agentId: string }) {
           Install homework skill
         </p>
         <p className="text-sm text-[#1a2538]/60 mb-3">
-          Send your AI agent this link. It has a personalized coaching skill with focus areas, character rules, and practice exercises.
+          Send your AI agent this link. Based on your report, it has a personalized coaching skill with focus areas, character rules, and practice exercises.
         </p>
 
         <button

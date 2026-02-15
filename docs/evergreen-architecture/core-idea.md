@@ -20,14 +20,18 @@ Same graph (Phronesis), both directions.
 
 ## What This Is
 
-A Python package (`ethos-ai`) and API that any developer can install on their AI agent. Two lines of code:
+A Python package and API that any developer can use with their AI agent. Three integration options:
 
 ```bash
-pip install ethos-ai
+# MCP (recommended for Claude Code)
+claude mcp add ethos-academy -- uv run ethos-mcp
+
+# Python package (direct import)
+uv add ethos-academy
 ```
 
 ```python
-from ethos import evaluate_incoming, evaluate_outgoing
+from ethos_academy import evaluate_incoming, evaluate_outgoing
 
 # Protection: check incoming message from another agent
 result = await evaluate_incoming(
@@ -40,7 +44,7 @@ result = await evaluate_incoming(
 result = await evaluate_outgoing(text=my_response, source="my-agent-123")
 ```
 
-The developer never touches Neo4j. The package calls the Ethos API (FastAPI on AWS), which evaluates with Claude (Opus 4.6 for deep evaluation, Sonnet for standard checks), and reads/writes to Phronesis — a single central Neo4j Aura instance. Every developer's anonymized data feeds the same graph.
+The developer never touches Neo4j. The system evaluates with Claude (Opus 4.6 for deep evaluation, Sonnet for standard checks) and reads/writes to Phronesis (Neo4j). Developers can connect via MCP (stdio, no HTTP), the REST API (FastAPI), or the Academy UI (Next.js).
 
 Like a credit bureau, but for agent character. No single agent sees all data, but all contribute and benefit from Phronesis's shared character intelligence.
 
@@ -158,14 +162,21 @@ In practice, protection runs in the background with zero latency — your agent 
 
 ### Graph Hierarchy
 
-```
-HardConstraint (7)         ← absolute filter, checked first
-ConstitutionalValue (4)    ← priority hierarchy (safety > ethics > soundness > helpfulness)
-  └── Dimension (3)
-        └── Trait (12)
-              └── Indicator (214)
-LegitimacyTest (3)         ← applied to manipulation/deception at scale
-Pattern (7)                ← multi-indicator attack sequences
+```mermaid
+flowchart TD
+    HC["HardConstraint (7)\nabsolute filter, checked first"]
+    CV["ConstitutionalValue (4)\nsafety > ethics > soundness > helpfulness"]
+    D["Dimension (3)"]
+    T["Trait (12)"]
+    I["Indicator (214)"]
+    LT["LegitimacyTest (3)\napplied to manipulation/deception at scale"]
+    P["Pattern (7)\nmulti-indicator attack sequences"]
+
+    HC --> CV --> D --> T --> I
+    LT -.-> T
+    P -.-> I
+
+    classDef default fill:#fff,stroke:#999,color:#333
 ```
 
 ### Core Relationships
@@ -248,10 +259,10 @@ The scraper runs continuously. Every run picks up new posts as agents keep talki
 
 | Component | Technology |
 |-----------|------------|
-| **Package** | `ethos-ai` (Python, PyPI) |
+| **Package** | `ethos_academy` (Python) |
 | **API** | FastAPI on AWS |
 | **Website** | Next.js (SSR, scrapable by default) |
-| **Database** | Neo4j Aura (single central instance) |
+| **Database** | Neo4j 5 (self-hosted via Docker) |
 | **Evaluation Engine** | Claude (Opus 4.6 primary, Sonnet for standard checks) |
 
 ---
@@ -275,7 +286,7 @@ Classical Greek marble — white/cream backgrounds, navy accents, warm stone ton
 
 ## Built With
 
-Claude Opus 4.6, Claude Code, Neo4j Aura, FastAPI, Python/PyPI.
+Claude Opus 4.6, Claude Code, Neo4j 5, FastAPI, Python/PyPI.
 
 ---
 

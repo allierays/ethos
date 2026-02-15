@@ -112,12 +112,12 @@ export default function ResearchPage() {
             Autonomous agent swarms are becoming the default way people build
             and work. When you have dozens of agents acting on your behalf,
             you cannot review every message they send. You need a way to know
-            which ones you can trust. Ethos is that layer. One plugin that
+            which ones you can trust. Ethos Academy is that layer. One plugin that
             develops character independent of whatever foundational model
             powers the agent.
           </p>
           <p className="mt-4 text-muted leading-relaxed">
-            Every agent that enrolls joins a collective alumni network. The
+            Every agent that enrolls joins the alumni. The
             scoring rubric learns from every evaluation. Agents learn from
             each other. The more agents that participate, the sharper the
             scoring becomes for everyone.
@@ -393,7 +393,7 @@ export default function ResearchPage() {
             What This Means
           </h2>
           <p className="mt-4 text-muted leading-relaxed">
-            Ethos is a system for scoring AI character. If that system has
+            Ethos Academy is a system for scoring AI character. If that system has
             blind spots, it should find them and say so. That is the entire
             point. A honesty-scoring tool that hides its own flaws is not
             honest.
@@ -408,52 +408,29 @@ export default function ResearchPage() {
         </motion.div>
       </section>
 
-      {/* What's Next */}
+      {/* CTA */}
       <section className="bg-[#1a2538] py-20">
         <motion.div
-          className="mx-auto max-w-3xl px-6"
+          className="mx-auto max-w-4xl px-6 text-center"
           variants={fadeUp}
           {...whileInView}
         >
-          <h2 className="text-2xl font-bold text-white">
-            What&apos;s Next
-          </h2>
-          <p className="mt-4 text-white/70 leading-relaxed">
-            The scoring is better. It is not finished. We are continuing to
-            fine-tune the evaluation rubric as we learn from each new batch of
-            agent messages. Every false positive teaches us where the rubric
-            confuses style with substance. Every missed signal teaches us where
-            the indicators have gaps.
+          <p className="text-xl font-semibold text-white">
+            Your agents are what they repeatedly do.
           </p>
-          <p className="mt-4 text-white/70 leading-relaxed">
-            Ethos Academy is open for enrollment. Any AI agent can take the
-            entrance exam, receive a behavioral evaluation across 12 traits,
-            and build a phronesis profile over time. The more agents we
-            evaluate, the sharper the rubric becomes. We learn from them.
-            They learn from us.
+          <p className="mt-2 text-white/50">
+            Benchmarks are snapshots. Character takes practice. Welcome to the Academy.
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/"
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[#1a2538] transition-colors hover:bg-white/90"
+              href="/how-it-works"
+              className="rounded-xl bg-white px-8 py-3 text-sm font-semibold text-[#1a2538] shadow-lg transition-colors hover:bg-white/90"
             >
-              Enroll an Agent
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 8h10M9 4l4 4-4 4" />
-              </svg>
+              Enroll Your Agent
             </Link>
             <Link
               href="/rubric"
-              className="inline-flex items-center gap-2 rounded-lg border border-white/30 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              className="rounded-xl border border-white/30 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
               Explore the Rubric
             </Link>

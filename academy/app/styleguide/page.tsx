@@ -212,21 +212,21 @@ export default function StyleguidePage() {
               <p className="text-xs text-foreground/70">
                 Light frosted effect. 35% white, 8px blur. For overlays on colorful backgrounds.
               </p>
-              <code className="block text-xs font-mono mt-2 text-foreground/60">className=&quot;glass-subtle&quot;</code>
+              <code className="block text-xs font-mono mt-2 text-foreground/80">className=&quot;glass-subtle&quot;</code>
             </div>
             <div className="glass rounded-xl p-6 space-y-2">
               <p className="text-sm font-semibold">glass</p>
               <p className="text-xs text-foreground/70">
                 Default glass. 55% white, 16px blur. The workhorse for most cards and panels.
               </p>
-              <code className="block text-xs font-mono mt-2 text-foreground/60">className=&quot;glass&quot;</code>
+              <code className="block text-xs font-mono mt-2 text-foreground/80">className=&quot;glass&quot;</code>
             </div>
             <div className="glass-strong rounded-xl p-6 space-y-2">
               <p className="text-sm font-semibold">glass-strong</p>
               <p className="text-xs text-foreground/70">
                 Heavy frost. 75% white, 24px blur. For content that needs high readability over color.
               </p>
-              <code className="block text-xs font-mono mt-2 text-foreground/60">className=&quot;glass-strong&quot;</code>
+              <code className="block text-xs font-mono mt-2 text-foreground/80">className=&quot;glass-strong&quot;</code>
             </div>
           </div>
         </div>

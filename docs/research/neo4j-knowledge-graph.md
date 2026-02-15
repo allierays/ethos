@@ -1066,7 +1066,7 @@ async def evaluate(request: EvaluateRequest, driver=Depends(get_neo4j_driver)):
     """Evaluate text for trustworthiness and store in graph."""
 
     # 1. Run LLM evaluation (placeholder)
-    from ethos.evaluate import evaluate as run_eval
+    from ethos_academy.evaluate import evaluate as run_eval
     result = run_eval(request.text, request.source)
 
     # 2. Store in Neo4j
@@ -1134,7 +1134,7 @@ async def reflect(request: ReflectRequest, driver=Depends(get_neo4j_driver)):
         raise HTTPException(status_code=404, detail="No evaluations found for agent")
 
     # 2. Run reflection (placeholder)
-    from ethos.reflect import reflect as run_reflect
+    from ethos_academy.reflect import reflect as run_reflect
     result = run_reflect(request.agent_id)
 
     return ReflectResponse(
@@ -1818,13 +1818,13 @@ MERGE (t)-[:BELONGS_TO]->(:Dimension {name: "Pathos"});
 A complete, production-ready graph service module for Ethos:
 
 ```python
-"""ethos/graph.py -- Neo4j graph database integration."""
+"""ethos_academy/graph.py -- Neo4j graph database integration."""
 
 import os
 from datetime import datetime
 
 from neo4j import AsyncGraphDatabase, AsyncDriver
-from ethos.models import EvaluationResult, ReflectionResult
+from ethos_academy.models import EvaluationResult, ReflectionResult
 
 
 class GraphService:

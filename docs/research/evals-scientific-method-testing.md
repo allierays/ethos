@@ -1493,7 +1493,7 @@ Every component of the evaluation system must be versioned.
 | Component | Version Format | Storage |
 |-----------|---------------|---------|
 | Scoring rubric (per trait) | `rubric-v{major}.{minor}` | Git, alongside code |
-| Prompt template | `prompt-v{major}.{minor}` | Git, in `ethos/prompts.py` |
+| Prompt template | `prompt-v{major}.{minor}` | Git, in `ethos_academy/prompts.py` |
 | Benchmark dataset | `benchmark-v{major}` | Git LFS or dedicated data repo |
 | Regression suite | `regression-v{date}` | Git, in `tests/regression/` |
 | Annotation guidelines | `guidelines-v{major}.{minor}` | Git, in `docs/` |

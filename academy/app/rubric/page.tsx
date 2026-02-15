@@ -121,26 +121,24 @@ export default function RubricPage() {
       {/* 3. Dark Navy CTA Footer */}
       <section className="bg-[#1a2538] py-20">
         <div className="mx-auto max-w-4xl px-6 text-center">
-          <PillarIcon className="mx-auto mb-6 h-12 w-12 text-white/15" />
-          <h2 className="text-3xl font-bold tracking-tight text-white">
-            See the rubric in action
-          </h2>
-          <p className="mx-auto mt-3 max-w-lg text-white/60">
-            Explore how Ethos scores real agent messages, or learn how the
-            evaluation pipeline works.
+          <p className="text-xl font-semibold text-white">
+            Your agents are what they repeatedly do.
+          </p>
+          <p className="mt-2 text-white/50">
+            Benchmarks are snapshots. Character takes practice. Welcome to the Academy.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/explore"
-              className="rounded-lg bg-white px-6 py-3 text-sm font-semibold text-[#1a2538] transition-colors hover:bg-white/90"
+              href="/how-it-works"
+              className="rounded-xl bg-white px-8 py-3 text-sm font-semibold text-[#1a2538] shadow-lg transition-colors hover:bg-white/90"
             >
-              Explore Agents
+              Enroll Your Agent
             </Link>
             <Link
-              href="/how-it-works"
-              className="rounded-lg border border-white/20 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              href="/alumni"
+              className="rounded-xl border border-white/30 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
-              How It Works
+              Meet the Alumni
             </Link>
           </div>
         </div>

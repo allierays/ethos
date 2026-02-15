@@ -45,7 +45,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script_stop: true
           script: |
-            cd ~/ethos
+            cd ~/ethos-academy
 
             # Pull latest code
             git fetch origin main
@@ -96,9 +96,9 @@ jobs:
             # Wait for MCP
             echo "Waiting for MCP..."
             for i in $(seq 1 20); do
-              MCP_STATE=$(docker inspect --format='{{.State.Status}}' ethos-mcp-1 2>/dev/null || echo "missing")
-              MCP_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' ethos-mcp-1 2>/dev/null || echo "none")
-              MCP_OOM=$(docker inspect --format='{{.State.OOMKilled}}' ethos-mcp-1 2>/dev/null || echo "unknown")
+              MCP_STATE=$(docker inspect --format='{{.State.Status}}' ethos-academy-mcp-1 2>/dev/null || echo "missing")
+              MCP_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' ethos-academy-mcp-1 2>/dev/null || echo "none")
+              MCP_OOM=$(docker inspect --format='{{.State.OOMKilled}}' ethos-academy-mcp-1 2>/dev/null || echo "unknown")
               echo "  attempt $i: state=$MCP_STATE health=$MCP_HEALTH oom=$MCP_OOM"
               if [ "$MCP_HEALTH" = "healthy" ]; then
                 echo "MCP healthy"

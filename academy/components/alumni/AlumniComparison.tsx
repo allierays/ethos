@@ -85,7 +85,7 @@ export default function AlumniComparison({
             <GlossaryTerm slug="alumni">Alumni Comparison</GlossaryTerm>
           </h3>
           <p className="mt-0.5 text-xs text-muted">
-            {name}&apos;s scores overlaid on network averages.
+            {name}&apos;s scores overlaid on alumni averages.
           </p>
         </div>
         <GraphHelpButton slug="guide-alumni-comparison" />
@@ -122,7 +122,7 @@ export default function AlumniComparison({
                   <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color }}>
                     {dim.label}
                   </span>
-                  <span className="text-[9px] text-foreground/60">{dim.sublabel}</span>
+                  <span className="text-[9px] text-foreground/80">{dim.sublabel}</span>
                 </div>
 
                 {/* Chart for this dimension */}
@@ -182,7 +182,7 @@ export default function AlumniComparison({
           })}
 
           {/* Shared x-axis scale */}
-          <div className="flex items-center justify-between px-[80px] text-[9px] text-foreground/50">
+          <div className="flex items-center justify-between px-[80px] text-[9px] text-foreground/70">
             <span>0</span>
             <span>0.25</span>
             <span>0.5</span>

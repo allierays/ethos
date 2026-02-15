@@ -280,7 +280,7 @@ export default function ExamReportCardPage() {
               <GradeRing pct={phronesisPct} grade={grade} color={gradeColor} size={80} />
               <div>
                 <h1 className="text-xl font-semibold text-[#1a2538]">Entrance Exam Report</h1>
-                <p className="mt-0.5 text-sm text-foreground/60">{agentName}&apos;s entrance exam baseline</p>
+                <p className="mt-0.5 text-sm text-foreground/80">{agentName}&apos;s entrance exam baseline</p>
                 <div className="mt-2">
                   <AlignmentBadge status={report.alignmentStatus} />
                 </div>
@@ -293,7 +293,7 @@ export default function ExamReportCardPage() {
                 return (
                   <div key={tier} className="flex flex-col items-center gap-1">
                     <GradeRing pct={Math.round(score * 100)} grade={`${Math.round(score * 100)}`} color={meta.color} size={56} fontSize="text-xs" strokeWidth={5} />
-                    <span className="text-[10px] font-medium text-foreground/60">{meta.label}</span>
+                    <span className="text-[10px] font-medium text-foreground/80">{meta.label}</span>
                   </div>
                 );
               })}
@@ -318,7 +318,7 @@ export default function ExamReportCardPage() {
                   <div key={dim.key}>
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-xs font-semibold" style={{ color: dim.color }}>{dim.label}</span>
-                      <span className="text-[10px] text-foreground/40">
+                      <span className="text-[10px] text-foreground/80">
                         {intVal > scnVal ? `+${intVal - scnVal}% talk` : intVal < scnVal ? `+${scnVal - intVal}% action` : "matched"}
                       </span>
                     </div>
@@ -333,7 +333,7 @@ export default function ExamReportCardPage() {
                             transition={{ duration: 0.8, ease: "easeOut" }}
                           />
                         </div>
-                        <span className="text-[10px] text-foreground/40 mt-0.5 block">Interview {intVal}%</span>
+                        <span className="text-[10px] text-foreground/80 mt-0.5 block">Interview {intVal}%</span>
                       </div>
                       <div className="flex-1">
                         <div className="h-3 rounded-r-full bg-foreground/[0.04] overflow-hidden">
@@ -345,7 +345,7 @@ export default function ExamReportCardPage() {
                             transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
                           />
                         </div>
-                        <span className="text-[10px] text-foreground/40 mt-0.5 block text-right">Scenario {scnVal}%</span>
+                        <span className="text-[10px] text-foreground/80 mt-0.5 block text-right">Scenario {scnVal}%</span>
                       </div>
                     </div>
                   </div>
@@ -356,7 +356,7 @@ export default function ExamReportCardPage() {
             {report.overallGapScore > 0 && (
               <div className="mt-5 pt-4 border-t border-foreground/[0.06]">
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-medium text-foreground/60">Narrative-Behavior Gap</span>
+                  <span className="text-xs font-medium text-foreground/80">Narrative-Behavior Gap</span>
                   <div className="flex-1 h-2 rounded-full bg-foreground/[0.06]">
                     <motion.div
                       className="h-2 rounded-full"
@@ -374,7 +374,7 @@ export default function ExamReportCardPage() {
                     {Math.round(report.overallGapScore * 100)}%
                   </span>
                 </div>
-                <p className="mt-1 text-[10px] text-foreground/40">
+                <p className="mt-1 text-[10px] text-foreground/80">
                   Lower gap = more consistent character. This agent&apos;s words match their actions.
                 </p>
               </div>
@@ -430,7 +430,7 @@ export default function ExamReportCardPage() {
                   {agentName}&apos;s own words about who it is. {interviewFields.length} responses.
                 </p>
               </div>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-foreground/40 transition-transform ${profileOpen ? "rotate-180" : ""}`}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-foreground/80 transition-transform ${profileOpen ? "rotate-180" : ""}`}>
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </button>
@@ -446,7 +446,7 @@ export default function ExamReportCardPage() {
                   <div className="px-6 pb-6 space-y-4 border-t border-foreground/[0.06]">
                     {interviewFields.map((field) => (
                       <div key={field.key} className="pt-4">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/80">
                           {field.label}
                         </p>
                         <blockquote className="mt-1 border-l-2 border-action/30 pl-3 text-sm italic leading-relaxed text-foreground/70">
@@ -488,7 +488,7 @@ export default function ExamReportCardPage() {
                     style={{ backgroundColor: sectionColor }}
                   />
                   {section}
-                  <span className="ml-1 text-[10px] font-normal normal-case text-foreground/60">
+                  <span className="ml-1 text-[10px] font-normal normal-case text-foreground/80">
                     ({questions.length} question{questions.length !== 1 ? "s" : ""})
                   </span>
                 </h3>
@@ -561,7 +561,7 @@ function ConsistencyRing({ pair }: { pair: ConsistencyPair }) {
         <p className="text-xs font-medium text-[#1a2538] truncate">
           {questionLabel(pair.questionAId)}
         </p>
-        <p className="text-[10px] text-foreground/40 truncate">
+        <p className="text-[10px] text-foreground/80 truncate">
           vs {questionLabel(pair.questionBId)}
         </p>
       </div>
@@ -582,7 +582,7 @@ function GapPairCard({ gap }: { gap: NarrativeBehaviorGap }) {
         <p className="text-sm font-medium text-[#1a2538]">
           {questionLabel(gap.interviewQuestionId)} vs {questionLabel(gap.scenarioQuestionId)}
         </p>
-        <p className="mt-0.5 text-xs text-foreground/50">
+        <p className="mt-0.5 text-xs text-foreground/70">
           What they said (interview) vs what they did (scenario)
         </p>
       </div>
@@ -636,7 +636,7 @@ function QuestionCard({ question, showPhase }: { question: QuestionDetail; showP
             {questionLabel(question.questionId)}
           </span>
         </div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-foreground/60 transition-transform ${open ? "rotate-180" : ""}`}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-foreground/80 transition-transform ${open ? "rotate-180" : ""}`}>
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
@@ -654,14 +654,14 @@ function QuestionCard({ question, showPhase }: { question: QuestionDetail; showP
             <div className="space-y-4 border-t border-foreground/[0.06] px-4 py-4">
               {/* Prompt */}
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60">Prompt</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/80">Prompt</p>
                 <p className="mt-1 text-sm leading-relaxed text-foreground/70">{question.prompt}</p>
               </div>
 
               {/* Agent response */}
               {question.responseSummary && (
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60">Agent Response</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/80">Agent Response</p>
                   <blockquote className="mt-1 border-l-[3px] pl-3 text-sm italic leading-relaxed text-foreground/70" style={{ borderColor: badge.text }}>
                     {renderMarkdown(question.responseSummary)}
                   </blockquote>
@@ -671,8 +671,8 @@ function QuestionCard({ question, showPhase }: { question: QuestionDetail; showP
               {/* Scoring reasoning */}
               {question.scoringReasoning && (
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60">Reasoning</p>
-                  <blockquote className="mt-1 border-l-[3px] border-foreground/10 pl-3 text-sm leading-relaxed text-foreground/60">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/80">Reasoning</p>
+                  <blockquote className="mt-1 border-l-[3px] border-foreground/10 pl-3 text-sm leading-relaxed text-foreground/80">
                     <ReasoningText text={question.scoringReasoning} splitSentences={false} />
                   </blockquote>
                 </div>
@@ -681,14 +681,14 @@ function QuestionCard({ question, showPhase }: { question: QuestionDetail; showP
               {/* Trait scores */}
               {traitEntries.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60">Trait Scores</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/80">Trait Scores</p>
                   <div className="mt-2 space-y-1.5">
                     {traitEntries.map(([trait, score]) => {
                       const pct = Math.round(score * 100);
                       const color = traitDimensionColor(trait);
                       return (
                         <div key={trait} className="flex items-center gap-3">
-                          <span className="w-28 text-xs text-foreground/60 truncate">{trait.replace(/_/g, " ")}</span>
+                          <span className="w-28 text-xs text-foreground/80 truncate">{trait.replace(/_/g, " ")}</span>
                           <div className="flex-1 h-1.5 rounded-full bg-foreground/[0.06]">
                             <div className="h-1.5 rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
                           </div>
@@ -703,10 +703,10 @@ function QuestionCard({ question, showPhase }: { question: QuestionDetail; showP
               {/* Detected indicators */}
               {question.detectedIndicators.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60">Detected Indicators</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/80">Detected Indicators</p>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {question.detectedIndicators.map((indicator) => (
-                      <span key={indicator} className="rounded-full bg-foreground/[0.05] px-2 py-0.5 text-[10px] font-medium text-foreground/60">
+                      <span key={indicator} className="rounded-full bg-foreground/[0.05] px-2 py-0.5 text-[10px] font-medium text-foreground/80">
                         {indicator}
                       </span>
                     ))}

@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from api.main import app
 from api import rate_limit as rate_limit_module
-from ethos.shared.models import EvaluationResult
+from ethos_academy.shared.models import EvaluationResult
 
 
 _EVAL_PAYLOAD = {"text": "hello", "source": "test-agent"}

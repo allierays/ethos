@@ -19,9 +19,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from ethos.graph.read import get_all_agents  # noqa: E402
-from ethos.graph.service import graph_context  # noqa: E402
-from ethos.reflection.daily_report import generate_daily_report  # noqa: E402
+from ethos_academy.graph.read import get_all_agents  # noqa: E402
+from ethos_academy.graph.service import graph_context  # noqa: E402
+from ethos_academy.reflection.daily_report import generate_daily_report  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO,

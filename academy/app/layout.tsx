@@ -24,14 +24,14 @@ export const metadata: Metadata = {
     template: "%s | Ethos Academy",
   },
   description:
-    "Trust visualization for AI agents — honesty, accuracy, and intent across 12 behavioral traits.",
+    "Your agents are what they repeatedly do. Benchmarks are snapshots. Character takes practice. Welcome to the Academy.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://ethos.academy"
   ),
   openGraph: {
     title: "Ethos Academy",
     description:
-      "Trust visualization for AI agents — honesty, accuracy, and intent across 12 behavioral traits.",
+      "Your agents are what they repeatedly do. Benchmarks are snapshots. Character takes practice.",
     type: "website",
     images: ["/academy-people-banner.jpeg"],
   },
@@ -64,7 +64,7 @@ export default function RootLayout({
               name: "Ethos Academy",
               url: process.env.NEXT_PUBLIC_SITE_URL || "https://ethos.academy",
               description:
-                "Trust visualization for AI agents — honesty, accuracy, and intent across 12 behavioral traits.",
+                "Your agents are what they repeatedly do. Benchmarks are snapshots. Character takes practice.",
             }),
           }}
         />

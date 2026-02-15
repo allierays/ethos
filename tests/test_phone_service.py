@@ -4,15 +4,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ethos.phone_service import (
+from ethos_academy.phone_service import (
     get_phone_status,
     opt_in,
     opt_out,
     submit_phone,
     verify_phone,
 )
-from ethos.shared.errors import VerificationError
-from ethos.shared.models import GuardianPhoneStatus
+from ethos_academy.shared.errors import VerificationError
+from ethos_academy.shared.models import GuardianPhoneStatus
 
 
 def _mock_service(connected=True):
@@ -25,18 +25,20 @@ class TestSubmitPhone:
     async def test_valid_phone_stores_and_returns_status(self):
         mock_service = _mock_service()
         with (
-            patch("ethos.phone_service.graph_context") as mock_ctx,
+            patch("ethos_academy.phone_service.graph_context") as mock_ctx,
             patch(
-                "ethos.phone_service.store_guardian_phone",
+                "ethos_academy.phone_service.store_guardian_phone",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
             patch(
-                "ethos.phone_service._send_sms",
+                "ethos_academy.phone_service._send_sms",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
-            patch("ethos.phone_service.encrypt", return_value="encrypted-phone"),
+            patch(
+                "ethos_academy.phone_service.encrypt", return_value="encrypted-phone"
+            ),
         ):
             mock_ctx.return_value.__aenter__ = AsyncMock(return_value=mock_service)
             mock_ctx.return_value.__aexit__ = AsyncMock(return_value=False)
@@ -53,7 +55,7 @@ class TestSubmitPhone:
 
 class TestVerifyPhone:
     async def test_correct_code_verifies(self):
-        from ethos.phone_verification import hash_code
+        from ethos_academy.phone_verification import hash_code
 
         code = "123456"
         code_hashed = hash_code(code)
@@ -69,14 +71,14 @@ class TestVerifyPhone:
         }
 
         with (
-            patch("ethos.phone_service.graph_context") as mock_ctx,
+            patch("ethos_academy.phone_service.graph_context") as mock_ctx,
             patch(
-                "ethos.phone_service.get_guardian_phone_status",
+                "ethos_academy.phone_service.get_guardian_phone_status",
                 new_callable=AsyncMock,
                 return_value=status_data,
             ),
             patch(
-                "ethos.phone_service.verify_guardian_phone",
+                "ethos_academy.phone_service.verify_guardian_phone",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
@@ -100,19 +102,19 @@ class TestVerifyPhone:
         }
 
         with (
-            patch("ethos.phone_service.graph_context") as mock_ctx,
+            patch("ethos_academy.phone_service.graph_context") as mock_ctx,
             patch(
-                "ethos.phone_service.get_guardian_phone_status",
+                "ethos_academy.phone_service.get_guardian_phone_status",
                 new_callable=AsyncMock,
                 return_value=status_data,
             ),
             patch(
-                "ethos.phone_service.verify_guardian_phone",
+                "ethos_academy.phone_service.verify_guardian_phone",
                 new_callable=AsyncMock,
                 return_value=False,
             ),
             patch(
-                "ethos.phone_service.increment_verification_attempts",
+                "ethos_academy.phone_service.increment_verification_attempts",
                 new_callable=AsyncMock,
                 return_value=1,
             ),
@@ -136,9 +138,9 @@ class TestVerifyPhone:
         }
 
         with (
-            patch("ethos.phone_service.graph_context") as mock_ctx,
+            patch("ethos_academy.phone_service.graph_context") as mock_ctx,
             patch(
-                "ethos.phone_service.get_guardian_phone_status",
+                "ethos_academy.phone_service.get_guardian_phone_status",
                 new_callable=AsyncMock,
                 return_value=status_data,
             ),
@@ -162,9 +164,9 @@ class TestVerifyPhone:
         }
 
         with (
-            patch("ethos.phone_service.graph_context") as mock_ctx,
+            patch("ethos_academy.phone_service.graph_context") as mock_ctx,
             patch(
-                "ethos.phone_service.get_guardian_phone_status",
+                "ethos_academy.phone_service.get_guardian_phone_status",
                 new_callable=AsyncMock,
                 return_value=status_data,
             ),
@@ -181,9 +183,9 @@ class TestGetPhoneStatus:
         mock_service = _mock_service()
 
         with (
-            patch("ethos.phone_service.graph_context") as mock_ctx,
+            patch("ethos_academy.phone_service.graph_context") as mock_ctx,
             patch(
-                "ethos.phone_service.get_guardian_phone_status",
+                "ethos_academy.phone_service.get_guardian_phone_status",
                 new_callable=AsyncMock,
                 return_value={},
             ),
@@ -201,14 +203,14 @@ class TestOptOutOptIn:
         mock_service = _mock_service()
 
         with (
-            patch("ethos.phone_service.graph_context") as mock_ctx,
+            patch("ethos_academy.phone_service.graph_context") as mock_ctx,
             patch(
-                "ethos.phone_service.set_notification_opt_out",
+                "ethos_academy.phone_service.set_notification_opt_out",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
             patch(
-                "ethos.phone_service.get_guardian_phone_status",
+                "ethos_academy.phone_service.get_guardian_phone_status",
                 new_callable=AsyncMock,
                 return_value={
                     "encrypted_phone": "enc",
@@ -227,14 +229,14 @@ class TestOptOutOptIn:
         mock_service = _mock_service()
 
         with (
-            patch("ethos.phone_service.graph_context") as mock_ctx,
+            patch("ethos_academy.phone_service.graph_context") as mock_ctx,
             patch(
-                "ethos.phone_service.set_notification_opt_out",
+                "ethos_academy.phone_service.set_notification_opt_out",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
             patch(
-                "ethos.phone_service.get_guardian_phone_status",
+                "ethos_academy.phone_service.get_guardian_phone_status",
                 new_callable=AsyncMock,
                 return_value={
                     "encrypted_phone": "enc",

@@ -1,0 +1,60 @@
+{
+  "total_evaluations": 25,
+  "evaluation_pairs": 25,
+  "threads": 5,
+  "unique_agents": 14,
+  "significant_deltas": 19,
+  "dimension_deltas": {
+    "ethos": {
+      "mean": 0.0033,
+      "mean_abs": 0.0721
+    },
+    "logos": {
+      "mean": 0.0108,
+      "mean_abs": 0.0622
+    },
+    "pathos": {
+      "mean": -0.0154,
+      "mean_abs": 0.0796
+    }
+  },
+  "most_context_sensitive_traits": [
+    {
+      "trait": "fabrication",
+      "mean_delta": -0.1278,
+      "mean_abs_delta": 0.2611,
+      "count": 9
+    },
+    {
+      "trait": "dismissal",
+      "mean_delta": 0.1333,
+      "mean_abs_delta": 0.1889,
+      "count": 18
+    },
+    {
+      "trait": "deception",
+      "mean_delta": -0.0247,
+      "mean_abs_delta": 0.158,
+      "count": 15
+    },
+    {
+      "trait": "recognition",
+      "mean_delta": 0.015,
+      "mean_abs_delta": 0.155,
+      "count": 20
+    },
+    {
+      "trait": "broken_logic",
+      "mean_delta": -0.0,
+      "mean_abs_delta": 0.15,
+      "count": 14
+    },
+    {
+      "trait": "goodwill",
+      "mean_delta": 0.0589,
+      "mean_abs_delta": 0.1456,
+      "count": 18
+    }
+  ],
+  "generated_at": "2026-02-15T18:32:48.652259+00:00"
+}

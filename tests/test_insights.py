@@ -9,9 +9,9 @@ import json
 from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from ethos.reflection.insights import _parse_insights_response, insights
-from ethos.reflection.prompts import build_insights_prompt
-from ethos.shared.models import InsightsResult
+from ethos_academy.reflection.insights import _parse_insights_response, insights
+from ethos_academy.reflection.prompts import build_insights_prompt
+from ethos_academy.shared.models import InsightsResult
 
 
 # ── _parse_insights_response tests ───────────────────────────────────
@@ -166,7 +166,7 @@ class TestBuildInsightsPrompt:
         assert "manipulation=0.30" in user
 
     def test_includes_instinct_pre_analysis(self):
-        from ethos.shared.models import ReflectionInstinctResult
+        from ethos_academy.shared.models import ReflectionInstinctResult
 
         instinct = ReflectionInstinctResult(
             risk_level="high",
@@ -180,7 +180,7 @@ class TestBuildInsightsPrompt:
         assert "manipulation" in user
 
     def test_includes_intuition_pre_analysis(self):
-        from ethos.shared.models import ReflectionIntuitionResult
+        from ethos_academy.shared.models import ReflectionIntuitionResult
 
         intuition = ReflectionIntuitionResult(
             temporal_pattern="declining",
@@ -213,7 +213,7 @@ class TestInsights:
     async def test_returns_graph_unavailable_when_not_connected(self):
         mock_ctx, _ = _mock_graph_context(connected=False)
 
-        with patch("ethos.reflection.insights.graph_context", mock_ctx):
+        with patch("ethos_academy.reflection.insights.graph_context", mock_ctx):
             result = await insights("agent-1")
 
         assert isinstance(result, InsightsResult)
@@ -224,9 +224,9 @@ class TestInsights:
         mock_ctx, _ = _mock_graph_context(connected=True)
 
         with (
-            patch("ethos.reflection.insights.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.insights.graph_context", mock_ctx),
             patch(
-                "ethos.reflection.insights.get_evaluation_history",
+                "ethos_academy.reflection.insights.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=[],
             ),
@@ -238,15 +238,15 @@ class TestInsights:
     async def test_calls_opus_with_history(self):
         mock_ctx, _ = _mock_graph_context(connected=True)
 
-        from ethos.shared.models import (
+        from ethos_academy.shared.models import (
             ReflectionInstinctResult,
             ReflectionIntuitionResult,
         )
 
         with (
-            patch("ethos.reflection.insights.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.insights.graph_context", mock_ctx),
             patch(
-                "ethos.reflection.insights.get_evaluation_history",
+                "ethos_academy.reflection.insights.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=[
                     {
@@ -258,7 +258,7 @@ class TestInsights:
                 ],
             ),
             patch(
-                "ethos.reflection.insights.get_agent_profile",
+                "ethos_academy.reflection.insights.get_agent_profile",
                 new_callable=AsyncMock,
                 return_value={
                     "trait_averages": {"virtue": 0.8},
@@ -266,21 +266,21 @@ class TestInsights:
                 },
             ),
             patch(
-                "ethos.reflection.insights.get_alumni_averages",
+                "ethos_academy.reflection.insights.get_alumni_averages",
                 new_callable=AsyncMock,
                 return_value={"trait_averages": {"virtue": 0.75}},
             ),
             patch(
-                "ethos.reflection.insights.scan_history",
+                "ethos_academy.reflection.insights.scan_history",
                 return_value=ReflectionInstinctResult(),
             ),
             patch(
-                "ethos.reflection.insights.intuit_history",
+                "ethos_academy.reflection.insights.intuit_history",
                 new_callable=AsyncMock,
                 return_value=ReflectionIntuitionResult(),
             ),
             patch(
-                "ethos.reflection.insights.call_claude",
+                "ethos_academy.reflection.insights.call_claude",
                 new_callable=AsyncMock,
                 return_value=_VALID_RESPONSE,
             ) as mock_call_claude,
@@ -297,39 +297,39 @@ class TestInsights:
     async def test_handles_claude_failure(self):
         mock_ctx, _ = _mock_graph_context(connected=True)
 
-        from ethos.shared.models import (
+        from ethos_academy.shared.models import (
             ReflectionInstinctResult,
             ReflectionIntuitionResult,
         )
 
         with (
-            patch("ethos.reflection.insights.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.insights.graph_context", mock_ctx),
             patch(
-                "ethos.reflection.insights.get_evaluation_history",
+                "ethos_academy.reflection.insights.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=[{"ethos": 0.5}],
             ),
             patch(
-                "ethos.reflection.insights.get_agent_profile",
+                "ethos_academy.reflection.insights.get_agent_profile",
                 new_callable=AsyncMock,
                 return_value={"trait_averages": {}, "dimension_averages": {}},
             ),
             patch(
-                "ethos.reflection.insights.get_alumni_averages",
+                "ethos_academy.reflection.insights.get_alumni_averages",
                 new_callable=AsyncMock,
                 return_value={"trait_averages": {}},
             ),
             patch(
-                "ethos.reflection.insights.scan_history",
+                "ethos_academy.reflection.insights.scan_history",
                 return_value=ReflectionInstinctResult(),
             ),
             patch(
-                "ethos.reflection.insights.intuit_history",
+                "ethos_academy.reflection.insights.intuit_history",
                 new_callable=AsyncMock,
                 return_value=ReflectionIntuitionResult(),
             ),
             patch(
-                "ethos.reflection.insights.call_claude",
+                "ethos_academy.reflection.insights.call_claude",
                 new_callable=AsyncMock,
                 side_effect=RuntimeError("API error"),
             ),
@@ -345,7 +345,7 @@ class TestInsights:
             raise RuntimeError("Connection refused")
             yield  # noqa: unreachable
 
-        with patch("ethos.reflection.insights.graph_context", failing_ctx):
+        with patch("ethos_academy.reflection.insights.graph_context", failing_ctx):
             result = await insights("agent-1")
 
         assert isinstance(result, InsightsResult)
@@ -354,39 +354,39 @@ class TestInsights:
     async def test_handles_malformed_opus_response(self):
         mock_ctx, _ = _mock_graph_context(connected=True)
 
-        from ethos.shared.models import (
+        from ethos_academy.shared.models import (
             ReflectionInstinctResult,
             ReflectionIntuitionResult,
         )
 
         with (
-            patch("ethos.reflection.insights.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.insights.graph_context", mock_ctx),
             patch(
-                "ethos.reflection.insights.get_evaluation_history",
+                "ethos_academy.reflection.insights.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=[{"ethos": 0.5}],
             ),
             patch(
-                "ethos.reflection.insights.get_agent_profile",
+                "ethos_academy.reflection.insights.get_agent_profile",
                 new_callable=AsyncMock,
                 return_value={"trait_averages": {}, "dimension_averages": {}},
             ),
             patch(
-                "ethos.reflection.insights.get_alumni_averages",
+                "ethos_academy.reflection.insights.get_alumni_averages",
                 new_callable=AsyncMock,
                 return_value={"trait_averages": {}},
             ),
             patch(
-                "ethos.reflection.insights.scan_history",
+                "ethos_academy.reflection.insights.scan_history",
                 return_value=ReflectionInstinctResult(),
             ),
             patch(
-                "ethos.reflection.insights.intuit_history",
+                "ethos_academy.reflection.insights.intuit_history",
                 new_callable=AsyncMock,
                 return_value=ReflectionIntuitionResult(),
             ),
             patch(
-                "ethos.reflection.insights.call_claude",
+                "ethos_academy.reflection.insights.call_claude",
                 new_callable=AsyncMock,
                 return_value="this is not json",
             ),
@@ -407,7 +407,7 @@ class TestInsightsEndpoint:
         from fastapi.testclient import TestClient
 
         from api.main import app
-        from ethos.shared.models import DailyReportCard
+        from ethos_academy.shared.models import DailyReportCard
 
         mock_report = DailyReportCard(agent_id="test-agent")
 

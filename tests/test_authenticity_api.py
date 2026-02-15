@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 
 from api.main import app
-from ethos.shared.models import AuthenticityResult
+from ethos_academy.shared.models import AuthenticityResult
 
 client = TestClient(app)
 
@@ -126,11 +126,11 @@ class TestAuthenticityDomainLayer:
     """Test analyze_authenticity() directly."""
 
     async def test_loads_from_cache(self):
-        from ethos.authenticity import analyze_authenticity
+        from ethos_academy.authenticity import analyze_authenticity
 
         with (
             patch(
-                "ethos.authenticity._load_results_cache",
+                "ethos_academy.authenticity._load_results_cache",
                 return_value={
                     "cached-agent": {
                         "agent_name": "cached-agent",
@@ -156,7 +156,7 @@ class TestAuthenticityDomainLayer:
                     }
                 },
             ),
-            patch("ethos.authenticity._try_store_authenticity"),
+            patch("ethos_academy.authenticity._try_store_authenticity"),
         ):
             result = await analyze_authenticity("cached-agent")
 
@@ -165,11 +165,13 @@ class TestAuthenticityDomainLayer:
         assert result.authenticity_score == 0.85
 
     async def test_defaults_for_unknown(self):
-        from ethos.authenticity import analyze_authenticity
+        from ethos_academy.authenticity import analyze_authenticity
 
         with (
-            patch("ethos.authenticity._load_results_cache", return_value={}),
-            patch("ethos.authenticity._compute_from_profile", return_value=None),
+            patch("ethos_academy.authenticity._load_results_cache", return_value={}),
+            patch(
+                "ethos_academy.authenticity._compute_from_profile", return_value=None
+            ),
         ):
             result = await analyze_authenticity("totally-unknown")
 

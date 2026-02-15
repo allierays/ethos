@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta, timezone
 
-from ethos.phone_verification import (
+from ethos_academy.phone_verification import (
     MAX_VERIFICATION_ATTEMPTS,
     VERIFICATION_TTL_MINUTES,
     generate_verification_code,

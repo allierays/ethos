@@ -208,9 +208,9 @@ After implementing Actions 1-4, update `docs/evergreen-architecture/ethos-framew
 
 The indicator definitions live in the taxonomy source files. Each revised and new indicator needs to be reflected in:
 
-- `ethos/taxonomy/` - the canonical indicator definitions
-- `ethos/evaluation/` - the instinct scanner keyword lists (if indicator IDs change)
-- `ethos/evaluation/prompts.py` - the deliberation prompt (if indicator descriptions change)
+- `ethos_academy/taxonomy/` - the canonical indicator definitions
+- `ethos_academy/evaluation/` - the instinct scanner keyword lists (if indicator IDs change)
+- `ethos_academy/evaluation/prompts.py` - the deliberation prompt (if indicator descriptions change)
 - `scripts/seed_graph.py` - the graph seeding script (if new indicators are added to the semantic layer)
 
 ### Summary of Changes

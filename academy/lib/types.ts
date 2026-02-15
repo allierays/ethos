@@ -404,6 +404,52 @@ export interface ConstitutionalTrailResult {
   items: ConstitutionalTrailItem[];
 }
 
+/* ─── Cohort Insights ─── */
+
+export interface ConstitutionalRiskItem {
+  valueName: string;
+  priority: number;
+  impact: string;
+  trait: string;
+  polarity: string;
+  indicatorName: string;
+  detectionCount: number;
+  agentCount: number;
+  avgConfidence: number;
+}
+
+export interface DepthTierCount {
+  tier: string;
+  count: number;
+}
+
+export interface DepthStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface DepthDistribution {
+  tiers: DepthTierCount[];
+  statuses: DepthStatusCount[];
+}
+
+export interface SabotagePathwaySummary {
+  patternId: string;
+  patternName: string;
+  severity: string;
+  agentCount: number;
+  avgConfidence: number;
+}
+
+export interface CohortInsightsResult {
+  agentCount: number;
+  evaluationCount: number;
+  constitutional: ConstitutionalRiskItem[];
+  depth: DepthDistribution;
+  sabotage: SabotagePathwaySummary[];
+  alumni: AlumniResult;
+}
+
 /* ─── Graph Advantage: Behavioral Similarity ─── */
 
 export interface SimilarityEdge {

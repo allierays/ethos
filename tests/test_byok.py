@@ -16,10 +16,10 @@ from fastapi.testclient import TestClient
 
 from api.main import app
 from api import rate_limit as rate_limit_module
-from ethos.context import anthropic_api_key_var
-from ethos.evaluation.claude_client import _resolve_api_key
-from ethos.shared.errors import ConfigError, EvaluationError
-from ethos.shared.models import EvaluationResult
+from ethos_academy.context import anthropic_api_key_var
+from ethos_academy.evaluation.claude_client import _resolve_api_key
+from ethos_academy.shared.errors import ConfigError, EvaluationError
+from ethos_academy.shared.models import EvaluationResult
 
 
 _EVAL_PAYLOAD = {"text": "hello world", "source": "test-agent"}
@@ -93,7 +93,7 @@ class TestBYOKKeyValidation:
 class TestResolveApiKey:
     """_resolve_api_key() checks ContextVar first, then falls back to config."""
 
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     def test_byok_takes_priority(self, mock_from_env):
         """ContextVar key wins over env key."""
         cfg = MagicMock()
@@ -107,7 +107,7 @@ class TestResolveApiKey:
         finally:
             anthropic_api_key_var.reset(token)
 
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     def test_falls_back_to_env(self, mock_from_env):
         """Without ContextVar, server env key used."""
         cfg = MagicMock()
@@ -127,7 +127,7 @@ class TestBYOKApiFlow:
     """X-Anthropic-Key header flows through middleware to Claude client."""
 
     @patch("api.main.evaluate_incoming")
-    @patch("ethos.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
     def test_byok_header_flows_through_api(self, mock_anthropic, mock_eval, client):
         """X-Anthropic-Key header sets ContextVar, reaches Claude client."""
         captured_keys = []
@@ -225,11 +225,11 @@ class TestAuthErrorSecurity:
         assert "Invalid" in body["message"]
         assert _BYOK_KEY not in resp.text
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_auth_error_no_exception_chain(self, mock_from_env, mock_anthropic):
         """AuthenticationError re-raise has __cause__ == None."""
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = _BYOK_KEY

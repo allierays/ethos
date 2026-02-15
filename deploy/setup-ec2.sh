@@ -34,11 +34,22 @@ sudo usermod -aG docker $USER
 echo "=== Docker installed ==="
 
 echo "=== Cloning repo ==="
-git clone https://github.com/allierays/ethos.git ~/ethos
+git clone https://github.com/allierays/ethos-academy.git ~/ethos-academy
+mkdir -p ~/ethos-academy/backups
+
+echo "=== Installing AWS CLI v2 ==="
+ARCH=$(dpkg --print-architecture)
+if [ "$ARCH" = "arm64" ]; then
+  curl -sL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o /tmp/awscliv2.zip
+else
+  curl -sL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
+fi
+cd /tmp && unzip -oq awscliv2.zip && sudo ./aws/install
+echo "=== AWS CLI installed ==="
 
 echo "=== Setting up cron jobs ==="
-(crontab -l 2>/dev/null; echo "0 1 * * * cd /home/ubuntu/ethos && docker compose -f docker-compose.prod.yml exec -T neo4j bin/neo4j-admin database dump neo4j --to-path=/data --overwrite-destination >> /var/log/ethos-backup.log 2>&1"; echo "0 2 * * * cd /home/ubuntu/ethos && docker compose -f docker-compose.prod.yml exec -T app python -m scripts.nightly_reflection >> /var/log/ethos-nightly.log 2>&1") | crontab -
-echo "=== Cron installed: backup (1 AM UTC), nightly reflection (2 AM UTC) ==="
+(crontab -l 2>/dev/null; echo "0 1 * * * cd /home/ubuntu/ethos-academy && docker compose -f docker-compose.prod.yml exec -T app /app/.venv/bin/python -m scripts.neo4j_export /app/backups >> /var/log/ethos-backup.log 2>&1"; echo "15 1 * * * cd /home/ubuntu/ethos-academy && aws s3 sync backups/ s3://ethos-academy-backups/neo4j/ >> /var/log/ethos-backup.log 2>&1"; echo "0 2 * * * cd /home/ubuntu/ethos-academy && docker compose -f docker-compose.prod.yml exec -T app /app/.venv/bin/python -m scripts.nightly_reflection >> /var/log/ethos-nightly.log 2>&1") | crontab -
+echo "=== Cron installed: backup (1 AM), S3 sync (1:15 AM), nightly reflection (2 AM) ==="
 
 echo ""
 echo "=== NEXT STEPS ==="
@@ -48,7 +59,7 @@ echo "   exit"
 echo "   ssh -i your-key.pem ubuntu@YOUR_EC2_IP"
 echo ""
 echo "2. Create .env file:"
-echo "   cd ~/ethos && cp .env.example .env && nano .env"
+echo "   cd ~/ethos-academy && cp .env.example .env && nano .env"
 echo "   Required: ANTHROPIC_API_KEY, NEO4J_USER=neo4j, NEO4J_PASSWORD=<strong-password>"
 echo ""
 echo "3. Launch:"

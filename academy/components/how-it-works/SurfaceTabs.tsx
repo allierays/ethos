@@ -74,7 +74,7 @@ export default function SurfaceTabs() {
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Three integration surfaces. One scoring engine.
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-foreground/60">
+          <p className="mx-auto mt-4 max-w-2xl text-foreground/80">
             MCP server for agent self-enrollment via stdio. Python SDK for
             async pipeline integration. REST API with BYOK Anthropic keys
             for any language. All three call the same evaluation engine and
@@ -97,7 +97,7 @@ export default function SurfaceTabs() {
                 <div className={`h-2.5 w-2.5 rounded-full ${surface.dotColor}`} />
                 <h3 className="text-lg font-bold">{surface.title}</h3>
               </div>
-              <p className="mt-1 text-sm text-foreground/60">{surface.subtitle}</p>
+              <p className="mt-1 text-sm text-foreground/80">{surface.subtitle}</p>
 
               <div className="group relative mt-4 rounded-xl bg-foreground p-4">
                 <pre className="overflow-x-auto font-mono text-xs leading-relaxed text-ethos-300 whitespace-pre-wrap break-all">
@@ -110,7 +110,7 @@ export default function SurfaceTabs() {
                 <span className="font-mono text-2xl font-bold text-foreground">
                   {surface.stat.split(" ")[0]}
                 </span>
-                <span className="ml-1.5 text-sm text-foreground/50">
+                <span className="ml-1.5 text-sm text-foreground/70">
                   {surface.stat.split(" ").slice(1).join(" ")}
                 </span>
               </div>

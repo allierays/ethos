@@ -11,7 +11,7 @@ import json
 import sys
 from pathlib import Path
 
-from ethos.evaluation.authenticity import (
+from ethos_academy.evaluation.authenticity import (
     analyze_activity_pattern,
     analyze_burst_rate,
     analyze_identity_signals,

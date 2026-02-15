@@ -3,7 +3,7 @@ import ColumnIcon from "../shared/ColumnIcon";
 
 export default function Footer() {
   return (
-    <footer className="relative overflow-hidden border-t border-border">
+    <footer className="relative overflow-hidden">
       {/* Pantheon background — center on the columns */}
       <img
         src="/ethos-academy.jpeg"
@@ -26,7 +26,7 @@ export default function Footer() {
             </p>
             <div className="mt-4 flex items-center justify-center gap-4 sm:justify-start">
               <a
-                href="https://github.com/allierays/ethos"
+                href="https://github.com/allierays/ethos-academy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white/70 transition-colors hover:text-white"
@@ -73,14 +73,17 @@ export default function Footer() {
               <Link href="/rubric" className="text-sm text-white/70 transition-colors hover:text-white">
                 Rubric
               </Link>
-              <Link href="/explore" className="text-sm text-white/70 transition-colors hover:text-white">
-                Explore
+              <Link href="/insights" className="text-sm text-white/70 transition-colors hover:text-white">
+                Insights
               </Link>
               <Link href="/alumni" className="text-sm text-white/70 transition-colors hover:text-white">
                 Alumni
               </Link>
               <Link href="/research" className="text-sm text-white/70 transition-colors hover:text-white">
                 Research
+              </Link>
+              <Link href="/architecture" className="text-sm text-white/70 transition-colors hover:text-white">
+                Architecture
               </Link>
             </nav>
           </div>
@@ -92,7 +95,7 @@ export default function Footer() {
             </p>
             <nav className="mt-3 flex flex-col gap-2">
               <a
-                href="https://github.com/allierays/ethos"
+                href="https://github.com/allierays/ethos-academy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-white/70 transition-colors hover:text-white"
@@ -100,7 +103,7 @@ export default function Footer() {
                 Source Code
               </a>
               <a
-                href="https://github.com/allierays/ethos#readme"
+                href="https://github.com/allierays/ethos-academy#readme"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-white/70 transition-colors hover:text-white"
@@ -108,7 +111,7 @@ export default function Footer() {
                 Documentation
               </a>
               <a
-                href="https://github.com/allierays/ethos/issues"
+                href="https://github.com/allierays/ethos-academy/issues"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-white/70 transition-colors hover:text-white"
@@ -116,7 +119,7 @@ export default function Footer() {
                 Issues
               </a>
               <a
-                href="https://github.com/allierays/ethos/blob/main/CONTRIBUTING.md"
+                href="https://github.com/allierays/ethos-academy/blob/main/CONTRIBUTING.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-white/70 transition-colors hover:text-white"
@@ -150,7 +153,7 @@ export default function Footer() {
             </Link>
             {" "}&middot;{" "}
             <a
-              href="https://github.com/allierays/ethos/blob/main/LICENSE"
+              href="https://github.com/allierays/ethos-academy/blob/main/LICENSE"
               target="_blank"
               rel="noopener noreferrer"
               className="underline transition-colors hover:text-white/80"

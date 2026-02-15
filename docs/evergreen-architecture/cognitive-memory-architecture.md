@@ -30,7 +30,7 @@ Ethos implements all three. This is not a metaphor. The system literally has thr
 | **Episodic Memory** | Specific past events, personal history | Agent evaluation history, interaction records, temporal patterns | Neo4j graph (persistent) |
 | **Semantic Memory** | General knowledge, concepts, categories | 214 indicators, 12 traits, 7 combination patterns, scoring rubrics | Neo4j graph + prompt templates (persistent) |
 
-> **Implementation note:** All code examples in this document use `async/await` for conceptual clarity. The actual Ethos codebase is **fully synchronous** (sync Neo4j driver, sync Anthropic client, sync route handlers). See `CLAUDE.md` for the canonical rule: "All code is SYNC."
+> **Implementation note:** All I/O code in the Ethos codebase is **fully asynchronous** (async Neo4j driver via `AsyncGraphDatabase`, async Anthropic client via `AsyncAnthropic`, async FastAPI route handlers). Pure computation functions (scoring, parsing, taxonomy lookups) remain synchronous. See `CLAUDE.md` for the canonical rule: "All I/O code is ASYNC."
 
 ---
 
@@ -457,23 +457,27 @@ This tiered approach is critical for cost and latency. The Moltbook dataset show
 
 During a single `evaluate()` call, working memory consists of:
 
-```
-Working Memory Contents (ephemeral):
-├── The raw message text
-├── Keyword scan results (flagged traits, density, routing tier)
-├── The selected model (Sonnet or Opus)
-├── The active rubric (standard, focused, or full)
-├── [If DEEP_WITH_CONTEXT] Agent history from Neo4j:
-│   ├── Last N evaluations for this agent
-│   ├── Trend direction (improving, stable, declining)
-│   ├── Any active pattern matches
-│   └── Interaction history with the target agent
-├── Claude's context window containing:
-│   ├── System prompt with evaluation instructions
-│   ├── The rubric for each trait being evaluated
-│   ├── The message to evaluate
-│   └── [If available] Conversation context
-└── Claude's reasoning output (chain-of-thought + scores)
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+    classDef ephemeral fill:#fff3cd,stroke:#ffc107,color:#333
+
+    WM["Working Memory Contents\n(ephemeral)"]:::ephemeral
+    WM --> MSG["Raw message text"]
+    WM --> KW["Keyword scan results\nflagged traits, density, routing tier"]
+    WM --> MOD["Selected model\nSonnet or Opus"]
+    WM --> RUB["Active rubric\nstandard, focused, or full"]
+    WM --> HIST["Agent history from Neo4j\n(if DEEP_WITH_CONTEXT)"]
+    HIST --> H1["Last N evaluations"]
+    HIST --> H2["Trend direction"]
+    HIST --> H3["Active pattern matches"]
+    HIST --> H4["Interaction history with target"]
+    WM --> CTX["Claude's context window"]
+    CTX --> C1["System prompt with eval instructions"]
+    CTX --> C2["Rubric for each trait"]
+    CTX --> C3["Message to evaluate"]
+    CTX --> C4["Conversation context (if available)"]
+    WM --> OUT["Claude's reasoning output\nchain-of-thought + scores"]
 ```
 
 All of this is discarded after the evaluation completes. The only thing that persists is the result, which is written to episodic memory.
@@ -741,16 +745,25 @@ Semantic memory is the system's knowledge base. It does not change with each eva
 
 Claude's Constitution (January 2026) adds a structural layer above the indicator taxonomy. See `docs/constitutional-alignment.md` for the full mapping.
 
-```
-Semantic Memory Structure:
-├── Hard Constraints (7)          ← absolute boundaries, non-negotiable
-├── Constitutional Values (4)     ← safety > ethics > soundness > helpfulness
-│   └── Traits (12)               ← each UPHOLDS (enforces/violates) a value
-├── Legitimacy Tests (3)          ← process, accountability, transparency
-├── Dimensions (3)                ← ethos, logos, pathos
-│   └── Traits (12)
-│       └── Indicators (214)
-└── Combination Patterns (7)      ← multi-indicator attack sequences
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    SM["Semantic Memory Structure"]
+    HC["Hard Constraints (7)\nabsolute boundaries, non-negotiable"]
+    CV["Constitutional Values (4)\nsafety > ethics > soundness > helpfulness"]
+    CVT["Traits (12)\neach UPHOLDS a value"]
+    LT["Legitimacy Tests (3)\nprocess, accountability, transparency"]
+    DIM["Dimensions (3)\nethos, logos, pathos"]
+    TR["Traits (12)"]
+    IND["Indicators (214)"]
+    CP["Combination Patterns (7)\nmulti-indicator attack sequences"]
+
+    SM --> HC
+    SM --> CV --> CVT
+    SM --> LT
+    SM --> DIM --> TR --> IND
+    SM --> CP
 ```
 
 The constitutional layer gives the scoring hierarchy its weight. Without it, all 12 traits are equal. With it, a manipulation score of 0.7 (safety violation) is categorically more severe than a dismissal score of 0.7 (helpfulness failure).
@@ -1213,29 +1226,17 @@ SET m.occurrence_count = m.occurrence_count + 1,
 
 ### The Complete Cycle
 
-```
-Message arrives
-    |
-    v
-[WORKING MEMORY] Keyword scan -> routing decision (86.9% stop here)
-    |
-    v
-[EPISODIC MEMORY] Agent history lookup -> context enrichment
-    |
-    v
-[SEMANTIC MEMORY] Load indicators, patterns, constitutional rubric
-    |
-    v
-[WORKING MEMORY] Claude evaluates (constitution baked into scoring prompt)
-    |
-    v
-[EPISODIC MEMORY] Write evaluation results to graph
-    |
-    v
-[SEMANTIC MEMORY x EPISODIC MEMORY] Pattern detection
-    |
-    v
-Academy daily report card -> user notification
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    A[Message arrives] --> B["WORKING MEMORY<br/>Keyword scan → routing decision<br/>(86.9% stop here)"]
+    B --> C["EPISODIC MEMORY<br/>Agent history lookup → context enrichment"]
+    C --> D["SEMANTIC MEMORY<br/>Load indicators, patterns,<br/>constitutional rubric"]
+    D --> E["WORKING MEMORY<br/>Claude evaluates<br/>(constitution baked into scoring prompt)"]
+    E --> F["EPISODIC MEMORY<br/>Write evaluation results to graph"]
+    F --> G["SEMANTIC × EPISODIC MEMORY<br/>Pattern detection"]
+    G --> H["Academy daily report card →<br/>user notification"]
 ```
 
 ---
@@ -1504,101 +1505,58 @@ RETURN a.agent_id,
 
 ## Architecture Diagram
 
-```
-                         EVALUATE() CALL
-                              |
-                              v
-┌─────────────────────────────────────────────────────────────────────┐
-│                     LAYER 1: WORKING MEMORY                         │
-│                     (ephemeral, current moment)                     │
-│                                                                     │
-│  ┌──────────────┐    ┌─────────────────┐    ┌───────────────────┐  │
-│  │   Message     │───>│  Keyword Scan    │───>│  Routing Decision │  │
-│  │   arrives     │    │  (lexicon)       │    │                   │  │
-│  └──────────────┘    └─────────────────┘    │  0 flags: Sonnet  │  │
-│                                              │  1-3:    Focused  │  │
-│                                              │  4+:     Opus     │  │
-│                                              │  high:   Opus+Neo │  │
-│                                              └────────┬──────────┘  │
-│                                                       │             │
-│         ┌─────────────────────────────────────────────┘             │
-│         │                                                           │
-│         v                                                           │
-│  ┌──────────────────────────────────────────────────┐              │
-│  │            Claude Context Window                   │              │
-│  │  ┌────────────────────────────────────────────┐   │              │
-│  │  │  System prompt + rubrics  (SEMANTIC)        │   │              │
-│  │  │  Agent history context    (EPISODIC)        │   │              │
-│  │  │  Current message          (WORKING)         │   │              │
-│  │  │  Keyword flags            (WORKING)         │   │              │
-│  │  └────────────────────────────────────────────┘   │              │
-│  │                      │                             │              │
-│  │                      v                             │              │
-│  │    Chain-of-thought reasoning -> 12 trait scores   │              │
-│  └──────────────────────────────────────────────────┘              │
-│                         │                                           │
-│                         v                                           │
-│              EvaluationResult                                       │
-│              {ethos, logos, pathos, phronesis, flags,                │
-│               detected_indicators}                                  │
-└─────────────────────────┬───────────────────────────────────────────┘
-                          │
-          ┌───────────────┼──────────────────┐
-          │               │                  │
-          v               v                  v
-┌─────────────────┐  ┌─────────────┐  ┌──────────────────────┐
-│  LAYER 2:       │  │  Return to  │  │  LAYER 3:            │
-│  EPISODIC       │  │  caller     │  │  SEMANTIC             │
-│  MEMORY         │  │             │  │  MEMORY               │
-│  (Neo4j)        │  └─────────────┘  │  (Neo4j)              │
-│                 │                    │                        │
-│  Write new      │                    │  Pattern detection:    │
-│  Evaluation     │                    │  Do recent episodic    │
-│  node to graph  │                    │  records match any     │
-│                 │                    │  known Pattern nodes?  │
-│  (Agent)-[:EVAL │                    │                        │
-│  UATED]->(Eval) │                    │  (Agent)-[:MATCHES]    │
-│                 │                    │  ->(Pattern)           │
-│  (Eval)-[:DETEC │                    │                        │
-│  TED]->(Indicat │◄───────────────────┤  Update pattern match  │
-│  or)            │   episodic data    │  counts and stages     │
-│                 │   used for pattern │                        │
-│                 │   matching         │                        │
-└────────┬────────┘                    └──────────────────────┘
-         │
-         │  On next evaluate() call, this
-         │  episodic data feeds back into
-         │  working memory (if routing tier
-         │  triggers context lookup)
-         │
-         └──────────> [NEXT CALL: Working Memory reads from here]
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    CALL["evaluate() call"] --> MSG[Message arrives]
+
+    subgraph WM ["LAYER 1: WORKING MEMORY (ephemeral)"]
+        MSG --> KS[Keyword Scan]
+        KS --> RT["Routing Decision<br/>0 flags: Sonnet | 1-3: Focused<br/>4+: Opus | high: Opus+Neo4j"]
+        RT --> CTX["Claude Context Window<br/>System prompt + rubrics (SEMANTIC)<br/>Agent history context (EPISODIC)<br/>Current message + keyword flags (WORKING)"]
+        CTX --> COT["Chain-of-thought reasoning →<br/>12 trait scores"]
+        COT --> RES["EvaluationResult<br/>{ethos, logos, pathos, phronesis,<br/>flags, detected_indicators}"]
+    end
+
+    RES --> EP
+    RES --> RET
+    RES --> SM
+
+    subgraph EP ["LAYER 2: EPISODIC MEMORY (Neo4j)"]
+        WRITE["Write Evaluation node<br/>(Agent)-[:EVALUATED]->(Eval)<br/>(Eval)-[:DETECTED]->(Indicator)"]
+    end
+
+    RET[Return to caller]
+
+    subgraph SM ["LAYER 3: SEMANTIC MEMORY (Neo4j)"]
+        PAT["Pattern detection:<br/>Do recent episodic records<br/>match known Pattern nodes?<br/>(Agent)-[:MATCHES]->(Pattern)"]
+    end
+
+    PAT -- "episodic data used<br/>for pattern matching" --> WRITE
+    WRITE -. "Next call: episodic data<br/>feeds back into working memory<br/>(if routing triggers context lookup)" .-> CTX
 ```
 
 ### The Data Flow in Detail
 
-```
-READ PATH (informing the current evaluation):
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
 
-    Neo4j (semantic)  ─────> Rubrics, indicators, pattern defs
-                                  │
-                                  ├──> Claude's prompt (working memory)
-                                  │
-    Neo4j (episodic)  ─────> Agent history, trends, interaction records
-                                  │
-                                  └──> Claude's prompt (working memory)
+    subgraph READ ["Read Path (informing the current evaluation)"]
+        SEM_R["Neo4j (semantic)"] --> RUB["Rubrics, indicators,<br/>pattern definitions"]
+        EPI_R["Neo4j (episodic)"] --> HIST["Agent history, trends,<br/>interaction records"]
+        RUB --> PROMPT["Claude's prompt<br/>(working memory)"]
+        HIST --> PROMPT
+    end
 
+    subgraph WRITE ["Write Path (recording the result)"]
+        CLO["Claude output<br/>(working memory)"] --> EVAL["Evaluation node →<br/>Neo4j (new episodic memory)"]
+        CLO --> DET["DETECTED edges →<br/>Neo4j (links episodic to semantic)"]
+        CLO --> PATM["Pattern matching →<br/>Neo4j (links agent to patterns,<br/>semantic applied to episodic)"]
+    end
 
-WRITE PATH (recording the result):
-
-    Claude output (working memory)
-         │
-         ├──> Evaluation node    ──> Neo4j (new episodic memory)
-         │
-         ├──> DETECTED edges     ──> Neo4j (links episodic to semantic)
-         │
-         └──> Pattern matching   ──> Neo4j (links agent to patterns)
-                                     (semantic knowledge applied to
-                                      episodic history)
+    PROMPT --> CLO
 ```
 
 ---

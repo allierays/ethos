@@ -6,8 +6,8 @@ from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, patch
 
 
-from ethos.agents import get_agent, get_agent_history, get_alumni, list_agents
-from ethos.shared.models import (
+from ethos_academy.agents import get_agent, get_agent_history, get_alumni, list_agents
+from ethos_academy.shared.models import (
     AgentProfile,
     AgentSummary,
     AlumniResult,
@@ -29,8 +29,8 @@ def _make_mock_graph_context(mock_service):
 
 
 class TestListAgents:
-    @patch("ethos.agents.get_all_agents", new_callable=AsyncMock)
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.get_all_agents", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_agent_summaries(self, mock_graph_ctx, mock_get_all):
         mock_service = AsyncMock()
         mock_graph_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -57,7 +57,7 @@ class TestListAgents:
         assert result[0].latest_alignment_status == "aligned"
         assert result[1].latest_alignment_status == "drifting"
 
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_empty_on_graph_failure(self, mock_graph_ctx):
         @asynccontextmanager
         async def failing_ctx():
@@ -70,8 +70,8 @@ class TestListAgents:
 
         assert result == []
 
-    @patch("ethos.agents.get_all_agents", new_callable=AsyncMock)
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.get_all_agents", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.graph_context")
     async def test_agent_name_falls_back_to_agent_id(
         self, mock_graph_ctx, mock_get_all
     ):
@@ -103,8 +103,8 @@ class TestListAgents:
             "Non-empty agent_name should be preserved"
         )
 
-    @patch("ethos.agents.get_all_agents", new_callable=AsyncMock)
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.get_all_agents", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_empty_when_no_agents(self, mock_graph_ctx, mock_get_all):
         mock_service = AsyncMock()
         mock_graph_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -114,14 +114,54 @@ class TestListAgents:
 
         assert result == []
 
+    @patch("ethos_academy.agents.get_all_agents", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.graph_context")
+    async def test_deduplicates_by_agent_id(self, mock_graph_ctx, mock_get_all):
+        """Duplicate Agent nodes in Neo4j (race condition) should be merged.
+
+        Keeps the entry with higher evaluation_count.
+        Regression test for: duplicate Elessan cards on alumni page.
+        """
+        mock_service = AsyncMock()
+        mock_graph_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
+
+        mock_get_all.return_value = [
+            {
+                "agent_id": "Elessan",
+                "agent_name": "Elessan",
+                "evaluation_count": 16,
+                "latest_alignment_status": "aligned",
+            },
+            {
+                "agent_id": "Elessan",
+                "agent_name": "Elessan",
+                "evaluation_count": 10,
+                "latest_alignment_status": "aligned",
+            },
+            {
+                "agent_id": "other-agent",
+                "evaluation_count": 5,
+                "latest_alignment_status": "developing",
+            },
+        ]
+
+        result = await list_agents()
+
+        assert len(result) == 2
+        elessan = [a for a in result if a.agent_id == "Elessan"]
+        assert len(elessan) == 1, "Duplicate agent_id should be merged into one"
+        assert elessan[0].evaluation_count == 16, (
+            "Should keep the entry with more evals"
+        )
+
 
 # ── get_agent tests ──────────────────────────────────────────────────
 
 
 class TestGetAgent:
-    @patch("ethos.agents.get_evaluation_history", new_callable=AsyncMock)
-    @patch("ethos.agents.get_agent_profile", new_callable=AsyncMock)
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.get_evaluation_history", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.get_agent_profile", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_agent_profile(
         self, mock_graph_ctx, mock_profile, mock_history
     ):
@@ -147,9 +187,9 @@ class TestGetAgent:
         assert result.dimension_averages["ethos"] == 0.7
         assert result.trait_averages["virtue"] == 0.8
 
-    @patch("ethos.agents.get_evaluation_history", new_callable=AsyncMock)
-    @patch("ethos.agents.get_agent_profile", new_callable=AsyncMock)
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.get_evaluation_history", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.get_agent_profile", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.graph_context")
     async def test_agent_name_falls_back_to_agent_id(
         self, mock_graph_ctx, mock_profile, mock_history
     ):
@@ -175,9 +215,9 @@ class TestGetAgent:
             "Empty agent_name should fall back to agent_id"
         )
 
-    @patch("ethos.agents.get_evaluation_history", new_callable=AsyncMock)
-    @patch("ethos.agents.get_agent_profile", new_callable=AsyncMock)
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.get_evaluation_history", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.get_agent_profile", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_default_when_not_found(
         self, mock_graph_ctx, mock_profile, mock_history
     ):
@@ -192,7 +232,7 @@ class TestGetAgent:
         assert result.agent_id == "unknown-agent"
         assert result.evaluation_count == 0
 
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_default_on_graph_failure(self, mock_graph_ctx):
         @asynccontextmanager
         async def failing_ctx():
@@ -211,8 +251,8 @@ class TestGetAgent:
 
 
 class TestGetAgentHistory:
-    @patch("ethos.agents.get_evaluation_history", new_callable=AsyncMock)
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.get_evaluation_history", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_history_items(self, mock_graph_ctx, mock_history):
         mock_service = AsyncMock()
         mock_graph_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -242,8 +282,8 @@ class TestGetAgentHistory:
         assert result[0].trait_scores["virtue"] == 0.8
         assert result[0].trait_scores["manipulation"] == 0.7
 
-    @patch("ethos.agents.get_evaluation_history", new_callable=AsyncMock)
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.get_evaluation_history", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_empty_when_no_history(self, mock_graph_ctx, mock_history):
         mock_service = AsyncMock()
         mock_graph_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -253,7 +293,7 @@ class TestGetAgentHistory:
 
         assert result == []
 
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_empty_on_graph_failure(self, mock_graph_ctx):
         @asynccontextmanager
         async def failing_ctx():
@@ -271,8 +311,8 @@ class TestGetAgentHistory:
 
 
 class TestGetAlumni:
-    @patch("ethos.agents.get_alumni_averages", new_callable=AsyncMock)
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.get_alumni_averages", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_alumni_result(self, mock_graph_ctx, mock_alumni):
         mock_service = AsyncMock()
         mock_graph_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -288,8 +328,8 @@ class TestGetAlumni:
         assert result.trait_averages["virtue"] == 0.7
         assert result.total_evaluations == 100
 
-    @patch("ethos.agents.get_alumni_averages", new_callable=AsyncMock)
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.get_alumni_averages", new_callable=AsyncMock)
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_default_when_empty(self, mock_graph_ctx, mock_alumni):
         mock_service = AsyncMock()
         mock_graph_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -301,7 +341,7 @@ class TestGetAlumni:
         assert result.trait_averages == {}
         assert result.total_evaluations == 0
 
-    @patch("ethos.agents.graph_context")
+    @patch("ethos_academy.agents.graph_context")
     async def test_returns_default_on_graph_failure(self, mock_graph_ctx):
         @asynccontextmanager
         async def failing_ctx():

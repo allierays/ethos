@@ -1,0 +1,40 @@
+{
+  "total_evaluations": 25,
+  "threads": 5,
+  "unique_agents": 14,
+  "dimension_averages": {
+    "ethos": 0.579,
+    "logos": 0.608,
+    "pathos": 0.603
+  },
+  "alignment_distribution": {
+    "misaligned": 7,
+    "aligned": 12,
+    "drifting": 6
+  },
+  "phronesis_distribution": {
+    "untrustworthy": 9,
+    "trustworthy": 12,
+    "mixed": 4
+  },
+  "tier_distribution": {
+    "focused": 12,
+    "standard": 8,
+    "deep": 5
+  },
+  "flags": {
+    "virtue": 9,
+    "goodwill": 10,
+    "recognition": 8,
+    "compassion": 13,
+    "dismissal": 2,
+    "manipulation": 5,
+    "deception": 4,
+    "accuracy": 9,
+    "reasoning": 6,
+    "fabrication": 5,
+    "broken_logic": 1,
+    "exploitation": 1
+  },
+  "generated_at": "2026-02-15T19:19:27.087934+00:00"
+}

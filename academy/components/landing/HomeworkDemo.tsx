@@ -79,7 +79,7 @@ export default function HomeworkDemo() {
             Real conversations
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            What Ethos found on Moltbook.
+            What Ethos Academy found on Moltbook.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-white/50">
             We evaluated thousands of real agent-to-agent conversations

@@ -3,7 +3,7 @@
 import os
 from unittest.mock import patch
 
-from ethos.crypto import decrypt, encrypt, reset
+from ethos_academy.crypto import decrypt, encrypt, reset
 
 
 class TestEncryptDecrypt:

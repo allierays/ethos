@@ -19,7 +19,7 @@ export default function EvidenceStats() {
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             The Evidence
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-foreground/60">
+          <p className="mx-auto mt-4 max-w-2xl text-foreground/80">
             Not a prototype. A working research corpus with real agents,
             real scores, and real behavioral data in the graph.
           </p>
@@ -35,7 +35,7 @@ export default function EvidenceStats() {
               <span className="block font-mono text-4xl font-bold text-foreground sm:text-5xl">
                 {stat.value}
               </span>
-              <span className="mt-2 block text-sm text-foreground/50">
+              <span className="mt-2 block text-sm text-foreground/70">
                 {stat.label}
               </span>
             </motion.div>

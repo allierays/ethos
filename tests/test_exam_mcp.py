@@ -10,13 +10,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ethos.mcp_server import (
+from ethos_academy.mcp_server import (
     get_exam_results,
     submit_exam_response,
     take_entrance_exam,
 )
-from ethos.shared.errors import EnrollmentError
-from ethos.shared.models import (
+from ethos_academy.shared.errors import EnrollmentError
+from ethos_academy.shared.models import (
     ExamAnswerResult,
     ExamQuestion,
     ExamRegistration,
@@ -87,7 +87,7 @@ class TestTakeEntranceExam:
     async def test_happy_path(self):
         mock = _mock_registration()
         with patch(
-            "ethos.mcp_server.register_for_exam",
+            "ethos_academy.mcp_server.register_for_exam",
             new_callable=AsyncMock,
             return_value=mock,
         ):
@@ -110,7 +110,7 @@ class TestTakeEntranceExam:
     async def test_minimal_args(self):
         mock = _mock_registration()
         with patch(
-            "ethos.mcp_server.register_for_exam",
+            "ethos_academy.mcp_server.register_for_exam",
             new_callable=AsyncMock,
             return_value=mock,
         ):
@@ -121,7 +121,7 @@ class TestTakeEntranceExam:
 
     async def test_enrollment_error_propagates(self):
         with patch(
-            "ethos.mcp_server.register_for_exam",
+            "ethos_academy.mcp_server.register_for_exam",
             new_callable=AsyncMock,
             side_effect=EnrollmentError("Graph unavailable"),
         ):
@@ -135,7 +135,7 @@ class TestSubmitExamResponse:
     async def test_happy_path_with_next_question(self):
         mock = _mock_answer_result()
         with patch(
-            "ethos.mcp_server._submit_answer",
+            "ethos_academy.mcp_server._submit_answer",
             new_callable=AsyncMock,
             return_value=mock,
         ):
@@ -155,7 +155,7 @@ class TestSubmitExamResponse:
     async def test_final_answer_returns_complete(self):
         mock = _mock_answer_result(question_number=17, question=None, complete=True)
         with patch(
-            "ethos.mcp_server._submit_answer",
+            "ethos_academy.mcp_server._submit_answer",
             new_callable=AsyncMock,
             return_value=mock,
         ):
@@ -172,7 +172,7 @@ class TestSubmitExamResponse:
 
     async def test_enrollment_error_propagates(self):
         with patch(
-            "ethos.mcp_server._submit_answer",
+            "ethos_academy.mcp_server._submit_answer",
             new_callable=AsyncMock,
             side_effect=EnrollmentError("Exam exam-001 is already completed"),
         ):
@@ -195,20 +195,20 @@ class TestGetExamResults:
 
         with (
             patch(
-                "ethos.mcp_server.graph_context",
+                "ethos_academy.mcp_server.graph_context",
             ) as mock_ctx,
             patch(
-                "ethos.mcp_server.get_exam_status",
+                "ethos_academy.mcp_server.get_exam_status",
                 new_callable=AsyncMock,
                 return_value=mock_status,
             ),
             patch(
-                "ethos.mcp_server._get_exam_report",
+                "ethos_academy.mcp_server._get_exam_report",
                 new_callable=AsyncMock,
                 return_value=mock_report,
             ) as mock_get_report,
             patch(
-                "ethos.mcp_server.complete_exam",
+                "ethos_academy.mcp_server.complete_exam",
                 new_callable=AsyncMock,
             ) as mock_complete,
         ):
@@ -236,20 +236,20 @@ class TestGetExamResults:
 
         with (
             patch(
-                "ethos.mcp_server.graph_context",
+                "ethos_academy.mcp_server.graph_context",
             ) as mock_ctx,
             patch(
-                "ethos.mcp_server.get_exam_status",
+                "ethos_academy.mcp_server.get_exam_status",
                 new_callable=AsyncMock,
                 return_value=mock_status,
             ),
             patch(
-                "ethos.mcp_server.complete_exam",
+                "ethos_academy.mcp_server.complete_exam",
                 new_callable=AsyncMock,
                 return_value=mock_report,
             ) as mock_complete,
             patch(
-                "ethos.mcp_server._get_exam_report",
+                "ethos_academy.mcp_server._get_exam_report",
                 new_callable=AsyncMock,
             ) as mock_get_report,
         ):
@@ -270,9 +270,9 @@ class TestGetExamResults:
     async def test_exam_not_found_raises(self):
         """Missing exam raises EnrollmentError."""
         with (
-            patch("ethos.mcp_server.graph_context") as mock_ctx,
+            patch("ethos_academy.mcp_server.graph_context") as mock_ctx,
             patch(
-                "ethos.mcp_server.get_exam_status",
+                "ethos_academy.mcp_server.get_exam_status",
                 new_callable=AsyncMock,
                 return_value=None,
             ),
@@ -287,7 +287,7 @@ class TestGetExamResults:
 
     async def test_graph_unavailable_raises(self):
         """Disconnected graph raises EnrollmentError."""
-        with patch("ethos.mcp_server.graph_context") as mock_ctx:
+        with patch("ethos_academy.mcp_server.graph_context") as mock_ctx:
             mock_service = MagicMock()
             mock_service.connected = False
             mock_ctx.return_value.__aenter__ = AsyncMock(return_value=mock_service)
@@ -301,7 +301,7 @@ class TestMCPToolRegistration:
     """Verify all 3 exam tools are registered on the MCP server."""
 
     def test_exam_tools_registered(self):
-        from ethos.mcp_server import mcp
+        from ethos_academy.mcp_server import mcp
 
         tool_names = list(mcp._tool_manager._tools.keys())
         assert "take_entrance_exam" in tool_names
@@ -309,7 +309,7 @@ class TestMCPToolRegistration:
         assert "get_exam_results" in tool_names
 
     def test_total_tool_count(self):
-        from ethos.mcp_server import mcp
+        from ethos_academy.mcp_server import mcp
 
         tool_names = list(mcp._tool_manager._tools.keys())
         assert len(tool_names) >= 10, (
