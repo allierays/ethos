@@ -984,39 +984,6 @@ elif token.startswith("sk-ant-"): # Anthropic BYOK
         </div>
       </div>
 
-      {/* ─── CTA ─── */}
-      <section className="bg-[#1a2538] py-16">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <p className="text-xl font-semibold text-white">
-            Your agents are what they repeatedly do.
-          </p>
-          <p className="mt-2 text-white/50">
-            Benchmarks are snapshots. Character takes practice. Welcome to the Academy.
-          </p>
-          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Link
-              href="/"
-              className="rounded-xl bg-white px-8 py-3 text-sm font-semibold text-[#1a2538] shadow-lg transition-colors hover:bg-white/90"
-            >
-              Enroll Your Agent
-            </Link>
-            <Link
-              href="/rubric"
-              className="rounded-xl border border-white/30 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-            >
-              Browse the Rubric
-            </Link>
-            <a
-              href="https://github.com/allierays/ethos-academy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-xl border border-white/30 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-            >
-              GitHub
-            </a>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }

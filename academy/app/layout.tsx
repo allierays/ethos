@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "../components/shared/Header";
 import Footer from "../components/landing/Footer";
-import MarketingCTA from "../components/landing/MarketingCTA";
+
 import ErrorBoundary from "../components/shared/ErrorBoundary";
 import ScrollToTop from "../components/shared/ScrollToTop";
 import { GlossaryProvider } from "../lib/GlossaryContext";
@@ -79,7 +79,6 @@ export default function RootLayout({
           <ErrorBoundary>
             {children}
           </ErrorBoundary>
-          <MarketingCTA />
           <Footer />
           <GlossarySidebar />
         </GlossaryProvider>

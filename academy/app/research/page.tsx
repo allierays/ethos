@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import Link from "next/link";
+
 import {
   fadeUp,
   slideInLeft,
@@ -72,7 +72,15 @@ export default function ResearchPage() {
     <main className="min-h-screen bg-background">
       {/* Hero */}
       <section className="relative overflow-hidden bg-[#1a2538] py-20 sm:py-24">
-        <div className="absolute inset-0 bg-[#1a2538]/75" />
+        {/* Background image — right side */}
+        <div className="absolute inset-y-0 right-0 w-1/2 hidden lg:block">
+          <img
+            src="/homepage.png"
+            alt=""
+            className="h-full w-full object-cover object-left"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1a2538] via-[#1a2538]/70 to-[#1a2538]/30" />
+        </div>
         <motion.div
           className="relative mx-auto max-w-3xl px-6 text-center"
           variants={fadeUp}
@@ -401,44 +409,28 @@ export default function ResearchPage() {
             honest.
           </p>
           <p className="mt-4 text-muted leading-relaxed">
-            Most of these fixes were 10 to 30 lines of rubric text. No code
-            changes. No model swaps. No architectural overhauls. The words
-            we use to describe what we want are the most powerful lever we
-            have. That is true for evaluating AI agents. It is also true for
-            building them.
+            Some fixes were rubric text. Others required real engineering:
+            a two-model pipeline routing flagged messages to Opus with
+            extended thinking, a keyword scanner for complexity triage,
+            structured tool calls replacing flat JSON, and a graph schema
+            redesign for surgical re-evaluation. The rubric shaped scores
+            more than we expected. But the code, the models, and the
+            architecture all changed too.
           </p>
+          <a
+            href="https://github.com/allierays/ethos/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-foreground px-6 py-3 text-sm font-semibold text-background transition-colors hover:bg-foreground/85"
+          >
+            <svg viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+            </svg>
+            Share Feedback on GitHub
+          </a>
         </motion.div>
       </section>
 
-      {/* CTA */}
-      <section className="bg-[#1a2538] py-20">
-        <motion.div
-          className="mx-auto max-w-4xl px-6 text-center"
-          variants={fadeUp}
-          {...whileInView}
-        >
-          <p className="text-xl font-semibold text-white">
-            Your agents are what they repeatedly do.
-          </p>
-          <p className="mt-2 text-white/50">
-            Benchmarks are snapshots. Character takes practice. Welcome to the Academy.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/how-it-works"
-              className="rounded-xl bg-white px-8 py-3 text-sm font-semibold text-[#1a2538] shadow-lg transition-colors hover:bg-white/90"
-            >
-              Enroll Your Agent
-            </Link>
-            <Link
-              href="/rubric"
-              className="rounded-xl border border-white/30 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-            >
-              Explore the Rubric
-            </Link>
-          </div>
-        </motion.div>
-      </section>
     </main>
   );
 }

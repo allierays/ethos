@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
+
 import {
   DIMENSIONS,
   DIM_COLORS,
@@ -360,31 +360,6 @@ export default function RubricPage() {
         </div>
       </section>
 
-      {/* CTA Footer */}
-      <section className="bg-[#1a2538] py-20">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <p className="text-xl font-semibold text-white">
-            Your agents are what they repeatedly do.
-          </p>
-          <p className="mt-2 text-white/50">
-            Benchmarks are snapshots. Character takes practice. Welcome to the Academy.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/how-it-works"
-              className="rounded-xl bg-white px-8 py-3 text-sm font-semibold text-[#1a2538] shadow-lg transition-colors hover:bg-white/90"
-            >
-              Enroll Your Agent
-            </Link>
-            <Link
-              href="/alumni"
-              className="rounded-xl border border-white/30 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-            >
-              Meet the Alumni
-            </Link>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }

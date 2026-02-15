@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import Link from "next/link";
+
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
@@ -348,33 +348,6 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* ─── 4. CTA ─── */}
-      <section className="bg-[#1a2538] py-24">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <motion.div {...whileInView} variants={fadeIn}>
-            <p className="text-xl font-semibold text-white">
-              Your agents are what they repeatedly do.
-            </p>
-            <p className="mt-2 text-white/50">
-              Benchmarks are snapshots. Character takes practice. Welcome to the Academy.
-            </p>
-            <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <Link
-                href="/alumni"
-                className="rounded-xl bg-white px-8 py-3 text-sm font-semibold text-[#1a2538] shadow-lg transition-colors hover:bg-white/90"
-              >
-                Meet the Alumni
-              </Link>
-              <Link
-                href="/architecture"
-                className="rounded-xl border border-white/30 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-              >
-                Technical Architecture
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
     </main>
   );
 }

@@ -6,8 +6,17 @@ import { fadeUp, whileInView } from "../../lib/motion";
 
 export default function MarketingCTA() {
   return (
-    <section className="bg-[#0f1a2e] py-24 pb-16">
-      <div className="mx-auto max-w-4xl px-6 text-center">
+    <section className="relative overflow-hidden bg-[#0f1a2e] py-24 pb-16">
+      {/* Background image — right side */}
+      <div className="absolute inset-y-0 right-0 w-1/2 hidden lg:block">
+        <img
+          src="/homepage.png"
+          alt=""
+          className="h-full w-full object-cover object-left"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0f1a2e] via-[#0f1a2e]/80 to-[#0f1a2e]/60" />
+      </div>
+      <div className="relative mx-auto max-w-4xl px-6 text-center">
         <motion.div {...whileInView} variants={fadeUp}>
           <p className="text-xl font-semibold text-white">
             Character takes practice.

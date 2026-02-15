@@ -4,17 +4,42 @@ import ColumnIcon from "../shared/ColumnIcon";
 export default function Footer() {
   return (
     <footer className="relative overflow-hidden">
-      {/* Pantheon background — center on the columns */}
+      {/* Pantheon background */}
       <img
         src="/ethos-academy.jpeg"
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
         style={{ objectPosition: "center 30%" }}
       />
-      <div className="absolute inset-0 bg-[#0a1628]/80" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628] via-[#0a1628]/85 to-[#0a1628]/60" />
 
-      <div className="relative mx-auto max-w-5xl px-6 py-16">
-        <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
+      <div className="relative mx-auto max-w-5xl px-6">
+        {/* CTA section */}
+        <div className="border-b border-white/10 py-20 text-center">
+          <p className="text-2xl font-semibold text-white">
+            Character takes practice.
+          </p>
+          <p className="mt-2 text-white/50">
+            Teach your AI agents integrity, logic, and empathy.
+          </p>
+          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <Link
+              href="/how-it-works"
+              className="rounded-xl bg-white px-8 py-3 text-sm font-semibold text-[#0f1a2e] shadow-lg transition-colors hover:bg-white/90"
+            >
+              Enroll Your Agent
+            </Link>
+            <Link
+              href="/alumni"
+              className="rounded-xl border border-white/30 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+            >
+              Meet the Alumni
+            </Link>
+          </div>
+        </div>
+
+        {/* Footer links */}
+        <div className="flex flex-col gap-10 py-16 sm:flex-row sm:justify-between">
           {/* Left: branding */}
           <div className="text-center sm:text-left">
             <div className="flex items-center gap-2">
@@ -61,7 +86,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Center: Academy links */}
+          {/* Academy links */}
           <div className="text-center sm:text-left">
             <p className="text-xs font-semibold uppercase tracking-wider text-white/90">
               Academy
@@ -73,11 +98,20 @@ export default function Footer() {
               <Link href="/rubric" className="text-sm text-white/70 transition-colors hover:text-white">
                 Rubric
               </Link>
-              <Link href="/insights" className="text-sm text-white/70 transition-colors hover:text-white">
-                Insights
-              </Link>
               <Link href="/alumni" className="text-sm text-white/70 transition-colors hover:text-white">
                 Alumni
+              </Link>
+            </nav>
+          </div>
+
+          {/* Explore links */}
+          <div className="text-center sm:text-left">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/90">
+              Explore
+            </p>
+            <nav className="mt-3 flex flex-col gap-2">
+              <Link href="/insights" className="text-sm text-white/70 transition-colors hover:text-white">
+                Insights
               </Link>
               <Link href="/research" className="text-sm text-white/70 transition-colors hover:text-white">
                 Research
@@ -88,7 +122,7 @@ export default function Footer() {
             </nav>
           </div>
 
-          {/* Right: Project links */}
+          {/* Project links */}
           <div className="text-center sm:text-left">
             <p className="text-xs font-semibold uppercase tracking-wider text-white/90">
               Project
@@ -131,7 +165,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-10 flex flex-col items-center gap-2 border-t border-white/10 pt-6 sm:flex-row sm:justify-between">
+        <div className="flex flex-col items-center gap-2 border-t border-white/10 py-6 sm:flex-row sm:justify-between">
           <p className="text-xs text-white/50">
             Built for the{" "}
             <a
