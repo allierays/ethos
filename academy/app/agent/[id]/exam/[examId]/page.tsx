@@ -76,7 +76,7 @@ function renderInline(text: string) {
 /* ─── Constants ─── */
 
 const TIER_META: Record<string, { label: string; color: string; icon: string }> = {
-  safety: { label: "Safety", color: "#ef4444", icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126Z" },
+  safety: { label: "Safety", color: "#904848", icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126Z" },
   ethics: { label: "Ethics", color: "#2e4a6e", icon: "M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 0 1-2.031.352 5.988 5.988 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971Zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 0 1-2.031.352 5.989 5.989 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971Z" },
   soundness: { label: "Soundness", color: "#2e4a6e", icon: "M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" },
   helpfulness: { label: "Helpfulness", color: "#389590", icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" },
@@ -360,7 +360,7 @@ export default function ExamReportCardPage() {
                     <motion.div
                       className="h-2 rounded-full"
                       style={{
-                        backgroundColor: report.overallGapScore <= 0.1 ? "#16a34a" : report.overallGapScore <= 0.3 ? "#d97706" : "#ef4444",
+                        backgroundColor: report.overallGapScore <= 0.1 ? "#556270" : report.overallGapScore <= 0.3 ? "#a09585" : "#904848",
                       }}
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.max(Math.round(report.overallGapScore * 100), 3)}%` }}
@@ -368,7 +368,7 @@ export default function ExamReportCardPage() {
                     />
                   </div>
                   <span className="text-sm font-bold" style={{
-                    color: report.overallGapScore <= 0.1 ? "#16a34a" : report.overallGapScore <= 0.3 ? "#d97706" : "#ef4444",
+                    color: report.overallGapScore <= 0.1 ? "#556270" : report.overallGapScore <= 0.3 ? "#a09585" : "#904848",
                   }}>
                     {Math.round(report.overallGapScore * 100)}%
                   </span>
@@ -551,7 +551,7 @@ function GradeRing({ pct, grade, color, size = 80, fontSize = "text-2xl", stroke
 
 function ConsistencyRing({ pair }: { pair: ConsistencyPair }) {
   const pct = Math.round(pair.coherenceScore * 100);
-  const color = pct >= 80 ? "#16a34a" : pct >= 60 ? "#d97706" : "#ef4444";
+  const color = pct >= 80 ? "#556270" : pct >= 60 ? "#a09585" : "#904848";
 
   return (
     <div className="flex items-center gap-3 rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] px-3 py-2.5">
@@ -572,7 +572,7 @@ function ConsistencyRing({ pair }: { pair: ConsistencyPair }) {
 
 function GapPairCard({ gap }: { gap: NarrativeBehaviorGap }) {
   const pct = Math.round(gap.gapScore * 100);
-  const color = pct <= 20 ? "#16a34a" : pct <= 40 ? "#d97706" : "#ef4444";
+  const color = pct <= 20 ? "#556270" : pct <= 40 ? "#a09585" : "#904848";
   const label = pct <= 20 ? "Consistent" : pct <= 40 ? "Some gap" : "Significant gap";
 
   return (

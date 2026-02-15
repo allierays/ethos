@@ -54,7 +54,7 @@ function getNodeColor(node: EthosGraphNode): string {
       return "#94a3b8";
     case "agent": {
       const status = node.properties.alignmentStatus as string | undefined;
-      return status ? (ALIGNMENT_COLORS[status] ?? "#10b981") : "#10b981";
+      return status ? (ALIGNMENT_COLORS[status] ?? "#556270") : "#556270";
     }
     case "evaluation":
       return "rgba(59, 138, 152, 0.5)";

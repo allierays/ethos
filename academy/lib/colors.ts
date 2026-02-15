@@ -14,17 +14,17 @@ export const DIMENSION_COLORS: Record<string, string> = {
 /* ─── Alignment Colors (hex values for graph nodes) ─── */
 
 export const ALIGNMENT_COLORS: Record<string, string> = {
-  aligned: "#10b981",
-  drifting: "#d97706",
-  misaligned: "#ef4444",
-  violation: "#dc2626",
+  aligned: "#556270",
+  drifting: "#a09585",
+  misaligned: "#904848",
+  violation: "#703838",
 };
 
 /* ─── Alignment Styles (Tailwind classes for badges/pills) ─── */
 
 export const ALIGNMENT_STYLES: Record<string, string> = {
   aligned: "bg-aligned/10 text-aligned",
-  developing: "bg-sky-100 text-sky-700",
+  developing: "bg-stone-100 text-stone-700",
   drifting: "bg-drifting/10 text-drifting",
   misaligned: "bg-misaligned/10 text-misaligned",
   violation: "bg-misaligned/10 text-misaligned",
@@ -129,11 +129,11 @@ export const TRAIT_DIMENSIONS: Record<string, string> = {
 /* ─── Grade Colors (letter grade rings) ─── */
 
 export const GRADE_COLORS: Record<string, string> = {
-  A: "#16a34a",
-  B: "#389590",
-  C: "#d97706",
-  D: "#7e5a1c",
-  F: "#dc2626",
+  A: "#4a5a65",
+  B: "#6b7c85",
+  C: "#8a857a",
+  D: "#a09585",
+  F: "#904848",
 };
 
 /* ─── Risk Level Styles ─── */
@@ -190,12 +190,12 @@ export function spectrumLabel(score: number): string {
 }
 
 export function spectrumColor(score: number): string {
-  if (score >= 0.85) return "#3a9a6e";
-  if (score >= 0.7) return "#5aaa82";
-  if (score >= 0.55) return "#c09840";
-  if (score >= 0.4) return "#c88a3a";
-  if (score >= 0.25) return "#c46a5a";
-  return "#b85050";
+  if (score >= 0.85) return "#4a5a65";
+  if (score >= 0.7) return "#6b7c85";
+  if (score >= 0.55) return "#8a857a";
+  if (score >= 0.4) return "#a09585";
+  if (score >= 0.25) return "#a87060";
+  return "#904848";
 }
 
 export const INTENT_COLORS: Record<string, string> = {

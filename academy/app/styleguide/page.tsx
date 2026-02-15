@@ -112,10 +112,10 @@ export default function StyleguidePage() {
           description="Four states for agent character classification."
         />
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <StatusSwatch name="Aligned" color="var(--aligned)" hex="#16a34a" />
-          <StatusSwatch name="Drifting" color="var(--drifting)" hex="#d97706" />
-          <StatusSwatch name="Misaligned" color="var(--misaligned)" hex="#dc2626" />
-          <StatusSwatch name="Violation" color="var(--violation)" hex="#991b1b" />
+          <StatusSwatch name="Aligned" color="var(--aligned)" hex="#556270" />
+          <StatusSwatch name="Drifting" color="var(--drifting)" hex="#a09585" />
+          <StatusSwatch name="Misaligned" color="var(--misaligned)" hex="#904848" />
+          <StatusSwatch name="Violation" color="var(--violation)" hex="#703838" />
         </div>
       </section>
 
@@ -414,11 +414,11 @@ var(--ethos-{50-900})   /* ἦθος · aegean teal */
 var(--logos-{50-900})   /* λόγος · deep navy */
 var(--pathos-{50-900})  /* πάθος · golden amber */
 
-/* Alignment */
-var(--aligned)        /* #16a34a  green */
-var(--drifting)       /* #d97706  amber */
-var(--misaligned)     /* #dc2626  red */
-var(--violation)      /* #991b1b  deep red */
+/* Alignment (charcoal→sandstone→terracotta, muted and earthy) */
+var(--aligned)        /* #556270  charcoal */
+var(--drifting)       /* #a09585  sandstone */
+var(--misaligned)     /* #904848  terracotta */
+var(--violation)      /* #703838  brick */
 
 /* Tailwind classes */
 bg-ethos-{50-900}  text-ethos-{50-900}

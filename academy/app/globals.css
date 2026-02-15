@@ -65,11 +65,11 @@
   --pathos-800: #654818;
   --pathos-900: #513a14;
 
-  /* ─── Alignment status ─── */
-  --aligned: #16a34a;
-  --drifting: #d97706;
-  --misaligned: #dc2626;
-  --violation: #991b1b;
+  /* ─── Alignment status (cool charcoal→warm sandstone→terracotta, muted and earthy) ─── */
+  --aligned: #556270;
+  --drifting: #a09585;
+  --misaligned: #904848;
+  --violation: #703838;
 
   /* ─── Glassmorphism ─── */
   --glass-bg: rgba(255, 255, 255, 0.12);

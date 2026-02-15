@@ -354,15 +354,15 @@ function GraphLegend({ stats }: {
           <span className="text-[10px] uppercase tracking-wider text-gray-400">Agent Score</span>
           <div className="flex items-center gap-2 text-[10px]">
             <span className="flex items-center gap-1">
-              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#3a9a6e" }} />
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#4a5a65" }} />
               Exemplary
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#c09840" }} />
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#8a857a" }} />
               Developing
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#b85050" }} />
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#904848" }} />
               Concerning
             </span>
           </div>

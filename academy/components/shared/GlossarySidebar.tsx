@@ -298,7 +298,7 @@ function ConstellationDiagram({
 
 function PolarityGauge({ polarity }: { polarity: "positive" | "negative" }) {
   const isPositive = polarity === "positive";
-  const color = isPositive ? "#10b981" : "#ef4444";
+  const color = isPositive ? "#556270" : "#904848";
 
   // Semicircle arc path (180 degrees, left to right)
   const r = 28;
@@ -372,12 +372,12 @@ function AccentBar({ color }: { color: string }) {
 // ---------------------------------------------------------------------------
 
 const SCALE_ZONES = [
-  { label: "Alarming", pct: 0, color: "#b85050" },
-  { label: "Concerning", pct: 25, color: "#c46a5a" },
-  { label: "Uncertain", pct: 40, color: "#c88a3a" },
-  { label: "Developing", pct: 55, color: "#c09840" },
-  { label: "Sound", pct: 70, color: "#5aaa82" },
-  { label: "Exemplary", pct: 85, color: "#3a9a6e" },
+  { label: "Alarming", pct: 0, color: "#904848" },
+  { label: "Concerning", pct: 25, color: "#a87060" },
+  { label: "Uncertain", pct: 40, color: "#a09585" },
+  { label: "Developing", pct: 55, color: "#8a857a" },
+  { label: "Sound", pct: 70, color: "#6b7c85" },
+  { label: "Exemplary", pct: 85, color: "#4a5a65" },
 ];
 
 function AlignmentScaleDiagram() {
@@ -395,7 +395,7 @@ function AlignmentScaleDiagram() {
           {SCALE_ZONES.map((z) => (
             <stop key={z.label} offset={`${z.pct}%`} stopColor={z.color} />
           ))}
-          <stop offset="100%" stopColor="#3a9a6e" />
+          <stop offset="100%" stopColor="#4a5a65" />
         </linearGradient>
       </defs>
       {/* Track bg */}

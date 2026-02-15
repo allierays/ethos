@@ -24,10 +24,10 @@ function dimColor(trait: string): string {
 /* ─── Priority colors (border-left + badge) ─── */
 
 const PRIORITY_COLORS: Record<number, string> = {
-  1: "#ef4444",
-  2: "#d97706",
-  3: "#10b981",
-  4: "#389590",
+  1: "#904848",
+  2: "#a87060",
+  3: "#556270",
+  4: "#2e4a6e",
 };
 
 function priorityColor(p: number): string {
