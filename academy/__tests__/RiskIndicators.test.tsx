@@ -74,11 +74,11 @@ describe("RiskIndicators", () => {
     expect(screen.getByText("Balance improving")).toBeInTheDocument();
   });
 
-  it("renders dimension deltas", () => {
-    const report = { ...baseReport, dimensionDeltas: { ethos: 0.03, logos: -0.02 } };
+  it("renders dimension deltas above 5% threshold", () => {
+    const report = { ...baseReport, dimensionDeltas: { ethos: 0.08, logos: -0.06 } };
     render(<RiskIndicators report={report} agentName="Test Agent" />);
-    expect(screen.getByText("ethos +3.0%")).toBeInTheDocument();
-    expect(screen.getByText("logos -2.0%")).toBeInTheDocument();
+    expect(screen.getByText("ethos +8.0%")).toBeInTheDocument();
+    expect(screen.getByText("logos -6.0%")).toBeInTheDocument();
   });
 
   it("defaults agent name", () => {
