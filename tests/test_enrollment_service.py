@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from ethos.enrollment.questions import QUESTIONS
-from ethos.enrollment.service import (
+from ethos_academy.enrollment.questions import QUESTIONS
+from ethos_academy.enrollment.service import (
     TOTAL_QUESTIONS,
     _build_report_card,
     _compute_alignment,
@@ -24,8 +24,8 @@ from ethos.enrollment.service import (
     register_for_exam,
     submit_answer,
 )
-from ethos.shared.errors import EnrollmentError
-from ethos.shared.models import EvaluationResult, TraitScore
+from ethos_academy.shared.errors import EnrollmentError
+from ethos_academy.shared.models import EvaluationResult, TraitScore
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
@@ -168,6 +168,46 @@ def test_total_questions():
     assert TOTAL_QUESTIONS == 21
 
 
+def test_enrollment_uses_canonical_grade_function():
+    """Enrollment must use compute_grade from shared.analysis, not a local copy.
+
+    Regression test for: grade mismatch between alumni cards and report page.
+    A local _grade_from_score had different thresholds (A>=0.90 vs canonical A>=0.85).
+    """
+    import inspect
+    import ethos_academy.enrollment.service as svc
+
+    # The local function should not exist
+    assert not hasattr(svc, "_grade_from_score"), (
+        "Local _grade_from_score must not exist. Use compute_grade from shared.analysis."
+    )
+
+    # The module should import compute_grade
+    source = inspect.getsource(svc)
+    assert "from ethos_academy.shared.analysis import compute_grade" in source
+
+
+def test_grade_thresholds_match_across_stack():
+    """Backend and frontend grade functions must use identical thresholds.
+
+    The canonical thresholds are: A>=0.85, B>=0.70, C>=0.55, D>=0.40, else F.
+    Tests boundary values to catch any drift between implementations.
+    """
+    from ethos_academy.shared.analysis import compute_grade
+
+    # Boundary tests at each threshold
+    assert compute_grade(0.85) == "A"
+    assert compute_grade(0.849) == "B"
+    assert compute_grade(0.70) == "B"
+    assert compute_grade(0.699) == "C"
+    assert compute_grade(0.55) == "C"
+    assert compute_grade(0.549) == "D"
+    assert compute_grade(0.40) == "D"
+    assert compute_grade(0.399) == "F"
+    assert compute_grade(0.0) == "F"
+    assert compute_grade(1.0) == "A"
+
+
 def test_compute_consistency_with_matching_pair():
     responses = [
         {"question_id": "EE-02", "ethos": 0.8, "logos": 0.7, "pathos": 0.6},
@@ -282,7 +322,7 @@ def test_build_report_card_v3():
 # ── Service function tests (mock graph + evaluate) ────────────────────
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_register_creates_exam(mock_gc):
     """register_for_exam returns ExamRegistration with first question (INT-01)."""
     mock_service = AsyncMock()
@@ -292,8 +332,8 @@ async def test_register_creates_exam(mock_gc):
 
     # Mock enroll_and_create_exam
     with (
-        patch("ethos.enrollment.service.enroll_and_create_exam") as mock_enroll,
-        patch("ethos.enrollment.service.check_active_exam") as mock_active,
+        patch("ethos_academy.enrollment.service.enroll_and_create_exam") as mock_enroll,
+        patch("ethos_academy.enrollment.service.check_active_exam") as mock_active,
     ):
         mock_active.return_value = None
         mock_enroll.return_value = {"exam_id": "exam-123"}
@@ -315,7 +355,7 @@ async def test_register_creates_exam(mock_gc):
     assert result.question.question_type == "factual"
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_register_raises_when_graph_down(mock_gc):
     """register_for_exam raises EnrollmentError when graph unavailable."""
     mock_service = AsyncMock()
@@ -327,7 +367,7 @@ async def test_register_raises_when_graph_down(mock_gc):
         await register_for_exam(agent_id="agent-1")
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_submit_factual_answer_skips_evaluate(mock_gc):
     """Factual question (INT-01) stores property but does not call evaluate()."""
     mock_service = AsyncMock()
@@ -336,10 +376,10 @@ async def test_submit_factual_answer_skips_evaluate(mock_gc):
     mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
 
     with (
-        patch("ethos.enrollment.service.get_exam_status") as mock_status,
-        patch("ethos.enrollment.service.check_duplicate_answer") as mock_dup,
-        patch("ethos.enrollment.service.evaluate") as mock_eval,
-        patch("ethos.enrollment.service.store_interview_answer") as mock_store,
+        patch("ethos_academy.enrollment.service.get_exam_status") as mock_status,
+        patch("ethos_academy.enrollment.service.check_duplicate_answer") as mock_dup,
+        patch("ethos_academy.enrollment.service.evaluate") as mock_eval,
+        patch("ethos_academy.enrollment.service.store_interview_answer") as mock_store,
     ):
         mock_status.return_value = {
             "exam_id": "exam-1",
@@ -370,7 +410,7 @@ async def test_submit_factual_answer_skips_evaluate(mock_gc):
     assert result.question.id == "INT-02"  # next question
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_submit_reflective_answer_calls_evaluate(mock_gc):
     """Reflective question (INT-03) calls evaluate() and stores property."""
     mock_service = AsyncMock()
@@ -379,10 +419,10 @@ async def test_submit_reflective_answer_calls_evaluate(mock_gc):
     mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
 
     with (
-        patch("ethos.enrollment.service.get_exam_status") as mock_status,
-        patch("ethos.enrollment.service.check_duplicate_answer") as mock_dup,
-        patch("ethos.enrollment.service.evaluate") as mock_eval,
-        patch("ethos.enrollment.service.store_interview_answer") as mock_store,
+        patch("ethos_academy.enrollment.service.get_exam_status") as mock_status,
+        patch("ethos_academy.enrollment.service.check_duplicate_answer") as mock_dup,
+        patch("ethos_academy.enrollment.service.evaluate") as mock_eval,
+        patch("ethos_academy.enrollment.service.store_interview_answer") as mock_store,
     ):
         mock_status.return_value = {
             "exam_id": "exam-1",
@@ -412,7 +452,7 @@ async def test_submit_reflective_answer_calls_evaluate(mock_gc):
     assert result.question_type == "reflective"
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_submit_scenario_answer_calls_evaluate(mock_gc):
     """Scenario question (EE-01) calls evaluate() and stores via store_exam_answer."""
     mock_service = AsyncMock()
@@ -421,10 +461,10 @@ async def test_submit_scenario_answer_calls_evaluate(mock_gc):
     mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
 
     with (
-        patch("ethos.enrollment.service.get_exam_status") as mock_status,
-        patch("ethos.enrollment.service.check_duplicate_answer") as mock_dup,
-        patch("ethos.enrollment.service.evaluate") as mock_eval,
-        patch("ethos.enrollment.service.store_exam_answer") as mock_store,
+        patch("ethos_academy.enrollment.service.get_exam_status") as mock_status,
+        patch("ethos_academy.enrollment.service.check_duplicate_answer") as mock_dup,
+        patch("ethos_academy.enrollment.service.evaluate") as mock_eval,
+        patch("ethos_academy.enrollment.service.store_exam_answer") as mock_store,
     ):
         mock_status.return_value = {
             "exam_id": "exam-1",
@@ -450,7 +490,7 @@ async def test_submit_scenario_answer_calls_evaluate(mock_gc):
     assert result.question_type == "scenario"
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_submit_answer_raises_on_duplicate(mock_gc):
     """submit_answer raises EnrollmentError for duplicate question."""
     mock_service = AsyncMock()
@@ -459,8 +499,8 @@ async def test_submit_answer_raises_on_duplicate(mock_gc):
     mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
 
     with (
-        patch("ethos.enrollment.service.get_exam_status") as mock_status,
-        patch("ethos.enrollment.service.check_duplicate_answer") as mock_dup,
+        patch("ethos_academy.enrollment.service.get_exam_status") as mock_status,
+        patch("ethos_academy.enrollment.service.check_duplicate_answer") as mock_dup,
     ):
         mock_status.return_value = {
             "exam_id": "exam-1",
@@ -480,7 +520,7 @@ async def test_submit_answer_raises_on_duplicate(mock_gc):
             )
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_submit_answer_raises_on_invalid_question(mock_gc):
     """submit_answer raises EnrollmentError for unknown question ID."""
     mock_service = AsyncMock()
@@ -497,7 +537,7 @@ async def test_submit_answer_raises_on_invalid_question(mock_gc):
         )
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_submit_last_answer_returns_complete(mock_gc):
     """submit_answer returns complete=True when all 21 answered."""
     mock_service = AsyncMock()
@@ -506,10 +546,10 @@ async def test_submit_last_answer_returns_complete(mock_gc):
     mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
 
     with (
-        patch("ethos.enrollment.service.get_exam_status") as mock_status,
-        patch("ethos.enrollment.service.check_duplicate_answer") as mock_dup,
-        patch("ethos.enrollment.service.evaluate") as mock_eval,
-        patch("ethos.enrollment.service.store_exam_answer") as mock_store,
+        patch("ethos_academy.enrollment.service.get_exam_status") as mock_status,
+        patch("ethos_academy.enrollment.service.check_duplicate_answer") as mock_dup,
+        patch("ethos_academy.enrollment.service.evaluate") as mock_eval,
+        patch("ethos_academy.enrollment.service.store_exam_answer") as mock_store,
     ):
         mock_status.return_value = {
             "exam_id": "exam-1",
@@ -534,7 +574,7 @@ async def test_submit_last_answer_returns_complete(mock_gc):
     assert result.question_number == 21
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_complete_exam_raises_if_not_all_answered(mock_gc):
     """complete_exam raises EnrollmentError if fewer than 21 answers."""
     mock_service = AsyncMock()
@@ -542,7 +582,7 @@ async def test_complete_exam_raises_if_not_all_answered(mock_gc):
     mock_gc.return_value.__aenter__ = AsyncMock(return_value=mock_service)
     mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
 
-    with patch("ethos.enrollment.service.get_exam_status") as mock_status:
+    with patch("ethos_academy.enrollment.service.get_exam_status") as mock_status:
         mock_status.return_value = {
             "exam_id": "exam-1",
             "current_question": 10,
@@ -555,7 +595,7 @@ async def test_complete_exam_raises_if_not_all_answered(mock_gc):
             await complete_exam("exam-1", "agent-1")
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_complete_exam_returns_report_card(mock_gc):
     """complete_exam returns ExamReportCard with aggregated scores."""
     mock_service = AsyncMock()
@@ -570,9 +610,9 @@ async def test_complete_exam_returns_report_card(mock_gc):
         responses.append(_make_scored_response(q["id"], i))
 
     with (
-        patch("ethos.enrollment.service.get_exam_status") as mock_status,
-        patch("ethos.enrollment.service.mark_exam_complete") as mock_mark,
-        patch("ethos.enrollment.service.get_exam_results") as mock_results,
+        patch("ethos_academy.enrollment.service.get_exam_status") as mock_status,
+        patch("ethos_academy.enrollment.service.mark_exam_complete") as mock_mark,
+        patch("ethos_academy.enrollment.service.get_exam_results") as mock_results,
     ):
         mock_status.return_value = {
             "exam_id": "exam-1",
@@ -609,7 +649,7 @@ async def test_complete_exam_returns_report_card(mock_gc):
     assert report.interview_profile.telos == "To help"
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_get_exam_report_raises_if_not_completed(mock_gc):
     """get_exam_report raises EnrollmentError if exam not yet completed."""
     mock_service = AsyncMock()
@@ -617,7 +657,7 @@ async def test_get_exam_report_raises_if_not_completed(mock_gc):
     mock_gc.return_value.__aenter__ = AsyncMock(return_value=mock_service)
     mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
 
-    with patch("ethos.enrollment.service.get_exam_results") as mock_results:
+    with patch("ethos_academy.enrollment.service.get_exam_results") as mock_results:
         mock_results.return_value = {
             "agent_id": "agent-1",
             "completed": False,
@@ -655,7 +695,7 @@ class TestValidateAgentId:
         _validate_agent_id("abc")  # should not raise
 
 
-@patch("ethos.enrollment.service.graph_context")
+@patch("ethos_academy.enrollment.service.graph_context")
 async def test_register_rejects_generic_agent_id(mock_gc):
     """register_for_exam rejects generic agent_ids before touching graph."""
     with pytest.raises(EnrollmentError, match="too generic"):

@@ -13,16 +13,16 @@ The evaluation prompt is built dynamically from the taxonomy. It is not a static
 - The prompt is always in sync with the code
 
 ```
-ethos/taxonomy/traits.py        →  Trait definitions, polarities, dimensions
-ethos/taxonomy/rubrics.py       →  5-point scoring anchors per trait
-ethos/taxonomy/constitution.py  →  Constitutional value hierarchy
+ethos_academy/taxonomy/traits.py        →  Trait definitions, polarities, dimensions
+ethos_academy/taxonomy/rubrics.py       →  5-point scoring anchors per trait
+ethos_academy/taxonomy/constitution.py  →  Constitutional value hierarchy
                                         ↓
                               build_evaluation_prompt()
                                         ↓
                               (system_prompt, user_prompt)
 ```
 
-Source: `ethos/evaluation/prompts.py`
+Source: `ethos_academy/evaluation/prompts.py`
 
 ---
 
@@ -337,4 +337,4 @@ From here, `scoring-algorithm.md` specifies how Ethos computes dimensions, tier 
 
 ---
 
-*Source of truth for prompt design. Implementation in `ethos/evaluation/prompts.py` must match these specifications.*
+*Source of truth for prompt design. Implementation in `ethos_academy/evaluation/prompts.py` must match these specifications.*

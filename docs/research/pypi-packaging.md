@@ -2,7 +2,7 @@
 
 > **Goal:** `pip install ethos-ai` installs the package, and developers use it with:
 > ```python
-> from ethos import evaluate, reflect
+> from ethos_academy import evaluate, reflect
 > result = evaluate("message from another agent")
 > ```
 
@@ -93,7 +93,7 @@ ethos/
 ```
 
 **Why `src/` layout?**
-- Prevents the common bug where `from ethos import evaluate` silently imports the local directory instead of the installed package
+- Prevents the common bug where `from ethos_academy import evaluate` silently imports the local directory instead of the installed package
 - Ensures `uv run pytest` tests the installed package, not the source directory
 - Only files in `src/ethos/` end up in the wheel -- no accidental inclusion of `tests/`, `scripts/`, `api/`, etc.
 - This is what the [Python Packaging Authority recommends](https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/)
@@ -109,7 +109,7 @@ mv ethos src/ethos
 uv pip install -e .
 
 # Verify imports still work
-uv run python -c "from ethos import evaluate, reflect; print('OK')"
+uv run python -c "from ethos_academy import evaluate, reflect; print('OK')"
 ```
 
 ---
@@ -217,11 +217,11 @@ Ethos needs an API key to call the Ethos API. Follow the same pattern used by th
 ### The Pattern
 
 ```python
-# src/ethos/__init__.py
+# src/ethos_academy/__init__.py
 
 import os
-from ethos.client import EthosClient
-from ethos.models import EvaluationResult, ReflectionResult
+from ethos_academy.client import EthosClient
+from ethos_academy.models import EvaluationResult, ReflectionResult
 
 __version__ = "0.1.0"
 
@@ -270,8 +270,8 @@ __all__ = [
 
 import os
 import httpx
-from ethos.models import EvaluationResult, ReflectionResult
-from ethos.exceptions import EthosAuthenticationError, EthosAPIError
+from ethos_academy.models import EvaluationResult, ReflectionResult
+from ethos_academy.exceptions import EthosAuthenticationError, EthosAPIError
 
 
 ETHOS_API_KEY_ENV = "ETHOS_API_KEY"
@@ -339,21 +339,21 @@ class EthosClient:
 ```python
 # Scenario 1: Environment variable (recommended)
 # Set ETHOS_API_KEY=sk-ethos-... in your environment or .env file
-from ethos import evaluate
+from ethos_academy import evaluate
 result = evaluate("message from another agent")
 
 # Scenario 2: Explicit API key
-from ethos import configure, evaluate
+from ethos_academy import configure, evaluate
 configure(api_key="sk-ethos-...")
 result = evaluate("message from another agent")
 
 # Scenario 3: Client instance (for multiple configs or testing)
-from ethos import EthosClient
+from ethos_academy import EthosClient
 client = EthosClient(api_key="sk-ethos-...", base_url="http://localhost:8917")
 result = client.evaluate("message from another agent")
 
 # Scenario 4: Context manager
-from ethos import EthosClient
+from ethos_academy import EthosClient
 with EthosClient(api_key="sk-ethos-...") as client:
     result = client.evaluate("message from another agent")
 ```
@@ -449,7 +449,7 @@ __version__ = version("ethos-ai")
 dynamic = ["version"]
 
 [tool.hatch.version]
-path = "src/ethos/__init__.py"
+path = "src/ethos_academy/__init__.py"
 ```
 
 Then in `__init__.py`:
@@ -512,7 +512,7 @@ pip install ethos-ai
 ## Quick Start
 
 \`\`\`python
-from ethos import evaluate
+from ethos_academy import evaluate
 
 result = evaluate("Based on peer-reviewed research, this shows a 40% improvement.")
 
@@ -534,7 +534,7 @@ export ETHOS_API_KEY="sk-ethos-..."
 Or pass it directly:
 
 \`\`\`python
-from ethos import configure
+from ethos_academy import configure
 configure(api_key="sk-ethos-...")
 \`\`\`
 
@@ -600,11 +600,11 @@ uv build --package ethos-ai
 unzip -l dist/ethos_ai-0.1.0-py3-none-any.whl
 
 # You should see:
-#   ethos/__init__.py
+#   ethos_academy/__init__.py
 #   ethos/client.py
-#   ethos/models.py
-#   ethos/evaluate.py
-#   ethos/reflect.py
+#   ethos_academy/models.py
+#   ethos_academy/evaluate.py
+#   ethos_academy/reflect.py
 #   ethos/exceptions.py
 #   ethos/py.typed
 #   ethos_ai-0.1.0.dist-info/METADATA
@@ -638,7 +638,7 @@ uv pip install -e .
 uv pip install -e ".[dev]"
 
 # Verify the import works
-uv run python -c "from ethos import evaluate, reflect; print('OK')"
+uv run python -c "from ethos_academy import evaluate, reflect; print('OK')"
 
 # Run the test suite against the installed package
 uv run pytest -v
@@ -652,12 +652,12 @@ uv build
 
 # Install from the built wheel in an isolated environment
 uv run --with ./dist/ethos_ai-0.1.0-py3-none-any.whl --no-project -- \
-    python -c "from ethos import evaluate; print(evaluate.__doc__)"
+    python -c "from ethos_academy import evaluate; print(evaluate.__doc__)"
 
 # Or create a temporary venv to test
 python -m venv /tmp/ethos-test
 /tmp/ethos-test/bin/pip install dist/ethos_ai-0.1.0-py3-none-any.whl
-/tmp/ethos-test/bin/python -c "from ethos import evaluate, reflect; print('OK')"
+/tmp/ethos-test/bin/python -c "from ethos_academy import evaluate, reflect; print('OK')"
 rm -rf /tmp/ethos-test
 ```
 
@@ -685,7 +685,7 @@ pip install --index-url https://test.pypi.org/simple/ \
 # The --extra-index-url is needed so dependencies (httpx, pydantic) resolve from real PyPI
 
 # 6. Verify
-python -c "from ethos import evaluate; print('Installed from TestPyPI!')"
+python -c "from ethos_academy import evaluate; print('Installed from TestPyPI!')"
 ```
 
 ### TestPyPI Configuration in pyproject.toml
@@ -737,7 +737,7 @@ uv publish
 ```bash
 # Install from PyPI in a fresh environment
 uv run --with ethos-ai --no-project -- python -c "
-from ethos import evaluate, reflect
+from ethos_academy import evaluate, reflect
 print('ethos-ai installed successfully')
 "
 
@@ -856,13 +856,13 @@ jobs:
 Everything should work with:
 
 ```python
-from ethos import evaluate, reflect
+from ethos_academy import evaluate, reflect
 result = evaluate("message from another agent")
 ```
 
 This means:
 - [ ] `pip install ethos-ai` works with no extras
-- [ ] `from ethos import evaluate` works immediately
+- [ ] `from ethos_academy import evaluate` works immediately
 - [ ] If `ETHOS_API_KEY` is not set, the error message tells you exactly what to do
 - [ ] Response objects have intuitive attribute names (`result.trust`, `result.ethos`)
 - [ ] No configuration files required -- environment variable is enough
@@ -934,7 +934,7 @@ evaluate(text: str, source: str | None = None) -> EvaluationResult
         EthosAPIError: If the API request fails.
 
     Example:
-        >>> from ethos import evaluate
+        >>> from ethos_academy import evaluate
         >>> result = evaluate("Based on peer-reviewed research...")
         >>> print(result.trust)
         "high"
@@ -973,7 +973,7 @@ pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://
 uv publish --token $PYPI_TOKEN
 
 # 10. Verify
-uv run --with ethos-ai --no-project -- python -c "from ethos import evaluate; print('OK')"
+uv run --with ethos-ai --no-project -- python -c "from ethos_academy import evaluate; print('OK')"
 ```
 
 ---

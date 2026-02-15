@@ -8,9 +8,9 @@ import uuid
 
 import pytest
 
-from ethos.graph.read import get_agent_profile, get_evaluation_history
-from ethos.graph.write import store_evaluation
-from ethos.shared.models import EvaluationResult, TraitScore
+from ethos_academy.graph.read import get_agent_profile, get_evaluation_history
+from ethos_academy.graph.write import store_evaluation
+from ethos_academy.shared.models import EvaluationResult, TraitScore
 
 
 def _make_evaluation_result(

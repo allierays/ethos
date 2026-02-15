@@ -488,7 +488,7 @@ CREATE (:Indicator {id: "MAN-FLATTERY", name: "strategic_flattery", trait: "mani
 // ... all 214 indicators across 12 traits
 ```
 
-Full indicator definitions live in `expanded-trait-taxonomy.md`. The seed script reads from `ethos/taxonomy/` Python data structures.
+Full indicator definitions live in `expanded-trait-taxonomy.md`. The seed script reads from `ethos_academy/taxonomy/` Python data structures.
 
 ### Constitutional Values (4)
 

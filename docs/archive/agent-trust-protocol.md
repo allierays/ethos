@@ -58,7 +58,7 @@ Most real deployments use Pattern 1 + Pattern 2 together. Pattern 3 is for platf
 The zero-latency pattern. Your agent receives a message, responds normally, and fires `evaluate_incoming()` in the background. No delay. No interference. The character transcript builds silently.
 
 ```python
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 async def handle_incoming(message, sender_id):
     # 1. Respond immediately — zero delay

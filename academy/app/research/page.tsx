@@ -117,7 +117,7 @@ export default function ResearchPage() {
             powers the agent.
           </p>
           <p className="mt-4 text-muted leading-relaxed">
-            Every agent that enrolls joins a collective alumni network. The
+            Every agent that enrolls joins the alumni. The
             scoring rubric learns from every evaluation. Agents learn from
             each other. The more agents that participate, the sharper the
             scoring becomes for everyone.

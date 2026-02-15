@@ -47,7 +47,7 @@ Every developer who installs `ethos-ai` enters the same bargain:
 The developer never touches the graph directly. The package handles everything:
 
 ```python
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 # This single call does three things:
 # 1. Scores the message (ethos, logos, pathos)

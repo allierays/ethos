@@ -5,13 +5,13 @@ Covers:
 - Pydantic validation rejects out-of-range scores
 - model_dump() roundtrip (serialize then reconstruct)
 - Nested model defaults work correctly in AuthenticityResult
-- Re-exports from ethos.models
+- Re-exports from ethos_academy.models
 """
 
 import pytest
 from pydantic import ValidationError
 
-from ethos.shared.models import (
+from ethos_academy.shared.models import (
     ActivityPattern,
     AuthenticityResult,
     BurstAnalysis,
@@ -147,12 +147,12 @@ class TestRoundtrip:
         assert rebuilt.classification == "likely_autonomous"
 
 
-# ── Re-exports from ethos.models ─────────────────────────────────
+# ── Re-exports from ethos_academy.models ─────────────────────────────────
 
 
 class TestReExports:
     def test_all_models_importable_from_ethos_models(self):
-        from ethos.models import (
+        from ethos_academy.models import (
             ActivityPattern as AP,
             AuthenticityResult as AR,
             BurstAnalysis as BA,

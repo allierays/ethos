@@ -1,6 +1,6 @@
 """Tests for ethos.identity.model — model name parsing from free text."""
 
-from ethos.identity.model import parse_model
+from ethos_academy.identity.model import parse_model
 
 
 def test_claude_opus_versions():

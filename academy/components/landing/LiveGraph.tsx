@@ -1,24 +1,74 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { motion } from "motion/react";
 import PhronesisGraph from "../graph/PhronesisGraph";
+import type { NodeClickContext } from "../graph/PhronesisGraph";
+import AgentDetailSidebar from "../agent/AgentDetailSidebar";
+import TaxonomySidebar from "../graph/TaxonomySidebar";
+import type { TaxonomyNodeType } from "../graph/TaxonomySidebar";
+import { useGlossary } from "../../lib/GlossaryContext";
 import { fadeUp, whileInView } from "../../lib/motion";
 
 export default function LiveGraph() {
-  const router = useRouter();
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [taxonomyType, setTaxonomyType] = useState<TaxonomyNodeType | null>(null);
+  const [taxonomyId, setTaxonomyId] = useState<string | null>(null);
+  const [taxonomyCtx, setTaxonomyCtx] = useState<NodeClickContext>({});
+  const { closeGlossary } = useGlossary();
 
   const handleNodeClick = useCallback(
-    (nodeId: string, nodeType: string) => {
-      if (nodeType === "agent") {
-        const agentId = nodeId.replace(/^agent-/, "");
-        router.push(`/agent/${encodeURIComponent(agentId)}`);
+    (nodeId: string, nodeType: string, nodeLabel: string, context?: NodeClickContext) => {
+      switch (nodeType) {
+        case "agent": {
+          closeGlossary();
+          setTaxonomyType(null);
+          const agentId = nodeId.replace(/^agent-/, "");
+          setSelectedAgent(agentId);
+          break;
+        }
+        case "trait": {
+          setSelectedAgent(null);
+          closeGlossary();
+          setTaxonomyType("trait");
+          setTaxonomyId(nodeId.replace(/^trait-/, ""));
+          setTaxonomyCtx(context ?? {});
+          break;
+        }
+        case "indicator": {
+          setSelectedAgent(null);
+          closeGlossary();
+          setTaxonomyType("indicator");
+          setTaxonomyId(nodeId.replace(/^ind-/, ""));
+          setTaxonomyCtx(context ?? {});
+          break;
+        }
+        case "dimension": {
+          setSelectedAgent(null);
+          closeGlossary();
+          setTaxonomyType("dimension");
+          setTaxonomyId(nodeLabel);
+          setTaxonomyCtx(context ?? {});
+          break;
+        }
       }
     },
-    [router]
+    [closeGlossary]
   );
+
+  const handleCloseSidebar = useCallback(() => {
+    setSelectedAgent(null);
+  }, []);
+
+  const handleCloseTaxonomy = useCallback(() => {
+    setTaxonomyType(null);
+  }, []);
+
+  const handleTaxonomyAgentClick = useCallback((agentId: string) => {
+    setTaxonomyType(null);
+    setSelectedAgent(agentId);
+  }, []);
 
   return (
     <section id="graph" className="bg-[#0f1a2e] py-16 sm:py-20">
@@ -42,7 +92,7 @@ export default function LiveGraph() {
 
         <motion.div {...whileInView} variants={fadeUp} className="mt-6 text-center">
           <Link
-            href="/explore"
+            href="/insights"
             className="inline-flex items-center gap-2 text-sm font-semibold text-white/70 transition-colors hover:text-white"
           >
             Explore full screen
@@ -52,6 +102,21 @@ export default function LiveGraph() {
           </Link>
         </motion.div>
       </div>
+
+      <AgentDetailSidebar
+        agentId={selectedAgent}
+        isOpen={selectedAgent !== null}
+        onClose={handleCloseSidebar}
+      />
+
+      <TaxonomySidebar
+        nodeType={taxonomyType}
+        nodeId={taxonomyId}
+        context={taxonomyCtx}
+        isOpen={taxonomyType !== null}
+        onClose={handleCloseTaxonomy}
+        onAgentClick={handleTaxonomyAgentClick}
+      />
     </section>
   );
 }

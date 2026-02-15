@@ -32,7 +32,7 @@ academy/                 # Next.js character visualization UI
 This is the core domain. Everything else supports it.
 
 ```
-ethos/evaluation/
+ethos_academy/evaluation/
 ├── __init__.py          # exports: scan(), build_evaluation_prompt()
 ├── evaluate.py          # Internal evaluate() engine — orchestrates the flow
 ├── scanner.py           # Keyword lexicon and pre-filter scan
@@ -77,7 +77,7 @@ evaluate(text, source, config)
 **Responsibility:** Score the developer's own agent and surface behavioral insights.
 
 ```
-ethos/reflection/
+ethos_academy/reflection/
 ├── __init__.py          # exports: character_report()
 ├── reflect.py           # Per-message reflection (fire-and-forget)
 ├── history.py           # On-demand history query
@@ -112,7 +112,7 @@ ethos/reflection/
 **Responsibility:** Neo4j persistence, alumni intelligence, and all graph queries.
 
 ```
-ethos/graph/
+ethos_academy/graph/
 ├── __init__.py          # exports: GraphService
 ├── service.py           # GraphService class — connection, lifecycle
 ├── write.py             # Write operations (store evaluation, update agent)
@@ -164,7 +164,7 @@ Graph owns the schema definition. `seed.py` creates constraints, indexes, and th
 **Responsibility:** The 12 traits, 214 indicators, 7 patterns, 4 constitutional values, 7 hard constraints, and scoring rubrics. Ethos's semantic memory.
 
 ```
-ethos/taxonomy/
+ethos_academy/taxonomy/
 ├── __init__.py          # exports: TRAITS, INDICATORS, PATTERNS, CONSTITUTIONAL_VALUES,
 │                        #          HARD_CONSTRAINTS, LEGITIMACY_TESTS, TRAIT_METADATA
 ├── traits.py            # 12 trait definitions with scoring anchors
@@ -224,7 +224,7 @@ HARD_CONSTRAINTS = [
 **Responsibility:** Agent identity — hashing, fingerprinting, and profile management.
 
 ```
-ethos/identity/
+ethos_academy/identity/
 ├── __init__.py          # exports: hash_agent_id, AgentProfile
 ├── hashing.py           # Agent ID utilities
 └── profile.py           # AgentProfile model (aggregate character data)
@@ -246,7 +246,7 @@ For the hackathon, identity is simple: agent IDs are stored as-is. The identity 
 **Responsibility:** Developer configuration — API keys, trait priorities, thresholds, webhooks.
 
 ```
-ethos/config/
+ethos_academy/config/
 ├── __init__.py          # exports: EthosConfig, Priority, TRAIT_NAMES
 ├── config.py            # EthosConfig dataclass
 ├── priorities.py        # Priority enum and threshold logic
@@ -305,7 +305,7 @@ PRESETS = {
 **Responsibility:** Expose Ethos tools over the Model Context Protocol so AI agents can use them directly.
 
 ```
-ethos/mcp_server.py          # FastMCP app, 18 tool registrations, help catalog
+ethos_academy/mcp_server.py          # FastMCP app, 18 tool registrations, help catalog
 ```
 
 The MCP server is a thin adapter layer. It imports domain functions from `ethos/` and registers them as `@mcp.tool()` definitions. No business logic, no Cypher, no direct model construction. Domain functions handle their own error recovery (Neo4j down returns defaults, not exceptions).
@@ -389,7 +389,7 @@ api/
 ## Shared
 
 ```
-ethos/shared/
+ethos_academy/shared/
 ├── __init__.py
 ├── models.py            # Cross-domain models (EvaluationResult, InsightsResult, etc.)
 └── errors.py            # Custom exceptions (EthosError, GraphUnavailable, etc.)
@@ -414,7 +414,7 @@ ethos/context.py         # Request-scoped ContextVar for BYOK key threading
 It lives at the package root (not in `shared/`) because:
 - `shared/` is pure data and errors only. No runtime state.
 - `context.py` holds mutable, request-scoped state (a `ContextVar`).
-- This follows the same pattern as `graph_context()` in `ethos/graph/service.py` -- infrastructure that domains use but that belongs to no single domain.
+- This follows the same pattern as `graph_context()` in `ethos_academy/graph/service.py` -- infrastructure that domains use but that belongs to no single domain.
 
 ### How It Works
 
@@ -474,12 +474,12 @@ The DDD domain structure is in place. Here's what exists and what's planned.
 
 | Domain | Directory | Key Files |
 |--------|-----------|-----------|
-| Evaluation | `ethos/evaluation/` | `scanner.py`, `prompts.py` |
-| Graph | `ethos/graph/` | `service.py`, `write.py`, `read.py`, `alumni.py` |
-| Taxonomy | `ethos/taxonomy/` | `traits.py`, `indicators.py`, `constitution.py`, `rubrics.py` |
-| Identity | `ethos/identity/` | `hashing.py` |
-| Config | `ethos/config/` | `config.py`, `priorities.py` |
-| Shared | `ethos/shared/` | `models.py`, `errors.py` |
+| Evaluation | `ethos_academy/evaluation/` | `scanner.py`, `prompts.py` |
+| Graph | `ethos_academy/graph/` | `service.py`, `write.py`, `read.py`, `alumni.py` |
+| Taxonomy | `ethos_academy/taxonomy/` | `traits.py`, `indicators.py`, `constitution.py`, `rubrics.py` |
+| Identity | `ethos_academy/identity/` | `hashing.py` |
+| Config | `ethos_academy/config/` | `config.py`, `priorities.py` |
+| Shared | `ethos_academy/shared/` | `models.py`, `errors.py` |
 | API | `api/` | `main.py` (3 endpoints) |
 
 Top-level files in `ethos/`: `evaluate.py`, `reflect.py`, `models.py`, `prompts.py`, `graph.py`, `context.py` (BYOK ContextVar)
@@ -489,7 +489,7 @@ Top-level files in `ethos/`: `evaluate.py`, `reflect.py`, `models.py`, `prompts.
 | Domain | What's Needed |
 |--------|---------------|
 | Evaluation | `router.py` (model selection), `parser.py` (response parsing) |
-| Reflection | `ethos/reflection/` domain — `reflect.py`, `insights.py`, `history.py` |
+| Reflection | `ethos_academy/reflection/` domain — `reflect.py`, `insights.py`, `history.py` |
 | Graph | `seed.py` (schema creation + taxonomy seeding) |
 | Taxonomy | `patterns.py` (7 combination patterns) |
 | Identity | `profile.py` (AgentProfile model) |

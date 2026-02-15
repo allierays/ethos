@@ -46,10 +46,10 @@ Two surfaces:
 
 **Backend (Python):**
 ```
-ethos/graph/visualization.py     # NEW — Cypher query to pull subgraph for NVL
+ethos_academy/graph/visualization.py     # NEW — Cypher query to pull subgraph for NVL
 api/main.py                      # MODIFY — add GET /graph endpoint
-ethos/shared/models.py           # MODIFY — add GraphData, GraphNode, GraphRel models
-ethos/__init__.py                # MODIFY — export get_graph_data
+ethos_academy/shared/models.py           # MODIFY — add GraphData, GraphNode, GraphRel models
+ethos_academy/__init__.py                # MODIFY — export get_graph_data
 ```
 
 **Frontend (TypeScript):**
@@ -66,7 +66,7 @@ academy/lib/types.ts                       # MODIFY — add GraphData types
 ### Patterns to Follow
 
 - **API pattern**: Thin endpoint in `api/main.py` delegating to a domain function (like `list_agents`, `get_alumni`)
-- **Graph pattern**: Cypher in `ethos/graph/`, domain logic in `ethos/`, API in `api/`
+- **Graph pattern**: Cypher in `ethos_academy/graph/`, domain logic in `ethos/`, API in `api/`
 - **Component pattern**: `"use client"`, loading/error/empty states, fetch in `useEffect`, Tailwind styling with existing design tokens
 - **API client pattern**: Add typed function to `academy/lib/api.ts`, add interface to `academy/lib/types.ts`, use `transformKeys` for snake_case→camelCase
 
@@ -282,15 +282,15 @@ const nvlOptions = {
 **What:** Create the Cypher query, domain function, Pydantic models, and API endpoint.
 
 **Files:**
-- Create `ethos/graph/visualization.py` — Cypher query returning nodes + rels
-- Modify `ethos/shared/models.py` — Add `GraphNode`, `GraphRel`, `GraphData` models
+- Create `ethos_academy/graph/visualization.py` — Cypher query returning nodes + rels
+- Modify `ethos_academy/shared/models.py` — Add `GraphNode`, `GraphRel`, `GraphData` models
 - Create `ethos/visualization.py` — Domain function `get_graph_data()` wrapping the query
-- Modify `ethos/__init__.py` — Export `get_graph_data`
+- Modify `ethos_academy/__init__.py` — Export `get_graph_data`
 - Modify `api/main.py` — Add `GET /graph` endpoint
 
 **Exit Criteria:**
 ```bash
-uv run python -c "from ethos import get_graph_data; d = get_graph_data(); print(f'nodes={len(d.nodes)} rels={len(d.relationships)}')"
+uv run python -c "from ethos_academy import get_graph_data; d = get_graph_data(); print(f'nodes={len(d.nodes)} rels={len(d.relationships)}')"
 curl -s http://localhost:8917/graph | python -m json.tool | head -20
 ```
 

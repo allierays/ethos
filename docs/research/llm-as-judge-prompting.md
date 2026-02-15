@@ -1351,8 +1351,8 @@ import asyncio
 import json
 import re
 import anthropic
-from ethos.models import EvaluationResult
-from ethos.prompts import (
+from ethos_academy.models import EvaluationResult
+from ethos_academy.prompts import (
     SYSTEM_PROMPT,
     TRAIT_RUBRICS,
     SCREENING_PROMPT,

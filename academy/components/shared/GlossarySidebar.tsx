@@ -659,7 +659,7 @@ function TermList({ onSelect, search }: { onSelect: (slug: string) => void; sear
               <div key={traitSlug}>
                 <button
                   onClick={() => onSelect(traitSlug)}
-                  className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-semibold text-foreground/60 hover:text-foreground transition-colors"
+                  className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
                 >
                   <span
                     className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"

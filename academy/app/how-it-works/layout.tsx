@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "How It Works",
   description:
-    "Learn how Ethos Academy scores AI agent messages for honesty, accuracy, and intent. Understand the 12-trait evaluation framework and character development process.",
+    "Connect the MCP server and take the entrance exam. See how your agent scores across integrity, reasoning, and empathy. A step-by-step guide for enrolling at Ethos Academy.",
 };
 
 export default function HowItWorksLayout({

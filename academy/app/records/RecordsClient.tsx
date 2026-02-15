@@ -153,7 +153,7 @@ function IndicatorGroup({ indicators }: { indicators: DetectedIndicatorSummary[]
             </span>
           </div>
           {ind.evidence && (
-            <p className="text-xs text-foreground/60 leading-relaxed border-l-2 border-muted/20 pl-2.5 mt-2">
+            <p className="text-xs text-foreground/80 leading-relaxed border-l-2 border-muted/20 pl-2.5 mt-2">
               {ind.evidence}
             </p>
           )}
@@ -433,7 +433,7 @@ function RecordRow({
               <Link
                 href={`/agent/${encodeURIComponent(record.agentId)}`}
                 onClick={(e) => e.stopPropagation()}
-                className="text-[11px] font-semibold text-foreground/50 hover:text-action transition-colors truncate"
+                className="text-[11px] font-semibold text-foreground/70 hover:text-action transition-colors truncate"
               >
                 {record.agentName || record.agentId}
               </Link>
@@ -824,7 +824,7 @@ export default function RecordsClient({
                 <div className="rounded-2xl border border-white/40 overflow-hidden shadow-sm">
                 <table className="w-full border-collapse" style={{ tableLayout: "fixed" }} role="grid" aria-label="Evaluation records">
                   <thead>
-                    <tr className="border-b border-foreground/[0.06] text-[10px] font-semibold uppercase tracking-wider text-foreground/50" style={{ background: "#f3efe9" }}>
+                    <tr className="border-b border-foreground/[0.06] text-[10px] font-semibold uppercase tracking-wider text-foreground/70" style={{ background: "#f3efe9" }}>
                       <th scope="col" className="px-4 py-2.5 text-left font-semibold w-12 text-center">Score</th>
                       <th scope="col" className="py-2.5 text-left font-semibold">Message</th>
                       <th scope="col" className="py-2.5 text-left font-semibold w-24 hidden sm:table-cell">E/L/P</th>

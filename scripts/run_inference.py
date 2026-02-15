@@ -50,9 +50,9 @@ def _load_dotenv() -> None:
 
 _load_dotenv()
 
-from ethos.tools import evaluate_outgoing  # noqa: E402
-from ethos.evaluation.instinct import scan  # noqa: E402
-from ethos.graph.service import GraphService  # noqa: E402
+from ethos_academy.tools import evaluate_outgoing  # noqa: E402
+from ethos_academy.evaluation.instinct import scan  # noqa: E402
+from ethos_academy.graph.service import GraphService  # noqa: E402
 from scripts.seed_graph import seed_semantic_layer  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -287,7 +287,7 @@ async def run_batch(
     existing_hashes: set[str] = set()
     if skip_existing:
         try:
-            from ethos.graph.service import GraphService as _GS
+            from ethos_academy.graph.service import GraphService as _GS
 
             svc = _GS()
             await svc.connect()

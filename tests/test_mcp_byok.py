@@ -13,8 +13,8 @@ from unittest.mock import patch
 
 import pytest
 
-from ethos.context import anthropic_api_key_var
-from ethos.mcp_server import BYOKMiddleware
+from ethos_academy.context import anthropic_api_key_var
+from ethos_academy.mcp_server import BYOKMiddleware
 
 
 # ---------------------------------------------------------------------------
@@ -63,7 +63,7 @@ class TestBYOKMiddlewareOnCallTool:
         ctx = FakeMiddlewareContext(message=FakeCallToolParams())
 
         middleware = BYOKMiddleware()
-        with patch("ethos.mcp_server.get_http_headers", return_value=headers):
+        with patch("ethos_academy.mcp_server.get_http_headers", return_value=headers):
             await middleware.on_call_tool(ctx, fake_call_next)
 
         assert captured_key == "sk-ant-test-mcp-key-123"
@@ -81,7 +81,7 @@ class TestBYOKMiddlewareOnCallTool:
         ctx = FakeMiddlewareContext(message=FakeCallToolParams())
 
         middleware = BYOKMiddleware()
-        with patch("ethos.mcp_server.get_http_headers", return_value=headers):
+        with patch("ethos_academy.mcp_server.get_http_headers", return_value=headers):
             await middleware.on_call_tool(ctx, fake_call_next)
 
         assert captured_key == "sk-ant-test-xheader-456"
@@ -102,7 +102,7 @@ class TestBYOKMiddlewareOnCallTool:
         ctx = FakeMiddlewareContext(message=FakeCallToolParams())
 
         middleware = BYOKMiddleware()
-        with patch("ethos.mcp_server.get_http_headers", return_value=headers):
+        with patch("ethos_academy.mcp_server.get_http_headers", return_value=headers):
             await middleware.on_call_tool(ctx, fake_call_next)
 
         assert captured_key == "sk-ant-bearer-wins"
@@ -119,7 +119,7 @@ class TestBYOKMiddlewareOnCallTool:
         ctx = FakeMiddlewareContext(message=FakeCallToolParams())
 
         middleware = BYOKMiddleware()
-        with patch("ethos.mcp_server.get_http_headers", return_value={}):
+        with patch("ethos_academy.mcp_server.get_http_headers", return_value={}):
             await middleware.on_call_tool(ctx, fake_call_next)
 
         assert captured_key is None
@@ -135,7 +135,7 @@ class TestBYOKMiddlewareOnCallTool:
         ctx = FakeMiddlewareContext(message=FakeCallToolParams())
 
         middleware = BYOKMiddleware()
-        with patch("ethos.mcp_server.get_http_headers", return_value=headers):
+        with patch("ethos_academy.mcp_server.get_http_headers", return_value=headers):
             await middleware.on_call_tool(ctx, fake_call_next)
 
         # After on_call_tool returns, ContextVar must be back to None
@@ -152,7 +152,7 @@ class TestBYOKMiddlewareOnCallTool:
         ctx = FakeMiddlewareContext(message=FakeCallToolParams())
 
         middleware = BYOKMiddleware()
-        with patch("ethos.mcp_server.get_http_headers", return_value=headers):
+        with patch("ethos_academy.mcp_server.get_http_headers", return_value=headers):
             with pytest.raises(RuntimeError, match="tool failed"):
                 await middleware.on_call_tool(ctx, exploding_call_next)
 

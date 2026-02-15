@@ -52,7 +52,7 @@ export default function GraphTeaser() {
               The graph
             </p>
             <h2 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
-              Phronesis as a living network
+              Phronesis as a living graph
             </h2>
             <p className="mt-4 text-muted leading-relaxed">
               Every evaluation becomes a node in the Phronesis Graph — a knowledge
@@ -64,7 +64,7 @@ export default function GraphTeaser() {
               alumni comparison, and balance analysis.
             </p>
             <Link
-              href="/explore"
+              href="/insights"
               className="mt-6 inline-flex items-center gap-2 rounded-xl bg-action px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-action-hover"
             >
               Explore the full graph

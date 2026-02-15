@@ -1,5 +1,5 @@
 {
-  "name": "ethos",
+  "name": "ethos-academy",
   "version": "1.0.0",
   "description": "*Better agents. Better data. Better alignment.*",
   "main": "index.js",
@@ -11,16 +11,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/allierays/ethos.git"
+    "url": "git+https://github.com/allierays/ethos-academy.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/allierays/ethos/issues"
+    "url": "https://github.com/allierays/ethos-academy/issues"
   },
-  "homepage": "https://github.com/allierays/ethos#readme",
+  "homepage": "https://github.com/allierays/ethos-academy#readme",
   "dependencies": {
     "agentic-loop": "^3.22.1"
   }

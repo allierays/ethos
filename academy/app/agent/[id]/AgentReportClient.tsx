@@ -135,7 +135,7 @@ export default function AgentReportClient({
                 <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
                   Risk &amp; <GlossaryTerm slug="sabotage-pathway">Sabotage Pathways</GlossaryTerm>
                 </h2>
-                <p className="mt-0.5 text-sm text-foreground/60">
+                <p className="mt-0.5 text-sm text-foreground/80">
                   Flagged indicators and manipulation patterns for {agentName}.
                 </p>
               </div>

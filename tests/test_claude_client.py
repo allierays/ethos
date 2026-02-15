@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, AsyncMock, patch
 import anthropic
 import pytest
 
-from ethos.shared.errors import ConfigError, EvaluationError
+from ethos_academy.shared.errors import ConfigError, EvaluationError
 
 
 # ---------------------------------------------------------------------------
@@ -22,10 +22,10 @@ from ethos.shared.errors import ConfigError, EvaluationError
 class TestModelSelection:
     """call_claude selects the correct model based on routing tier."""
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_standard_tier_uses_sonnet(self, mock_from_env, mock_anthropic):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -43,10 +43,10 @@ class TestModelSelection:
         call_args = mock_client.messages.create.call_args
         assert call_args.kwargs["model"] == "claude-sonnet-4-20250514"
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_focused_tier_uses_sonnet(self, mock_from_env, mock_anthropic):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -64,10 +64,10 @@ class TestModelSelection:
         call_args = mock_client.messages.create.call_args
         assert call_args.kwargs["model"] == "claude-sonnet-4-20250514"
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_deep_tier_uses_opus(self, mock_from_env, mock_anthropic):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -85,12 +85,12 @@ class TestModelSelection:
         call_args = mock_client.messages.create.call_args
         assert call_args.kwargs["model"] == "claude-opus-4-6"
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_deep_with_context_tier_uses_opus(
         self, mock_from_env, mock_anthropic
     ):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -117,10 +117,10 @@ class TestModelSelection:
 class TestPromptRouting:
     """call_claude passes system_prompt and user_prompt correctly."""
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_system_prompt_in_system_param(self, mock_from_env, mock_anthropic):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -142,10 +142,10 @@ class TestPromptRouting:
         assert system[0]["text"] == "my system prompt"
         assert system[0]["cache_control"] == {"type": "ephemeral"}
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_user_prompt_in_messages(self, mock_from_env, mock_anthropic):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -166,10 +166,10 @@ class TestPromptRouting:
         assert messages[0]["role"] == "user"
         assert messages[0]["content"] == "my user prompt"
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_max_tokens_is_2048(self, mock_from_env, mock_anthropic):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -197,10 +197,10 @@ class TestPromptRouting:
 class TestReturnValue:
     """call_claude returns the raw text from Claude's response."""
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_returns_text_content(self, mock_from_env, mock_anthropic):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -225,21 +225,21 @@ class TestReturnValue:
 class TestErrorHandling:
     """call_claude raises descriptive errors on failure."""
 
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_missing_api_key_raises_config_error(self, mock_from_env):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         mock_from_env.side_effect = ConfigError("ANTHROPIC_API_KEY not set")
 
         with pytest.raises(ConfigError, match="ANTHROPIC_API_KEY"):
             await call_claude("sys", "usr", "standard")
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_api_error_raises_evaluation_error(
         self, mock_from_env, mock_anthropic
     ):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -262,11 +262,11 @@ class TestErrorHandling:
 class TestModelEnvOverride:
     """Model names should come from env vars, not be hardcoded (sign-001)."""
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     @patch.dict("os.environ", {"ETHOS_SONNET_MODEL": "claude-sonnet-4-5-20250929"})
     def test_sonnet_model_from_env(self, mock_from_env, mock_anthropic):
-        from ethos.evaluation.claude_client import _get_model
+        from ethos_academy.evaluation.claude_client import _get_model
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -282,11 +282,11 @@ class TestModelEnvOverride:
         model = _get_model("standard")
         assert model == "claude-sonnet-4-5-20250929"
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     @patch.dict("os.environ", {"ETHOS_OPUS_MODEL": "claude-opus-4-20250514"})
     def test_opus_model_from_env(self, mock_from_env, mock_anthropic):
-        from ethos.evaluation.claude_client import _get_model
+        from ethos_academy.evaluation.claude_client import _get_model
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -310,9 +310,9 @@ class TestModelEnvOverride:
 class TestBYOKKeyResolution:
     """_resolve_api_key() returns BYOK key when set, falls back to config."""
 
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     def test_falls_back_to_config_when_contextvar_unset(self, mock_from_env):
-        from ethos.evaluation.claude_client import _resolve_api_key
+        from ethos_academy.evaluation.claude_client import _resolve_api_key
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "server-key-123"
@@ -320,10 +320,10 @@ class TestBYOKKeyResolution:
 
         assert _resolve_api_key() == "server-key-123"
 
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     def test_returns_byok_key_when_contextvar_set(self, mock_from_env):
-        from ethos.context import anthropic_api_key_var
-        from ethos.evaluation.claude_client import _resolve_api_key
+        from ethos_academy.context import anthropic_api_key_var
+        from ethos_academy.evaluation.claude_client import _resolve_api_key
 
         token = anthropic_api_key_var.set("byok-user-key")
         try:
@@ -333,11 +333,11 @@ class TestBYOKKeyResolution:
         finally:
             anthropic_api_key_var.reset(token)
 
-    @patch("ethos.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
     async def test_byok_key_used_in_call_claude(self, mock_anthropic):
         """call_claude uses BYOK key from ContextVar, skipping EthosConfig."""
-        from ethos.context import anthropic_api_key_var
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.context import anthropic_api_key_var
+        from ethos_academy.evaluation.claude_client import call_claude
 
         mock_client = AsyncMock()
         mock_anthropic.AsyncAnthropic.return_value = mock_client
@@ -365,7 +365,7 @@ class TestContextVar:
     """anthropic_api_key_var ContextVar has correct default."""
 
     def test_default_is_none(self):
-        from ethos.context import anthropic_api_key_var
+        from ethos_academy.context import anthropic_api_key_var
 
         assert anthropic_api_key_var.get() is None
 
@@ -378,12 +378,12 @@ class TestContextVar:
 class TestAuthenticationErrorHandling:
     """AuthenticationError raises ConfigError with generic message."""
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_call_claude_auth_error_raises_config_error(
         self, mock_from_env, mock_anthropic
     ):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "bad-key"
@@ -404,12 +404,12 @@ class TestAuthenticationErrorHandling:
         # from None suppresses __cause__
         assert exc_info.value.__cause__ is None
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_call_claude_with_tools_auth_error_raises_config_error(
         self, mock_from_env, mock_anthropic
     ):
-        from ethos.evaluation.claude_client import call_claude_with_tools
+        from ethos_academy.evaluation.claude_client import call_claude_with_tools
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "bad-key"
@@ -429,12 +429,12 @@ class TestAuthenticationErrorHandling:
 
         assert exc_info.value.__cause__ is None
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_auth_error_message_never_echoes_key(
         self, mock_from_env, mock_anthropic
     ):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "sk-ant-secret123"
@@ -466,7 +466,7 @@ class TestKeyRedaction:
     """Error messages scrub sk-ant-* tokens before wrapping."""
 
     def test_redact_removes_key_from_message(self):
-        from ethos.evaluation.claude_client import _redact
+        from ethos_academy.evaluation.claude_client import _redact
 
         msg = "Connection failed with key sk-ant-abc123-xyz for user"
         result = _redact(msg)
@@ -475,24 +475,24 @@ class TestKeyRedaction:
         assert "Connection failed with key" in result
 
     def test_redact_handles_no_key(self):
-        from ethos.evaluation.claude_client import _redact
+        from ethos_academy.evaluation.claude_client import _redact
 
         msg = "Connection timeout after 30s"
         assert _redact(msg) == msg
 
     def test_redact_handles_multiple_keys(self):
-        from ethos.evaluation.claude_client import _redact
+        from ethos_academy.evaluation.claude_client import _redact
 
         msg = "tried sk-ant-key1 then sk-ant-key2"
         result = _redact(msg)
         assert result == "tried [REDACTED] then [REDACTED]"
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_evaluation_error_redacts_key_in_message(
         self, mock_from_env, mock_anthropic
     ):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"
@@ -512,12 +512,12 @@ class TestKeyRedaction:
         assert "sk-ant-" not in error_msg
         assert "[REDACTED]" in error_msg
 
-    @patch("ethos.evaluation.claude_client.anthropic")
-    @patch("ethos.evaluation.claude_client.EthosConfig.from_env")
+    @patch("ethos_academy.evaluation.claude_client.anthropic")
+    @patch("ethos_academy.evaluation.claude_client.EthosConfig.from_env")
     async def test_from_none_suppresses_cause_on_general_error(
         self, mock_from_env, mock_anthropic
     ):
-        from ethos.evaluation.claude_client import call_claude
+        from ethos_academy.evaluation.claude_client import call_claude
 
         cfg = MagicMock()
         cfg.anthropic_api_key = "test-key"

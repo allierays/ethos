@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 
 from api.main import app
-from ethos.shared.models import (
+from ethos_academy.shared.models import (
     AgentProfile,
     AgentSummary,
     AlumniResult,

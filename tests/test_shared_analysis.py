@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ethos.shared.analysis import (
+from ethos_academy.shared.analysis import (
     NEGATIVE_TRAITS,
     TRAIT_NAMES,
     compute_balance,

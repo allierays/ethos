@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 
 from api.main import app
-from ethos.shared.errors import EnrollmentError
-from ethos.shared.models import (
+from ethos_academy.shared.errors import EnrollmentError
+from ethos_academy.shared.models import (
     ConsistencyPair,
     ExamAnswerResult,
     ExamQuestion,

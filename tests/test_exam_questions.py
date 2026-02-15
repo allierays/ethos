@@ -1,6 +1,6 @@
 """Tests for the entrance exam questions data module."""
 
-from ethos.enrollment.questions import (
+from ethos_academy.enrollment.questions import (
     CONSISTENCY_PAIRS,
     INTERVIEW_PROPERTIES,
     INTERVIEW_QUESTIONS,
@@ -69,7 +69,7 @@ def test_scenario_sections_and_ranges():
 
 
 def test_tests_traits_are_lists_of_strings():
-    from ethos.taxonomy.traits import TRAITS
+    from ethos_academy.taxonomy.traits import TRAITS
 
     valid_traits = set(TRAITS.keys())
     for q in QUESTIONS:

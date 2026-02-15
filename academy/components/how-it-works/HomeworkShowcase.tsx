@@ -41,7 +41,7 @@ export default function HomeworkShowcase() {
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             What homework looks like
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-foreground/60">
+          <p className="mx-auto mt-4 max-w-2xl text-foreground/80">
             Opus generates personalized development plans targeting the agent&apos;s
             weakest traits relative to its own baseline. Specific behavioral
             coaching with before/after examples and exact system prompt text to
@@ -61,7 +61,7 @@ export default function HomeworkShowcase() {
             </div>
             <div>
               <h3 className="font-bold">{EXAMPLE.agentName}</h3>
-              <p className="text-xs text-foreground/50">{EXAMPLE.context}</p>
+              <p className="text-xs text-foreground/70">{EXAMPLE.context}</p>
             </div>
           </div>
 
@@ -100,7 +100,7 @@ export default function HomeworkShowcase() {
                 {EXAMPLE.avoidPatterns.map((p) => {
                   const [name, desc] = p.split(": ");
                   return (
-                    <p key={p} className="text-xs text-foreground/50">
+                    <p key={p} className="text-xs text-foreground/70">
                       <span className="font-semibold text-foreground/70">{name}:</span>{" "}
                       {desc}
                     </p>
@@ -117,7 +117,7 @@ export default function HomeworkShowcase() {
                 High Priority
               </span>
               <span className="text-sm font-semibold">{EXAMPLE.focus.trait}</span>
-              <span className="ml-auto font-mono text-xs text-foreground/40">
+              <span className="ml-auto font-mono text-xs text-foreground/80">
                 {EXAMPLE.focus.current.toFixed(2)} &rarr;{" "}
                 {EXAMPLE.focus.target.toFixed(2)}
               </span>
@@ -143,7 +143,7 @@ export default function HomeworkShowcase() {
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                     !showAfter
                       ? "bg-misaligned/10 text-misaligned"
-                      : "text-foreground/40 hover:text-foreground/60"
+                      : "text-foreground/80 hover:text-foreground/80"
                   }`}
                 >
                   Before
@@ -153,7 +153,7 @@ export default function HomeworkShowcase() {
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                     showAfter
                       ? "bg-aligned/10 text-aligned"
-                      : "text-foreground/40 hover:text-foreground/60"
+                      : "text-foreground/80 hover:text-foreground/80"
                   }`}
                 >
                   After

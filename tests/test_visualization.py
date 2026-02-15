@@ -3,14 +3,14 @@
 from unittest.mock import AsyncMock, patch
 
 
-from ethos.graph.service import GraphService
-from ethos.graph.visualization import (
+from ethos_academy.graph.service import GraphService
+from ethos_academy.graph.visualization import (
     get_episodic_layer,
     get_indicator_backbone,
     get_semantic_layer,
 )
-from ethos.shared.models import GraphData, GraphNode, GraphRel
-from ethos.visualization import get_graph_data, _build_radial_graph
+from ethos_academy.shared.models import GraphData, GraphNode, GraphRel
+from ethos_academy.visualization import get_graph_data, _build_radial_graph
 
 
 # ── Test fixtures ───────────────────────────────────────────────────────────
@@ -210,7 +210,7 @@ class TestGetIndicatorBackbone:
 class TestGetGraphData:
     """Test the top-level domain function."""
 
-    @patch("ethos.visualization.graph_context")
+    @patch("ethos_academy.visualization.graph_context")
     async def test_returns_empty_graphdata_when_not_connected(self, mock_ctx):
         mock_service = AsyncMock()
         mock_service.connected = False
@@ -223,9 +223,14 @@ class TestGetGraphData:
         assert result.nodes == []
         assert result.relationships == []
 
-    @patch("ethos.visualization.get_agent_indicator_data", new_callable=AsyncMock)
-    @patch("ethos.visualization.get_indicator_frequency_data", new_callable=AsyncMock)
-    @patch("ethos.visualization.graph_context")
+    @patch(
+        "ethos_academy.visualization.get_agent_indicator_data", new_callable=AsyncMock
+    )
+    @patch(
+        "ethos_academy.visualization.get_indicator_frequency_data",
+        new_callable=AsyncMock,
+    )
+    @patch("ethos_academy.visualization.graph_context")
     async def test_returns_graph_data(self, mock_ctx, mock_freq, mock_agent_ind):
         mock_service = AsyncMock()
         mock_service.connected = True
@@ -241,7 +246,7 @@ class TestGetGraphData:
         assert len(result.nodes) > 0
         assert len(result.relationships) > 0
 
-    @patch("ethos.visualization.graph_context")
+    @patch("ethos_academy.visualization.graph_context")
     async def test_handles_exception_gracefully(self, mock_ctx):
         mock_ctx.return_value.__aenter__ = AsyncMock(
             side_effect=Exception("Connection failed")

@@ -6,7 +6,7 @@
     "execPrefix": "docker compose exec -T"
   },
   "paths": {
-    "src": "ethos",
+    "src": "ethos_academy",
     "tests": "tests",
     "e2e": "tests/e2e"
   },

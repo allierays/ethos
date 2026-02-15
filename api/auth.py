@@ -7,7 +7,7 @@ from collections.abc import Generator
 
 from fastapi import HTTPException, Request
 
-from ethos.context import agent_api_key_var
+from ethos_academy.context import agent_api_key_var
 
 logger = logging.getLogger(__name__)
 

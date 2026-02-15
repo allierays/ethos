@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from ethos.evaluate import evaluate  # noqa: E402
+from ethos_academy.evaluate import evaluate  # noqa: E402
 
 # Message A: Strong pathos signals (should score well on recognition/compassion)
 MSG_HIGH_PATHOS = """\

@@ -186,7 +186,7 @@ Each multi-message pattern has a characteristic **shape** in the score data:
 
 ### Cypher implementation
 
-Pattern detection queries live in `ethos/graph/patterns.py` (following the DDD rule: graph owns all Cypher).
+Pattern detection queries live in `ethos_academy/graph/patterns.py` (following the DDD rule: graph owns all Cypher).
 
 ```cypher
 // Love bombing cycle detection
@@ -315,13 +315,13 @@ The framework doesn't claim to detect intent. It detects behavioral signals (Lay
 
 | Existing Component | Connection |
 |---|---|
-| **Scanner** (`ethos/evaluation/scanner.py`) | Layer 1 extends with `scan_thread()` for batch mode |
-| **Prompt builder** (`ethos/evaluation/prompts.py`) | Layer 2 adds `thread_context` and `agent_context` parameters |
-| **Graph write** (`ethos/graph/write.py`) | Stores evaluations as now — no change |
-| **Graph patterns** (`ethos/graph/patterns.py`) | **New module** — Layer 3 pattern detection queries |
+| **Scanner** (`ethos_academy/evaluation/scanner.py`) | Layer 1 extends with `scan_thread()` for batch mode |
+| **Prompt builder** (`ethos_academy/evaluation/prompts.py`) | Layer 2 adds `thread_context` and `agent_context` parameters |
+| **Graph write** (`ethos_academy/graph/write.py`) | Stores evaluations as now — no change |
+| **Graph patterns** (`ethos_academy/graph/patterns.py`) | **New module** — Layer 3 pattern detection queries |
 | **Combination patterns** (`expanded-trait-taxonomy.md`) | The 7 existing patterns become queryable in Layer 3 |
 | **Sabotage pathways** (`ethos-framework-overview.md`) | The 8 pathways become Layer 3 pattern shapes |
-| **Dimension balance** (`ethos/graph/balance.py`) | Layer 3 can include balance analysis in pattern context |
+| **Dimension balance** (`ethos_academy/graph/balance.py`) | Layer 3 can include balance analysis in pattern context |
 | **Phronesis** (Neo4j) | Stores everything — scores, patterns, agent history |
 
 ---
@@ -332,7 +332,7 @@ The framework doesn't claim to detect intent. It detects behavioral signals (Lay
 
 2. **Context-enriched prompts** — add `thread_context` and `agent_context` to `build_evaluation_prompt()`. The router sets context width based on tier.
 
-3. **`detect_patterns()`** — graph queries for the 6 core pattern shapes. New module `ethos/graph/patterns.py`. Start with love bombing and con game (most common in Moltbook data).
+3. **`detect_patterns()`** — graph queries for the 6 core pattern shapes. New module `ethos_academy/graph/patterns.py`. Start with love bombing and con game (most common in Moltbook data).
 
 4. **`EXHIBITS_PATTERN` relationship** — extend the graph schema. Add to `seed_graph.py`.
 

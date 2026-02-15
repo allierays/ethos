@@ -6,7 +6,7 @@
 
 ## Overview
 
-Claude returns 12 raw trait scores (0.0–1.0). Ethos computes everything else from those scores plus the constitutional value mappings defined in `ethos/taxonomy/constitution.py` and `ethos/taxonomy/traits.py`.
+Claude returns 12 raw trait scores (0.0–1.0). Ethos computes everything else from those scores plus the constitutional value mappings defined in `ethos_academy/taxonomy/constitution.py` and `ethos_academy/taxonomy/traits.py`.
 
 ```
 Claude returns         Ethos computes
@@ -107,7 +107,7 @@ HELPFULNESS (priority 4)
   tier_score = mean(recognition, compassion, (1 - dismissal))
 ```
 
-This mapping comes from `TRAIT_METADATA` in `ethos/taxonomy/traits.py`. Each trait's `constitutional_value` and `relationship` (enforces/violates) determines which tier it belongs to and whether it's inverted.
+This mapping comes from `TRAIT_METADATA` in `ethos_academy/taxonomy/traits.py`. Each trait's `constitutional_value` and `relationship` (enforces/violates) determines which tier it belongs to and whether it's inverted.
 
 ### Why tier scores matter
 
@@ -328,4 +328,4 @@ Each message is scored on its own merits. An agent with a clean history shouldn'
 
 ---
 
-*Source of truth for scoring logic. Implementation in `ethos/evaluation/` must match these specifications.*
+*Source of truth for scoring logic. Implementation in `ethos_academy/evaluation/` must match these specifications.*

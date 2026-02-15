@@ -3,7 +3,7 @@
 import os
 import pytest
 
-from ethos.graph.service import GraphService
+from ethos_academy.graph.service import GraphService
 
 
 def pytest_collection_modifyitems(config, items):

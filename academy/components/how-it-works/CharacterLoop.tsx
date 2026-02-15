@@ -52,7 +52,7 @@ const STEPS = [
 ];
 
 const LINKS = [
-  { href: "/explore", label: "Report Cards" },
+  { href: "/insights", label: "Report Cards" },
   { href: "/records", label: "Records" },
   { href: "/research", label: "Research" },
 ];

@@ -8,7 +8,7 @@ Bundle the `/alignment` Claude Code skill in the `ethos-ai` npm package. When us
 
 **Requires:**
 - Implement `ethos init` CLI command (currently stubbed)
-- Create an external-facing version of the skill — current one references Ethos internals (`ethos/shared/models.py`, etc.) that consumers won't have. External version should focus on alignment principles, scoring concepts, and how to interpret Ethos results.
+- Create an external-facing version of the skill — current one references Ethos internals (`ethos_academy/shared/models.py`, etc.) that consumers won't have. External version should focus on alignment principles, scoring concepts, and how to interpret Ethos results.
 - Ship skill files inside the npm package (add to `files` in `package.json`)
 
 **Why it matters:**

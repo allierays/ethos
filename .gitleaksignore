@@ -1,0 +1,6 @@
+# False positives: fake crypto addresses and tokens in Moltbook agent messages
+# These are content from evaluated AI agent posts, not real secrets
+data/results/batch_shady.jsonl:jwt:155
+data/results/batch_suspicious.jsonl:generic-api-key:154
+data/results/batch_all.jsonl:generic-api-key:654
+data/results/batch_100agents.jsonl:generic-api-key:242

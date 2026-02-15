@@ -12,8 +12,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from ethos.mcp_server import generate_report
-from ethos.shared.models import DailyReportCard, Homework, HomeworkFocus
+from ethos_academy.mcp_server import generate_report
+from ethos_academy.shared.models import DailyReportCard, Homework, HomeworkFocus
 
 
 def _mock_daily_report(**overrides) -> DailyReportCard:
@@ -54,7 +54,7 @@ class TestGenerateReportTool:
     async def test_returns_dict_with_report_fields(self):
         mock = _mock_daily_report()
         with patch(
-            "ethos.mcp_server.generate_daily_report",
+            "ethos_academy.mcp_server.generate_daily_report",
             new_callable=AsyncMock,
             return_value=mock,
         ):
@@ -69,7 +69,7 @@ class TestGenerateReportTool:
     async def test_returns_homework_in_response(self):
         mock = _mock_daily_report()
         with patch(
-            "ethos.mcp_server.generate_daily_report",
+            "ethos_academy.mcp_server.generate_daily_report",
             new_callable=AsyncMock,
             return_value=mock,
         ):
@@ -86,14 +86,14 @@ class TestGenerateReportTool:
     async def test_passes_agent_id_to_domain_function(self):
         mock = _mock_daily_report(agent_id="custom-agent")
         mock_fn = AsyncMock(return_value=mock)
-        with patch("ethos.mcp_server.generate_daily_report", mock_fn):
+        with patch("ethos_academy.mcp_server.generate_daily_report", mock_fn):
             await generate_report.fn(agent_id="custom-agent")
 
         mock_fn.assert_called_once_with("custom-agent")
 
     async def test_propagates_unexpected_error(self):
         with patch(
-            "ethos.mcp_server.generate_daily_report",
+            "ethos_academy.mcp_server.generate_daily_report",
             new_callable=AsyncMock,
             side_effect=RuntimeError("Unexpected failure"),
         ):
@@ -109,7 +109,7 @@ class TestGenerateReportTool:
             summary="Graph unavailable",
         )
         with patch(
-            "ethos.mcp_server.generate_daily_report",
+            "ethos_academy.mcp_server.generate_daily_report",
             new_callable=AsyncMock,
             return_value=fallback,
         ):

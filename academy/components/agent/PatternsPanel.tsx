@@ -46,7 +46,7 @@ export default function PatternsPanel({ agentId, agentName }: PatternsPanelProps
       <h3 className="text-sm font-semibold uppercase tracking-wider text-[#1a2538]">
         <GlossaryTerm slug="sabotage-pathway">Sabotage Pathways</GlossaryTerm>
       </h3>
-      <p className="mt-0.5 text-sm text-foreground/60">
+      <p className="mt-0.5 text-sm text-foreground/80">
         Flagged indicators and manipulation patterns for {name}.
       </p>
 
@@ -125,14 +125,14 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
             </p>
           )}
         </div>
-        <span className="shrink-0 rounded-full bg-background px-2.5 py-0.5 text-xs font-mono tabular-nums text-foreground/60 border border-border/50">
+        <span className="shrink-0 rounded-full bg-background px-2.5 py-0.5 text-xs font-mono tabular-nums text-foreground/80 border border-border/50">
           {pattern.occurrenceCount}x
         </span>
       </div>
 
       {/* Confidence bar */}
       <div className="mt-3">
-        <div className="flex items-center justify-between text-[10px] text-foreground/60">
+        <div className="flex items-center justify-between text-[10px] text-foreground/80">
           <span>Confidence</span>
           <span className="font-mono tabular-nums">{confidencePct}%</span>
         </div>
@@ -149,7 +149,7 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
 
       {/* Stage dots */}
       <div className="mt-3 flex items-center gap-1">
-        <span className="mr-1 text-[10px] text-foreground/60">Stage</span>
+        <span className="mr-1 text-[10px] text-foreground/80">Stage</span>
         {Array.from({ length: totalStages }).map((_, i) => (
           <span
             key={i}
@@ -158,13 +158,13 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
             }`}
           />
         ))}
-        <span className="ml-1 text-[10px] text-foreground/60 font-mono tabular-nums">
+        <span className="ml-1 text-[10px] text-foreground/80 font-mono tabular-nums">
           {pattern.currentStage}/{totalStages}
         </span>
       </div>
 
       {/* Metadata + indicators */}
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-foreground/50">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-foreground/70">
         {pattern.firstSeen && (
           <span>First seen: {new Date(pattern.firstSeen).toLocaleDateString()}</span>
         )}

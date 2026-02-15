@@ -66,12 +66,12 @@ Example: SP-08 (decision_sabotage) detected via DEC-SANDBAG indicator. Expand to
 
 ## Backend Changes
 
-### Store message content (ethos/graph/write.py)
+### Store message content (ethos_academy/graph/write.py)
 - Add `message_content` parameter to `store_evaluation()`
 - Add `message_content: $message_content` to the Evaluation node Cypher
 - Pass text from `_try_store_evaluation()` in `evaluate.py` (already has the text, just doesn't forward it)
 
-### History endpoint (ethos/graph/read.py)
+### History endpoint (ethos_academy/graph/read.py)
 - Enrich `_GET_HISTORY_QUERY` to return `message_content`
 - Add field to `EvaluationHistoryItem` model
 
@@ -80,7 +80,7 @@ Example: SP-08 (decision_sabotage) detected via DEC-SANDBAG indicator. Expand to
 - Cypher: get evaluations sorted by overall score (avg of dims), return top 3 and bottom 3 with message content
 - New models: `HighlightItem`, `HighlightsResult`
 
-### Pattern evidence (ethos/graph/patterns.py)
+### Pattern evidence (ethos_academy/graph/patterns.py)
 - New query: for a pattern's indicator IDs, get the evaluations that DETECTED them with message_content
 - Enrich `DetectedPattern` with `evidence_messages` field
 
@@ -117,11 +117,11 @@ Example: SP-08 (decision_sabotage) detected via DEC-SANDBAG indicator. Expand to
 
 | File | Change |
 |------|--------|
-| `ethos/graph/write.py` | Add message_content param + Cypher property |
-| `ethos/evaluate.py` | Pass text to store_evaluation |
-| `ethos/graph/read.py` | Enrich history query, add highlights query |
-| `ethos/graph/patterns.py` | Add pattern evidence query |
-| `ethos/shared/models.py` | New fields and models |
+| `ethos_academy/graph/write.py` | Add message_content param + Cypher property |
+| `ethos_academy/evaluate.py` | Pass text to store_evaluation |
+| `ethos_academy/graph/read.py` | Enrich history query, add highlights query |
+| `ethos_academy/graph/patterns.py` | Add pattern evidence query |
+| `ethos_academy/shared/models.py` | New fields and models |
 | `ethos/agents.py` | New get_agent_highlights(), update get_agent_history() |
 | `ethos/patterns.py` | Enrich detect_patterns() with evidence |
 | `api/main.py` | Add highlights endpoint |

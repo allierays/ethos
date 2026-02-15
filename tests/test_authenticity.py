@@ -13,14 +13,14 @@ Covers all 5 functions with required cases:
 
 from datetime import datetime, timedelta, timezone
 
-from ethos.evaluation.authenticity import (
+from ethos_academy.evaluation.authenticity import (
     analyze_activity_pattern,
     analyze_burst_rate,
     analyze_identity_signals,
     analyze_temporal_signature,
     compute_authenticity,
 )
-from ethos.shared.models import (
+from ethos_academy.shared.models import (
     ActivityPattern,
     AuthenticityResult,
     BurstAnalysis,

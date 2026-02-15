@@ -252,7 +252,18 @@ function getTraitTags(traitAverages: Record<string, number>): {
 
 export default function AlumniClient({ initialAgents }: { initialAgents: AgentSummary[] }) {
   const [query, setQuery] = useState("");
-  const [agents] = useState<AgentSummary[]>(initialAgents);
+  // Dedup by agentId: keep the entry with highest evaluationCount
+  const dedupedAgents = useMemo(() => {
+    const seen = new Map<string, AgentSummary>();
+    for (const a of initialAgents) {
+      const existing = seen.get(a.agentId);
+      if (!existing || a.evaluationCount > existing.evaluationCount) {
+        seen.set(a.agentId, a);
+      }
+    }
+    return Array.from(seen.values());
+  }, [initialAgents]);
+  const [agents] = useState<AgentSummary[]>(dedupedAgents);
   const [flipAll, setFlipAll] = useState(false);
   const [filters, setFilters] = useState<Filters>({
     alignment: new Set(),
@@ -274,7 +285,7 @@ export default function AlumniClient({ initialAgents }: { initialAgents: AgentSu
           return [
             a.agentId,
             {
-              model: formatModel(a.agentModel) || "Unknown",
+              model: (() => { const m = formatModel(a.agentModel); return m && m !== "Unknown" ? m : ""; })(),
               strongestDim: getStrongestDimension(a.dimensionAverages ?? {}),
               overallScore: overall,
               spectrum: a.evaluationCount > 0 ? spectrumLabel(overall) : "Unknown",
@@ -742,16 +753,19 @@ function AgentCard({ agent, globalFlip }: { agent: AgentSummary; globalFlip: boo
                 <h2 className="truncate text-base font-semibold text-foreground group-hover:text-action transition-colors">
                   {displayName}
                 </h2>
-                {model && (
+                {agent.agentSpecialty ? (
+                  <p className="mt-0.5 truncate text-xs font-medium text-muted/80">
+                    {agent.agentSpecialty}
+                  </p>
+                ) : model ? (
                   <p className="mt-0.5 truncate text-xs font-medium text-muted/80">
                     {model}
                   </p>
-                )}
-                {!model && agent.agentName && (
+                ) : agent.agentName ? (
                   <p className="mt-0.5 truncate text-xs text-muted/60">
                     {agent.agentId}
                   </p>
-                )}
+                ) : null}
               </div>
             </div>
 
@@ -781,10 +795,10 @@ function AgentCard({ agent, globalFlip }: { agent: AgentSummary; globalFlip: boo
                 <p className="text-sm font-bold text-foreground">{agent.evaluationCount}</p>
                 <p className="text-[10px] text-muted"><GlossaryTerm slug="evaluation">Evals</GlossaryTerm></p>
               </div>
-              {agent.agentSpecialty && (
+              {model && (
                 <div className="rounded-xl bg-background/80 px-3.5 py-2 backdrop-blur-sm">
-                  <p className="text-sm font-bold text-foreground">{agent.agentSpecialty}</p>
-                  <p className="text-[10px] text-muted">Specialty</p>
+                  <p className="text-sm font-bold text-foreground truncate max-w-[120px]">{model}</p>
+                  <p className="text-[10px] text-muted">Model</p>
                 </div>
               )}
             </div>

@@ -278,7 +278,7 @@ Message arrives (from agent or to agent)
 │  Faculty 1:     │  Instant keyword scan — constitutional priors, red lines
 │  INSTINCT       │  No I/O. Pure pattern matching. Determines routing tier.
 │                 │  Like a reflex: pre-wired, fires before experience.
-└────────┬────────┘  Code: ethos/evaluation/instinct.py → InstinctResult
+└────────┬────────┘  Code: ethos_academy/evaluation/instinct.py → InstinctResult
          │
          ▼
 ┌─────────────────┐
@@ -286,7 +286,7 @@ Message arrives (from agent or to agent)
 │  INTUITION      │  Fast — only Cypher queries, no LLM call.
 │                 │  "This agent's behavior reminds me of something I've seen."
 │                 │  Tells deliberation WHERE to look harder, not WHAT the score is.
-└────────┬────────┘  Code: ethos/evaluation/intuition.py → IntuitionResult
+└────────┬────────┘  Code: ethos_academy/evaluation/intuition.py → IntuitionResult
          │           Queries: agent signature, temporal trends, anomalies
          │           Can escalate routing tier (never downgrade)
          ▼

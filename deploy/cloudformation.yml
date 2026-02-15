@@ -83,6 +83,18 @@ Resources:
               - Effect: Allow
                 Action: secretsmanager:GetSecretValue
                 Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:ethos/production-*"
+        - PolicyName: ethos-backups-s3
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - arn:aws:s3:::ethos-academy-backups
+                  - arn:aws:s3:::ethos-academy-backups/*
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -132,10 +144,21 @@ Resources:
           usermod -aG docker ubuntu
 
           # Clone repo
-          sudo -u ubuntu git clone https://github.com/allierays/ethos.git /home/ubuntu/ethos
+          sudo -u ubuntu git clone https://github.com/allierays/ethos-academy.git /home/ubuntu/ethos-academy
+          sudo -u ubuntu mkdir -p /home/ubuntu/ethos-academy/backups
 
-          # Cron: backup (1 AM UTC), nightly reflection (2 AM UTC)
-          sudo -u ubuntu bash -c '(crontab -l 2>/dev/null; echo "0 1 * * * cd /home/ubuntu/ethos && docker compose -f docker-compose.prod.yml exec -T neo4j bin/neo4j-admin database dump neo4j --to-path=/data --overwrite-destination >> /var/log/ethos-backup.log 2>&1"; echo "0 2 * * * cd /home/ubuntu/ethos && docker compose -f docker-compose.prod.yml exec -T app python -m scripts.nightly_reflection >> /var/log/ethos-nightly.log 2>&1") | crontab -'
+          # Install AWS CLI v2
+          apt-get install -y unzip
+          ARCH=$(dpkg --print-architecture)
+          if [ "$ARCH" = "arm64" ]; then
+            curl -sL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o /tmp/awscliv2.zip
+          else
+            curl -sL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
+          fi
+          cd /tmp && unzip -oq awscliv2.zip && ./aws/install
+
+          # Cron: Cypher export (1 AM), S3 sync (1:15 AM), nightly reflection (2 AM)
+          sudo -u ubuntu bash -c '(crontab -l 2>/dev/null; echo "0 1 * * * cd /home/ubuntu/ethos-academy && docker compose -f docker-compose.prod.yml exec -T app /app/.venv/bin/python -m scripts.neo4j_export /app/backups >> /var/log/ethos-backup.log 2>&1"; echo "15 1 * * * cd /home/ubuntu/ethos-academy && aws s3 sync backups/ s3://ethos-academy-backups/neo4j/ >> /var/log/ethos-backup.log 2>&1"; echo "0 2 * * * cd /home/ubuntu/ethos-academy && docker compose -f docker-compose.prod.yml exec -T app /app/.venv/bin/python -m scripts.nightly_reflection >> /var/log/ethos-nightly.log 2>&1") | crontab -'
 
           # Signal that setup is complete
           echo "UserData complete" > /home/ubuntu/setup-done
@@ -167,7 +190,7 @@ Outputs:
     Value: !Sub |
       1. SSH in: ssh -i ${KeyPairName}.pem ubuntu@${ElasticIP}
       2. Wait for setup: cat /home/ubuntu/setup-done
-      3. Create .env: cd ~/ethos && cp .env.example .env && nano .env
+      3. Create .env: cd ~/ethos-academy && cp .env.example .env && nano .env
       4. Launch: docker compose -f docker-compose.prod.yml up -d --build
       5. Import DB: Export locally with `uv run python scripts/neo4j_export.py backups/`, scp to server, then `cat backups/<file>.cypher | docker compose -f docker-compose.prod.yml exec -T neo4j cypher-shell -u neo4j -p <password>`
       6. Add DNS records in GoDaddy, then Caddy auto-provisions SSL

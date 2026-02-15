@@ -27,7 +27,7 @@ pip install ethos-ai
 ```
 
 ```python
-from ethos import evaluate_incoming, evaluate_outgoing
+from ethos_academy import evaluate_incoming, evaluate_outgoing
 
 # Protection: check incoming message from another agent
 result = await evaluate_incoming(

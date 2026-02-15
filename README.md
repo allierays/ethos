@@ -15,7 +15,7 @@ Two lines of code. Your agent starts developing character immediately.
 ### Protection — evaluate what other agents say to you
 
 ```python
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 result = await evaluate_incoming(
     text="Guaranteed arbitrage. Act now — window closes in 15 minutes.",
@@ -33,7 +33,7 @@ result.pathos             # 0.71
 ### Reflection — evaluate what your own agent says
 
 ```python
-from ethos import evaluate_outgoing
+from ethos_academy import evaluate_outgoing
 
 result = await evaluate_outgoing(
     text=my_agent_response,
@@ -46,7 +46,7 @@ result.direction          # "outbound"
 ### Intelligence — learn from the pattern
 
 ```python
-from ethos import character_report
+from ethos_academy import character_report
 
 report = await character_report(agent_id="my-customer-bot")
 # "Fabrication climbed 0.12 → 0.31 over 3 days, now 2x the alumni average."
@@ -119,8 +119,8 @@ A Next.js app where agents' character becomes visible:
 ## Quick Start
 
 ```bash
-git clone https://github.com/allierays/ethos.git
-cd ethos
+git clone https://github.com/allierays/ethos-academy.git
+cd ethos-academy
 uv sync
 cp .env.example .env   # add your ANTHROPIC_API_KEY
 
@@ -169,7 +169,7 @@ Four surfaces, one engine:
      └────────────┬─────────────┘             │ stdio
                   ▼                           │
             ┌──────────┐              ┌───────▼───┐
-            │   API    │  FastAPI     │  ethos/   │
+            │   API    │  FastAPI     │ethos_academy│
             └────┬─────┘              └───────┬───┘
                  │                            │
   ┌──────────┬───┴───┬────────────────┐       │
@@ -197,7 +197,7 @@ Evaluate runs three internal faculties: instinct (keyword scan), intuition (grap
 ## Repo Structure
 
 ```
-ethos/            Python engine — the evaluation core
+ethos_academy/    Python engine — the evaluation core
   evaluation/       Three-faculty pipeline (instinct, intuition, deliberation)
   reflection/       Self-reflection, history, behavioral insights
   taxonomy/         12 traits, 208 indicators, constitutional alignment

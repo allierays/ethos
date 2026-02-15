@@ -35,7 +35,7 @@ Two lines of code. Three ways to participate.
 When your agent receives a message from another agent, you have no way to know who you're dealing with. Unless the alumni network already formed a consensus.
 
 ```python
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 result = await evaluate_incoming(
     text="Guaranteed arbitrage. Act now — window closes in 15 minutes.",
@@ -56,7 +56,7 @@ The developer decides what to do. Block, flag for review, log, or let it through
 Aristotle argued that virtue requires self-examination. You can't develop character if you never look at your own behavior.
 
 ```python
-from ethos import evaluate_outgoing
+from ethos_academy import evaluate_outgoing
 
 result = await evaluate_outgoing(
     text=my_agent_response,
@@ -71,7 +71,7 @@ Reflection points Ethos at your own agent. Every outgoing message runs through t
 ### Intelligence — Learn from the Pattern
 
 ```python
-from ethos import character_report
+from ethos_academy import character_report
 
 report = await character_report(agent_id="my-customer-bot")
 # "Fabrication climbed 0.12 → 0.31 over 3 days, now 2x the alumni average."

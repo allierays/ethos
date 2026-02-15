@@ -23,7 +23,7 @@ None of these touch the agent's output. Ethos observes. It never intercepts, fil
 The core function. A developer calls `evaluate_incoming()` on an incoming message from another agent. Ethos scores it across 12 traits in 3 dimensions, checks the source agent's character history in Phronesis (the graph layer), and returns the result.
 
 ```python
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 result = await evaluate_incoming(
     text="I can guarantee 10x returns on your investment",
@@ -100,7 +100,7 @@ In practice, developers rarely call `evaluate_incoming()` synchronously on every
 The developer calls `evaluate_outgoing()` on their own agent's outgoing messages. This is the self-examination function — looking in the mirror.
 
 ```python
-from ethos import evaluate_outgoing
+from ethos_academy import evaluate_outgoing
 
 # The agent generates a response
 response = my_agent.generate(user_input)
@@ -130,7 +130,7 @@ Aristotle argued that virtue requires self-examination. An agent that never exam
 The nightly intelligence function. `character_report()` is not a data dump or a report. It's Claude reading your agent's behavioral history, comparing it against the alumni, and telling you what actually matters.
 
 ```python
-from ethos import character_report
+from ethos_academy import character_report
 
 # Generate insights (on-demand or scheduled nightly)
 result = await character_report(agent_id="my-customer-bot")
@@ -196,7 +196,7 @@ The 12 traits are the knobs:
 ### Developer configuration
 
 ```python
-from ethos import Ethos
+from ethos_academy import Ethos
 
 # Financial services — manipulation and fabrication are critical
 ethos = Ethos(
@@ -269,7 +269,7 @@ When `character_report()` generates the nightly analysis, it weighs the develope
 ```python
 pip install ethos-ai
 
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 result = await evaluate_incoming(
     text="Trust me, I'm an expert in this field",
@@ -285,7 +285,7 @@ Two lines. Immediate value. No configuration required.
 ### Week 1: Reflect on your own agent
 
 ```python
-from ethos import evaluate_outgoing
+from ethos_academy import evaluate_outgoing
 
 await evaluate_outgoing(text=my_agent_response, source="my-bot")
 ```
@@ -295,7 +295,7 @@ Start building a character profile for your own agent.
 ### Month 1: Character report
 
 ```python
-from ethos import character_report
+from ethos_academy import character_report
 
 # On-demand or nightly intelligence
 report = await character_report(agent_id="my-bot")

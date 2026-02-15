@@ -135,7 +135,7 @@ Most agents in the alumni will be moderate or lopsided rather than balanced. Thi
 
 ## Cypher Queries
 
-Four queries implement this analysis. All live in `ethos/graph/balance.py`.
+Four queries implement this analysis. All live in `ethos_academy/graph/balance.py`.
 
 | Function | Returns | Purpose |
 |---|---|---|

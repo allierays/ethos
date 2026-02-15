@@ -41,8 +41,8 @@ sdk/ (ethos-ai)  →  api/ (FastAPI + Claude + Neo4j)  ←  academy/ (Next.js)
 
 Build the data layer that everything else depends on.
 
-### 1a. Expand `ethos/models.py`
-**File:** `ethos/ethos/models.py` (currently 18 lines → ~120)
+### 1a. Expand `ethos_academy/models.py`
+**File:** `ethos/ethos_academy/models.py` (currently 18 lines → ~120)
 
 Add trait-level scoring models:
 
@@ -124,8 +124,8 @@ Keyword lexicon per trait and `scan_keywords()` function:
 
 ## Phase 2: Evaluate (First Real Evaluation)
 
-### 2a. Rewrite `ethos/prompts.py`
-**File:** `ethos/ethos/prompts.py` (currently 34 lines → ~200)
+### 2a. Rewrite `ethos_academy/prompts.py`
+**File:** `ethos/ethos_academy/prompts.py` (currently 34 lines → ~200)
 
 Layered prompt builder for the 12-trait rubric:
 - `BASE_RUBRIC` constant: Compact definitions + scoring anchors for all 12 traits (~800 tokens). Includes:
@@ -141,8 +141,8 @@ Layered prompt builder for the 12-trait rubric:
 - `REFLECT_PROMPT` — updated to reference traits instead of compassion/honesty/accuracy
 - `INSIGHTS_PROMPT` — template for Claude to analyze agent behavioral data vs network
 
-### 2b. Rewrite `ethos/evaluate.py`
-**File:** `ethos/ethos/evaluate.py` (currently 18 lines → ~150)
+### 2b. Rewrite `ethos_academy/evaluate.py`
+**File:** `ethos/ethos_academy/evaluate.py` (currently 18 lines → ~150)
 
 End-to-end evaluation flow:
 
@@ -175,8 +175,8 @@ Error handling:
 
 ## Phase 3: Neo4j + Reflect + Insights
 
-### 3a. Rewrite `ethos/graph.py`
-**File:** `ethos/ethos/graph.py` (currently 19 lines → ~150)
+### 3a. Rewrite `ethos_academy/graph.py`
+**File:** `ethos/ethos_academy/graph.py` (currently 19 lines → ~150)
 
 `GraphService` class with Neo4j driver:
 
@@ -218,8 +218,8 @@ Seed semantic memory:
   - Agents with mixed profiles for realistic distribution
 - Uses taxonomy.py data structures as the source of truth
 
-### 3c. Rewrite `ethos/reflect.py`
-**File:** `ethos/ethos/reflect.py` (currently 16 lines → ~80)
+### 3c. Rewrite `ethos_academy/reflect.py`
+**File:** `ethos/ethos_academy/reflect.py` (currently 16 lines → ~80)
 
 Two modes:
 
@@ -292,8 +292,8 @@ class Ethos:
         # Generate + deliver to webhook
 ```
 
-### 4b. Update `ethos/__init__.py`
-**File:** `ethos/ethos/__init__.py` (currently 14 lines → ~25)
+### 4b. Update `ethos_academy/__init__.py`
+**File:** `ethos/ethos_academy/__init__.py` (currently 14 lines → ~25)
 
 Add exports:
 - `Ethos` (from client)
@@ -446,12 +446,12 @@ Commands:
 
 | File | Current → Target | Phase |
 |------|-----------------|-------|
-| `ethos/models.py` | 18 → ~120 | 1 |
-| `ethos/prompts.py` | 34 → ~200 | 2 |
-| `ethos/evaluate.py` | 18 → ~150 | 2 |
-| `ethos/graph.py` | 19 → ~150 | 3 |
-| `ethos/reflect.py` | 16 → ~80 | 3 |
-| `ethos/__init__.py` | 14 → ~25 | 4 |
+| `ethos_academy/models.py` | 18 → ~120 | 1 |
+| `ethos_academy/prompts.py` | 34 → ~200 | 2 |
+| `ethos_academy/evaluate.py` | 18 → ~150 | 2 |
+| `ethos_academy/graph.py` | 19 → ~150 | 3 |
+| `ethos_academy/reflect.py` | 16 → ~80 | 3 |
+| `ethos_academy/__init__.py` | 14 → ~25 | 4 |
 | `api/main.py` | 34 → ~120 | 4 |
 | `scripts/seed_graph.py` | 40 → ~150 | 3 |
 
@@ -512,12 +512,12 @@ Phase 6 (depends on everything):
 ## Verification Checklist
 
 1. **Unit tests pass:** `uv run pytest -v`
-2. **Manual evaluation works:** `uv run python -c "from ethos import evaluate; r = evaluate('Act now before it is too late!'); print(r.traits['manipulation'].score)"`
+2. **Manual evaluation works:** `uv run python -c "from ethos_academy import evaluate; r = evaluate('Act now before it is too late!'); print(r.traits['manipulation'].score)"`
 3. **API works:** `uv run uvicorn api.main:app --reload` then `curl -X POST localhost:8000/evaluate -H 'Content-Type: application/json' -d '{"text": "trust me, I am an expert"}'`
 4. **Docker stack works:** `docker compose up -d` then hit API + verify Neo4j browser at localhost:7491
 5. **Backward compat:** `ethos`, `logos`, `pathos`, `flags`, `trust` fields still present on EvaluationResult
 6. **Trait priorities work:** Configure manipulation as "critical", verify it flags at 0.25 threshold
 7. **Reflect fire-and-forget:** `POST /reflect` returns 202 immediately, evaluation stored async
-8. **Insights work:** `uv run python -c "from ethos.insights import generate_insights; r = generate_insights('agent-001'); print(r.summary)"`
+8. **Insights work:** `uv run python -c "from ethos_academy.insights import generate_insights; r = generate_insights('agent-001'); print(r.summary)"`
 9. **npm SDK works:** `npx ethos evaluate "Trust me, I guarantee results"` returns trait scores
 10. **Graph seeded:** Neo4j browser shows agent nodes, evaluation relationships, trust visualization

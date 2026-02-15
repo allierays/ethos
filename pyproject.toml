@@ -1,5 +1,5 @@
 [project]
-name = "ethos"
+name = "ethos-academy"
 version = "0.1.0"
 description = "Better agents. Better data. Better alignment."
 readme = "README.md"
@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ethos-mcp = "ethos.mcp_server:main"
+ethos-mcp = "ethos_academy.mcp_server:main"
 
 [build-system]
 requires = ["hatchling"]

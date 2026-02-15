@@ -6,7 +6,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock LICENSE README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
 
-COPY ethos/ ethos/
+COPY ethos_academy/ ethos_academy/
 COPY api/ api/
 COPY scripts/ scripts/
 RUN uv sync --frozen --no-dev
@@ -19,7 +19,7 @@ WORKDIR /app
 RUN useradd --system --no-create-home app
 
 COPY --from=builder /app/.venv /app/.venv
-COPY ethos/ ethos/
+COPY ethos_academy/ ethos_academy/
 COPY api/ api/
 COPY scripts/ scripts/
 

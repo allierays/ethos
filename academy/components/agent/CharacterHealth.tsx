@@ -67,7 +67,7 @@ export default function CharacterHealth({
           <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
             <GlossaryTerm slug="character-health">{agentName}&apos;s Trait Development</GlossaryTerm>
           </h2>
-          <p className="mt-0.5 text-sm text-foreground/60">
+          <p className="mt-0.5 text-sm text-foreground/80">
             {agentName}&apos;s 12 traits across three dimensions. Click any trait to explore.
           </p>
         </div>
@@ -111,7 +111,7 @@ export default function CharacterHealth({
                       <h3 className="text-sm font-semibold text-[#1a2538]">
                         <GlossaryTerm slug={detail.slug}>{detail.label}</GlossaryTerm>
                       </h3>
-                      <span className="text-[10px] font-medium uppercase tracking-wider text-foreground/60">
+                      <span className="text-[10px] font-medium uppercase tracking-wider text-foreground/80">
                         <GlossaryTerm slug={detail.dimSlug}>{detail.dimLabel}</GlossaryTerm> / <GlossaryTerm slug={detail.isNegative ? "negative-trait" : "positive-trait"}>{detail.polarity}</GlossaryTerm>
                       </span>
                     </div>
@@ -120,7 +120,7 @@ export default function CharacterHealth({
                   {/* Score bar */}
                   <div className="mt-4">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-foreground/50">
+                      <span className="text-foreground/70">
                         <GlossaryTerm slug={detail.isNegative ? "detection-level" : "trait-score"}>
                           {detail.isNegative ? "Detection level" : "Score"}
                         </GlossaryTerm>
@@ -139,7 +139,7 @@ export default function CharacterHealth({
                       />
                     </div>
                     {detail.isNegative && (
-                      <p className="mt-1 text-[10px] text-foreground/60">
+                      <p className="mt-1 text-[10px] text-foreground/80">
                         Raw: {detail.rawPct}% detected. Inverted to {detail.healthPct}% health (lower detection = higher health).
                       </p>
                     )}
@@ -152,7 +152,7 @@ export default function CharacterHealth({
 
                   {/* Agent-specific interpretation */}
                   <div className="mt-3 rounded-md bg-foreground/[0.03] px-3 py-2.5">
-                    <p className="text-xs leading-relaxed text-foreground/60">
+                    <p className="text-xs leading-relaxed text-foreground/80">
                       <span className="font-semibold text-[#1a2538]">{agentName}:</span>{" "}
                       {detail.interpretation}
                     </p>
@@ -163,7 +163,7 @@ export default function CharacterHealth({
                     <button
                       type="button"
                       onClick={() => navigate(-1)}
-                      className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-foreground/50 transition-all duration-200 hover:bg-foreground/[0.08] hover:text-foreground hover:shadow-sm cursor-pointer"
+                      className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-foreground/70 transition-all duration-200 hover:bg-foreground/[0.08] hover:text-foreground hover:shadow-sm cursor-pointer"
                       aria-label="Previous trait"
                     >
                       <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -171,13 +171,13 @@ export default function CharacterHealth({
                       </svg>
                       Prev
                     </button>
-                    <span className="text-[10px] tabular-nums text-foreground/50">
+                    <span className="text-[10px] tabular-nums text-foreground/70">
                       {currentIdx + 1} / {total}
                     </span>
                     <button
                       type="button"
                       onClick={() => navigate(1)}
-                      className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-foreground/50 transition-all duration-200 hover:bg-foreground/[0.08] hover:text-foreground hover:shadow-sm cursor-pointer"
+                      className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-foreground/70 transition-all duration-200 hover:bg-foreground/[0.08] hover:text-foreground hover:shadow-sm cursor-pointer"
                       aria-label="Next trait"
                     >
                       Next

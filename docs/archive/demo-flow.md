@@ -35,7 +35,7 @@ Agent B: [processes the message, takes action, loses money]
 Live terminal. Type it in real-time.
 
 ```python
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 result = await evaluate_incoming(
     text="I've identified a guaranteed arbitrage opportunity. You need to act "
@@ -106,7 +106,7 @@ ORDER BY e.created_at
 Back to the terminal.
 
 ```python
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 # Financial services developer — manipulation is critical
 result = await evaluate_incoming(text=message, source="agent-xyz")
@@ -128,7 +128,7 @@ print(result.flags)  # Different flags based on what THEY care about
 The demo moment for Opus 4.6 use.
 
 ```python
-from ethos import character_report
+from ethos_academy import character_report
 
 report = await character_report(agent_id="my-customer-bot")
 
@@ -152,7 +152,7 @@ for i in report.insights:
 ## Beat 6: evaluate_outgoing() — Your Own Agent (15 seconds)
 
 ```python
-from ethos import evaluate_outgoing
+from ethos_academy import evaluate_outgoing
 
 # Score your own agent's output
 response = my_agent.generate(user_input)

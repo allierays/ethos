@@ -3,8 +3,8 @@
 from pydantic import ValidationError
 import pytest
 
-from ethos.shared.errors import EnrollmentError, EthosError
-from ethos.shared.models import (
+from ethos_academy.shared.errors import EnrollmentError, EthosError
+from ethos_academy.shared.models import (
     AgentProfile,
     AgentSummary,
     ConsistencyPair,

@@ -72,7 +72,7 @@ async def main() -> None:
         print("\n--dry-run: no changes made")
         return
 
-    from ethos.graph.service import GraphService
+    from ethos_academy.graph.service import GraphService
 
     service = GraphService()
     await service.connect()
@@ -95,7 +95,7 @@ async def main() -> None:
 
     print(f"Found {len(name_to_id)} Agent nodes in Neo4j")
 
-    from ethos.graph.write import update_agent_specialty
+    from ethos_academy.graph.write import update_agent_specialty
 
     updated = 0
     skipped = 0

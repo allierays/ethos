@@ -36,6 +36,8 @@ services:
       - .env
     environment:
       - NEO4J_URI=bolt://neo4j:7687
+    volumes:
+      - ./backups:/app/backups
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
       interval: 10s
@@ -77,7 +79,7 @@ services:
       - .env
     environment:
       - NEO4J_URI=bolt://neo4j:7687
-    command: ["/app/.venv/bin/python", "-m", "ethos.mcp_server", "--transport", "sse", "--port", "8888", "--host", "0.0.0.0"]
+    command: ["/app/.venv/bin/python", "-m", "ethos_academy.mcp_server", "--transport", "sse", "--port", "8888", "--host", "0.0.0.0"]
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import socket; s=socket.create_connection(('localhost',8888),timeout=5); s.close()\""]
       interval: 15s

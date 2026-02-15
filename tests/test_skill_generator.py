@@ -2,7 +2,7 @@
 
 from unittest.mock import AsyncMock, patch
 
-from ethos.reflection.skill_generator import (
+from ethos_academy.reflection.skill_generator import (
     _build_homework_skill,
     _empty_homework_skill,
     _homework_cache,
@@ -11,7 +11,7 @@ from ethos.reflection.skill_generator import (
     generate_homework_skill,
     homework_skill_filename,
 )
-from ethos.shared.models import DailyReportCard, Homework, HomeworkFocus
+from ethos_academy.shared.models import DailyReportCard, Homework, HomeworkFocus
 
 
 def _make_report(
@@ -215,7 +215,7 @@ async def test_generate_homework_skill_returns_content():
     report = _make_report()
 
     with patch(
-        "ethos.reflection.skill_generator.character_report",
+        "ethos_academy.reflection.skill_generator.character_report",
         new_callable=AsyncMock,
         return_value=report,
     ):
@@ -232,7 +232,7 @@ async def test_generate_homework_skill_caches():
 
     mock_report = AsyncMock(return_value=report)
     with patch(
-        "ethos.reflection.skill_generator.character_report",
+        "ethos_academy.reflection.skill_generator.character_report",
         new_callable=AsyncMock,
         side_effect=mock_report,
     ):
@@ -249,7 +249,7 @@ async def test_generate_homework_skill_empty_homework():
     report = _make_report(directive="", focus_areas=[], strengths=[], avoid_patterns=[])
 
     with patch(
-        "ethos.reflection.skill_generator.character_report",
+        "ethos_academy.reflection.skill_generator.character_report",
         new_callable=AsyncMock,
         return_value=report,
     ):
@@ -264,7 +264,7 @@ async def test_generate_homework_skill_has_safety_preamble():
     report = _make_report()
 
     with patch(
-        "ethos.reflection.skill_generator.character_report",
+        "ethos_academy.reflection.skill_generator.character_report",
         new_callable=AsyncMock,
         return_value=report,
     ):

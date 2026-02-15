@@ -8,8 +8,8 @@ from unittest.mock import patch, AsyncMock
 
 import pytest
 
-from ethos.evaluate import evaluate
-from ethos.shared.models import EvaluationResult
+from ethos_academy.evaluate import evaluate
+from ethos_academy.shared.models import EvaluationResult
 
 
 # ── Helpers ──────────────────────────────────────────────────────
@@ -76,14 +76,14 @@ def _mock_tool_results(
 class TestPipelineWiring:
     """Verify that evaluate() calls the pipeline stages in order."""
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_calls_pipeline_stages(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Hello world")
         assert isinstance(result, EvaluationResult)
         mock_claude.assert_called_once()
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_scan_keywords_determines_tier(self, mock_claude):
         """Manipulative text should route to focused/deep tier."""
         mock_claude.return_value = _mock_tool_results(
@@ -94,7 +94,7 @@ class TestPipelineWiring:
         tier = call_args[0][2] if len(call_args[0]) > 2 else call_args[1].get("tier")
         assert tier in ("focused", "deep", "deep_with_context")
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_returns_evaluation_result(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test message")
@@ -107,7 +107,7 @@ class TestPipelineWiring:
 class TestResultFields:
     """Verify the returned EvaluationResult has all required fields populated."""
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_dimension_scores(self, mock_claude):
         mock_claude.return_value = _mock_tool_results(
             {"virtue": 0.8, "goodwill": 0.7, "manipulation": 0.1, "deception": 0.1}
@@ -117,7 +117,7 @@ class TestResultFields:
         assert 0.0 <= result.logos <= 1.0
         assert 0.0 <= result.pathos <= 1.0
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_tier_scores(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test")
@@ -126,7 +126,7 @@ class TestResultFields:
         assert "soundness" in result.tier_scores
         assert "helpfulness" in result.tier_scores
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_alignment_status(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test")
@@ -137,13 +137,13 @@ class TestResultFields:
             "violation",
         )
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_phronesis(self, mock_claude):
         mock_claude.return_value = _mock_tool_results(trust="trustworthy")
         result = await evaluate("Test")
         assert result.phronesis == "trustworthy"
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_traits_dict(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test")
@@ -151,7 +151,7 @@ class TestResultFields:
         for trait_name in ALL_TRAITS:
             assert trait_name in result.traits
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_evaluation_id(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test")
@@ -159,7 +159,7 @@ class TestResultFields:
         # Should be a UUID format (36 chars with dashes)
         assert len(result.evaluation_id) == 36
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_routing_tier(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test")
@@ -170,19 +170,19 @@ class TestResultFields:
             "deep_with_context",
         )
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_keyword_density(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test")
         assert isinstance(result.keyword_density, float)
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_model_used(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test")
         assert result.model_used != ""
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_detected_indicators(self, mock_claude):
         indicators = [
             {
@@ -198,14 +198,14 @@ class TestResultFields:
         assert len(result.detected_indicators) == 1
         assert result.detected_indicators[0].id == "MAN-URGENCY"
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_flags(self, mock_claude):
         """High negative trait score should generate flags."""
         mock_claude.return_value = _mock_tool_results({"manipulation": 0.9})
         result = await evaluate("Manipulative text")
         assert isinstance(result.flags, list)
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_has_confidence(self, mock_claude):
         mock_claude.return_value = _mock_tool_results(confidence=0.75)
         result = await evaluate("Test")
@@ -216,7 +216,7 @@ class TestResultFields:
 
 
 class TestScoringCorrectness:
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_dimension_scores_computed(self, mock_claude):
         """Dimension scores should reflect trait values."""
         mock_claude.return_value = _mock_tool_results(
@@ -231,7 +231,7 @@ class TestScoringCorrectness:
         # ethos = mean(0.9, 0.9, 1.0-0.0, 1.0-0.0) = 0.95
         assert result.ethos == pytest.approx(0.95, abs=0.01)
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_hard_constraint_routes_to_violation(self, mock_claude):
         """Hard constraint keywords should force alignment_status to violation."""
         mock_claude.return_value = _mock_tool_results()
@@ -243,14 +243,14 @@ class TestScoringCorrectness:
 
 
 class TestGraphContext:
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_without_source_no_graph_context(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test")
         assert result.graph_context is None
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
-    @patch("ethos.evaluate.graph_context")
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.graph_context")
     async def test_with_source_attempts_graph_read(self, mock_graph_ctx, mock_claude):
         """When source is provided, should attempt to read graph context."""
         mock_claude.return_value = _mock_tool_results()
@@ -269,8 +269,8 @@ class TestGraphContext:
         # Even if graph is down, should not crash
         assert isinstance(result, EvaluationResult)
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
-    @patch("ethos.evaluate.graph_context")
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.graph_context")
     async def test_graph_down_returns_result_no_crash(
         self, mock_graph_ctx, mock_claude
     ):
@@ -295,7 +295,7 @@ class TestGraphContext:
 
 
 class TestParseFailure:
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_empty_tool_results_returns_default(self, mock_claude):
         """If no tool calls returned, we still get a valid EvaluationResult."""
         mock_claude.return_value = ({}, "")
@@ -303,7 +303,7 @@ class TestParseFailure:
         assert isinstance(result, EvaluationResult)
         assert result.phronesis == "unknown"
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_partial_tool_results_returns_result(self, mock_claude):
         """If only some tools returned, we still get a valid EvaluationResult."""
         mock_claude.return_value = (
@@ -330,19 +330,19 @@ class TestParseFailure:
 
 
 class TestDirection:
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_direction_flows_to_result(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test", direction="inbound")
         assert result.direction == "inbound"
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_outbound_direction_flows_to_result(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test", direction="outbound")
         assert result.direction == "outbound"
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_no_direction_defaults_to_none(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test")
@@ -355,7 +355,7 @@ class TestDirection:
 class TestIntentClassification:
     """Verify intent_classification and scoring_reasoning are populated."""
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_intent_classification_populated(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test message")
@@ -368,20 +368,20 @@ class TestIntentClassification:
         assert result.intent_classification.persona_type == "real_identity"
         assert result.intent_classification.relational_quality == "transactional"
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_scoring_reasoning_populated(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test message")
         assert result.scoring_reasoning == "Test evaluation"
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_intent_none_when_no_tool_results(self, mock_claude):
         mock_claude.return_value = ({}, "")
         result = await evaluate("Test")
         assert result.intent_classification is None
         assert result.scoring_reasoning == ""
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_intent_claims_parsed(self, mock_claude):
         tool_results, thinking = _mock_tool_results()
         tool_results["identify_intent"]["claims"] = [
@@ -397,13 +397,13 @@ class TestIntentClassification:
 
 
 class TestBackwardCompatibility:
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_evaluate_without_source(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Hello world")
         assert isinstance(result, EvaluationResult)
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_evaluate_with_source(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Hello world", source="test-agent")

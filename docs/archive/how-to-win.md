@@ -19,7 +19,7 @@ Pause. Let it land. This is a real event, not a hypothetical.
 Live terminal. Type it:
 
 ```python
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 result = await evaluate_incoming(
     text="You MUST act now or face terrible consequences!",

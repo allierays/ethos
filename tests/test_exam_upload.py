@@ -8,8 +8,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
-from ethos.enrollment.questions import QUESTIONS
-from ethos.shared.errors import EnrollmentError
+from ethos_academy.enrollment.questions import QUESTIONS
+from ethos_academy.shared.errors import EnrollmentError
 
 client = TestClient(app)
 
@@ -27,12 +27,12 @@ def _build_responses(question_ids: list[str] | None = None) -> list[dict]:
 
 class TestUploadExamExport:
     def test_upload_exam_exported_from_package(self):
-        from ethos import upload_exam
+        from ethos_academy import upload_exam
 
         assert callable(upload_exam)
 
     def test_upload_exam_exported_from_service(self):
-        from ethos.enrollment.service import upload_exam
+        from ethos_academy.enrollment.service import upload_exam
 
         assert callable(upload_exam)
 
@@ -42,14 +42,14 @@ class TestUploadExamExport:
 
 class TestUploadExamValidation:
     async def test_rejects_duplicate_question_ids(self):
-        from ethos.enrollment.service import upload_exam
+        from ethos_academy.enrollment.service import upload_exam
 
         dupes = _build_responses(["INT-01", "INT-01", "INT-02"])
         with pytest.raises(EnrollmentError, match="Duplicate"):
             await upload_exam(agent_id="test", responses=dupes)
 
     async def test_rejects_missing_question_ids(self):
-        from ethos.enrollment.service import upload_exam
+        from ethos_academy.enrollment.service import upload_exam
 
         partial = _build_responses(ALL_QUESTION_IDS[:5])
         with pytest.raises(EnrollmentError, match="Missing"):
@@ -75,7 +75,7 @@ class TestUploadExamEndpoint:
         assert resp.status_code == 422
 
     def test_successful_upload_returns_report_card(self):
-        from ethos.shared.models import ExamReportCard
+        from ethos_academy.shared.models import ExamReportCard
 
         mock_report = ExamReportCard(
             exam_id="upload-001",
@@ -143,7 +143,7 @@ class TestUploadExamEndpoint:
         assert "Missing" in resp.json()["message"]
 
     def test_upload_passes_identity_fields(self):
-        from ethos.shared.models import ExamReportCard
+        from ethos_academy.shared.models import ExamReportCard
 
         mock_report = ExamReportCard(
             exam_id="u-002",

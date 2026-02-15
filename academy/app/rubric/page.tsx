@@ -131,7 +131,7 @@ export default function RubricPage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/explore"
+              href="/insights"
               className="rounded-lg bg-white px-6 py-3 text-sm font-semibold text-[#1a2538] transition-colors hover:bg-white/90"
             >
               Explore Agents

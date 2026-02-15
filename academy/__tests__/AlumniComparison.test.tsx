@@ -87,7 +87,7 @@ describe("AlumniComparison", () => {
     );
     // The subtitle renders immediately with the agent name
     expect(
-      screen.getByText(/Claude.s scores overlaid on network averages/)
+      screen.getByText(/Claude.s scores overlaid on alumni averages/)
     ).toBeInTheDocument();
   });
 
@@ -96,7 +96,7 @@ describe("AlumniComparison", () => {
     render(<AlumniComparison agentTraitAverages={MOCK_AGENT_TRAITS} />);
     // The subtitle renders immediately with the default name
     expect(
-      screen.getByText(/this agent.s scores overlaid on network averages/)
+      screen.getByText(/this agent.s scores overlaid on alumni averages/)
     ).toBeInTheDocument();
   });
 });

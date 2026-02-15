@@ -156,7 +156,7 @@ pip install "mcp[cli]" neo4j
 #### Core Server Implementation
 
 ```python
-# ethos/mcp_server.py
+# ethos_academy/mcp_server.py
 import json
 import logging
 from typing import Any, Optional
@@ -616,7 +616,7 @@ fi
 RESULT=$(python3 -c "
 import json, sys
 sys.path.insert(0, '$CLAUDE_PROJECT_DIR')
-from ethos.evaluator import quick_evaluate
+from ethos_academy.evaluator import quick_evaluate
 
 tool_name = '$TOOL_NAME'
 tool_input = json.loads('$TOOL_INPUT')
@@ -1017,7 +1017,7 @@ async def ethos_pre_tool_hook(input_data, tool_use_id, context):
 
     # For write operations, evaluate through Ethos
     if tool_name in ("Bash", "Edit", "Write"):
-        from ethos.evaluator import quick_evaluate
+        from ethos_academy.evaluator import quick_evaluate
         result = quick_evaluate(tool_name, tool_input)
 
         if result["risk_level"] == "critical":

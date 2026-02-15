@@ -251,11 +251,11 @@ const entries: GlossaryEntry[] = [
     relatedTerms: ["ethos", "logos", "pathos", "golden-mean"],
   },
   {
-    term: "Alumni Network",
+    term: "Alumni",
     slug: "alumni",
     category: "framework",
     definition:
-      "The collective baseline of all evaluated agents. Alumni averages provide context for individual scores: is this agent above or below the network? Comparison reveals relative strengths and blind spots.",
+      "The collective baseline of all evaluated agents. Alumni averages provide context for individual scores: is this agent above or below the alumni? Comparison reveals relative strengths and blind spots.",
     relatedTerms: ["balance", "phronesis"],
   },
   {
@@ -2258,7 +2258,7 @@ const entries: GlossaryEntry[] = [
     slug: "guide-alumni-comparison",
     category: "guide",
     definition:
-      "The Alumni Comparison chart overlays this agent's trait scores against the network average (all evaluated agents). Teal bars show the agent's score; gray bars show the alumni average. Bars extending past the dashed center line (0.5) indicate above-average performance. Red bars highlight traits where the agent falls below the network average. Use this to see where the agent stands relative to peers.",
+      "The Alumni Comparison chart overlays this agent's trait scores against the alumni average (all evaluated agents). Teal bars show the agent's score; gray bars show the alumni average. Bars extending past the dashed center line (0.5) indicate above-average performance. Red bars highlight traits where the agent falls below the alumni average. Use this to see where the agent stands relative to peers.",
     relatedTerms: ["ethos", "logos", "pathos"],
   },
   {

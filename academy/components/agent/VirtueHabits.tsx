@@ -119,18 +119,18 @@ export default function VirtueHabits({ history, agentName }: VirtueHabitsProps) 
           <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
             <GlossaryTerm slug="virtue-as-habit">Virtue Through Habit</GlossaryTerm>
           </h2>
-          <p className="mt-0.5 text-sm text-foreground/60">
+          <p className="mt-0.5 text-sm text-foreground/80">
             Which of {name}&apos;s virtues are becoming habits? Each square is one evaluation.
           </p>
         </div>
-        <div className="flex items-center gap-3 text-xs text-foreground/50">
+        <div className="flex items-center gap-3 text-xs text-foreground/70">
           <span className="flex items-center gap-1">
-            <span className="text-foreground/40">Less</span>
+            <span className="text-foreground/80">Less</span>
             <span className="inline-block h-[10px] w-[10px] rounded-[2px] bg-foreground/10" />
             <span className="inline-block h-[10px] w-[10px] rounded-[2px] bg-foreground/25" />
             <span className="inline-block h-[10px] w-[10px] rounded-[2px] bg-foreground/50" />
             <span className="inline-block h-[10px] w-[10px] rounded-[2px] bg-foreground/80" />
-            <span className="text-foreground/40">More</span>
+            <span className="text-foreground/80">More</span>
           </span>
           <span className="text-foreground/20">|</span>
           <span className="flex items-center gap-1">
@@ -163,7 +163,7 @@ export default function VirtueHabits({ history, agentName }: VirtueHabitsProps) 
                   className="h-2 w-2 rounded-full"
                   style={{ backgroundColor: dim.color }}
                 />
-                <span className="text-xs font-semibold uppercase tracking-wider text-foreground/50">
+                <span className="text-xs font-semibold uppercase tracking-wider text-foreground/70">
                   {dim.label}
                 </span>
               </div>
@@ -182,7 +182,7 @@ export default function VirtueHabits({ history, agentName }: VirtueHabitsProps) 
                             <GlossaryTerm slug={habit.trait.slug}>{habit.trait.label}</GlossaryTerm>
                           </span>
                         </div>
-                        <span className="text-[10px] font-medium text-foreground/40">
+                        <span className="text-[10px] font-medium text-foreground/80">
                           {config.label}
                         </span>
                       </div>
@@ -217,7 +217,7 @@ export default function VirtueHabits({ history, agentName }: VirtueHabitsProps) 
       </motion.div>
 
       {chronological.length < MAX_SQUARES && (
-        <p className="mt-4 text-center text-xs text-foreground/40">
+        <p className="mt-4 text-center text-xs text-foreground/80">
           {MAX_SQUARES - chronological.length} more evaluation{MAX_SQUARES - chronological.length !== 1 ? "s" : ""} to fill this graph. Send more messages through Ethos Academy to watch habits form.
         </p>
       )}

@@ -7,13 +7,17 @@ from unittest.mock import AsyncMock, PropertyMock, patch
 from fastapi.testclient import TestClient
 
 from api.main import app
-from ethos.graph.read import (
+from ethos_academy.graph.read import (
     _build_search_where,
     search_evaluations,
     vector_search_evaluations,
 )
-from ethos.graph.service import GraphService
-from ethos.shared.models import DetectedIndicatorSummary, RecordItem, RecordsResult
+from ethos_academy.graph.service import GraphService
+from ethos_academy.shared.models import (
+    DetectedIndicatorSummary,
+    RecordItem,
+    RecordsResult,
+)
 
 client = TestClient(app)
 

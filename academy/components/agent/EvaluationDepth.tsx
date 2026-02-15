@@ -83,7 +83,7 @@ export default function EvaluationDepth() {
       >
         <div className="flex items-center gap-2">
           <svg
-            className={`h-4 w-4 shrink-0 text-foreground/40 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+            className={`h-4 w-4 shrink-0 text-foreground/80 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -94,7 +94,7 @@ export default function EvaluationDepth() {
           <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
             Appendix
           </h2>
-          <span className="rounded-full bg-foreground/[0.06] px-2 py-0.5 text-[10px] font-medium text-foreground/60">
+          <span className="rounded-full bg-foreground/[0.06] px-2 py-0.5 text-[10px] font-medium text-foreground/80">
             How this report works
           </span>
         </div>
@@ -111,7 +111,7 @@ export default function EvaluationDepth() {
             className="overflow-hidden"
           >
             <div className="px-6 pb-6">
-              <p className="text-sm text-foreground/60">
+              <p className="text-sm text-foreground/80">
                 Every score on this page passes through three evaluation layers before it reaches you.
               </p>
 
@@ -137,12 +137,12 @@ export default function EvaluationDepth() {
                             <GlossaryTerm slug={layer.slug}>{layer.name}</GlossaryTerm>
                           </span>
                         </div>
-                        <span className="rounded-full bg-foreground/[0.05] px-2 py-0.5 text-[10px] font-medium text-foreground/50">
+                        <span className="rounded-full bg-foreground/[0.05] px-2 py-0.5 text-[10px] font-medium text-foreground/70">
                           {layer.time}
                         </span>
                       </div>
                       <p className="mt-3 text-sm font-medium text-foreground/70">{layer.description}</p>
-                      <p className="mt-1.5 text-xs leading-relaxed text-foreground/50">{layer.detail}</p>
+                      <p className="mt-1.5 text-xs leading-relaxed text-foreground/70">{layer.detail}</p>
                     </div>
                   </div>
                 ))}
@@ -158,7 +158,7 @@ export default function EvaluationDepth() {
                     <h3 className="text-sm font-semibold text-[#1a2538]">
                       {item.slug ? <GlossaryTerm slug={item.slug}>{item.heading}</GlossaryTerm> : item.heading}
                     </h3>
-                    <p className="mt-1.5 text-xs leading-relaxed text-foreground/50">{item.body}</p>
+                    <p className="mt-1.5 text-xs leading-relaxed text-foreground/70">{item.body}</p>
                   </div>
                 ))}
               </div>

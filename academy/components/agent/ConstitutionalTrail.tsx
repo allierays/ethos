@@ -278,7 +278,7 @@ function ValueCard({ group, defaultOpen }: { group: ValueGroup; defaultOpen: boo
 
           {/* Row 2: What this value means (plain language) */}
           {VALUE_EXPLAINERS[group.value] && (
-            <p className="mt-1.5 text-xs text-foreground/60 leading-relaxed">
+            <p className="mt-1.5 text-xs text-foreground/80 leading-relaxed">
               {VALUE_EXPLAINERS[group.value]}
             </p>
           )}
@@ -389,7 +389,7 @@ function IndicatorRow({ indicator }: { indicator: IndicatorInfo }) {
         </span>
       </div>
       {firstEvidence && (
-        <p className="mt-0.5 text-[11px] text-foreground/60 leading-relaxed line-clamp-1 pl-0.5">
+        <p className="mt-0.5 text-[11px] text-foreground/80 leading-relaxed line-clamp-1 pl-0.5">
           &ldquo;{firstEvidence}&rdquo;
         </p>
       )}
@@ -456,7 +456,7 @@ export default function ConstitutionalTrail({ agentId, agentName }: Constitution
           <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
             <GlossaryTerm slug="constitutional-value">Constitutional</GlossaryTerm> Values
           </h2>
-          <p className="mt-0.5 text-sm text-foreground/60">
+          <p className="mt-0.5 text-sm text-foreground/80">
             Anthropic&apos;s constitution defines 4 priorities every AI must follow.{" "}
             {totalConcerns > 0 ? (
               <span className="text-misaligned font-medium">

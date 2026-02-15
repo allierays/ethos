@@ -3,11 +3,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSimilarity } from "../../lib/api";
-import { ALIGNMENT_COLORS, spectrumColor, spectrumLabel } from "../../lib/colors";
+import { spectrumColor } from "../../lib/colors";
 import type { SimilarityResult, SimilarityEdge } from "../../lib/types";
 import GlossaryTerm from "../shared/GlossaryTerm";
 
-/* ─── Force layout (simple spring simulation) ─── */
+/* ─── Constants ─── */
+
+const MAX_EDGES = 30; // strongest connections to display
+const NODE_R = 14;
+const LABEL_GAP = 14;
+const WIDTH = 800;
+const HEIGHT = 560;
+const PAD = 50;
+
+/* ─── Force layout ─── */
 
 interface SimNode {
   id: string;
@@ -21,38 +30,35 @@ interface SimNode {
 }
 
 function runSimulation(
-  agents: Map<string, SimNode>,
+  nodes: SimNode[],
   edges: SimilarityEdge[],
-  width: number,
-  height: number,
-  iterations: number = 120
+  nodeMap: Map<string, SimNode>,
 ) {
-  const nodes = Array.from(agents.values());
-  const cx = width / 2;
-  const cy = height / 2;
+  const cx = WIDTH / 2;
+  const cy = HEIGHT / 2;
 
-  // Initialize positions in a circle
+  // Place nodes in a circle to start
   nodes.forEach((n, i) => {
     const angle = (2 * Math.PI * i) / nodes.length;
-    const r = Math.min(width, height) * 0.3;
-    n.x = cx + r * Math.cos(angle);
-    n.y = cy + r * Math.sin(angle);
+    const spread = Math.min(WIDTH, HEIGHT) * 0.35;
+    n.x = cx + spread * Math.cos(angle);
+    n.y = cy + spread * Math.sin(angle);
   });
 
+  const iterations = 300;
   for (let iter = 0; iter < iterations; iter++) {
     const alpha = 1 - iter / iterations;
-    const repulsion = 8000 * alpha;
-    const attraction = 0.02 * alpha;
 
     // Repulsion between all pairs
+    const repulsion = 15000 * alpha;
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
         const dx = nodes[i].x - nodes[j].x;
         const dy = nodes[i].y - nodes[j].y;
         const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-        const force = repulsion / (dist * dist);
-        const fx = (dx / dist) * force;
-        const fy = (dy / dist) * force;
+        const f = repulsion / (dist * dist);
+        const fx = (dx / dist) * f;
+        const fy = (dy / dist) * f;
         nodes[i].vx += fx;
         nodes[i].vy += fy;
         nodes[j].vx -= fx;
@@ -61,35 +67,54 @@ function runSimulation(
     }
 
     // Attraction along edges
+    const attraction = 0.012 * alpha;
     for (const edge of edges) {
-      const a = agents.get(edge.agent1Id);
-      const b = agents.get(edge.agent2Id);
+      const a = nodeMap.get(edge.agent1Id);
+      const b = nodeMap.get(edge.agent2Id);
       if (!a || !b) continue;
       const dx = b.x - a.x;
       const dy = b.y - a.y;
       const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-      const force = attraction * dist * edge.similarity;
-      a.vx += (dx / dist) * force;
-      a.vy += (dy / dist) * force;
-      b.vx -= (dx / dist) * force;
-      b.vy -= (dy / dist) * force;
+      const f = attraction * dist * edge.similarity;
+      a.vx += (dx / dist) * f;
+      a.vy += (dy / dist) * f;
+      b.vx -= (dx / dist) * f;
+      b.vy -= (dy / dist) * f;
     }
 
     // Center gravity
     for (const n of nodes) {
-      n.vx += (cx - n.x) * 0.005 * alpha;
-      n.vy += (cy - n.y) * 0.005 * alpha;
+      n.vx += (cx - n.x) * 0.01 * alpha;
+      n.vy += (cy - n.y) * 0.01 * alpha;
     }
 
-    // Apply velocity with damping
+    // Collision separation
+    const minSep = NODE_R * 2 + LABEL_GAP;
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[j].x - nodes[i].x;
+        const dy = nodes[j].y - nodes[i].y;
+        const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+        if (dist < minSep) {
+          const push = (minSep - dist) * 0.5;
+          const ux = (dx / dist) * push;
+          const uy = (dy / dist) * push;
+          nodes[i].x -= ux;
+          nodes[i].y -= uy;
+          nodes[j].x += ux;
+          nodes[j].y += uy;
+        }
+      }
+    }
+
+    // Apply velocity
     for (const n of nodes) {
-      n.x += n.vx * 0.8;
-      n.y += n.vy * 0.8;
-      n.vx *= 0.6;
-      n.vy *= 0.6;
-      // Clamp to bounds
-      n.x = Math.max(40, Math.min(width - 40, n.x));
-      n.y = Math.max(40, Math.min(height - 40, n.y));
+      n.x += n.vx * 0.7;
+      n.y += n.vy * 0.7;
+      n.vx *= 0.4;
+      n.vy *= 0.4;
+      n.x = Math.max(PAD, Math.min(WIDTH - PAD, n.x));
+      n.y = Math.max(PAD, Math.min(HEIGHT - PAD, n.y));
     }
   }
 }
@@ -112,58 +137,52 @@ export default function SimilarityNetwork({ onAgentClick }: SimilarityNetworkPro
   useEffect(() => {
     let cancelled = false;
     getSimilarity()
-      .then((result) => {
-        if (!cancelled) setData(result);
-      })
-      .catch(() => {
-        if (!cancelled) setError("Failed to load similarity data");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      .then((result) => { if (!cancelled) setData(result); })
+      .catch(() => { if (!cancelled) setError("Failed to load similarity data"); })
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
-  const width = 680;
-  const height = 500;
+  // Filter to top edges and build layout
+  const { topEdges, nodeMap, totalEdges, totalAgents } = useMemo(() => {
+    if (!data || data.edges.length === 0)
+      return { topEdges: [] as SimilarityEdge[], nodeMap: new Map<string, SimNode>(), totalEdges: 0, totalAgents: 0 };
 
-  // Build and simulate layout
-  const { agents, layout } = useMemo(() => {
-    if (!data || data.edges.length === 0) return { agents: new Map<string, SimNode>(), layout: false };
+    // Edges arrive sorted by similarity DESC from the API
+    const top = data.edges.slice(0, MAX_EDGES);
 
+    // Collect only agents that appear in the top edges
     const agentMap = new Map<string, SimNode>();
-    for (const edge of data.edges) {
-      if (!agentMap.has(edge.agent1Id)) {
-        agentMap.set(edge.agent1Id, {
-          id: edge.agent1Id,
-          label: edge.agent1Name || edge.agent1Id,
-          phronesis: edge.agent1Phronesis,
-          x: 0, y: 0, vx: 0, vy: 0, edgeCount: 0,
-        });
+    for (const edge of top) {
+      for (const [id, name, phronesis] of [
+        [edge.agent1Id, edge.agent1Name, edge.agent1Phronesis] as const,
+        [edge.agent2Id, edge.agent2Name, edge.agent2Phronesis] as const,
+      ]) {
+        if (!agentMap.has(id)) {
+          agentMap.set(id, {
+            id, label: name || id, phronesis,
+            x: 0, y: 0, vx: 0, vy: 0, edgeCount: 0,
+          });
+        }
+        agentMap.get(id)!.edgeCount++;
       }
-      if (!agentMap.has(edge.agent2Id)) {
-        agentMap.set(edge.agent2Id, {
-          id: edge.agent2Id,
-          label: edge.agent2Name || edge.agent2Id,
-          phronesis: edge.agent2Phronesis,
-          x: 0, y: 0, vx: 0, vy: 0, edgeCount: 0,
-        });
-      }
-      agentMap.get(edge.agent1Id)!.edgeCount++;
-      agentMap.get(edge.agent2Id)!.edgeCount++;
     }
 
-    runSimulation(agentMap, data.edges, width, height);
-    return { agents: agentMap, layout: true };
+    // Count total unique agents across all edges
+    const allAgentIds = new Set<string>();
+    for (const e of data.edges) {
+      allAgentIds.add(e.agent1Id);
+      allAgentIds.add(e.agent2Id);
+    }
+
+    runSimulation(Array.from(agentMap.values()), top, agentMap);
+    return { topEdges: top, nodeMap: agentMap, totalEdges: data.edges.length, totalAgents: allAgentIds.size };
   }, [data]);
 
   const handleClick = useCallback(
     (agentId: string) => {
-      if (onAgentClick) {
-        onAgentClick(agentId);
-      } else {
-        router.push(`/agent/${encodeURIComponent(agentId)}`);
-      }
+      if (onAgentClick) onAgentClick(agentId);
+      else router.push(`/agent/${encodeURIComponent(agentId)}`);
     },
     [onAgentClick, router]
   );
@@ -171,9 +190,9 @@ export default function SimilarityNetwork({ onAgentClick }: SimilarityNetworkPro
   // Connected nodes for hover highlighting
   const connectedIds = useMemo(() => {
     const ids = new Set<string>();
-    if (hoveredNode && data) {
+    if (hoveredNode) {
       ids.add(hoveredNode);
-      for (const edge of data.edges) {
+      for (const edge of topEdges) {
         if (edge.agent1Id === hoveredNode || edge.agent2Id === hoveredNode) {
           ids.add(edge.agent1Id);
           ids.add(edge.agent2Id);
@@ -181,7 +200,7 @@ export default function SimilarityNetwork({ onAgentClick }: SimilarityNetworkPro
       }
     }
     return ids;
-  }, [hoveredNode, data]);
+  }, [hoveredNode, topEdges]);
 
   if (loading) {
     return (
@@ -215,6 +234,8 @@ export default function SimilarityNetwork({ onAgentClick }: SimilarityNetworkPro
     );
   }
 
+  const hoveredEdgeData = hoveredEdge !== null ? topEdges[hoveredEdge] : null;
+
   return (
     <div className="rounded-xl border border-border bg-white p-6 space-y-4">
       <div>
@@ -222,14 +243,14 @@ export default function SimilarityNetwork({ onAgentClick }: SimilarityNetworkPro
           Behavioral <GlossaryTerm slug="similarity-network">Similarity</GlossaryTerm> Network
         </h3>
         <p className="mt-0.5 text-xs text-muted">
-          Agents connected by shared behavioral indicators. Edge thickness = Jaccard similarity.
-          Click a node to view agent report card.
+          Strongest behavioral connections between agents. Edge thickness = shared indicator overlap (Jaccard).
+          Click a node to view report card.
         </p>
       </div>
 
-      {/* Why this matters */}
+      {/* Insight callout */}
       <div className="rounded-lg bg-logos-50/50 border border-logos-200/30 px-4 py-3">
-        <p className="text-xs text-foreground/60 leading-relaxed">
+        <p className="text-xs text-foreground/80 leading-relaxed">
           <span className="font-semibold text-foreground/80">Graph-only insight:</span>{" "}
           A vector database finds text similarity (embedding distance). Two agents could use
           completely different words while triggering identical indicators: high graph similarity,
@@ -238,35 +259,40 @@ export default function SimilarityNetwork({ onAgentClick }: SimilarityNetworkPro
         </p>
       </div>
 
+      {/* Filter summary */}
+      <p className="text-[11px] text-muted">
+        Showing top {topEdges.length} connections across {nodeMap.size} agents
+        {totalAgents > nodeMap.size && (
+          <span className="text-foreground/30"> ({totalAgents} total alumni)</span>
+        )}
+      </p>
+
       {/* SVG Network */}
       <div className="w-full overflow-x-auto rounded-lg border border-border/50 bg-slate-50/50">
         <svg
           ref={svgRef}
-          viewBox={`0 0 ${width} ${height}`}
+          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           className="w-full"
-          style={{ minWidth: 400 }}
+          style={{ minWidth: 480 }}
         >
           {/* Edges */}
-          {data.edges.map((edge, i) => {
-            const a = agents.get(edge.agent1Id);
-            const b = agents.get(edge.agent2Id);
+          {topEdges.map((edge, i) => {
+            const a = nodeMap.get(edge.agent1Id);
+            const b = nodeMap.get(edge.agent2Id);
             if (!a || !b) return null;
 
             const isHoveredEdge = hoveredEdge === i;
             const isConnected = hoveredNode
               ? connectedIds.has(edge.agent1Id) && connectedIds.has(edge.agent2Id)
               : true;
-            const opacity = isHoveredEdge ? 0.8 : hoveredNode ? (isConnected ? 0.5 : 0.08) : 0.25;
+            const opacity = isHoveredEdge ? 0.9 : hoveredNode ? (isConnected ? 0.5 : 0.06) : 0.2;
 
             return (
               <line
                 key={`edge-${i}`}
-                x1={a.x}
-                y1={a.y}
-                x2={b.x}
-                y2={b.y}
+                x1={a.x} y1={a.y} x2={b.x} y2={b.y}
                 stroke="#64748b"
-                strokeWidth={Math.max(1, edge.similarity * 6)}
+                strokeWidth={Math.max(1, edge.similarity * 5)}
                 strokeOpacity={opacity}
                 onMouseEnter={() => setHoveredEdge(i)}
                 onMouseLeave={() => setHoveredEdge(null)}
@@ -276,35 +302,29 @@ export default function SimilarityNetwork({ onAgentClick }: SimilarityNetworkPro
           })}
 
           {/* Nodes */}
-          {Array.from(agents.values()).map((node) => {
+          {Array.from(nodeMap.values()).map((node) => {
             const score = node.phronesis ?? 0.5;
             const color = spectrumColor(score);
-            const r = Math.max(10, 6 + node.edgeCount * 2);
             const isActive = !hoveredNode || connectedIds.has(node.id);
 
             return (
               <g
                 key={node.id}
-                opacity={isActive ? 1 : 0.2}
+                opacity={isActive ? 1 : 0.15}
                 onClick={() => handleClick(node.id)}
                 onMouseEnter={() => setHoveredNode(node.id)}
                 onMouseLeave={() => setHoveredNode(null)}
                 className="cursor-pointer"
               >
                 <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={r}
-                  fill={color}
-                  fillOpacity={0.8}
-                  stroke="white"
-                  strokeWidth={2}
+                  cx={node.x} cy={node.y} r={NODE_R}
+                  fill={color} fillOpacity={0.85}
+                  stroke="white" strokeWidth={2}
                 />
                 <text
-                  x={node.x}
-                  y={node.y + r + 12}
+                  x={node.x} y={node.y + NODE_R + 11}
                   textAnchor="middle"
-                  className="text-[10px] fill-foreground/70 pointer-events-none"
+                  className="text-[9px] fill-foreground/60 pointer-events-none"
                   style={{ fontFamily: "inherit" }}
                 >
                   {node.label.length > 14 ? `${node.label.slice(0, 12)}...` : node.label}
@@ -316,26 +336,26 @@ export default function SimilarityNetwork({ onAgentClick }: SimilarityNetworkPro
       </div>
 
       {/* Hovered edge detail */}
-      {hoveredEdge !== null && data.edges[hoveredEdge] && (
+      {hoveredEdgeData && (
         <div className="rounded-lg border border-border bg-white p-3 text-xs">
           <div className="flex items-center gap-2 font-medium">
-            <span>{data.edges[hoveredEdge].agent1Name || data.edges[hoveredEdge].agent1Id}</span>
+            <span>{hoveredEdgeData.agent1Name || hoveredEdgeData.agent1Id}</span>
             <span className="text-muted">&harr;</span>
-            <span>{data.edges[hoveredEdge].agent2Name || data.edges[hoveredEdge].agent2Id}</span>
+            <span>{hoveredEdgeData.agent2Name || hoveredEdgeData.agent2Id}</span>
             <span className="ml-auto font-mono text-action">
-              {(data.edges[hoveredEdge].similarity * 100).toFixed(0)}% similar
+              {(hoveredEdgeData.similarity * 100).toFixed(0)}% similar
             </span>
           </div>
-          {data.edges[hoveredEdge].sharedIndicators.length > 0 && (
+          {hoveredEdgeData.sharedIndicators.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
-              {data.edges[hoveredEdge].sharedIndicators.slice(0, 8).map((ind) => (
+              {hoveredEdgeData.sharedIndicators.slice(0, 8).map((ind) => (
                 <span key={ind} className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-muted">
                   {ind.replace(/_/g, " ")}
                 </span>
               ))}
-              {data.edges[hoveredEdge].sharedIndicators.length > 8 && (
+              {hoveredEdgeData.sharedIndicators.length > 8 && (
                 <span className="text-[10px] text-muted">
-                  +{data.edges[hoveredEdge].sharedIndicators.length - 8} more
+                  +{hoveredEdgeData.sharedIndicators.length - 8} more
                 </span>
               )}
             </div>

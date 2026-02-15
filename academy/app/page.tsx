@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Hero from "../components/landing/Hero";
+import WhatIsEthos from "../components/landing/WhatIsEthos";
 import WhatIsPhronesis from "../components/landing/WhatIsPhronesis";
 import WhyNow from "../components/landing/WhyNow";
 import TheLoop from "../components/landing/TheLoop";
@@ -16,6 +17,7 @@ export default function LandingPage() {
   return (
     <main>
       <Hero />
+      <WhatIsEthos />
       <WhatIsPhronesis />
       <WhyNow />
       <TheLoop />

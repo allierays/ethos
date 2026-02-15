@@ -29,7 +29,7 @@ The MVP uses hashed IDs for agent identity. This works but has limitations:
 
 ```python
 # Level 1 developer experience (same simplicity, cryptographic identity under the hood)
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 # Auto-generates key pair on first call, stores private key in .ethos/ directory
 # Public key becomes the agent's alumni identity
@@ -84,7 +84,7 @@ Each agent action creates a signed, timestamped log entry. Entries are hash-chai
 
 ```python
 # Developer experience: a decorator that captures provenance automatically
-from ethos import evaluate_incoming
+from ethos_academy import evaluate_incoming
 
 @track
 async def my_agent_handler(message, sender_id):

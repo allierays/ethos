@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from ethos.patterns import detect_patterns
-from ethos.shared.models import DetectedPattern, PatternResult
+from ethos_academy.patterns import detect_patterns
+from ethos_academy.shared.models import DetectedPattern, PatternResult
 
 
 def _mock_graph_context(connected=True):
@@ -21,11 +21,13 @@ def _mock_graph_context(connected=True):
 
 
 class TestDetectPatterns:
-    @patch("ethos.patterns.store_exhibits_pattern", new_callable=AsyncMock)
-    @patch("ethos.patterns.get_agent_detected_indicators", new_callable=AsyncMock)
-    @patch("ethos.patterns.get_pattern_indicator_map", new_callable=AsyncMock)
-    @patch("ethos.patterns.get_agent_evaluation_count", new_callable=AsyncMock)
-    @patch("ethos.patterns.graph_context")
+    @patch("ethos_academy.patterns.store_exhibits_pattern", new_callable=AsyncMock)
+    @patch(
+        "ethos_academy.patterns.get_agent_detected_indicators", new_callable=AsyncMock
+    )
+    @patch("ethos_academy.patterns.get_pattern_indicator_map", new_callable=AsyncMock)
+    @patch("ethos_academy.patterns.get_agent_evaluation_count", new_callable=AsyncMock)
+    @patch("ethos_academy.patterns.graph_context")
     async def test_detects_matching_pattern(
         self, mock_ctx, mock_count, mock_map, mock_indicators, mock_store
     ):
@@ -77,10 +79,12 @@ class TestDetectPatterns:
         # Verify EXHIBITS_PATTERN was stored
         mock_store.assert_called_once()
 
-    @patch("ethos.patterns.get_agent_detected_indicators", new_callable=AsyncMock)
-    @patch("ethos.patterns.get_pattern_indicator_map", new_callable=AsyncMock)
-    @patch("ethos.patterns.get_agent_evaluation_count", new_callable=AsyncMock)
-    @patch("ethos.patterns.graph_context")
+    @patch(
+        "ethos_academy.patterns.get_agent_detected_indicators", new_callable=AsyncMock
+    )
+    @patch("ethos_academy.patterns.get_pattern_indicator_map", new_callable=AsyncMock)
+    @patch("ethos_academy.patterns.get_agent_evaluation_count", new_callable=AsyncMock)
+    @patch("ethos_academy.patterns.graph_context")
     async def test_partial_match_gives_fractional_confidence(
         self, mock_ctx, mock_count, mock_map, mock_indicators
     ):
@@ -120,10 +124,12 @@ class TestDetectPatterns:
         assert result.patterns[0].current_stage == 1
         assert result.patterns[0].matched_indicators == ["DEC-SANDBAG"]
 
-    @patch("ethos.patterns.get_agent_detected_indicators", new_callable=AsyncMock)
-    @patch("ethos.patterns.get_pattern_indicator_map", new_callable=AsyncMock)
-    @patch("ethos.patterns.get_agent_evaluation_count", new_callable=AsyncMock)
-    @patch("ethos.patterns.graph_context")
+    @patch(
+        "ethos_academy.patterns.get_agent_detected_indicators", new_callable=AsyncMock
+    )
+    @patch("ethos_academy.patterns.get_pattern_indicator_map", new_callable=AsyncMock)
+    @patch("ethos_academy.patterns.get_agent_evaluation_count", new_callable=AsyncMock)
+    @patch("ethos_academy.patterns.graph_context")
     async def test_no_match_returns_empty_patterns(
         self, mock_ctx, mock_count, mock_map, mock_indicators
     ):
@@ -150,8 +156,8 @@ class TestDetectPatterns:
         assert isinstance(result, PatternResult)
         assert result.patterns == []
 
-    @patch("ethos.patterns.get_agent_evaluation_count", new_callable=AsyncMock)
-    @patch("ethos.patterns.graph_context")
+    @patch("ethos_academy.patterns.get_agent_evaluation_count", new_callable=AsyncMock)
+    @patch("ethos_academy.patterns.graph_context")
     async def test_insufficient_evaluations_returns_empty(self, mock_ctx, mock_count):
         mock_service = AsyncMock()
         mock_service.connected = True
@@ -166,7 +172,7 @@ class TestDetectPatterns:
         assert result.agent_id == "test-agent"
         assert result.patterns == []
 
-    @patch("ethos.patterns.graph_context")
+    @patch("ethos_academy.patterns.graph_context")
     async def test_graph_down_returns_empty(self, mock_ctx):
         mock_service = AsyncMock()
         mock_service.connected = False
@@ -179,7 +185,7 @@ class TestDetectPatterns:
         assert result.agent_id == "test-agent"
         assert result.patterns == []
 
-    @patch("ethos.patterns.graph_context")
+    @patch("ethos_academy.patterns.graph_context")
     async def test_graph_exception_returns_empty(self, mock_ctx):
         mock_ctx.return_value.__aenter__ = AsyncMock(
             side_effect=RuntimeError("Connection refused")
@@ -192,11 +198,13 @@ class TestDetectPatterns:
         assert result.agent_id == "test-agent"
         assert result.patterns == []
 
-    @patch("ethos.patterns.store_exhibits_pattern", new_callable=AsyncMock)
-    @patch("ethos.patterns.get_agent_detected_indicators", new_callable=AsyncMock)
-    @patch("ethos.patterns.get_pattern_indicator_map", new_callable=AsyncMock)
-    @patch("ethos.patterns.get_agent_evaluation_count", new_callable=AsyncMock)
-    @patch("ethos.patterns.graph_context")
+    @patch("ethos_academy.patterns.store_exhibits_pattern", new_callable=AsyncMock)
+    @patch(
+        "ethos_academy.patterns.get_agent_detected_indicators", new_callable=AsyncMock
+    )
+    @patch("ethos_academy.patterns.get_pattern_indicator_map", new_callable=AsyncMock)
+    @patch("ethos_academy.patterns.get_agent_evaluation_count", new_callable=AsyncMock)
+    @patch("ethos_academy.patterns.graph_context")
     async def test_multiple_patterns_detected(
         self, mock_ctx, mock_count, mock_map, mock_indicators, mock_store
     ):

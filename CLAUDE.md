@@ -25,8 +25,8 @@ Ethos is an open-source Python package and API that scores AI agent messages for
 ### Repo Layout (two surfaces, one engine)
 
 ```
-~/Sites/ethos/
-├── ethos/                      # Python package — the engine (pip install ethos)
+~/Sites/ethos-academy/
+├── ethos_academy/              # Python package — the engine (pip install ethos-academy)
 │   ├── __init__.py             # Public API: evaluate, reflect, EvaluationResult
 │   ├── evaluate.py             # Top-level evaluate() entry point
 │   ├── reflect.py              # Top-level reflect() entry point
@@ -40,27 +40,27 @@ Ethos is an open-source Python package and API that scores AI agent messages for
 │   ├── evaluation/             # Keyword scanner, prompt builder
 │   ├── graph/                  # Neo4j service, read, write, cohort
 │   └── mcp_server.py           # MCP server — wraps domain functions over stdio
-├── api/                        # FastAPI server — serves ethos/ over HTTP
+├── api/                        # FastAPI server — serves ethos_academy/ over HTTP
 ├── academy/                    # Next.js — character development UI
 ├── docs/                       # Architecture docs, research, framework overview
 ├── scripts/                    # seed_graph.py, run_inference.py, scrape_moltbook.py
-├── tests/                      # Python tests for ethos/
+├── tests/                      # Python tests for ethos_academy/
 └── data/                       # Moltbook scraped data
 ```
 
 ### Dependency Flow (always one-way)
 
 ```
-academy/ ──→ api/ ──→ ethos/
-mcp ──→ ethos/              (stdio, no HTTP)
-tests/ ──→ ethos/
-scripts/ ──→ ethos/
+academy/ ──→ api/ ──→ ethos_academy/
+mcp ──→ ethos_academy/              (stdio, no HTTP)
+tests/ ──→ ethos_academy/
+scripts/ ──→ ethos_academy/
 ```
 
 ## DDD Rules
 
 1. **No circular dependencies.** If A depends on B, B never depends on A.
-2. **Graph owns all Cypher.** No Cypher queries outside `ethos/graph/`.
+2. **Graph owns all Cypher.** No Cypher queries outside `ethos_academy/graph/`.
 3. **Graph is optional.** Every domain wraps graph calls in try/except. Neo4j down never crashes evaluate().
 4. **Taxonomy is pure data.** No logic, no I/O, no dependencies.
 5. **API is a thin layer.** No business logic in route handlers — delegate to domain functions.
@@ -84,7 +84,7 @@ scripts/ ──→ ethos/
 ┌────┼──────────┐ │
 ▼    ▼          ▼ ▼
 ┌────────┐┌────────┐┌────────┐
-│Evaluate││Reflect ││ Config │   ← ethos/ domains
+│Evaluate││Reflect ││ Config │   ← ethos_academy/ domains
 └───┬────┘└───┬────┘└────────┘
     │         │
     │    ┌────┘
@@ -122,13 +122,13 @@ uv run uvicorn api.main:app --reload --port 8000
 uv run python -m scripts.seed_graph
 
 # Import check
-uv run python -c "from ethos import evaluate_incoming, evaluate_outgoing, character_report"
+uv run python -c "from ethos_academy import evaluate_incoming, evaluate_outgoing, character_report"
 
 # MCP server (stdio transport, no HTTP)
 uv run ethos-mcp
 
 # Connect Claude Code to the MCP server
-claude mcp add ethos-academy -- uv --directory /path/to/ethos run ethos-mcp
+claude mcp add ethos-academy -- uv --directory /path/to/ethos-academy run ethos-mcp
 
 # Docker (production ports)
 docker compose build
@@ -153,7 +153,7 @@ Copy `.env.example` to `.env`. Required:
 
 **Port gotcha:** Neo4j's default Bolt port is 7687, but Docker maps it to **7694** on the host. Always use `bolt://localhost:7694` in `.env` for local dev. The `GraphService` defaults to 7694 if `NEO4J_URI` is unset, but a wrong `.env` value overrides that default.
 
-## Key Models (ethos/shared/models.py)
+## Key Models (ethos_academy/shared/models.py)
 
 - `EvaluationResult` — 12 TraitScores, dimension scores (ethos/logos/pathos), tier_scores (safety/ethics/soundness/helpfulness), alignment_status, flags, phronesis, direction
 - `InsightsResult` — agent_id, summary, insights list, stats
@@ -164,7 +164,7 @@ Copy `.env.example` to `.env`. Required:
 
 - Use `uv run` for all Python commands (not bare `python`)
 - Use Pydantic `Field(ge=0.0, le=1.0)` for score bounds
-- Import models from `ethos.shared.models`, errors from `ethos.shared.errors`
+- Import models from `ethos_academy.shared.models`, errors from `ethos_academy.shared.errors`
 - Write tests for all new functionality
 - Use async Neo4j driver (`AsyncGraphDatabase`) via `graph_context()`
 - Wrap all graph calls in try/except
@@ -172,10 +172,10 @@ Copy `.env.example` to `.env`. Required:
 ## Do NOT
 
 - Hardcode API keys — use `.env` via environment variables
-- Import from `api` inside the `ethos` package (one-way dependency)
+- Import from `api` inside the `ethos_academy` package (one-way dependency)
 - Use `Any` type — create proper Pydantic models
 - Use sync I/O — all I/O code (Neo4j, Anthropic, HTTP) uses async/await. Pure computation stays sync.
-- Write Cypher outside `ethos/graph/` — graph owns all queries
+- Write Cypher outside `ethos_academy/graph/` — graph owns all queries
 - Store message content in Neo4j — only scores and metadata
 
 <!-- agentic-loop-detected -->

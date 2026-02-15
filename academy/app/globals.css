@@ -2,13 +2,12 @@
 @import "tailwindcss";
 
 @keyframes shimmer {
-  0%, 100% { background-position: 200% 0; }
-  50% { background-position: -200% 0; }
-  51%, 99% { background-position: -200% 0; }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 @utility animate-shimmer {
-  animation: shimmer 16s ease-in-out infinite;
+  animation: shimmer 30s linear infinite;
 }
 
 :root {

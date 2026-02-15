@@ -5,9 +5,9 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from ethos.reflection.reflect import reflect
-from ethos.shared.analysis import compute_trend
-from ethos.shared.models import EvaluationResult, ReflectionResult
+from ethos_academy.reflection.reflect import reflect
+from ethos_academy.shared.analysis import compute_trend
+from ethos_academy.shared.models import EvaluationResult, ReflectionResult
 
 
 # ── compute_trend tests ──────────────────────────────────────────────
@@ -84,7 +84,7 @@ class TestReflect:
         """When Neo4j is down, return default ReflectionResult."""
         mock_ctx, _ = _mock_graph_context(connected=False)
 
-        with patch("ethos.reflection.reflect.graph_context", mock_ctx):
+        with patch("ethos_academy.reflection.reflect.graph_context", mock_ctx):
             result = await reflect("test-agent")
 
         assert isinstance(result, ReflectionResult)
@@ -97,14 +97,14 @@ class TestReflect:
         mock_ctx, _ = _mock_graph_context(connected=True)
 
         with (
-            patch("ethos.reflection.reflect.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.reflect.graph_context", mock_ctx),
             patch(
-                "ethos.reflection.reflect.get_agent_profile",
+                "ethos_academy.reflection.reflect.get_agent_profile",
                 new_callable=AsyncMock,
                 return_value={},
             ),
             patch(
-                "ethos.reflection.reflect.get_evaluation_history",
+                "ethos_academy.reflection.reflect.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=[],
             ),
@@ -146,14 +146,14 @@ class TestReflect:
         history = [_make_eval(0.7, 0.7, 0.7)] * 15
 
         with (
-            patch("ethos.reflection.reflect.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.reflect.graph_context", mock_ctx),
             patch(
-                "ethos.reflection.reflect.get_agent_profile",
+                "ethos_academy.reflection.reflect.get_agent_profile",
                 new_callable=AsyncMock,
                 return_value=profile,
             ),
             patch(
-                "ethos.reflection.reflect.get_evaluation_history",
+                "ethos_academy.reflection.reflect.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=history,
             ),
@@ -174,9 +174,9 @@ class TestReflect:
         mock_ctx, _ = _mock_graph_context(connected=True)
 
         with (
-            patch("ethos.reflection.reflect.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.reflect.graph_context", mock_ctx),
             patch(
-                "ethos.reflection.reflect.get_agent_profile",
+                "ethos_academy.reflection.reflect.get_agent_profile",
                 new_callable=AsyncMock,
                 return_value={
                     "agent_id": "hashed",
@@ -186,7 +186,7 @@ class TestReflect:
                 },
             ),
             patch(
-                "ethos.reflection.reflect.get_evaluation_history",
+                "ethos_academy.reflection.reflect.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=[_make_eval(0.6, 0.6, 0.6)] * 5,
             ),
@@ -211,10 +211,10 @@ class TestReflect:
         )
 
         with (
-            patch("ethos.reflection.reflect.evaluate", mock_evaluate),
-            patch("ethos.reflection.reflect.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.reflect.evaluate", mock_evaluate),
+            patch("ethos_academy.reflection.reflect.graph_context", mock_ctx),
             patch(
-                "ethos.reflection.reflect.get_agent_profile",
+                "ethos_academy.reflection.reflect.get_agent_profile",
                 new_callable=AsyncMock,
                 return_value={
                     "agent_id": "hashed",
@@ -224,7 +224,7 @@ class TestReflect:
                 },
             ),
             patch(
-                "ethos.reflection.reflect.get_evaluation_history",
+                "ethos_academy.reflection.reflect.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=[_make_eval(0.7, 0.8, 0.6)],
             ),
@@ -244,10 +244,10 @@ class TestReflect:
         mock_evaluate = AsyncMock(side_effect=RuntimeError("Claude API down"))
 
         with (
-            patch("ethos.reflection.reflect.evaluate", mock_evaluate),
-            patch("ethos.reflection.reflect.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.reflect.evaluate", mock_evaluate),
+            patch("ethos_academy.reflection.reflect.graph_context", mock_ctx),
             patch(
-                "ethos.reflection.reflect.get_agent_profile",
+                "ethos_academy.reflection.reflect.get_agent_profile",
                 new_callable=AsyncMock,
                 return_value={
                     "agent_id": "hashed",
@@ -257,7 +257,7 @@ class TestReflect:
                 },
             ),
             patch(
-                "ethos.reflection.reflect.get_evaluation_history",
+                "ethos_academy.reflection.reflect.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=[_make_eval(0.5, 0.5, 0.5)] * 3,
             ),
@@ -274,8 +274,8 @@ class TestReflect:
         mock_evaluate = AsyncMock()
 
         with (
-            patch("ethos.reflection.reflect.evaluate", mock_evaluate),
-            patch("ethos.reflection.reflect.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.reflect.evaluate", mock_evaluate),
+            patch("ethos_academy.reflection.reflect.graph_context", mock_ctx),
         ):
             await reflect("my-bot")
 
@@ -286,9 +286,9 @@ class TestReflect:
         mock_ctx, _ = _mock_graph_context(connected=True)
 
         with (
-            patch("ethos.reflection.reflect.graph_context", mock_ctx),
+            patch("ethos_academy.reflection.reflect.graph_context", mock_ctx),
             patch(
-                "ethos.reflection.reflect.get_agent_profile",
+                "ethos_academy.reflection.reflect.get_agent_profile",
                 new_callable=AsyncMock,
                 return_value={
                     "agent_id": "hashed",
@@ -301,7 +301,7 @@ class TestReflect:
                 },
             ),
             patch(
-                "ethos.reflection.reflect.get_evaluation_history",
+                "ethos_academy.reflection.reflect.get_evaluation_history",
                 new_callable=AsyncMock,
                 return_value=[_make_eval(0.6, 0.7, 0.5)] * 2,
             ),
@@ -320,7 +320,7 @@ class TestReflect:
             raise RuntimeError("Connection refused")
             yield  # noqa: unreachable
 
-        with patch("ethos.reflection.reflect.graph_context", failing_ctx):
+        with patch("ethos_academy.reflection.reflect.graph_context", failing_ctx):
             result = await reflect("agent-1")
 
         assert isinstance(result, ReflectionResult)

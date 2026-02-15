@@ -149,7 +149,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
           <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
             Evaluation Over Time
           </h2>
-          <p className="mt-0.5 text-sm text-foreground/60">
+          <p className="mt-0.5 text-sm text-foreground/80">
             We are what we repeatedly do. Click any point to see the message behind it.
           </p>
         </div>
@@ -236,7 +236,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                           })}
                         </div>
                         <div className="mt-2 border-t border-border/30 pt-2">
-                          <p className="text-[10px] leading-relaxed text-foreground/60">
+                          <p className="text-[10px] leading-relaxed text-foreground/80">
                             {(() => {
                               const parts: string[] = [];
                               const eDelta = prev ? Math.round((point.ethos - prev.ethos) * 100) : 0;
@@ -362,7 +362,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                           <p className="text-sm font-semibold text-[#1a2538]">
                             Evaluation #{point.index}
                           </p>
-                          <p className="text-xs text-foreground/50">
+                          <p className="text-xs text-foreground/70">
                             {new Date(point.createdAt).toLocaleDateString("en-US", {
                               month: "short",
                               day: "numeric",
@@ -379,13 +379,13 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                             {point.flags.join(", ")}
                           </span>
                         )}
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ALIGNMENT_STYLES[point.alignmentStatus] ?? "bg-foreground/5 text-foreground/60"}`}>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ALIGNMENT_STYLES[point.alignmentStatus] ?? "bg-foreground/5 text-foreground/80"}`}>
                           {point.alignmentStatus}
                         </span>
                         <button
                           type="button"
                           onClick={() => setSelectedIdx(null)}
-                          className="ml-1 rounded-md p-1 text-foreground/40 transition-colors hover:bg-foreground/5 hover:text-foreground/70"
+                          className="ml-1 rounded-md p-1 text-foreground/80 transition-colors hover:bg-foreground/5 hover:text-foreground/70"
                           aria-label="Close detail panel"
                         >
                           <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -406,7 +406,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                             {histItem.messageContent}
                           </div>
                         ) : (
-                          <p className="text-sm text-foreground/40 italic">
+                          <p className="text-sm text-foreground/80 italic">
                             Message content not stored for this evaluation.
                           </p>
                         )}
@@ -415,7 +415,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">
                               Why these scores
                             </p>
-                            <ReasoningText text={histItem.scoringReasoning} splitSentences={false} className="text-xs leading-relaxed text-foreground/60" />
+                            <ReasoningText text={histItem.scoringReasoning} splitSentences={false} className="text-xs leading-relaxed text-foreground/80" />
                           </div>
                         )}
                       </div>
@@ -468,7 +468,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                                   return (
                                     <div key={trait} className="flex items-center gap-1.5">
                                       <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: dimColor }} />
-                                      <span className="text-[11px] text-foreground/60 truncate"><GlossaryTerm slug={TRAIT_SLUGS[trait] ?? trait}>{TRAIT_LABELS[trait] ?? trait}</GlossaryTerm></span>
+                                      <span className="text-[11px] text-foreground/80 truncate"><GlossaryTerm slug={TRAIT_SLUGS[trait] ?? trait}>{TRAIT_LABELS[trait] ?? trait}</GlossaryTerm></span>
                                       <span className="ml-auto font-mono text-[11px] font-medium text-[#1a2538]">
                                         {Math.round(score * 100)}
                                       </span>
@@ -544,7 +544,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                         />
                       </div>
                       {hasHabits && (
-                        <p className="mt-2 text-[10px] text-foreground/60 flex items-center justify-center gap-1">
+                        <p className="mt-2 text-[10px] text-foreground/80 flex items-center justify-center gap-1">
                           <svg
                             className={`h-2.5 w-2.5 transition-transform ${isExpanded ? "rotate-180" : ""}`}
                             viewBox="0 0 12 12"
@@ -585,7 +585,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                                         <GlossaryTerm slug={habit.trait.slug}>{habit.trait.label}</GlossaryTerm>
                                       </span>
                                     </div>
-                                    <span className="text-[10px] font-medium text-foreground/60">
+                                    <span className="text-[10px] font-medium text-foreground/80">
                                       {config.label}
                                     </span>
                                   </div>
@@ -670,7 +670,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
               </div>
             ))}
           </div>
-          <p className="mt-2 text-[10px] text-foreground/60">
+          <p className="mt-2 text-[10px] text-foreground/80">
             Breakpoints use a 5-evaluation sliding window. Only the PRECEDES linked list in Neo4j
             guarantees temporal chain integrity at scale.
           </p>

@@ -202,8 +202,8 @@ That is 10 positive signals vs 5 negative. The score should flip from 50 to ~75-
 
 ## Implementation Status
 
-- [x] Add 39 indicators (38 positive + 1 negative) to `ethos/taxonomy/indicators.py`
-- [x] Add rhetorical mode awareness to `ethos/evaluation/prompts.py`
+- [x] Add 39 indicators (38 positive + 1 negative) to `ethos_academy/taxonomy/indicators.py`
+- [x] Add rhetorical mode awareness to `ethos_academy/evaluation/prompts.py`
 - [x] Add context qualifiers to DEC-FALSEID and FAB-NARRATIVE
 - [x] Update `docs/evergreen-architecture/ethos-framework-overview.md` with new counts and indicator table
 - [ ] Re-evaluate a sample of flagged comments (heartbeat, Jelly, Claudie, XiaoZhuang, Hermes) to validate improvement

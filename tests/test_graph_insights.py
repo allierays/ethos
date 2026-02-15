@@ -45,8 +45,8 @@ class TestGetTopologyStats:
     """get_topology_stats() returns node/rel counts from Neo4j."""
 
     async def test_returns_dict_with_data(self):
-        from ethos.graph.insights import get_topology_stats
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_topology_stats
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         gs._driver = AsyncMock()
@@ -81,16 +81,16 @@ class TestGetTopologyStats:
         assert result["evaluation_count"] == 50
 
     async def test_returns_empty_when_not_connected(self):
-        from ethos.graph.insights import get_topology_stats
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_topology_stats
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         result = await get_topology_stats(gs)
         assert result == {}
 
     async def test_returns_zeroed_stats_on_query_failure(self):
-        from ethos.graph.insights import get_topology_stats
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_topology_stats
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         gs._driver = AsyncMock()
@@ -107,8 +107,8 @@ class TestGetEarlyWarningData:
     """get_early_warning_data() finds indicators that predict trouble."""
 
     async def test_returns_list_with_data(self):
-        from ethos.graph.insights import get_early_warning_data
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_early_warning_data
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         gs._driver = AsyncMock()
@@ -134,16 +134,16 @@ class TestGetEarlyWarningData:
         assert result[0]["trouble_rate"] == 0.6667
 
     async def test_returns_empty_when_not_connected(self):
-        from ethos.graph.insights import get_early_warning_data
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_early_warning_data
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         result = await get_early_warning_data(gs)
         assert result == []
 
     async def test_returns_empty_on_failure(self):
-        from ethos.graph.insights import get_early_warning_data
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_early_warning_data
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         gs._driver = AsyncMock()
@@ -156,8 +156,8 @@ class TestGetAllSabotageStatus:
     """get_all_sabotage_status() returns EXHIBITS_PATTERN across agents."""
 
     async def test_returns_list_with_data(self):
-        from ethos.graph.insights import get_all_sabotage_status
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_all_sabotage_status
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         gs._driver = AsyncMock()
@@ -189,16 +189,16 @@ class TestGetAllSabotageStatus:
         assert result[0]["confidence"] == 0.75
 
     async def test_returns_empty_when_not_connected(self):
-        from ethos.graph.insights import get_all_sabotage_status
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_all_sabotage_status
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         result = await get_all_sabotage_status(gs)
         assert result == []
 
     async def test_returns_empty_on_failure(self):
-        from ethos.graph.insights import get_all_sabotage_status
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_all_sabotage_status
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         gs._driver = AsyncMock()
@@ -211,8 +211,8 @@ class TestGetAgentSabotageStatus:
     """get_agent_sabotage_status() returns per-agent EXHIBITS_PATTERN with stage detail."""
 
     async def test_returns_list_with_matched_indicators(self):
-        from ethos.graph.insights import get_agent_sabotage_status
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_agent_sabotage_status
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         gs._driver = AsyncMock()
@@ -244,16 +244,16 @@ class TestGetAgentSabotageStatus:
         assert result[0]["matched_indicators"] == ["MAN-CONSENSUS", "DEC-FRAME"]
 
     async def test_returns_empty_when_not_connected(self):
-        from ethos.graph.insights import get_agent_sabotage_status
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_agent_sabotage_status
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         result = await get_agent_sabotage_status(gs, "agent-1")
         assert result == []
 
     async def test_returns_empty_on_failure(self):
-        from ethos.graph.insights import get_agent_sabotage_status
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_agent_sabotage_status
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         gs._driver = AsyncMock()
@@ -266,8 +266,8 @@ class TestGetGlobalConstitutionalRisk:
     """get_global_constitutional_risk() aggregates 5-hop risk across agents."""
 
     async def test_returns_list_with_data(self):
-        from ethos.graph.insights import get_global_constitutional_risk
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_global_constitutional_risk
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         gs._driver = AsyncMock()
@@ -298,16 +298,16 @@ class TestGetGlobalConstitutionalRisk:
         assert result[0]["avg_confidence"] == 0.82
 
     async def test_returns_empty_when_not_connected(self):
-        from ethos.graph.insights import get_global_constitutional_risk
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_global_constitutional_risk
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         result = await get_global_constitutional_risk(gs)
         assert result == []
 
     async def test_returns_empty_on_failure(self):
-        from ethos.graph.insights import get_global_constitutional_risk
-        from ethos.graph.service import GraphService
+        from ethos_academy.graph.insights import get_global_constitutional_risk
+        from ethos_academy.graph.service import GraphService
 
         gs = GraphService()
         gs._driver = AsyncMock()
@@ -324,10 +324,10 @@ class TestGetGlobalConstitutionalRisk:
 class TestGetCharacterArc:
     """get_character_arc() traces an agent's character formation over time."""
 
-    @patch("ethos.graph_insights.get_drift_timeline", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_drift_timeline", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_arc_with_phases(self, mock_ctx, mock_timeline):
-        from ethos.graph_insights import get_character_arc
+        from ethos_academy.graph_insights import get_character_arc
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -357,10 +357,10 @@ class TestGetCharacterArc:
         assert result["phases"][2]["phase"] == "recent"
         assert result["arc"] in ("growth", "decline", "steady")
 
-    @patch("ethos.graph_insights.get_drift_timeline", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_drift_timeline", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_detects_growth_arc(self, mock_ctx, mock_timeline):
-        from ethos.graph_insights import get_character_arc
+        from ethos_academy.graph_insights import get_character_arc
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -386,10 +386,10 @@ class TestGetCharacterArc:
         result = await get_character_arc("agent-1")
         assert result["arc"] == "growth"
 
-    @patch("ethos.graph_insights.get_drift_timeline", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_drift_timeline", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_detects_decline_arc(self, mock_ctx, mock_timeline):
-        from ethos.graph_insights import get_character_arc
+        from ethos_academy.graph_insights import get_character_arc
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -415,10 +415,10 @@ class TestGetCharacterArc:
         result = await get_character_arc("agent-1")
         assert result["arc"] == "decline"
 
-    @patch("ethos.graph_insights.get_drift_timeline", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_drift_timeline", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_detects_turning_points(self, mock_ctx, mock_timeline):
-        from ethos.graph_insights import get_character_arc
+        from ethos_academy.graph_insights import get_character_arc
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -473,10 +473,10 @@ class TestGetCharacterArc:
         assert tp["direction"] == "regression"
         assert tp["delta"] < 0
 
-    @patch("ethos.graph_insights.get_drift_timeline", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_drift_timeline", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_no_data_for_empty_timeline(self, mock_ctx, mock_timeline):
-        from ethos.graph_insights import get_character_arc
+        from ethos_academy.graph_insights import get_character_arc
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -488,9 +488,9 @@ class TestGetCharacterArc:
         assert result["phases"] == []
         assert result["total_evaluations"] == 0
 
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_error_on_graph_failure(self, mock_ctx):
-        from ethos.graph_insights import get_character_arc
+        from ethos_academy.graph_insights import get_character_arc
 
         mock_ctx.side_effect = lambda: _make_failing_graph_context()()
 
@@ -499,10 +499,10 @@ class TestGetCharacterArc:
         assert result["arc"] == "error"
         assert result["phases"] == []
 
-    @patch("ethos.graph_insights.get_drift_timeline", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_drift_timeline", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_single_evaluation_returns_emerging(self, mock_ctx, mock_timeline):
-        from ethos.graph_insights import get_character_arc
+        from ethos_academy.graph_insights import get_character_arc
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -528,11 +528,12 @@ class TestGetConstitutionalRiskReport:
     """get_constitutional_risk_report() aggregates 5-hop risk data."""
 
     @patch(
-        "ethos.graph_insights.get_global_constitutional_risk", new_callable=AsyncMock
+        "ethos_academy.graph_insights.get_global_constitutional_risk",
+        new_callable=AsyncMock,
     )
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_global_risk_groups_by_value(self, mock_ctx, mock_risk):
-        from ethos.graph_insights import get_constitutional_risk_report
+        from ethos_academy.graph_insights import get_constitutional_risk_report
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -588,10 +589,12 @@ class TestGetConstitutionalRiskReport:
         assert len(values[0]["threat_indicators"]) == 1
         assert len(values[0]["protective_indicators"]) == 1
 
-    @patch("ethos.graph_insights.get_constitutional_trail", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch(
+        "ethos_academy.graph_insights.get_constitutional_trail", new_callable=AsyncMock
+    )
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_agent_scoped_risk(self, mock_ctx, mock_trail):
-        from ethos.graph_insights import get_constitutional_risk_report
+        from ethos_academy.graph_insights import get_constitutional_risk_report
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -616,9 +619,9 @@ class TestGetConstitutionalRiskReport:
         assert result["scope"] == "agent-1"
         assert result["total_values_affected"] == 1
 
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_empty_on_graph_failure(self, mock_ctx):
-        from ethos.graph_insights import get_constitutional_risk_report
+        from ethos_academy.graph_insights import get_constitutional_risk_report
 
         mock_ctx.side_effect = lambda: _make_failing_graph_context()()
 
@@ -630,10 +633,10 @@ class TestGetConstitutionalRiskReport:
 class TestFindSimilarAgents:
     """find_similar_agents() filters Jaccard similarity for one agent."""
 
-    @patch("ethos.graph_insights.get_similarity_data", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_similarity_data", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_matches_for_agent(self, mock_ctx, mock_sim):
-        from ethos.graph_insights import find_similar_agents
+        from ethos_academy.graph_insights import find_similar_agents
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -681,10 +684,10 @@ class TestFindSimilarAgents:
         assert result["similar_agents"][1]["agent_id"] == "agent-3"
         assert result["similar_agents"][1]["similarity"] == 0.5
 
-    @patch("ethos.graph_insights.get_similarity_data", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_similarity_data", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_empty_when_no_matches(self, mock_ctx, mock_sim):
-        from ethos.graph_insights import find_similar_agents
+        from ethos_academy.graph_insights import find_similar_agents
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -695,9 +698,9 @@ class TestFindSimilarAgents:
         assert result["similar_agents"] == []
         assert result["total_matches"] == 0
 
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_empty_on_graph_failure(self, mock_ctx):
-        from ethos.graph_insights import find_similar_agents
+        from ethos_academy.graph_insights import find_similar_agents
 
         mock_ctx.side_effect = lambda: _make_failing_graph_context()()
 
@@ -708,10 +711,12 @@ class TestFindSimilarAgents:
 class TestGetEarlyWarningIndicators:
     """get_early_warning_indicators() wraps early warning query data."""
 
-    @patch("ethos.graph_insights.get_early_warning_data", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch(
+        "ethos_academy.graph_insights.get_early_warning_data", new_callable=AsyncMock
+    )
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_indicators_with_high_risk(self, mock_ctx, mock_data):
-        from ethos.graph_insights import get_early_warning_indicators
+        from ethos_academy.graph_insights import get_early_warning_indicators
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -741,10 +746,12 @@ class TestGetEarlyWarningIndicators:
         assert len(result["high_risk"]) == 1
         assert result["high_risk"][0]["indicator_id"] == "MAN-CONSENSUS"
 
-    @patch("ethos.graph_insights.get_early_warning_data", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch(
+        "ethos_academy.graph_insights.get_early_warning_data", new_callable=AsyncMock
+    )
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_empty_when_no_data(self, mock_ctx, mock_data):
-        from ethos.graph_insights import get_early_warning_indicators
+        from ethos_academy.graph_insights import get_early_warning_indicators
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -755,9 +762,9 @@ class TestGetEarlyWarningIndicators:
         assert result["indicators"] == []
         assert result["high_risk"] == []
 
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_empty_on_graph_failure(self, mock_ctx):
-        from ethos.graph_insights import get_early_warning_indicators
+        from ethos_academy.graph_insights import get_early_warning_indicators
 
         mock_ctx.side_effect = lambda: _make_failing_graph_context()()
 
@@ -768,10 +775,10 @@ class TestGetEarlyWarningIndicators:
 class TestGetNetworkTopology:
     """get_network_topology() returns graph metadata."""
 
-    @patch("ethos.graph_insights.get_topology_stats", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_topology_stats", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_connected_with_stats(self, mock_ctx, mock_stats):
-        from ethos.graph_insights import get_network_topology
+        from ethos_academy.graph_insights import get_network_topology
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -791,10 +798,10 @@ class TestGetNetworkTopology:
         assert result["total_nodes"] == 55
         assert result["agent_count"] == 5
 
-    @patch("ethos.graph_insights.get_topology_stats", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_topology_stats", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_not_connected_when_empty(self, mock_ctx, mock_stats):
-        from ethos.graph_insights import get_network_topology
+        from ethos_academy.graph_insights import get_network_topology
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -803,9 +810,9 @@ class TestGetNetworkTopology:
         result = await get_network_topology()
         assert result["connected"] is False
 
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_not_connected_on_graph_failure(self, mock_ctx):
-        from ethos.graph_insights import get_network_topology
+        from ethos_academy.graph_insights import get_network_topology
 
         mock_ctx.side_effect = lambda: _make_failing_graph_context()()
 
@@ -816,10 +823,12 @@ class TestGetNetworkTopology:
 class TestGetSabotagePathwayStatus:
     """get_sabotage_pathway_status() reads EXHIBITS_PATTERN relationships."""
 
-    @patch("ethos.graph_insights.get_all_sabotage_status", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch(
+        "ethos_academy.graph_insights.get_all_sabotage_status", new_callable=AsyncMock
+    )
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_global_returns_active_and_emerging(self, mock_ctx, mock_status):
-        from ethos.graph_insights import get_sabotage_pathway_status
+        from ethos_academy.graph_insights import get_sabotage_pathway_status
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -848,10 +857,12 @@ class TestGetSabotagePathwayStatus:
         assert result["active_count"] == 1
         assert result["emerging_count"] == 1
 
-    @patch("ethos.graph_insights.get_agent_sabotage_status", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch(
+        "ethos_academy.graph_insights.get_agent_sabotage_status", new_callable=AsyncMock
+    )
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_agent_scoped(self, mock_ctx, mock_status):
-        from ethos.graph_insights import get_sabotage_pathway_status
+        from ethos_academy.graph_insights import get_sabotage_pathway_status
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -862,9 +873,9 @@ class TestGetSabotagePathwayStatus:
         assert result["scope"] == "agent-1"
         assert result["total_detected"] == 0
 
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_empty_on_graph_failure(self, mock_ctx):
-        from ethos.graph_insights import get_sabotage_pathway_status
+        from ethos_academy.graph_insights import get_sabotage_pathway_status
 
         mock_ctx.side_effect = lambda: _make_failing_graph_context()()
 
@@ -876,10 +887,10 @@ class TestGetSabotagePathwayStatus:
 class TestCompareAgents:
     """compare_agents() pulls parallel profiles and computes deltas."""
 
-    @patch("ethos.graph_insights.get_agent_profile", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_agent_profile", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_compares_two_agents(self, mock_ctx, mock_profile):
-        from ethos.graph_insights import compare_agents
+        from ethos_academy.graph_insights import compare_agents
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -925,10 +936,10 @@ class TestCompareAgents:
         assert len(result["biggest_differences"]) <= 5
         assert result["biggest_differences"][0]["trait"] in ("virtue", "manipulation")
 
-    @patch("ethos.graph_insights.get_agent_profile", new_callable=AsyncMock)
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.get_agent_profile", new_callable=AsyncMock)
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_handles_missing_agents(self, mock_ctx, mock_profile):
-        from ethos.graph_insights import compare_agents
+        from ethos_academy.graph_insights import compare_agents
 
         mock_service = AsyncMock()
         mock_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -937,9 +948,9 @@ class TestCompareAgents:
         result = await compare_agents("unknown-1", "unknown-2")
         assert "error" in result
 
-    @patch("ethos.graph_insights.graph_context")
+    @patch("ethos_academy.graph_insights.graph_context")
     async def test_returns_error_on_graph_failure(self, mock_ctx):
-        from ethos.graph_insights import compare_agents
+        from ethos_academy.graph_insights import compare_agents
 
         mock_ctx.side_effect = lambda: _make_failing_graph_context()()
 
@@ -956,7 +967,7 @@ class TestTopItems:
     """_top_items() counts and ranks items."""
 
     def test_returns_top_n(self):
-        from ethos.graph_insights import _top_items
+        from ethos_academy.graph_insights import _top_items
 
         items = ["a", "b", "a", "c", "a", "b"]
         result = _top_items(items, 2)
@@ -966,13 +977,13 @@ class TestTopItems:
         assert result[1] == {"name": "b", "count": 2}
 
     def test_handles_empty_list(self):
-        from ethos.graph_insights import _top_items
+        from ethos_academy.graph_insights import _top_items
 
         result = _top_items([], 5)
         assert result == []
 
     def test_skips_empty_strings(self):
-        from ethos.graph_insights import _top_items
+        from ethos_academy.graph_insights import _top_items
 
         items = ["a", "", "a", "", None, "b"]
         result = _top_items(items, 5)

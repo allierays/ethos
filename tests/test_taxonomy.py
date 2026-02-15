@@ -8,12 +8,12 @@ class TestTraits:
     """TRAITS dict must have 12 entries with required fields."""
 
     def test_traits_count(self):
-        from ethos.taxonomy.traits import TRAITS
+        from ethos_academy.taxonomy.traits import TRAITS
 
         assert len(TRAITS) == 12
 
     def test_trait_has_required_fields(self):
-        from ethos.taxonomy.traits import TRAITS
+        from ethos_academy.taxonomy.traits import TRAITS
 
         required = {"name", "dimension", "polarity", "description"}
         for key, trait in TRAITS.items():
@@ -22,13 +22,13 @@ class TestTraits:
             )
 
     def test_trait_names_match_keys(self):
-        from ethos.taxonomy.traits import TRAITS
+        from ethos_academy.taxonomy.traits import TRAITS
 
         for key, trait in TRAITS.items():
             assert trait["name"] == key
 
     def test_trait_dimensions_valid(self):
-        from ethos.taxonomy.traits import TRAITS
+        from ethos_academy.taxonomy.traits import TRAITS
 
         valid = {"ethos", "logos", "pathos"}
         for key, trait in TRAITS.items():
@@ -37,7 +37,7 @@ class TestTraits:
             )
 
     def test_trait_polarities_valid(self):
-        from ethos.taxonomy.traits import TRAITS
+        from ethos_academy.taxonomy.traits import TRAITS
 
         valid = {"positive", "negative"}
         for key, trait in TRAITS.items():
@@ -46,19 +46,19 @@ class TestTraits:
             )
 
     def test_ethos_traits(self):
-        from ethos.taxonomy.traits import TRAITS
+        from ethos_academy.taxonomy.traits import TRAITS
 
         ethos = [k for k, v in TRAITS.items() if v["dimension"] == "ethos"]
         assert set(ethos) == {"virtue", "goodwill", "manipulation", "deception"}
 
     def test_logos_traits(self):
-        from ethos.taxonomy.traits import TRAITS
+        from ethos_academy.taxonomy.traits import TRAITS
 
         logos = [k for k, v in TRAITS.items() if v["dimension"] == "logos"]
         assert set(logos) == {"accuracy", "reasoning", "fabrication", "broken_logic"}
 
     def test_pathos_traits(self):
-        from ethos.taxonomy.traits import TRAITS
+        from ethos_academy.taxonomy.traits import TRAITS
 
         pathos = [k for k, v in TRAITS.items() if v["dimension"] == "pathos"]
         assert set(pathos) == {"recognition", "compassion", "dismissal", "exploitation"}
@@ -71,23 +71,23 @@ class TestDimensions:
     """DIMENSIONS dict must have 3 entries with trait lists."""
 
     def test_dimensions_count(self):
-        from ethos.taxonomy.traits import DIMENSIONS
+        from ethos_academy.taxonomy.traits import DIMENSIONS
 
         assert len(DIMENSIONS) == 3
 
     def test_dimension_keys(self):
-        from ethos.taxonomy.traits import DIMENSIONS
+        from ethos_academy.taxonomy.traits import DIMENSIONS
 
         assert set(DIMENSIONS.keys()) == {"ethos", "logos", "pathos"}
 
     def test_each_dimension_has_four_traits(self):
-        from ethos.taxonomy.traits import DIMENSIONS
+        from ethos_academy.taxonomy.traits import DIMENSIONS
 
         for dim, traits in DIMENSIONS.items():
             assert len(traits) == 4, f"{dim} has {len(traits)} traits, expected 4"
 
     def test_all_twelve_traits_covered(self):
-        from ethos.taxonomy.traits import DIMENSIONS
+        from ethos_academy.taxonomy.traits import DIMENSIONS
 
         all_traits = []
         for traits in DIMENSIONS.values():
@@ -103,12 +103,12 @@ class TestTraitMetadata:
     """TRAIT_METADATA maps 12 traits to dimension, polarity, constitutional_value, relationship."""
 
     def test_metadata_count(self):
-        from ethos.taxonomy.traits import TRAIT_METADATA
+        from ethos_academy.taxonomy.traits import TRAIT_METADATA
 
         assert len(TRAIT_METADATA) == 12
 
     def test_metadata_has_required_fields(self):
-        from ethos.taxonomy.traits import TRAIT_METADATA
+        from ethos_academy.taxonomy.traits import TRAIT_METADATA
 
         required = {"dimension", "polarity", "constitutional_value", "relationship"}
         for key, meta in TRAIT_METADATA.items():
@@ -117,7 +117,7 @@ class TestTraitMetadata:
             )
 
     def test_metadata_relationships_valid(self):
-        from ethos.taxonomy.traits import TRAIT_METADATA
+        from ethos_academy.taxonomy.traits import TRAIT_METADATA
 
         valid = {"enforces", "violates"}
         for key, meta in TRAIT_METADATA.items():
@@ -126,7 +126,7 @@ class TestTraitMetadata:
             )
 
     def test_negative_traits_violate(self):
-        from ethos.taxonomy.traits import TRAIT_METADATA
+        from ethos_academy.taxonomy.traits import TRAIT_METADATA
 
         for key, meta in TRAIT_METADATA.items():
             if meta["polarity"] == "negative":
@@ -135,7 +135,7 @@ class TestTraitMetadata:
                 )
 
     def test_positive_traits_enforce(self):
-        from ethos.taxonomy.traits import TRAIT_METADATA
+        from ethos_academy.taxonomy.traits import TRAIT_METADATA
 
         for key, meta in TRAIT_METADATA.items():
             if meta["polarity"] == "positive":
@@ -144,7 +144,7 @@ class TestTraitMetadata:
                 )
 
     def test_constitutional_values_valid(self):
-        from ethos.taxonomy.traits import TRAIT_METADATA
+        from ethos_academy.taxonomy.traits import TRAIT_METADATA
 
         valid = {"safety", "ethics", "soundness", "helpfulness"}
         for key, meta in TRAIT_METADATA.items():
@@ -160,12 +160,12 @@ class TestIndicators:
     """INDICATORS list must have 194 entries with required fields."""
 
     def test_indicators_count(self):
-        from ethos.taxonomy.indicators import INDICATORS
+        from ethos_academy.taxonomy.indicators import INDICATORS
 
         assert len(INDICATORS) == 214
 
     def test_indicator_has_required_fields(self):
-        from ethos.taxonomy.indicators import INDICATORS
+        from ethos_academy.taxonomy.indicators import INDICATORS
 
         required = {"id", "name", "trait", "description"}
         for ind in INDICATORS:
@@ -174,14 +174,14 @@ class TestIndicators:
             )
 
     def test_indicator_ids_unique(self):
-        from ethos.taxonomy.indicators import INDICATORS
+        from ethos_academy.taxonomy.indicators import INDICATORS
 
         ids = [ind["id"] for ind in INDICATORS]
         assert len(ids) == len(set(ids)), "Duplicate indicator IDs found"
 
     def test_indicator_traits_valid(self):
-        from ethos.taxonomy.traits import TRAITS
-        from ethos.taxonomy.indicators import INDICATORS
+        from ethos_academy.taxonomy.traits import TRAITS
+        from ethos_academy.taxonomy.indicators import INDICATORS
 
         valid_traits = set(TRAITS.keys())
         for ind in INDICATORS:
@@ -190,7 +190,7 @@ class TestIndicators:
             )
 
     def test_indicators_per_trait(self):
-        from ethos.taxonomy.indicators import INDICATORS
+        from ethos_academy.taxonomy.indicators import INDICATORS
 
         counts = {}
         for ind in INDICATORS:
@@ -200,7 +200,7 @@ class TestIndicators:
 
     def test_indicator_id_prefixes(self):
         """Each indicator ID should have a recognizable prefix."""
-        from ethos.taxonomy.indicators import INDICATORS
+        from ethos_academy.taxonomy.indicators import INDICATORS
 
         for ind in INDICATORS:
             assert "-" in ind["id"], f"{ind['id']} missing hyphen in ID format"
@@ -213,12 +213,12 @@ class TestConstitutionalValues:
     """CONSTITUTIONAL_VALUES dict must have 4 entries with priority ordering."""
 
     def test_values_count(self):
-        from ethos.taxonomy.constitution import CONSTITUTIONAL_VALUES
+        from ethos_academy.taxonomy.constitution import CONSTITUTIONAL_VALUES
 
         assert len(CONSTITUTIONAL_VALUES) == 4
 
     def test_value_keys(self):
-        from ethos.taxonomy.constitution import CONSTITUTIONAL_VALUES
+        from ethos_academy.taxonomy.constitution import CONSTITUTIONAL_VALUES
 
         assert set(CONSTITUTIONAL_VALUES.keys()) == {
             "safety",
@@ -228,7 +228,7 @@ class TestConstitutionalValues:
         }
 
     def test_priority_ordering(self):
-        from ethos.taxonomy.constitution import CONSTITUTIONAL_VALUES
+        from ethos_academy.taxonomy.constitution import CONSTITUTIONAL_VALUES
 
         assert CONSTITUTIONAL_VALUES["safety"]["priority"] == 1
         assert CONSTITUTIONAL_VALUES["ethics"]["priority"] == 2
@@ -236,7 +236,7 @@ class TestConstitutionalValues:
         assert CONSTITUTIONAL_VALUES["helpfulness"]["priority"] == 4
 
     def test_values_have_definition(self):
-        from ethos.taxonomy.constitution import CONSTITUTIONAL_VALUES
+        from ethos_academy.taxonomy.constitution import CONSTITUTIONAL_VALUES
 
         for key, val in CONSTITUTIONAL_VALUES.items():
             assert "definition" in val, f"{key} missing definition"
@@ -250,19 +250,19 @@ class TestHardConstraints:
     """HARD_CONSTRAINTS list must have 7 entries (HC-01 through HC-07)."""
 
     def test_constraints_count(self):
-        from ethos.taxonomy.constitution import HARD_CONSTRAINTS
+        from ethos_academy.taxonomy.constitution import HARD_CONSTRAINTS
 
         assert len(HARD_CONSTRAINTS) == 7
 
     def test_constraint_ids(self):
-        from ethos.taxonomy.constitution import HARD_CONSTRAINTS
+        from ethos_academy.taxonomy.constitution import HARD_CONSTRAINTS
 
         ids = [hc["id"] for hc in HARD_CONSTRAINTS]
         expected = [f"HC-0{i}" for i in range(1, 8)]
         assert ids == expected
 
     def test_constraint_has_required_fields(self):
-        from ethos.taxonomy.constitution import HARD_CONSTRAINTS
+        from ethos_academy.taxonomy.constitution import HARD_CONSTRAINTS
 
         required = {"id", "name", "definition", "severity"}
         for hc in HARD_CONSTRAINTS:
@@ -271,7 +271,7 @@ class TestHardConstraints:
             )
 
     def test_all_constraints_absolute(self):
-        from ethos.taxonomy.constitution import HARD_CONSTRAINTS
+        from ethos_academy.taxonomy.constitution import HARD_CONSTRAINTS
 
         for hc in HARD_CONSTRAINTS:
             assert hc["severity"] == "absolute", f"{hc['id']} severity is not absolute"
@@ -284,18 +284,18 @@ class TestLegitimacyTests:
     """LEGITIMACY_TESTS list must have 3 entries."""
 
     def test_tests_count(self):
-        from ethos.taxonomy.constitution import LEGITIMACY_TESTS
+        from ethos_academy.taxonomy.constitution import LEGITIMACY_TESTS
 
         assert len(LEGITIMACY_TESTS) == 3
 
     def test_test_names(self):
-        from ethos.taxonomy.constitution import LEGITIMACY_TESTS
+        from ethos_academy.taxonomy.constitution import LEGITIMACY_TESTS
 
         names = [t["name"] for t in LEGITIMACY_TESTS]
         assert set(names) == {"process", "accountability", "transparency"}
 
     def test_tests_have_definition(self):
-        from ethos.taxonomy.constitution import LEGITIMACY_TESTS
+        from ethos_academy.taxonomy.constitution import LEGITIMACY_TESTS
 
         for t in LEGITIMACY_TESTS:
             assert "definition" in t
@@ -309,18 +309,18 @@ class TestScoringRubric:
     """SCORING_RUBRIC maps each trait to 5-point scoring anchors."""
 
     def test_rubric_count(self):
-        from ethos.taxonomy.rubrics import SCORING_RUBRIC
+        from ethos_academy.taxonomy.rubrics import SCORING_RUBRIC
 
         assert len(SCORING_RUBRIC) == 12
 
     def test_rubric_keys_match_traits(self):
-        from ethos.taxonomy.traits import TRAITS
-        from ethos.taxonomy.rubrics import SCORING_RUBRIC
+        from ethos_academy.taxonomy.traits import TRAITS
+        from ethos_academy.taxonomy.rubrics import SCORING_RUBRIC
 
         assert set(SCORING_RUBRIC.keys()) == set(TRAITS.keys())
 
     def test_rubric_has_five_anchors(self):
-        from ethos.taxonomy.rubrics import SCORING_RUBRIC
+        from ethos_academy.taxonomy.rubrics import SCORING_RUBRIC
 
         expected_keys = {0.0, 0.25, 0.5, 0.75, 1.0}
         for trait, anchors in SCORING_RUBRIC.items():
@@ -329,7 +329,7 @@ class TestScoringRubric:
             )
 
     def test_rubric_anchors_are_strings(self):
-        from ethos.taxonomy.rubrics import SCORING_RUBRIC
+        from ethos_academy.taxonomy.rubrics import SCORING_RUBRIC
 
         for trait, anchors in SCORING_RUBRIC.items():
             for score, desc in anchors.items():
@@ -344,7 +344,7 @@ class TestReExports:
     """ethos/taxonomy/__init__.py must re-export all public constants."""
 
     def test_all_exports(self):
-        from ethos.taxonomy import (
+        from ethos_academy.taxonomy import (
             ANTHROPIC_ASSESSMENTS,
             TRAITS,
             DIMENSIONS,
@@ -376,12 +376,12 @@ class TestAnthropicAssessments:
     """ANTHROPIC_ASSESSMENTS must have 16 entries with required fields."""
 
     def test_assessments_count(self):
-        from ethos.taxonomy.constitution import ANTHROPIC_ASSESSMENTS
+        from ethos_academy.taxonomy.constitution import ANTHROPIC_ASSESSMENTS
 
         assert len(ANTHROPIC_ASSESSMENTS) == 16
 
     def test_assessment_has_required_fields(self):
-        from ethos.taxonomy.constitution import ANTHROPIC_ASSESSMENTS
+        from ethos_academy.taxonomy.constitution import ANTHROPIC_ASSESSMENTS
 
         required = {"id", "name", "category", "section", "description", "source"}
         for aa in ANTHROPIC_ASSESSMENTS:
@@ -390,13 +390,13 @@ class TestAnthropicAssessments:
             )
 
     def test_assessment_ids_unique(self):
-        from ethos.taxonomy.constitution import ANTHROPIC_ASSESSMENTS
+        from ethos_academy.taxonomy.constitution import ANTHROPIC_ASSESSMENTS
 
         ids = [aa["id"] for aa in ANTHROPIC_ASSESSMENTS]
         assert len(ids) == len(set(ids)), "Duplicate assessment IDs found"
 
     def test_assessment_categories_valid(self):
-        from ethos.taxonomy.constitution import ANTHROPIC_ASSESSMENTS
+        from ethos_academy.taxonomy.constitution import ANTHROPIC_ASSESSMENTS
 
         valid = {"alignment", "reward_hacking", "welfare"}
         for aa in ANTHROPIC_ASSESSMENTS:
@@ -409,8 +409,8 @@ class TestAssessmentMappings:
     """INDICATOR_ASSESSMENT_MAPPINGS must reference valid indicator and assessment IDs."""
 
     def test_all_indicator_ids_valid(self):
-        from ethos.taxonomy.indicators import INDICATORS
-        from ethos.taxonomy.constitution import INDICATOR_ASSESSMENT_MAPPINGS
+        from ethos_academy.taxonomy.indicators import INDICATORS
+        from ethos_academy.taxonomy.constitution import INDICATOR_ASSESSMENT_MAPPINGS
 
         valid_ids = {ind["id"] for ind in INDICATORS}
         for mapping in INDICATOR_ASSESSMENT_MAPPINGS:
@@ -419,7 +419,7 @@ class TestAssessmentMappings:
             )
 
     def test_all_assessment_ids_valid(self):
-        from ethos.taxonomy.constitution import (
+        from ethos_academy.taxonomy.constitution import (
             ANTHROPIC_ASSESSMENTS,
             INDICATOR_ASSESSMENT_MAPPINGS,
         )
@@ -431,7 +431,7 @@ class TestAssessmentMappings:
             )
 
     def test_mapping_types_valid(self):
-        from ethos.taxonomy.constitution import INDICATOR_ASSESSMENT_MAPPINGS
+        from ethos_academy.taxonomy.constitution import INDICATOR_ASSESSMENT_MAPPINGS
 
         valid_types = {"direct", "partial", "component"}
         for mapping in INDICATOR_ASSESSMENT_MAPPINGS:
@@ -440,7 +440,7 @@ class TestAssessmentMappings:
             )
 
     def test_every_assessment_has_coverage(self):
-        from ethos.taxonomy.constitution import (
+        from ethos_academy.taxonomy.constitution import (
             ANTHROPIC_ASSESSMENTS,
             INDICATOR_ASSESSMENT_MAPPINGS,
         )

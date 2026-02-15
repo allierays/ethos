@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 async def migrate():
-    from ethos.crypto import encrypt
-    from ethos.graph.service import graph_context
+    from ethos_academy.crypto import encrypt
+    from ethos_academy.graph.service import graph_context
 
     async with graph_context() as service:
         if not service.connected:

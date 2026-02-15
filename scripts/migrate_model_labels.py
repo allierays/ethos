@@ -9,8 +9,8 @@ import logging
 
 from dotenv import load_dotenv
 
-from ethos.graph.service import graph_context
-from ethos.identity.model import parse_model
+from ethos_academy.graph.service import graph_context
+from ethos_academy.identity.model import parse_model
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)

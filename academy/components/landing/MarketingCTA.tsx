@@ -35,7 +35,7 @@ export default function MarketingCTA() {
             </Link>
             <span className="text-white/20">|</span>
             <a
-              href="https://github.com/allierays/ethos"
+              href="https://github.com/allierays/ethos-academy"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-white/50 transition-colors hover:text-white/80"

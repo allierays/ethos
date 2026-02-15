@@ -8,9 +8,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from ethos.evaluate import evaluate
-from ethos.shared.errors import EvaluationError
-from ethos.shared.models import EvaluationResult
+from ethos_academy.evaluate import evaluate
+from ethos_academy.shared.errors import EvaluationError
+from ethos_academy.shared.models import EvaluationResult
 
 
 ALL_TRAITS = [
@@ -70,7 +70,7 @@ def _mock_tool_results(
 class TestEvaluatePipeline:
     """Full pipeline tests with mocked Claude client."""
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_evaluate_with_mocked_claude(self, mock_claude):
         """Run full pipeline with benign text. Verify EvaluationResult fields."""
         mock_claude.return_value = _mock_tool_results()
@@ -101,7 +101,7 @@ class TestEvaluatePipeline:
         assert result.intent_classification is not None
         assert result.scoring_reasoning == "Integration test evaluation"
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_evaluate_flags_manipulative_text(self, mock_claude):
         """Manipulation keywords should escalate routing tier above standard."""
         mock_claude.return_value = _mock_tool_results(
@@ -126,7 +126,7 @@ class TestEvaluatePipeline:
         with pytest.raises(EvaluationError, match="maximum length"):
             await evaluate("x" * 100_001)
 
-    @patch("ethos.evaluate.call_claude_with_tools", new_callable=AsyncMock)
+    @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_evaluate_result_scores_in_range(self, mock_claude):
         """All trait scores and dimension scores must be 0.0-1.0."""
         mock_claude.return_value = _mock_tool_results(

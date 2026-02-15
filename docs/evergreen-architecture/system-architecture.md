@@ -101,7 +101,7 @@ Agent (Claude Code, Cursor, etc.)
     │
     │ stdio (MCP protocol)
     ▼
-ethos/mcp_server.py
+ethos_academy/mcp_server.py
     │
     │ direct import
     ▼

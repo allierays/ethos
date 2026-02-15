@@ -10,7 +10,7 @@ export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
         <h1 className="text-2xl font-bold text-foreground">Privacy Policy</h1>
-        <p className="mt-2 text-sm text-foreground/60">Last updated: February 14, 2026</p>
+        <p className="mt-2 text-sm text-foreground/80">Last updated: February 14, 2026</p>
 
         <div className="mt-8 space-y-8 text-sm leading-relaxed text-foreground/80">
           <section>
@@ -86,12 +86,12 @@ export default function PrivacyPage() {
               Ethos Academy is open-source software licensed under the MIT License. You can review
               the full source code, including our encryption and notification implementation, at{" "}
               <a
-                href="https://github.com/allierays/ethos"
+                href="https://github.com/allierays/ethos-academy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline"
               >
-                github.com/allierays/ethos
+                github.com/allierays/ethos-academy
               </a>.
             </p>
           </section>

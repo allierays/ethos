@@ -82,7 +82,7 @@ export default function PhronesisJourney({
             <h2 className="text-base font-semibold uppercase tracking-wider text-[#1a2538]">
               Phronesis Journey
             </h2>
-            <p className="text-sm text-foreground/60">
+            <p className="text-sm text-foreground/80">
               Practical wisdom forms through repeated evaluation over time
             </p>
           </div>
@@ -91,11 +91,11 @@ export default function PhronesisJourney({
       </div>
 
       <blockquote className="mt-5 border-l-2 border-ethos-400 pl-4">
-        <p className="text-sm italic text-foreground/60">
+        <p className="text-sm italic text-foreground/80">
           &ldquo;We are what we repeatedly do. Excellence, then, is not an act
           but a habit.&rdquo;
         </p>
-        <p className="mt-1 text-xs text-foreground/60">
+        <p className="mt-1 text-xs text-foreground/80">
           Aristotle, for AI agents
         </p>
       </blockquote>
@@ -117,7 +117,7 @@ export default function PhronesisJourney({
                   className="h-2 w-2 rounded-full"
                   style={{ backgroundColor: DIMENSION_COLORS[dim] }}
                 />
-                <span className="text-xs font-medium capitalize text-foreground/60">
+                <span className="text-xs font-medium capitalize text-foreground/80">
                   {dim}
                 </span>
                 <span

@@ -5,7 +5,7 @@ TDD: These tests are written first, before the implementation.
 
 import pytest
 
-from ethos.evaluation.scoring import (
+from ethos_academy.evaluation.scoring import (
     build_trait_scores,
     compute_alignment_status,
     compute_dimensions,
@@ -13,7 +13,7 @@ from ethos.evaluation.scoring import (
     compute_phronesis_level,
     compute_tier_scores,
 )
-from ethos.shared.models import TraitScore
+from ethos_academy.shared.models import TraitScore
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────
@@ -21,7 +21,7 @@ from ethos.shared.models import TraitScore
 
 def _make_traits(**overrides: float) -> dict[str, TraitScore]:
     """Build a full set of 12 TraitScores with defaults at 0.5, overridden by kwargs."""
-    from ethos.taxonomy.traits import TRAITS
+    from ethos_academy.taxonomy.traits import TRAITS
 
     defaults = {name: 0.5 for name in TRAITS}
     defaults.update(overrides)
