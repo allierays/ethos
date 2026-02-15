@@ -15,6 +15,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBrain, faEnvelope, faChartBar, faFingerprint, faCrosshairs } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { DIMENSIONS, DIMENSION_COLORS, TRAIT_DIMENSIONS, TRAIT_LABELS, spectrumColor } from "../../lib/colors";
+import ReasoningText from "../shared/ReasoningText";
 
 const TRAIT_GROUPS: { dimension: string; label: string; color: string; traits: string[] }[] = [
   {
@@ -63,47 +64,6 @@ function cleanMarkdown(text: string): string {
     .replace(/\uFFFD/g, "")
     .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}]/gu, "")
     .trim();
-}
-
-/* ─── Reasoning text with dimension highlights ─── */
-
-const DIMENSION_HIGHLIGHT: { pattern: RegExp; color: string }[] = [
-  { pattern: /\b(ethos)\b/gi, color: DIMENSION_COLORS.ethos },
-  { pattern: /\b(logos)\b/gi, color: DIMENSION_COLORS.logos },
-  { pattern: /\b(pathos)\b/gi, color: DIMENSION_COLORS.pathos },
-];
-
-function HighlightedSpan({ text }: { text: string }) {
-  const parts = text.split(/\b(ethos|logos|pathos)\b/gi);
-  return (
-    <>
-      {parts.map((part, i) => {
-        const match = DIMENSION_HIGHLIGHT.find((d) => d.pattern.test(part));
-        if (match) {
-          match.pattern.lastIndex = 0;
-          return (
-            <span key={i} className="font-bold" style={{ color: match.color }}>
-              {part}
-            </span>
-          );
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </>
-  );
-}
-
-function HighlightedReasoning({ text }: { text: string }) {
-  const sentences = text.split(/(?<=\.)\s+(?=[A-Z])/);
-  return (
-    <>
-      {sentences.map((sentence, i) => (
-        <p key={i} className={i < sentences.length - 1 ? "mb-2.5" : ""}>
-          <HighlightedSpan text={sentence} />
-        </p>
-      ))}
-    </>
-  );
 }
 
 /* ─── Inline helpers (match Records styling) ─── */
@@ -284,7 +244,7 @@ function ExpandedHighlight({ item }: { item: HighlightItem }) {
           {item.scoringReasoning && (
             <blockquote className="relative text-sm text-foreground/90 leading-[1.8] bg-white/90 border-l-[5px] rounded-r-xl px-5 py-4 shadow-sm mb-4" style={{ borderColor: DIMENSION_COLORS.ethos }}>
               <svg className="absolute top-3 right-4 w-8 h-8 opacity-[0.06]" viewBox="0 0 24 24" fill="currentColor"><path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/></svg>
-              <HighlightedReasoning text={item.scoringReasoning} />
+              <ReasoningText text={item.scoringReasoning} />
             </blockquote>
           )}
           <div className="space-y-2.5">

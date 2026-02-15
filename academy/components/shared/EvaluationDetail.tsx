@@ -5,6 +5,7 @@ import type { HighlightItem, EvaluationHistoryItem, HighlightIndicator } from ".
 import { DIMENSION_COLORS, TRAIT_DIMENSIONS, TRAIT_LABELS } from "../../lib/colors";
 import SpectrumBar from "./SpectrumBar";
 import IntentSummary from "./IntentSummary";
+import ReasoningText from "./ReasoningText";
 
 type EvalLike = HighlightItem | EvaluationHistoryItem;
 
@@ -156,7 +157,7 @@ export default function EvaluationDetail({ evaluation }: EvaluationDetailProps) 
 
           {reasoning && (
             <blockquote className="border-l-2 border-logos-300 pl-3 text-xs italic text-foreground/70">
-              {reasoning}
+              <ReasoningText text={reasoning} splitSentences={false} />
             </blockquote>
           )}
 

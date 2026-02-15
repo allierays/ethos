@@ -19,6 +19,7 @@ import { fadeUp, whileInView } from "../../lib/motion";
 import type { DriftBreakpoint, EvaluationHistoryItem } from "../../lib/types";
 import GraphHelpButton from "../shared/GraphHelpButton";
 import GlossaryTerm from "../shared/GlossaryTerm";
+import ReasoningText from "../shared/ReasoningText";
 
 /* ─── Trait habit definitions (consolidated from VirtueHabits) ─── */
 
@@ -414,9 +415,7 @@ export default function TranscriptChart({ timeline, agentName, breakpoints = [],
                             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">
                               Why these scores
                             </p>
-                            <p className="text-xs leading-relaxed text-foreground/60">
-                              {histItem.scoringReasoning}
-                            </p>
+                            <ReasoningText text={histItem.scoringReasoning} splitSentences={false} className="text-xs leading-relaxed text-foreground/60" />
                           </div>
                         )}
                       </div>

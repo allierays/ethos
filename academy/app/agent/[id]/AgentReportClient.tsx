@@ -81,17 +81,6 @@ export default function AgentReportClient({
     <>
       <h1 className="sr-only">{agentName} Report Card</h1>
 
-      {/* Entrance Exam baseline */}
-      {profile.enrolled && (
-        <div className="mx-auto max-w-7xl px-6 pt-8">
-          <EntranceExamCard
-            agentId={agentId}
-            agentName={agentName}
-            enrolled={profile.enrolled}
-          />
-        </div>
-      )}
-
       {/* Full-width hero banner */}
       <GradeHero profile={profile} report={report} timeline={timeline} />
 
@@ -187,6 +176,17 @@ export default function AgentReportClient({
           <EvaluationDepth />
         </div>
       </motion.section>
+
+      {/* What's next CTA cards */}
+      {profile.enrolled && (
+        <EntranceExamCard
+          agentId={agentId}
+          agentName={agentName}
+          enrolled={profile.enrolled}
+          hasHomework={!!(report?.homework && (report.homework.focusAreas.length > 0 || report.homework.strengths.length > 0 || report.homework.avoidPatterns.length > 0))}
+          homeworkCount={report?.homework?.focusAreas?.length ?? 0}
+        />
+      )}
 
       {/* Guardian notifications — footer */}
       <div className="mx-auto max-w-7xl px-6 pb-8">

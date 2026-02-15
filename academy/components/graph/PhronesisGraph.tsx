@@ -265,6 +265,8 @@ function NvlRenderer({ nodes, rels, onNodeClick }: NvlRendererProps) {
 
         const nodeIds = nodes.map((n) => n.id);
 
+        container.style.cursor = "grab";
+
         const nvl = new NVL(container, nodes, rels, {
           layout: "d3Force",
           renderer: "canvas",
@@ -286,12 +288,17 @@ function NvlRenderer({ nodes, rels, onNodeClick }: NvlRendererProps) {
         const pan = new handlers.PanInteraction(nvl);
         const drag = new handlers.DragNodeInteraction(nvl);
         const click = new handlers.ClickInteraction(nvl);
+        const hover = new handlers.HoverInteraction(nvl);
 
         click.updateCallback("onNodeClick", (node: { id: string }) => {
           onNodeClickRef.current?.(null, node);
         });
 
-        interactionsRef.current = [zoom, pan, drag, click];
+        hover.updateCallback("onHover", (element: unknown) => {
+          container.style.cursor = element ? "pointer" : "grab";
+        });
+
+        interactionsRef.current = [zoom, pan, drag, click, hover];
 
         setTimeout(() => {
           if (!destroyed && nvlInstanceRef.current) nvl.fit(nodeIds);

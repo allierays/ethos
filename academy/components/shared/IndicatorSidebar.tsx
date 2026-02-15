@@ -6,28 +6,7 @@ import { motion } from "motion/react";
 import type { IndicatorLike } from "../../lib/annotate";
 import type { IntentClassification } from "../../lib/types";
 import { DIMENSION_COLORS, DIMENSION_LABELS, TRAIT_DIMENSIONS, TRAIT_LABELS, INTENT_COLORS } from "../../lib/colors";
-
-/* ─── Reasoning text with dimension highlights ─── */
-
-function HighlightedSpan({ text }: { text: string }) {
-  const parts = text.split(/\b(ethos|logos|pathos)\b/gi);
-  return (
-    <>
-      {parts.map((part, i) => {
-        const lower = part.toLowerCase();
-        const color = DIMENSION_COLORS[lower];
-        if (color) {
-          return (
-            <span key={i} className="font-bold" style={{ color }}>
-              {part}
-            </span>
-          );
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </>
-  );
-}
+import ReasoningText from "./ReasoningText";
 
 /* ─── Score bar (local, matches RecordsClient pattern) ─── */
 
@@ -207,13 +186,7 @@ export default function IndicatorSidebar({
           {scoringReasoning && (
             <div>
               <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted/70 mb-2">Scoring Reasoning</h3>
-              <div className="text-sm text-foreground/80 leading-relaxed space-y-2">
-                {scoringReasoning.split(/(?<=\.)\s+(?=[A-Z])/).map((sentence, i) => (
-                  <p key={i}>
-                    <HighlightedSpan text={sentence} />
-                  </p>
-                ))}
-              </div>
+              <ReasoningText text={scoringReasoning} className="text-sm text-foreground/80 leading-relaxed" />
             </div>
           )}
 

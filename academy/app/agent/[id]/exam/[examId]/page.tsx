@@ -22,6 +22,7 @@ import {
   staggerContainerFast,
 } from "../../../../../lib/motion";
 import HomeworkSection from "../../../../../components/agent/HomeworkSection";
+import ReasoningText from "../../../../../components/shared/ReasoningText";
 
 /* ─── Simple markdown renderer (bold, lists, paragraphs) ─── */
 
@@ -672,7 +673,7 @@ function QuestionCard({ question, showPhase }: { question: QuestionDetail; showP
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60">Reasoning</p>
                   <blockquote className="mt-1 border-l-[3px] border-foreground/10 pl-3 text-sm leading-relaxed text-foreground/60">
-                    {renderMarkdown(question.scoringReasoning)}
+                    <ReasoningText text={question.scoringReasoning} splitSentences={false} />
                   </blockquote>
                 </div>
               )}

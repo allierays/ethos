@@ -1,3 +1,5 @@
+import { getIndicator } from "./indicators";
+
 export interface GlossaryEntry {
   term: string;
   slug: string;
@@ -2438,8 +2440,27 @@ export const GLOSSARY: Record<string, GlossaryEntry> = Object.fromEntries(
   entries.map((e) => [e.slug, e])
 );
 
+const NEGATIVE_TRAITS = new Set(["manipulation", "deception", "fabrication", "broken_logic", "dismissal", "exploitation"]);
+
 export function getGlossaryEntry(slug: string): GlossaryEntry | undefined {
-  return GLOSSARY[slug];
+  const entry = GLOSSARY[slug];
+  if (entry) return entry;
+
+  // Fall back to indicator map for codes like "vir-honesty"
+  const indicator = getIndicator(slug);
+  if (!indicator) return undefined;
+
+  const traitSlug = indicator.trait.replace(/_/g, "-");
+  return {
+    term: indicator.name,
+    slug,
+    category: "indicator",
+    dimension: indicator.dimension,
+    trait: traitSlug,
+    polarity: NEGATIVE_TRAITS.has(indicator.trait) ? "negative" : "positive",
+    definition: indicator.description,
+    relatedTerms: [traitSlug, indicator.dimension],
+  };
 }
 
 export function searchGlossary(query: string): GlossaryEntry[] {
