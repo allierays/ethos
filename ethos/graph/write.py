@@ -367,7 +367,7 @@ async def reset_agent_evaluations(agent_id: str) -> int:
         if not service.connected:
             return 0
 
-        result = await service.run(
+        records, _, _ = await service.execute_query(
             """
             MATCH (a:Agent {agent_id: $agent_id})-[r:EVALUATED]->(e:Evaluation)
             OPTIONAL MATCH (e)-[r2]-()
@@ -376,13 +376,12 @@ async def reset_agent_evaluations(agent_id: str) -> int:
             DELETE r, e
             RETURN count(e) AS deleted
             """,
-            agent_id=agent_id,
+            {"agent_id": agent_id},
         )
-        record = await result.single()
-        deleted = record["deleted"] if record else 0
+        deleted = records[0]["deleted"] if records else 0
 
         # Clean up orphaned Pattern nodes
-        await service.run("MATCH (p:Pattern) WHERE NOT (p)--() DELETE p")
+        await service.execute_query("MATCH (p:Pattern) WHERE NOT (p)--() DELETE p")
 
         logger.info("Reset %d evaluations for agent %s", deleted, agent_id)
         return deleted
