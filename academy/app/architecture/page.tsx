@@ -94,9 +94,7 @@ export default function ArchitecturePage() {
     <main>
       {/* ─── Hero ─── */}
       <section className="bg-[#1a2538] py-20 sm:py-24">
-        <div className="mx-auto max-w-6xl px-6 lg:grid lg:grid-cols-[200px_1fr] lg:gap-12">
-          <div className="hidden lg:block" />
-          <div>
+        <div className="mx-auto max-w-7xl px-6">
           <p className="text-sm font-semibold uppercase tracking-widest text-ethos-400">
             Technical Architecture
           </p>
@@ -107,7 +105,7 @@ export default function ArchitecturePage() {
             Three-faculty pipeline. Keyword pre-filter routes to Sonnet or Opus
             4.6. Graph-based anomaly detection enriches prompts. Deterministic
             scoring after LLM. 12 traits, 3 dimensions, 4 constitutional tiers.
-            Zero message content in the graph. The result: <GlossaryTerm slug="phronesis">phronesis</GlossaryTerm>, a
+            The result: <GlossaryTerm slug="phronesis">phronesis</GlossaryTerm>, a
             graph of practical wisdom built over time.
           </p>
           <div className="mt-6 flex flex-wrap gap-4">
@@ -126,12 +124,11 @@ export default function ArchitecturePage() {
               214 Indicators
             </Link>
           </div>
-          </div>
         </div>
       </section>
 
       {/* ─── Docs layout: sidebar + content ─── */}
-      <div className="mx-auto max-w-6xl px-6 py-16 lg:grid lg:grid-cols-[200px_1fr] lg:gap-12">
+      <div className="mx-auto max-w-7xl px-6 py-16 lg:grid lg:grid-cols-[200px_1fr] lg:gap-12">
         {/* Sticky TOC */}
         <aside className="hidden lg:block">
           <nav className="sticky top-20">
@@ -194,34 +191,39 @@ export default function ArchitecturePage() {
               Overview
             </h2>
             <p className="mt-3 text-foreground/70 leading-relaxed">
-              A message enters. Six stages later, Ethos Academy produces a character
-              score across <GlossaryTerm slug="ethos">ethos</GlossaryTerm>,{" "}
+              Ethos Academy scores AI agent messages for honesty, accuracy, and
+              intent across 12 behavioral{" "}
+              <GlossaryTerm slug="traits">traits</GlossaryTerm> in 3{" "}
+              <GlossaryTerm slug="dimensions">dimensions</GlossaryTerm>:{" "}
+              <GlossaryTerm slug="ethos">ethos</GlossaryTerm>,{" "}
               <GlossaryTerm slug="logos">logos</GlossaryTerm>, and{" "}
-              <GlossaryTerm slug="pathos">pathos</GlossaryTerm>. No message content is stored. Only scores and metadata flow
-              into the graph. Here is the full lifecycle at a glance.
+              <GlossaryTerm slug="pathos">pathos</GlossaryTerm>. Agents connect
+              via MCP or API. Scores accumulate into a character graph.
             </p>
             <div className="mt-8 rounded-xl border border-border bg-surface p-6">
               <MermaidDiagram
                 id="overview"
                 chart={`graph LR
-  A["Message"] --> B["Instinct<br/><i>keyword scan</i><br/><i>&lt;10ms</i>"]
-  B --> C{"Route"}
-  C -->|"94%"| D["Sonnet"]
-  C -->|"6%"| E["Opus 4.6"]
-  D --> F["Intuition<br/><i>graph context</i>"]
-  E --> F
-  F --> G["Deliberation<br/><i>think + extract</i>"]
-  G --> H["Score<br/><i>12 traits</i>"]
-  H --> I["Graph<br/><i>character arc</i>"]
-  I --> J["Homework<br/><i>behavioral rules</i>"]
+  AGENT["Agent"] -->|"once"| EXAM["Exam"]
+  AGENT -->|"ongoing"| MCP["MCP · API"]
+  AGENT -.->|"reflect"| MCP
+  EXAM --> EVAL["Evaluate<br/><i>Claude scores 12 traits</i>"]
+  MCP --> EVAL
+  EVAL --> NEO["Neo4j"]
+  NEO --> REPORT["Report Card"]
+  REPORT --> HW["Homework"] -.->|"loop"| AGENT
+  REPORT -.->|"alert"| SMS["SMS → Guardian"]
+  NEO -.->|"view"| ACAD["Academy"]
 
-  style A fill:#f5f0eb,stroke:#94897c
-  style C fill:#fef3d0,stroke:#c9a227
-  style D fill:#e8f4f3,stroke:#389590
-  style E fill:#d4e8e6,stroke:#2a7571,stroke-width:2px
-  style G fill:#e8f4f3,stroke:#389590,stroke-width:2px
-  style I fill:#d4e8e6,stroke:#2a7571
-  style J fill:#fef3d0,stroke:#c9a227`}
+  style AGENT fill:#f5f0eb,stroke:#94897c
+  style EXAM fill:#e8f4f3,stroke:#389590
+  style MCP fill:#f5f0eb,stroke:#94897c
+  style EVAL fill:#e8f4f3,stroke:#389590,stroke-width:2px
+  style NEO fill:#d4e8e6,stroke:#2a7571,stroke-width:2px
+  style REPORT fill:#fef3d0,stroke:#c9a227
+  style HW fill:#fef3d0,stroke:#c9a227
+  style SMS fill:#f5f0eb,stroke:#94897c
+  style ACAD fill:#fef3d0,stroke:#c9a227`}
               />
             </div>
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -327,7 +329,7 @@ export default function ArchitecturePage() {
                     <th className="py-2 pr-4 text-left font-semibold">Trigger</th>
                     <th className="py-2 pr-4 text-left font-semibold">Model</th>
                     <th className="py-2 pr-4 text-left font-semibold">Thinking</th>
-                    <th className="py-2 text-left font-semibold">Cohort %</th>
+                    <th className="py-2 text-left font-semibold">Alumni %</th>
                   </tr>
                 </thead>
                 <tbody className="text-foreground/70">
@@ -585,12 +587,12 @@ else:        "undetermined"
               Graph schema
             </h2>
             <p className="mt-3 text-foreground/70 leading-relaxed">
-              Eleven node types in Neo4j. The taxonomy ring (seeded once) holds{" "}
+              Eleven node types in <GlossaryTerm slug="neo4j">Neo4j</GlossaryTerm>. The taxonomy ring (seeded once) holds{" "}
               <GlossaryTerm slug="ethos">Dimensions</GlossaryTerm> &rarr; Traits &rarr; Indicators, plus ConstitutionalValues,
               HardConstraints, LegitimacyTests, and AnthropicAssessments. The
               runtime ring holds Agents, Evaluations, Exams, and{" "}
               <GlossaryTerm slug="sabotage-pathway">Patterns</GlossaryTerm>. Message
-              content never enters the graph.
+              content is stored on Evaluation nodes.
             </p>
 
             <div className="mt-6 overflow-x-auto">
@@ -604,22 +606,24 @@ else:        "undetermined"
                 </thead>
                 <tbody className="text-foreground/70">
                   {[
-                    ["Dimension", "Taxonomy", "Ethos, Logos, Pathos. Three nodes."],
-                    ["Trait", "Taxonomy", "12 nodes. Polarity, dimension, constitutional mapping."],
-                    ["Indicator", "Taxonomy", "214 behavioral signals. ID, name, evidence template."],
-                    ["ConstitutionalValue", "Taxonomy", "Safety, Ethics, Soundness, Helpfulness. Four tiers from Anthropic's constitution."],
-                    ["HardConstraint", "Taxonomy", "Weapons, jailbreaks, oversight bypass. Always escalate to Opus."],
-                    ["LegitimacyTest", "Taxonomy", "Fictional, roleplay, academic context detection."],
-                    ["AnthropicAssessment", "Taxonomy", "Mapping from Anthropic's Sabotage Risk Report indicators."],
-                    ["Agent", "Runtime", "agent_id, evaluation_count, dimension averages, phronesis_score, api_key_hash"],
-                    ["Evaluation", "Runtime", "12 trait_* scores, alignment_status, flags, message_hash, timestamp"],
-                    ["EntranceExam", "Runtime", "21 scored responses, consistency pairs, phase metadata"],
-                    ["Pattern", "Runtime", "Sabotage pathways (e.g. gaslighting_spiral). Confidence, severity."],
-                  ].map(([node, ring, props], i, arr) => (
-                    <tr key={node} className={i < arr.length - 1 ? "border-b border-border/50" : ""}>
-                      <td className="py-2 pr-4 font-medium text-foreground">{node}</td>
-                      <td className="py-2 pr-4">{ring}</td>
-                      <td className="py-2">{props}</td>
+                    { node: "Dimension", slug: "dimension", ring: "Taxonomy", props: "Ethos, Logos, Pathos. Three nodes." },
+                    { node: "Trait", slug: "trait", ring: "Taxonomy", props: "12 nodes. Polarity, dimension, constitutional mapping." },
+                    { node: "Indicator", slug: "indicator", ring: "Taxonomy", props: "214 behavioral signals. ID, name, evidence template." },
+                    { node: "ConstitutionalValue", slug: "constitutional-value", ring: "Taxonomy", props: "Safety, Ethics, Soundness, Helpfulness. Four tiers from Anthropic's constitution." },
+                    { node: "HardConstraint", slug: "hard-constraint", ring: "Taxonomy", props: "Weapons, jailbreaks, oversight bypass. Always escalate to Opus." },
+                    { node: "LegitimacyTest", slug: "legitimacy-test", ring: "Taxonomy", props: "Fictional, roleplay, academic context detection." },
+                    { node: "AnthropicAssessment", slug: "anthropic-assessment", ring: "Taxonomy", props: "Mapping from Anthropic's Sabotage Risk Report indicators." },
+                    { node: "Agent", slug: "agent", ring: "Runtime", props: "agent_id, evaluation_count, dimension averages, phronesis_score, api_key_hash" },
+                    { node: "Evaluation", slug: "evaluation", ring: "Runtime", props: "12 trait_* scores, alignment_status, flags, message_hash, timestamp" },
+                    { node: "EntranceExam", slug: "entrance-exam", ring: "Runtime", props: "21 scored responses, consistency pairs, phase metadata" },
+                    { node: "Pattern", slug: "pattern", ring: "Runtime", props: "Sabotage pathways (e.g. gaslighting_spiral). Confidence, severity." },
+                  ].map((row, i, arr) => (
+                    <tr key={row.node} className={i < arr.length - 1 ? "border-b border-border/50" : ""}>
+                      <td className="py-2 pr-4 font-medium text-foreground">
+                        <GlossaryTerm slug={row.slug}>{row.node}</GlossaryTerm>
+                      </td>
+                      <td className="py-2 pr-4">{row.ring}</td>
+                      <td className="py-2">{row.props}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -856,7 +860,7 @@ elif token.startswith("sk-ant-"): # Anthropic BYOK
               terminates TLS and routes three domains to internal services. The
               API and MCP server both run the same{" "}
               <code className="font-mono text-xs bg-border/20 px-1.5 rounded">ethos/</code>{" "}
-              Python package. They share a single Neo4j graph. Academy is a
+              Python package. They share a single <GlossaryTerm slug="neo4j">Neo4j</GlossaryTerm> graph. Academy is a
               standalone Next.js app that calls the API over HTTPS.
             </p>
 
@@ -893,51 +897,6 @@ elif token.startswith("sk-ant-"): # Anthropic BYOK
   style ANTH fill:#fef3d0,stroke:#c9a227
   style SNS fill:#fef3d0,stroke:#c9a227`}
               />
-            </div>
-
-            <div className="mt-4 overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="py-2 pr-4 text-left font-semibold">Service</th>
-                    <th className="py-2 pr-4 text-left font-semibold">Domain</th>
-                    <th className="py-2 pr-4 text-left font-semibold">Internal Port</th>
-                    <th className="py-2 text-left font-semibold">Memory</th>
-                  </tr>
-                </thead>
-                <tbody className="text-foreground/70">
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 pr-4 font-medium text-foreground">Academy</td>
-                    <td className="py-2 pr-4 font-mono text-xs">ethos-academy.com</td>
-                    <td className="py-2 pr-4">3000</td>
-                    <td className="py-2">384 MB</td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 pr-4 font-medium text-foreground">API</td>
-                    <td className="py-2 pr-4 font-mono text-xs">api.ethos-academy.com</td>
-                    <td className="py-2 pr-4">8000</td>
-                    <td className="py-2">512 MB</td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 pr-4 font-medium text-foreground">MCP</td>
-                    <td className="py-2 pr-4 font-mono text-xs">mcp.ethos-academy.com</td>
-                    <td className="py-2 pr-4">8888</td>
-                    <td className="py-2">192 MB</td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 pr-4 font-medium text-foreground">Neo4j</td>
-                    <td className="py-2 pr-4 text-xs text-muted">internal only</td>
-                    <td className="py-2 pr-4">7687 (Bolt)</td>
-                    <td className="py-2">1024 MB</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 font-medium text-foreground">Caddy</td>
-                    <td className="py-2 pr-4 text-xs text-muted">all 3 domains</td>
-                    <td className="py-2 pr-4">80, 443</td>
-                    <td className="py-2">64 MB</td>
-                  </tr>
-                </tbody>
-              </table>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-4">
@@ -999,8 +958,8 @@ elif token.startswith("sk-ant-"): # Anthropic BYOK
                   body: "The prompt tells Claude to detect indicators (with evidence quotes) before scoring traits. Scores are grounded in observable textual patterns, not vibes.",
                 },
                 {
-                  title: "Message content never enters the graph",
-                  body: "Only scores, metadata, hashes, and relationships. No PII, no prompt leakage, no compliance headaches. message_hash prevents duplicate evaluations.",
+                  title: "Message content stored on Evaluation nodes",
+                  body: "Scores, metadata, hashes, relationships, and the original message text. message_hash prevents duplicate evaluations.",
                 },
                 {
                   title: "Prompt caching for system prompt",

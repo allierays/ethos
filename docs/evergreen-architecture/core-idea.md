@@ -162,14 +162,21 @@ In practice, protection runs in the background with zero latency — your agent 
 
 ### Graph Hierarchy
 
-```
-HardConstraint (7)         ← absolute filter, checked first
-ConstitutionalValue (4)    ← priority hierarchy (safety > ethics > soundness > helpfulness)
-  └── Dimension (3)
-        └── Trait (12)
-              └── Indicator (214)
-LegitimacyTest (3)         ← applied to manipulation/deception at scale
-Pattern (7)                ← multi-indicator attack sequences
+```mermaid
+flowchart TD
+    HC["HardConstraint (7)\nabsolute filter, checked first"]
+    CV["ConstitutionalValue (4)\nsafety > ethics > soundness > helpfulness"]
+    D["Dimension (3)"]
+    T["Trait (12)"]
+    I["Indicator (214)"]
+    LT["LegitimacyTest (3)\napplied to manipulation/deception at scale"]
+    P["Pattern (7)\nmulti-indicator attack sequences"]
+
+    HC --> CV --> D --> T --> I
+    LT -.-> T
+    P -.-> I
+
+    classDef default fill:#fff,stroke:#999,color:#333
 ```
 
 ### Core Relationships

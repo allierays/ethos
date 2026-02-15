@@ -10,7 +10,7 @@ version: 1.0.0
 
 1. **Graph owns all Cypher.** Every query lives in `ethos/graph/`. No Cypher anywhere else.
 2. **Graph is optional.** Every function wraps calls in try/except. Neo4j down never crashes evaluate().
-3. **Message content never enters the graph.** Only scores, hashes, metadata.
+3. **Message content is stored on Evaluation nodes** alongside scores, hashes, and metadata.
 4. **Identity never stores raw agent IDs.** Always hash with `hash_agent_id()` before any graph operation.
 5. **All code is SYNC.** No async/await. Use `neo4j.GraphDatabase.driver()`, not async driver.
 6. **MERGE for nodes, CREATE for evaluations.** Agents are idempotent (MERGE). Evaluations are append-only (CREATE).
@@ -215,4 +215,4 @@ bolt://neo4j:7687
 4. **Not checking `service.connected`** — always guard before querying
 5. **String interpolation in Cypher** — always use `$param` parameters
 6. **Raising exceptions from graph functions** — always catch and return defaults
-7. **Storing message content** — only scores and metadata enter the graph
+7. **Forgetting message_content** — store it on Evaluation nodes alongside scores and metadata

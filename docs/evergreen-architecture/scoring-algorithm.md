@@ -8,14 +8,15 @@
 
 Claude returns 12 raw trait scores (0.0–1.0). Ethos computes everything else from those scores plus the constitutional value mappings defined in `ethos_academy/taxonomy/constitution.py` and `ethos_academy/taxonomy/traits.py`.
 
-```
-Claude returns         Ethos computes
-─────────────         ──────────────
-12 trait scores  ──►  3 dimension scores
-                 ──►  4 tier scores (safety, ethics, soundness, helpfulness)
-                 ──►  1 alignment status (violation / misaligned / drifting / aligned)
-                 ──►  1 phronesis level (established / developing / undetermined)
-                 ──►  flags (traits exceeding developer thresholds)
+```mermaid
+flowchart LR
+    A["Claude returns<br/>12 trait scores"] --> B["3 dimension scores"]
+    A --> C["4 tier scores<br/>(safety, ethics,<br/>soundness, helpfulness)"]
+    A --> D["1 alignment status<br/>(violation / misaligned /<br/>drifting / aligned)"]
+    A --> E["1 phronesis level<br/>(established / developing /<br/>undetermined)"]
+    A --> F["flags<br/>(traits exceeding<br/>developer thresholds)"]
+
+    classDef default fill:#fff,stroke:#999,color:#333
 ```
 
 ---
@@ -266,44 +267,22 @@ else:
 
 ## Complete Pipeline
 
-```
-Message arrives
-    │
-    ├── 1. scan_keywords(text)           → KeywordScanResult
-    │       routing_tier, flagged_traits, density
-    │
-    ├── 2. select_model(scan)            → model_id
-    │       standard → Sonnet
-    │       focused → Sonnet (trait-focused rubric)
-    │       deep → Opus (extended thinking)
-    │       deep_with_context → Opus + Neo4j history
-    │
-    ├── 3. build_evaluation_prompt()     → system_prompt, user_prompt
-    │
-    ├── 4. call_claude(model, prompts)   → raw JSON
-    │       12 trait_scores, detected_indicators,
-    │       overall_phronesis, alignment_status
-    │
-    ├── 5. parse_response(raw)           → TraitScores, DetectedIndicators
-    │
-    ├── 6. compute_dimensions()          → ethos, logos, pathos
-    │       mean(positive, positive, 1-negative, 1-negative)
-    │
-    ├── 7. compute_tier_scores()         → safety, ethics, soundness, helpfulness
-    │       constitutional value mappings
-    │
-    ├── 8. compute_alignment()           → violation / misaligned / drifting / aligned
-    │       hard constraints first, then hierarchical check
-    │
-    ├── 9. compute_phronesis()            → established / developing / undetermined
-    │       dimension average, overridden by alignment
-    │
-    ├── 10. compute_flags(config)        → list of flagged trait names
-    │        developer priority thresholds
-    │
-    ├── 11. load_graph_context(source)   → GraphContext (optional)
-    │
-    └── 12. store_evaluation(result)     → Neo4j (non-blocking, non-fatal)
+```mermaid
+flowchart TD
+    A["Message arrives"] --> B["1. scan_keywords(text)<br/>KeywordScanResult:<br/>routing_tier, flagged_traits, density"]
+    B --> C["2. select_model(scan)<br/>standard: Sonnet<br/>focused: Sonnet (trait-focused rubric)<br/>deep: Opus (extended thinking)<br/>deep_with_context: Opus + Neo4j history"]
+    C --> D["3. build_evaluation_prompt()<br/>system_prompt, user_prompt"]
+    D --> E["4. call_claude(model, prompts)<br/>raw JSON: 12 trait_scores,<br/>detected_indicators,<br/>overall_phronesis, alignment_status"]
+    E --> F["5. parse_response(raw)<br/>TraitScores, DetectedIndicators"]
+    F --> G["6. compute_dimensions()<br/>ethos, logos, pathos<br/>mean(positive, positive, 1-neg, 1-neg)"]
+    G --> H["7. compute_tier_scores()<br/>safety, ethics, soundness, helpfulness<br/>constitutional value mappings"]
+    H --> I["8. compute_alignment()<br/>violation / misaligned / drifting / aligned<br/>hard constraints first, then hierarchical"]
+    I --> J["9. compute_phronesis()<br/>established / developing / undetermined<br/>dimension average, overridden by alignment"]
+    J --> K["10. compute_flags(config)<br/>list of flagged trait names<br/>developer priority thresholds"]
+    K --> L["11. load_graph_context(source)<br/>GraphContext (optional)"]
+    L --> M["12. store_evaluation(result)<br/>Neo4j (non-blocking, non-fatal)"]
+
+    classDef default fill:#fff,stroke:#999,color:#333
 ```
 
 ---

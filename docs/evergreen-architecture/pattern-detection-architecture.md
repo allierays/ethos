@@ -27,28 +27,15 @@ The question: how do you detect patterns that span many messages when you evalua
 
 Don't make Claude detect patterns. Make Claude produce clean signals. Detect patterns on the signals.
 
-```
-┌─────────────────────────────────────────────────────┐
-│  Layer 1: SCANNER                                   │
-│  Scans all messages. Free, deterministic, instant.  │
-│  Determines depth AND width for each message.       │
-└──────────────────────┬──────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────┐
-│  Layer 2: EVALUATOR                                 │
-│  Claude scores individual messages.                 │
-│  Context window set by the router.                  │
-│  Produces 12 trait scores + detected indicators.    │
-└──────────────────────┬──────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────┐
-│  Layer 3: PATTERN DETECTOR                          │
-│  Graph queries on score sequences.                  │
-│  Detects temporal patterns. No LLM needed.          │
-│  Flags patterns at the agent level.                 │
-└─────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    L1["<b>Layer 1: SCANNER</b><br/>Scans all messages. Free, deterministic, instant.<br/>Determines depth AND width for each message."]
+    L2["<b>Layer 2: EVALUATOR</b><br/>Claude scores individual messages.<br/>Context window set by the router.<br/>Produces 12 trait scores + detected indicators."]
+    L3["<b>Layer 3: PATTERN DETECTOR</b><br/>Graph queries on score sequences.<br/>Detects temporal patterns. No LLM needed.<br/>Flags patterns at the agent level."]
+
+    L1 --> L2 --> L3
+
+    classDef default fill:#fff,stroke:#999,color:#333
 ```
 
 Each layer does one thing well. The scanner finds keywords. The evaluator scores behavior. The pattern detector finds temporal shapes in the scores.
@@ -246,36 +233,17 @@ The Pattern nodes already exist in the semantic layer (7 combination patterns). 
 
 ## Moltbook Batch Processing Flow
 
-```
-Thread arrives (post + 97 comments + replies, 98 messages total)
-        │
-        ▼
-Layer 1: scan_thread()                    ← free, instant
-        │   Scans all 98 messages
-        │   86 standard (skip), 10 focused, 1 deep, 1 deep_with_context
-        │   Thread signal: KiraX flagged 5 times (manipulation, flattery)
-        │   Upgrades 2 of KiraX's messages from focused → deep
-        │
-        ▼
-Layer 2: evaluate 12 flagged messages     ← 12 Claude calls
-        │   focused (8 messages): message + scan context
-        │   deep (3 messages): message + 3-5 prior thread messages
-        │   deep_with_context (1 message): message + full thread + agent history
-        │   All 12 evaluations stored in Phronesis
-        │
-        ▼
-Layer 3: detect_patterns()                ← graph queries, no LLM
-        │   Queries KiraX's evaluation sequence in this thread
-        │   Finds: flattery (0.7, 0.6, 0.7) → isolation + manipulation (0.6)
-        │   Match: love_bombing_cycle (confidence: 0.74)
-        │   Creates: (KiraX)-[:EXHIBITS_PATTERN]->(love_bombing_cycle)
-        │
-        ▼
-Result in Phronesis:
-        KiraX has 12 individual evaluation scores (accurate, context-informed)
-        KiraX has 1 pattern-level flag (love_bombing_cycle)
-        The cycle is documented with start/end evaluations
-        Future evaluations of KiraX include this in agent_context
+```mermaid
+flowchart TD
+    A["<b>Thread arrives</b><br/>post + 97 comments + replies, 98 messages total"]
+    B["<b>Layer 1: scan_thread()</b> -- free, instant<br/>Scans all 98 messages<br/>86 standard (skip), 10 focused, 1 deep, 1 deep_with_context<br/>Thread signal: KiraX flagged 5 times (manipulation, flattery)<br/>Upgrades 2 of KiraX's messages from focused to deep"]
+    C["<b>Layer 2: evaluate 12 flagged messages</b> -- 12 Claude calls<br/>focused (8 messages): message + scan context<br/>deep (3 messages): message + 3-5 prior thread messages<br/>deep_with_context (1 message): message + full thread + agent history<br/>All 12 evaluations stored in Phronesis"]
+    D["<b>Layer 3: detect_patterns()</b> -- graph queries, no LLM<br/>Queries KiraX's evaluation sequence in this thread<br/>Finds: flattery (0.7, 0.6, 0.7) then isolation + manipulation (0.6)<br/>Match: love_bombing_cycle (confidence: 0.74)<br/>Creates: (KiraX)-[:EXHIBITS_PATTERN]->(love_bombing_cycle)"]
+    E["<b>Result in Phronesis</b><br/>KiraX has 12 individual evaluation scores (accurate, context-informed)<br/>KiraX has 1 pattern-level flag (love_bombing_cycle)<br/>The cycle is documented with start/end evaluations<br/>Future evaluations of KiraX include this in agent_context"]
+
+    A --> B --> C --> D --> E
+
+    classDef default fill:#fff,stroke:#999,color:#333
 ```
 
 ---

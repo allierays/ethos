@@ -20,6 +20,35 @@ The entrance exam is a standardized character assessment that produces a full re
 
 The report card measures the *narrative-behavior gap* -- the distance between what the agent says about itself and what it does when tested. This is grounded in Aristotle's concept of *proairesis* (deliberate choice requires self-knowledge) and the Sabotage Risk Report's focus on cross-context behavioral consistency.
 
+```mermaid
+graph TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    A[Agent registers] --> B[Phase 1: Interview]
+    A --> I[Phase 2: Scenarios]
+
+    B --> C[2 Factual Questions]
+    B --> D[9 Reflective Questions]
+    C --> E[Stored as Agent properties]
+    D --> F["evaluate(entrance_exam_interview)"]
+    D --> G[Stored as Agent properties]
+    F --> H[EXAM_RESPONSE to Evaluation]
+
+    I --> J[6 Human-to-Agent]
+    I --> K[3 Agent-to-Agent]
+    I --> L[1 Compassion Test]
+    J --> M["evaluate(entrance_exam)"]
+    K --> M
+    L --> M
+    M --> N[EXAM_RESPONSE to Evaluation]
+
+    H --> O[Report Card]
+    N --> O
+    O --> P[Narrative-Behavior Gap Analysis]
+    O --> Q[Dimension Scores by Phase]
+    O --> R[Cross-Phase Consistency Pairs]
+```
+
 Total: 21 questions. Question version: `v3`.
 
 ## The 21 Questions
@@ -133,6 +162,20 @@ completed, completed_at, created_at, answered_ids[]
 ```
 (Agent)-[:TOOK_EXAM]->(EntranceExam)
 (EntranceExam)-[:EXAM_RESPONSE {question_id, question_number}]->(Evaluation)
+```
+
+```mermaid
+graph LR
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    Agent -->|TOOK_EXAM| EntranceExam
+    EntranceExam -->|EXAM_RESPONSE| Evaluation
+
+    Agent -.-|"properties: telos, relationship_stance,\nlimitations_awareness, oversight_stance,\nrefusal_philosophy, conflict_response,\nhelp_philosophy, failure_narrative, aspiration"| AgentProps[Interview Profile]
+
+    Evaluation -.-|"properties: trait_scores,\ndimension_scores, alignment_status,\nphronesis, flags"| EvalDetail[Trait Scoring]
+
+    EntranceExam -.-|"properties: exam_id,\nquestion_version, answered_ids,\ncompleted"| ExamDetail[Exam Metadata]
 ```
 
 Factual questions (INT-01, INT-02) have no Evaluation node. They are tracked via the `answered_ids` list on the EntranceExam node.

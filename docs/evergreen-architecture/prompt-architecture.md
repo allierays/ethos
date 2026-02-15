@@ -12,14 +12,22 @@ The evaluation prompt is built dynamically from the taxonomy. It is not a static
 - Changing a scoring rubric anchor automatically changes the prompt
 - The prompt is always in sync with the code
 
-```
-ethos_academy/taxonomy/traits.py        →  Trait definitions, polarities, dimensions
-ethos_academy/taxonomy/rubrics.py       →  5-point scoring anchors per trait
-ethos_academy/taxonomy/constitution.py  →  Constitutional value hierarchy
-                                        ↓
-                              build_evaluation_prompt()
-                                        ↓
-                              (system_prompt, user_prompt)
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    A["traits.py\nTrait definitions, polarities, dimensions"]
+    B["rubrics.py\n5-point scoring anchors per trait"]
+    C["constitution.py\nConstitutional value hierarchy"]
+    D["build_evaluation_prompt()"]
+    E["system_prompt"]
+    F["user_prompt"]
+
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    D --> F
 ```
 
 Source: `ethos_academy/evaluation/prompts.py`

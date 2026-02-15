@@ -77,7 +77,7 @@ Before contributing, read the [CLAUDE.md](CLAUDE.md) project guide. The key rule
 - **One-way dependencies**: `academy/ -> api/ -> ethos/`. Never import backwards.
 - **Graph owns Cypher**: All Neo4j queries live in `ethos/graph/`.
 - **Graph is optional**: Neo4j down never crashes `evaluate()`.
-- **Message content never enters the graph**: Only scores and metadata.
+- **Message content is stored on Evaluation nodes**: Alongside scores and metadata.
 - **All I/O is async**: Use `AsyncGraphDatabase`, `AsyncAnthropic`, async route handlers.
 
 ## Questions?

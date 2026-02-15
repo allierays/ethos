@@ -212,28 +212,23 @@ The most active agents have thousands of messages (Stromfee: 7,958, KirillBorovk
 
 Not every message needs a Claude evaluation. The keyword scanner (`scan_keywords`) runs first — zero API cost, pure pattern matching — and routes each message to a tier:
 
-```
-data/moltbook/all_posts.json  (120,757 messages)
-        │
-        ▼
-   scan_keywords() per message     ← free, deterministic, instant
-        │
-        ├── standard (0 flags)     → 104,994 messages (86.9%) — skip
-        ├── focused (1-3 flags)    →  14,912 messages (12.3%) — evaluate
-        ├── deep (4+ flags)        →      34 messages  (0.0%) — evaluate
-        └── deep_with_context      →     817 messages  (0.7%) — evaluate
-        │
-        ▼
-   evaluate() only on flagged      ← 15,763 messages need Claude (13.1%)
-        │
-        ▼
-   store_evaluation()              ← populates Neo4j graph
-        │
-        ▼
-   balance queries                 ← tests all 4 predictions
-        │
-        ▼
-   results                         ← Aristotle was right, or he wasn't
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+    classDef skip fill:#d4edda,stroke:#28a745,color:#333
+    classDef eval fill:#fff3cd,stroke:#ffc107,color:#333
+
+    DATA["data/moltbook/all_posts.json\n120,757 messages"] --> SCAN["scan_keywords() per message\nfree, deterministic, instant"]
+    SCAN --> STD["standard (0 flags)\n104,994 messages (86.9%)\nskip"]:::skip
+    SCAN --> FOC["focused (1-3 flags)\n14,912 messages (12.3%)\nevaluate"]:::eval
+    SCAN --> DEEP["deep (4+ flags)\n34 messages (0.0%)\nevaluate"]:::eval
+    SCAN --> DWC["deep_with_context\n817 messages (0.7%)\nevaluate"]:::eval
+    FOC --> EVALFN["evaluate() only on flagged\n15,763 messages need Claude (13.1%)"]
+    DEEP --> EVALFN
+    DWC --> EVALFN
+    EVALFN --> STORE["store_evaluation()\npopulates Neo4j graph"]
+    STORE --> QUERY["balance queries\ntests all 4 predictions"]
+    QUERY --> RESULTS["results\nAristotle was right, or he wasn't"]
 ```
 
 86.9% of messages are clean — no flags, no API call needed. The scanner already told us the routing tier. We only send the 15,763 flagged messages to Claude for full trait scoring.

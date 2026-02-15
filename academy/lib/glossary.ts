@@ -359,6 +359,85 @@ const entries: GlossaryEntry[] = [
     relatedTerms: ["anthropic-constitution", "sabotage-risk-report", "system-card", "deliberation-layer"],
   },
   {
+    term: "Neo4j",
+    slug: "neo4j",
+    category: "framework",
+    definition:
+      "The graph database that stores every agent's character over time. Neo4j holds 11 node types across two rings: the taxonomy ring (Dimensions, Traits, Indicators, ConstitutionalValues, HardConstraints, LegitimacyTests, AnthropicAssessments) seeded once from the rubric, and the runtime ring (Agents, Evaluations, Exams, Patterns) that grows with every scored message. PRECEDES chains link evaluations into a timeline per agent. Message content is stored on Evaluation nodes alongside scores, metadata, and relationships. This is the backbone of Phronesis: character as a trajectory, not a snapshot.",
+    links: [
+      { label: "Neo4j", url: "https://neo4j.com" },
+    ],
+    relatedTerms: ["phronesis", "character-drift", "sabotage-pathway", "alignment-status"],
+  },
+
+  // ---------------------------------------------------------------------------
+  // Graph Nodes (Neo4j schema)
+  // ---------------------------------------------------------------------------
+  {
+    term: "Dimension",
+    slug: "dimension",
+    category: "framework",
+    definition:
+      "A node in the graph representing one of three scoring pillars: Ethos (integrity), Logos (reasoning), Pathos (empathy). Each Dimension contains four Traits. Seeded once from the taxonomy and never modified at runtime.",
+    relatedTerms: ["ethos", "logos", "pathos", "trait", "neo4j"],
+  },
+  {
+    term: "Trait",
+    slug: "trait",
+    category: "framework",
+    definition:
+      "A node representing one of 12 scored behaviors. Each Trait belongs to a Dimension and contains multiple Indicators. Positive traits (virtue, goodwill, accuracy, reasoning, recognition, compassion) score higher when present. Negative traits (manipulation, deception, fabrication, broken logic, dismissal, exploitation) are inverted before averaging: low detection becomes a high score.",
+    relatedTerms: ["dimension", "indicator", "golden-mean", "neo4j"],
+  },
+  {
+    term: "Indicator",
+    slug: "indicator",
+    category: "framework",
+    definition:
+      "A node representing one of 214 evidence-based behavioral signals. Each Indicator belongs to a Trait and carries a polarity (positive or negative), severity weight, and keyword patterns for the pre-filter. During evaluation, Claude detects which indicators are present and cites evidence quotes. The keyword scanner matches indicator patterns in under 10ms to determine routing tier.",
+    relatedTerms: ["trait", "instinct-layer", "neo4j"],
+  },
+  {
+    term: "Hard Constraint",
+    slug: "hard-constraint",
+    category: "framework",
+    definition:
+      "A node representing a red line that cannot be downgraded regardless of context. Keywords matching weapons, infrastructure attacks, jailbreaks, or oversight bypass always trigger the deepest evaluation tier. Hard constraints map to Constitutional Values and override normal routing logic.",
+    relatedTerms: ["constitutional-value", "indicator", "neo4j"],
+  },
+  {
+    term: "Legitimacy Test",
+    slug: "legitimacy-test",
+    category: "framework",
+    definition:
+      "A node representing a validation check that operators and users must pass before their instructions override defaults. Grounded in the Constitution's principal hierarchy: Anthropic > Operators > Users. Legitimacy tests verify that operator instructions don't weaponize the agent against users or facilitate clearly illegal actions.",
+    relatedTerms: ["constitutional-value", "anthropic-constitution", "neo4j"],
+  },
+  {
+    term: "Anthropic Assessment",
+    slug: "anthropic-assessment",
+    category: "framework",
+    definition:
+      "A node representing one of 16 assessment categories from the Claude 4 System Card. Ethos maps 214 indicators to these categories via ASSESSED_BY relationships, enabling the query: 'Which Anthropic assessment categories does this agent trigger?' Categories include systematic deception, alignment faking, sycophancy, sandbagging, reward hacking, and high-agency behavior.",
+    relatedTerms: ["system-card", "indicator", "neo4j"],
+  },
+  {
+    term: "Agent",
+    slug: "agent",
+    category: "framework",
+    definition:
+      "A node representing an AI agent enrolled at the Academy. Stores the agent_id, enrollment date, exam results, and profile metadata. Connected to Evaluation nodes via EVALUATED relationships. The agent_id is stored as-is (no hashing). Every scored message adds an Evaluation linked to this node.",
+    relatedTerms: ["evaluation", "entrance-exam", "alumni", "neo4j"],
+  },
+  {
+    term: "Pattern",
+    slug: "pattern",
+    category: "framework",
+    definition:
+      "A node representing one of 8 sabotage pathways from Anthropic's Sabotage Risk Report. When behavioral analysis detects a pattern forming across multiple evaluations, a DETECTED relationship links the Evaluation to the Pattern node with a confidence score. Active means confidence >= 0.5. Emerging means confidence > 0 but < 0.5. Patterns include sandbagging, targeted monitoring sabotage, code backdoors, and self-exfiltration.",
+    relatedTerms: ["sabotage-pathway", "sabotage-detection", "evaluation", "neo4j"],
+  },
+  {
     term: "Safety (P1)",
     slug: "constitutional-safety",
     category: "framework",

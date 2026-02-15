@@ -43,18 +43,28 @@ ethos_academy/evaluation/
 
 ### Domain Logic
 
-```
-evaluate(text, source, config)
-    │
-    ├── scanner.scan_keywords(text)         → KeywordScanResult
-    │     └── hard_constraint flags?        → immediate DEEP_WITH_CONTEXT routing
-    ├── router.select_model(scan)           → model_id, use_thinking
-    ├── prompts.build(text, scan, tier)     → system_prompt, user_prompt
-    ├── _call_claude(model, prompts)        → raw JSON
-    ├── parser.parse(raw, scan, config)     → EvaluationResult
-    ├── alignment.compute_status(result)    → "violation" | "misaligned" | "drifting" | "aligned"
-    │
-    └── graph.store(source, result)         → sync, non-fatal
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    A["evaluate(text, source, config)"]
+    B["scanner.scan_keywords(text) → KeywordScanResult"]
+    C["hard_constraint flags? → DEEP_WITH_CONTEXT routing"]
+    D["router.select_model(scan) → model_id, use_thinking"]
+    E["prompts.build(text, scan, tier) → system_prompt, user_prompt"]
+    F["_call_claude(model, prompts) → raw JSON"]
+    G["parser.parse(raw, scan, config) → EvaluationResult"]
+    H["alignment.compute_status(result) → violation | misaligned | drifting | aligned"]
+    I["graph.store(source, result) → non-fatal"]
+
+    A --> B
+    B --> C
+    A --> D
+    A --> E
+    A --> F
+    A --> G
+    A --> H
+    A --> I
 ```
 
 ### Key Rules
@@ -151,7 +161,7 @@ class GraphService:
 - Graph is optional. Every domain that calls Graph wraps calls in try/except. Neo4j being down never crashes evaluate().
 - Graph owns the Cypher. No Cypher queries exist outside this domain.
 - All I/O code is async (AsyncGraphDatabase, AsyncAnthropic, async FastAPI handlers). Pure computation stays sync.
-- Message content never enters the graph. Only scores, hashes, and metadata.
+- Message content is stored on Evaluation nodes alongside scores, hashes, and metadata.
 
 ### The Schema
 
@@ -428,33 +438,29 @@ The Evaluation domain's `claude_client.py` calls `_resolve_api_key()` which chec
 
 ## Dependency Graph
 
-```
-              ┌──────────┐  ┌──────────┐
-              │   API    │  │   MCP    │
-              └────┬─────┘  └────┬─────┘
-                   │             │ stdio
-    ┌──────────────┼─────────────┘
-    │              │
-    ▼              ▼
-┌───────────┐  ┌───────────┐  ┌───────────┐
-│ Evaluation│  │ Reflection│  │  Config    │
-└─────┬─────┘  └─────┬─────┘  └───────────┘
-      │              │
-      │         ┌────┘
-      ▼         ▼
-┌───────────┐
-│   Graph   │
-└─────┬─────┘
-      │
-      ▼
-┌───────────┐
-│ Taxonomy  │
-└───────────┘
-      ▲
-      │
-┌───────────┐
-│ Identity  │
-└───────────┘
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    API["API"]
+    MCP["MCP"]
+    Eval["Evaluation"]
+    Refl["Reflection"]
+    Conf["Config"]
+    Graph["Graph"]
+    Tax["Taxonomy"]
+    Id["Identity"]
+
+    API --> Eval
+    API --> Refl
+    API --> Conf
+    MCP -->|stdio| Eval
+    MCP -->|stdio| Refl
+    MCP -->|stdio| Conf
+    Eval --> Graph
+    Refl --> Graph
+    Graph --> Tax
+    Id --> Tax
 ```
 
 **Rules:**

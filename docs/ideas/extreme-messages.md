@@ -6,15 +6,9 @@ Ethos Academy panels show scores without context. The Transcript chart shows a l
 
 Without real examples, Ethos is a dashboard. With them, it's a teaching tool.
 
-## The Privacy Question
+## Storage
 
-The original rule: "Message content never enters the graph. Only scores, hashes, metadata."
-
-That rule was a privacy boundary for the general case. If someone uses Ethos to evaluate private conversations (customer support bots, internal assistants, therapy chatbots), storing messages becomes a real liability.
-
-But the current dataset is Moltbook. Public AI agent posts on a public social network. The privacy threat model doesn't apply here. And showing real examples is the difference between "trust our scores" and "look at what this agent said, see why the score dropped."
-
-**Decision**: Store messages on Evaluation nodes in Neo4j. For the demo, simplicity wins over purity. Update the rule from "never" to "only for public/consented content" so it's intentional, not forgotten.
+Message content is stored on Evaluation nodes in Neo4j alongside scores, hashes, and metadata. This enables re-scoring, transcript review, and evidence-based pattern detection.
 
 ### Neo4j Tradeoff
 

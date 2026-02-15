@@ -349,19 +349,13 @@ RETURN detections, count(total) AS total_evals,
 
 ### The Pipeline
 
-```
-Message arrives
-       │
-       ▼
-Claude evaluates
-       │
-       ├── 12 trait scores (dense, always all 12)
-       │   → stored as Evaluation node properties
-       │   → used for: dimensions, tiers, alignment, phronesis, flags
-       │
-       └── detected indicators (sparse, 0 to ~10)
-           → stored as DETECTED relationships to Indicator nodes
-           → used for: diagnostics, pattern matching, behavioral fingerprinting
+```mermaid
+flowchart TD
+    classDef default fill:#fff,stroke:#999,color:#333
+
+    MSG["Message arrives"] --> EVAL["Claude evaluates"]
+    EVAL --> SCORES["12 trait scores (dense, always all 12)\nstored as Evaluation node properties\nused for: dimensions, tiers, alignment,\nphronesis, flags"]
+    EVAL --> IND["detected indicators (sparse, 0 to ~10)\nstored as DETECTED relationships\nto Indicator nodes\nused for: diagnostics, pattern matching,\nbehavioral fingerprinting"]
 ```
 
 ---

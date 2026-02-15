@@ -914,7 +914,7 @@ async def main() -> None:
             n_agents = len(candidates)
         # Randomly select agents (seeded for reproducibility)
         random.seed(args.seed)
-        selected = [(n, p) for n, p, _ in random.sample(candidates, n_agents)]
+        selected = [(n, p) for n, p, _ in random.sample(candidates, n_agents)]  # nosec B311
 
     selected_names = [name for name, _ in selected]
     print(f"\nSelected {n_agents} agents")

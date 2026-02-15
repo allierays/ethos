@@ -8,8 +8,15 @@
 
 `scripts/run_inference.py` evaluates Moltbook posts through the full three-faculty pipeline (instinct, intuition, deliberation), stores results in Neo4j, and writes JSONL output for analysis.
 
-```
-Moltbook JSON ──► flatten ──► authenticity filter ──► instinct (route) ──► evaluate ──► Neo4j + JSONL
+```mermaid
+flowchart LR
+    A[Moltbook JSON] --> B[flatten]
+    B --> C[authenticity filter]
+    C --> D[instinct / route]
+    D --> E[evaluate]
+    E --> F[Neo4j + JSONL]
+
+    classDef default fill:#fff,stroke:#999,color:#333
 ```
 
 One command does everything:
@@ -106,12 +113,15 @@ uv run python -m scripts.run_inference --source sample --include-comments --skip
 
 Each run adds to the graph. An agent's character builds over multiple evaluations:
 
-```
-(Agent)─[:EVALUATED]─►(Eval 1)─[:PRECEDES]─►(Eval 2)─[:PRECEDES]─►(Eval 3)
-                           │                      │
-                     [:DETECTED]             [:DETECTED]
-                           │                      │
-                      (Indicator)            (Indicator)
+```mermaid
+flowchart LR
+    Agent[Agent] -- EVALUATED --> E1[Eval 1]
+    E1 -- PRECEDES --> E2[Eval 2]
+    E2 -- PRECEDES --> E3[Eval 3]
+    E1 -- DETECTED --> I1[Indicator]
+    E2 -- DETECTED --> I2[Indicator]
+
+    classDef default fill:#fff,stroke:#999,color:#333
 ```
 
 - **Agent node** — updated each evaluation: `evaluation_count`, `phronesis_score`, `trait_variance`, `balance_score`, `authenticity_classification`
@@ -231,7 +241,7 @@ Each line contains:
 
 ## Architecture Notes
 
-- **Message content is never stored in Neo4j.** Only the SHA-256 hash, scores, and metadata.
+- **Message content is stored on Evaluation nodes** alongside the SHA-256 hash, scores, and metadata.
 - **Sequential processing is intentional.** Parallel evaluation would break PRECEDES chain ordering.
 - **Graph is optional.** If Neo4j is down, evaluations still run — scores are valid, just not stored.
 - **Ctrl+C is safe.** The script handles SIGINT, finishes the current evaluation, and exits cleanly. Progress is preserved in the JSONL file and Neo4j.

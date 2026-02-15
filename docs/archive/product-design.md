@@ -258,7 +258,7 @@ When `character_report()` generates the nightly analysis, it weighs the develope
 1. **Never modifies agent output** — Ethos observes. It scores, records, and reports. The agent's words reach the user unchanged.
 2. **Never adds latency to the response path** — `evaluate_incoming()` is synchronous but the developer chooses where to place it. `evaluate_outgoing()` is async. `character_report()` runs offline.
 3. **Never decides for the developer** — Ethos scores, the developer acts. Whether to block, flag, log, or ignore is always the developer's choice.
-4. **Never stores message content in Phronesis** — Scores and metadata flow to Neo4j. The actual text never leaves the developer's system.
+4. **Stores message content on Evaluation nodes** — Scores, metadata, and message content flow to Neo4j. This enables re-scoring and transcript review.
 
 ---
 

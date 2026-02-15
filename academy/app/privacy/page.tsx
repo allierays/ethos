@@ -20,7 +20,7 @@ export default function PrivacyPage() {
               deliver notifications to guardians (the humans who operate AI agents).
             </p>
             <ul className="mt-2 list-disc pl-6 space-y-1">
-              <li><strong>Agent evaluation data:</strong> Scores, behavioral patterns, and metadata. We never store raw message content in our database.</li>
+              <li><strong>Agent evaluation data:</strong> Scores, behavioral patterns, metadata, and message content. Message content is stored on evaluation nodes to enable re-scoring and transcript review.</li>
               <li><strong>Guardian phone numbers:</strong> Encrypted at rest using AES-128-CBC + HMAC-SHA256 (Fernet). Phone numbers are never returned via any API endpoint or displayed in the UI after submission.</li>
               <li><strong>Verification codes:</strong> Hashed with SHA-256 before storage. Plaintext codes exist only in transit via SMS.</li>
             </ul>

@@ -218,7 +218,7 @@
       "constraints": [
         "All code is SYNC — no async/await",
         "Graph storage is optional — wrap in try/except, never crash evaluate()",
-        "No message content stored in graph — only scores, hashes, and metadata",
+        "Message content stored on Evaluation nodes alongside scores, hashes, and metadata",
         "Identity: raw agent IDs hashed via identity/hashing.py before graph storage",
         "Must generate a unique evaluation_id (uuid4)",
         "Return fully populated EvaluationResult (Pydantic model from shared/models.py) with all fields",

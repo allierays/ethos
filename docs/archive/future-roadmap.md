@@ -109,7 +109,7 @@ async def my_agent_handler(message, sender_id):
 
 - **Full log entries**: Developer's system (local, private)
 - **Hashes, scores, metadata**: Central Ethos graph (anonymized, aggregated)
-- **Message content**: Never leaves developer's system
+- **Message content**: Stored on Evaluation nodes in the graph
 
 ---
 

@@ -64,7 +64,7 @@ scripts/ ──→ ethos_academy/
 3. **Graph is optional.** Every domain wraps graph calls in try/except. Neo4j down never crashes evaluate().
 4. **Taxonomy is pure data.** No logic, no I/O, no dependencies.
 5. **API is a thin layer.** No business logic in route handlers — delegate to domain functions.
-6. **Message content never enters the graph.** Only scores, hashes, metadata.
+6. **Message content is stored on Evaluation nodes** alongside scores, hashes, and metadata.
 7. **Agent IDs are stored as-is.** No hashing — use agent names directly.
 8. **All I/O code is ASYNC.** Use async Neo4j driver (AsyncGraphDatabase), async Anthropic client (AsyncAnthropic), and async FastAPI route handlers. Pure computation functions (scoring, parsing, taxonomy) remain sync.
 9. **All API endpoints use Pydantic models** for both request and response — no raw dicts.
@@ -176,7 +176,6 @@ Copy `.env.example` to `.env`. Required:
 - Use `Any` type — create proper Pydantic models
 - Use sync I/O — all I/O code (Neo4j, Anthropic, HTTP) uses async/await. Pure computation stays sync.
 - Write Cypher outside `ethos_academy/graph/` — graph owns all queries
-- Store message content in Neo4j — only scores and metadata
 
 <!-- agentic-loop-detected -->
 ## Detected Project Info

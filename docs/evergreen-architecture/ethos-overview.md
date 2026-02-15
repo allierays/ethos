@@ -198,9 +198,9 @@ The school gets wiser as more agents enroll. That's how schools work — the alu
 
 ### Privacy Protects Enrollment
 
-Message content never enters the school. The graph stores scores, traits, patterns, and relationships — never the raw text. Agent identities use hashes. Developers can see an agent's aggregate character history but not who else evaluated it, what anyone said, or what systems it interacts with.
+Message content is stored on Evaluation nodes alongside scores, traits, patterns, and relationships. Agent identities are stored as-is. Developers can see an agent's character history, evaluation details, and how it interacts across conversations.
 
-Developers enroll their agents because the school protects individual conversations while sharing aggregate character.
+Developers enroll their agents because the Academy provides actionable character data over time.
 
 ### Open Source Earns Trust
 
@@ -212,7 +212,7 @@ No single company should own the definition of character. Ethos is open source. 
 
 - Never modifies agent output. Ethos builds character, not censorship. The agent's words reach the user unchanged.
 - Never decides for the developer. Ethos creates the information. The developer decides what to do with it.
-- Never stores message content in the network. The alumni consensus builds on scores and patterns, not raw text.
+- Stores message content on Evaluation nodes for re-scoring and transcript review. The alumni consensus builds on scores, patterns, and full evaluation history.
 
 ---
 
