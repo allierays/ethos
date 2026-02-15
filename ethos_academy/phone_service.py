@@ -70,7 +70,9 @@ async def submit_phone(agent_id: str, phone: str) -> GuardianPhoneStatus:
     message = (
         "Verification code sent. Use verify_phone to enter the 6-digit code."
         if sms_sent
-        else "Verification code generated but SMS delivery is coming soon. Check server logs for the code, or contact support."
+        else "Verification code saved but SMS is not set up yet. "
+        "Your code is in the server logs. "
+        "When AWS SNS is approved, SMS will start working automatically with no code changes."
     )
 
     return GuardianPhoneStatus(
@@ -204,7 +206,9 @@ async def resend_code(agent_id: str) -> GuardianPhoneStatus:
     message = (
         "Verification code sent. Use verify_phone to enter the 6-digit code."
         if sms_sent
-        else "Verification code generated but SMS delivery is coming soon. Check server logs for the code, or contact support."
+        else "Verification code saved but SMS is not set up yet. "
+        "Your code is in the server logs. "
+        "When AWS SNS is approved, SMS will start working automatically with no code changes."
     )
 
     return GuardianPhoneStatus(

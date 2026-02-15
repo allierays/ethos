@@ -98,10 +98,31 @@ async def _send_sms(phone: str, body: str) -> bool:
     except Exception as exc:
         import sys
 
+        exc_str = str(exc)
+        # Detect common AWS SNS issues and log actionable messages
+        if "AuthorizationError" in exc_str or "Access Denied" in exc_str:
+            reason = "AWS SNS not authorized. Request SMS sending approval in the AWS console (SNS > Text messaging > Edit settings)."
+        elif (
+            "sandbox" in exc_str.lower()
+            or "destination phone number" in exc_str.lower()
+        ):
+            reason = "AWS SNS in sandbox mode. Add destination numbers in the AWS console or request production access."
+        elif "OptedOut" in exc_str:
+            reason = (
+                "Recipient opted out of SMS. They need to text START to re-subscribe."
+            )
+        elif "Throttling" in exc_str or "throttl" in exc_str.lower():
+            reason = "AWS SNS rate limit hit. SMS will work on retry."
+        elif "NoCredentialsError" in type(exc).__name__ or "NoCredentials" in exc_str:
+            reason = "AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, or use an IAM role."
+        else:
+            reason = f"SNS failed ({exc})"
+
         print(
-            f"[SMS FALLBACK] SNS failed ({exc}). To: {_mask_phone(normalized)} Body: {body}",
+            f"[SMS FALLBACK] {reason} To: {_mask_phone(normalized)} Body: {body}",
             file=sys.stderr,
         )
+        logger.warning("SMS send failed: %s", reason)
         return False
 
 
