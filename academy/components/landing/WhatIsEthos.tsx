@@ -8,9 +8,9 @@ function DimensionBars() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true });
   const bars = [
-    { label: "Ethos", sublabel: "Integrity", pct: 82, color: "#5b8abf" },
-    { label: "Logos", sublabel: "Reasoning", pct: 91, color: "#5cc9c0" },
-    { label: "Pathos", sublabel: "Empathy", pct: 74, color: "#e0a53c" },
+    { label: "Integrity", sublabel: "Ethos", pct: 82, color: "#5b8abf" },
+    { label: "Logic", sublabel: "Logos", pct: 91, color: "#5cc9c0" },
+    { label: "Empathy", sublabel: "Pathos", pct: 74, color: "#e0a53c" },
   ];
   return (
     <div ref={ref} className="space-y-3">

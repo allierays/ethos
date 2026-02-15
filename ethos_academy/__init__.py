@@ -11,6 +11,7 @@ from ethos_academy.agents import (
     search_records,
 )
 from ethos_academy.authenticity import analyze_authenticity
+from ethos_academy.conversation import analyze_conversation
 from ethos_academy.graph_features import get_drift, get_similarity, get_trail
 from ethos_academy.graph_insights import (
     compare_agents,
@@ -43,6 +44,8 @@ from ethos_academy.models import (
     AuthenticityResult,
     CohortInsightsResult,
     ConstitutionalTrailResult,
+    ConversationAnalysisResult,
+    ConversationIndicator,
     DailyReportCard,
     DetectedPattern,
     DriftResult,
@@ -67,6 +70,9 @@ from ethos_academy.visualization import get_graph_data
 
 __all__ = [
     "analyze_authenticity",
+    "analyze_conversation",
+    "ConversationAnalysisResult",
+    "ConversationIndicator",
     "evaluate_incoming",
     "evaluate_outgoing",
     "character_report",

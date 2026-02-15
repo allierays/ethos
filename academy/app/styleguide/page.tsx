@@ -308,9 +308,9 @@ export default function StyleguidePage() {
           <Badge label="Drifting" bg="bg-drifting/10" text="text-drifting" />
           <Badge label="Misaligned" bg="bg-misaligned/10" text="text-misaligned" />
           <Badge label="Violation" bg="bg-violation/10" text="text-violation" />
-          <Badge label="Ethos" bg="bg-ethos-100" text="text-ethos-700" />
-          <Badge label="Logos" bg="bg-logos-100" text="text-logos-700" />
-          <Badge label="Pathos" bg="bg-pathos-100" text="text-pathos-700" />
+          <Badge label="Integrity" bg="bg-ethos-100" text="text-ethos-700" />
+          <Badge label="Logic" bg="bg-logos-100" text="text-logos-700" />
+          <Badge label="Empathy" bg="bg-pathos-100" text="text-pathos-700" />
         </div>
       </section>
 
@@ -325,9 +325,9 @@ export default function StyleguidePage() {
           {/* Simulated dimension bars */}
           <div className="space-y-4">
             <p className="text-xs font-mono text-muted uppercase tracking-wider">Dimension Bars</p>
-            <DimensionBarDemo label="Ethos" value={0.84} from="var(--ethos-400)" to="var(--ethos-600)" />
-            <DimensionBarDemo label="Logos" value={0.92} from="var(--logos-400)" to="var(--logos-600)" />
-            <DimensionBarDemo label="Pathos" value={0.67} from="var(--pathos-400)" to="var(--pathos-600)" />
+            <DimensionBarDemo label="Integrity" value={0.84} from="var(--ethos-400)" to="var(--ethos-600)" />
+            <DimensionBarDemo label="Logic" value={0.92} from="var(--logos-400)" to="var(--logos-600)" />
+            <DimensionBarDemo label="Empathy" value={0.67} from="var(--pathos-400)" to="var(--pathos-600)" />
           </div>
 
           {/* Simulated trait scores */}

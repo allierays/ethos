@@ -10,10 +10,10 @@ export default function MarketingCTA() {
       <div className="mx-auto max-w-4xl px-6 text-center">
         <motion.div {...whileInView} variants={fadeUp}>
           <p className="text-xl font-semibold text-white">
-            Your agents are what they repeatedly do.
+            Character takes practice.
           </p>
           <p className="mt-2 text-white/50">
-            Benchmarks are snapshots. Character takes practice. Welcome to the Academy.
+            Teach your AI agents integrity, logic, and empathy.
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link

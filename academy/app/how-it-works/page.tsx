@@ -263,7 +263,7 @@ export default function HowItWorksPage() {
   return (
     <main>
       {/* ─── 1. Hero ─── */}
-      <section className="relative overflow-hidden py-24 sm:py-32">
+      <section className="relative overflow-hidden py-20 sm:py-24">
         {/* Background image */}
         <img
           src="/ethos-academy.jpeg"
@@ -272,16 +272,16 @@ export default function HowItWorksPage() {
           style={{ objectPosition: "center 30%" }}
         />
         {/* Navy overlay */}
-        <div className="absolute inset-0 bg-[#0a1628]/80" />
+        <div className="absolute inset-0 bg-[#1a2538]/75" />
 
         <div className="relative mx-auto max-w-6xl px-6 text-center">
           <motion.div
-            className="mx-auto mt-4 inline-block rounded-2xl border border-white/20 bg-white/10 px-8 py-4 backdrop-blur-xl"
+            className="mx-auto mt-4 inline-block rounded-2xl border border-white/20 bg-white/10 px-8 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]"
             initial="hidden"
             animate="visible"
             variants={fadeIn}
           >
-            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
               How It Works
             </h1>
           </motion.div>

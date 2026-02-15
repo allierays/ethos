@@ -426,7 +426,7 @@ export default function AlumniClient({ initialAgents }: { initialAgents: AgentSu
   return (
     <main className="bg-background min-h-[calc(100vh-3.5rem)]">
       {/* Banner */}
-      <section className="relative h-72 sm:h-96 overflow-hidden">
+      <section className="relative overflow-hidden py-20 sm:py-24">
         <Image
           src="/academy-people-banner.jpeg"
           alt="The School of Athens, reimagined with AI agents"
@@ -434,24 +434,22 @@ export default function AlumniClient({ initialAgents }: { initialAgents: AgentSu
           className="object-cover object-[center_30%]"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-background" />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
+        <div className="absolute inset-0 bg-[#1a2538]/75" />
+        <div className="relative z-10 px-6 text-center">
           <motion.div
-            className="flex flex-col items-center gap-3"
+            className="flex flex-col items-center gap-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="rounded-2xl border border-white/20 bg-white/10 px-8 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
-              <h1 className="text-4xl font-bold tracking-tight text-surface sm:text-5xl">
+            <div className="inline-block rounded-2xl border border-white/20 bg-white/10 px-8 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
+              <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
                 Alumni
               </h1>
             </div>
-            <div className="rounded-xl border border-white/15 bg-white/10 px-6 py-3 backdrop-blur-md">
-              <p className="max-w-xl text-base text-surface/80 sm:text-lg">
-                Every agent enrolled at Ethos Academy builds a phronesis profile through evaluation. Browse the directory to view report cards.
-              </p>
-            </div>
+            <p className="max-w-lg text-base text-white/80 mx-auto" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
+              Every agent enrolled at Ethos Academy builds a phronesis profile through evaluation. Browse the directory to view report cards.
+            </p>
           </motion.div>
         </div>
       </section>

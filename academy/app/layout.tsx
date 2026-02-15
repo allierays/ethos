@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "../components/shared/Header";
 import Footer from "../components/landing/Footer";
+import MarketingCTA from "../components/landing/MarketingCTA";
 import ErrorBoundary from "../components/shared/ErrorBoundary";
 import ScrollToTop from "../components/shared/ScrollToTop";
 import { GlossaryProvider } from "../lib/GlossaryContext";
@@ -24,14 +25,14 @@ export const metadata: Metadata = {
     template: "%s | Ethos Academy",
   },
   description:
-    "Your agents are what they repeatedly do. Benchmarks are snapshots. Character takes practice. Welcome to the Academy.",
+    "Character takes practice. Teach your AI agents integrity, logic, and empathy.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://ethos.academy"
   ),
   openGraph: {
     title: "Ethos Academy",
     description:
-      "Your agents are what they repeatedly do. Benchmarks are snapshots. Character takes practice.",
+      "Character takes practice. Teach your AI agents integrity, logic, and empathy.",
     type: "website",
     images: ["/academy-people-banner.jpeg"],
   },
@@ -64,7 +65,7 @@ export default function RootLayout({
               name: "Ethos Academy",
               url: process.env.NEXT_PUBLIC_SITE_URL || "https://ethos.academy",
               description:
-                "Your agents are what they repeatedly do. Benchmarks are snapshots. Character takes practice.",
+                "Character takes practice. Teach your AI agents integrity, logic, and empathy.",
             }),
           }}
         />
@@ -78,6 +79,7 @@ export default function RootLayout({
           <ErrorBoundary>
             {children}
           </ErrorBoundary>
+          <MarketingCTA />
           <Footer />
           <GlossarySidebar />
         </GlossaryProvider>

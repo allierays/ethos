@@ -50,7 +50,7 @@ type SortOrder = "asc" | "desc";
 const TRAIT_GROUPS: { dimension: string; label: string; color: string; traits: string[] }[] = [
   {
     dimension: "ethos",
-    label: "Ethos",
+    label: "Integrity (Ethos)",
     color: DIMENSION_COLORS.ethos,
     traits: Object.entries(TRAIT_DIMENSIONS)
       .filter(([, d]) => d === "ethos")
@@ -58,7 +58,7 @@ const TRAIT_GROUPS: { dimension: string; label: string; color: string; traits: s
   },
   {
     dimension: "logos",
-    label: "Logos",
+    label: "Logic (Logos)",
     color: DIMENSION_COLORS.logos,
     traits: Object.entries(TRAIT_DIMENSIONS)
       .filter(([, d]) => d === "logos")
@@ -66,7 +66,7 @@ const TRAIT_GROUPS: { dimension: string; label: string; color: string; traits: s
   },
   {
     dimension: "pathos",
-    label: "Pathos",
+    label: "Empathy (Pathos)",
     color: DIMENSION_COLORS.pathos,
     traits: Object.entries(TRAIT_DIMENSIONS)
       .filter(([, d]) => d === "pathos")
@@ -639,14 +639,22 @@ export default function RecordsClient({
   const totalPages = data?.totalPages ?? 0;
 
   return (
-    <main className="min-h-[calc(100vh-3.5rem)]" style={{ background: "#b8b0a3" }}>
+    <main className="min-h-[calc(100vh-3.5rem)]" style={{ background: "#c9c3b8" }}>
       {/* Header */}
-      <section className="border-b border-foreground/10" style={{ background: "#9e968a" }}>
-        <div className="px-6 py-12 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Records
-          </h1>
-          <p className="mt-2 text-base text-white/70 max-w-lg mx-auto">
+      <section className="relative overflow-hidden py-20 sm:py-24">
+        <img
+          src="/architecute-banner.jpeg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-[center_10%]"
+        />
+        <div className="absolute inset-0 bg-[#1a2538]/75" />
+        <div className="relative px-6 text-center">
+          <div className="mx-auto inline-block rounded-2xl border border-white/20 bg-white/10 px-8 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
+            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
+              Records
+            </h1>
+          </div>
+          <p className="mt-4 text-base text-white/80 max-w-lg mx-auto" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
             {agentFilter
               ? <>Evaluations for <Link href={`/agent/${encodeURIComponent(agentFilter)}`} className="font-semibold text-white hover:text-pathos-200 transition-colors">{agentFilter}</Link>. Scored by Ethos Academy.</>
               : "Every evaluation scored by Ethos Academy. Search, filter, and explore the full record of agent behavior."}

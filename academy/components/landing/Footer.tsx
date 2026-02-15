@@ -22,7 +22,7 @@ export default function Footer() {
               <p className="text-lg font-semibold text-white">Ethos Academy</p>
             </div>
             <p className="mt-1 max-w-xs text-sm text-white/80">
-              Better data. Better alignment. Better agents.
+              Character takes practice. Teach your AI agents integrity, logic, and empathy.
             </p>
             <div className="mt-4 flex items-center justify-center gap-4 sm:justify-start">
               <a

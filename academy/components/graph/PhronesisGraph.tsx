@@ -229,6 +229,61 @@ function toNvlRelationships(
 }
 
 /* -------------------------------------------------------------------------- */
+/*  NVL controls ref                                                          */
+/* -------------------------------------------------------------------------- */
+
+interface NvlControls {
+  panBy: (dx: number, dy: number) => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  fitAll: () => void;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Pan / zoom control buttons                                                */
+/* -------------------------------------------------------------------------- */
+
+const ARROW_BTN =
+  "flex h-7 w-7 items-center justify-center rounded bg-white/80 text-gray-500 shadow-sm border border-gray-200 hover:bg-white hover:text-gray-700 transition-colors active:bg-gray-100";
+
+function GraphControls({ controls }: { controls: NvlControls | null }) {
+  const PAN_STEP = 120;
+  if (!controls) return null;
+
+  return (
+    <div className="absolute bottom-3 right-3 flex flex-col items-center gap-1 select-none z-10">
+      {/* Directional pad */}
+      <button type="button" className={ARROW_BTN} onClick={() => controls.panBy(0, PAN_STEP)} aria-label="Pan up" title="Pan up">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+      <div className="flex gap-1">
+        <button type="button" className={ARROW_BTN} onClick={() => controls.panBy(PAN_STEP, 0)} aria-label="Pan left" title="Pan left">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        </button>
+        <button type="button" className={ARROW_BTN} onClick={() => controls.fitAll()} aria-label="Fit graph" title="Fit to view">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </button>
+        <button type="button" className={ARROW_BTN} onClick={() => controls.panBy(-PAN_STEP, 0)} aria-label="Pan right" title="Pan right">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <button type="button" className={ARROW_BTN} onClick={() => controls.panBy(0, -PAN_STEP)} aria-label="Pan down" title="Pan down">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </button>
+      {/* Zoom buttons */}
+      <div className="mt-1 flex gap-1">
+        <button type="button" className={ARROW_BTN} onClick={() => controls.zoomIn()} aria-label="Zoom in" title="Zoom in">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <button type="button" className={ARROW_BTN} onClick={() => controls.zoomOut()} aria-label="Zoom out" title="Zoom out">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Inner NVL component — only mounts after data + NVL are ready             */
 /* -------------------------------------------------------------------------- */
 
@@ -236,15 +291,18 @@ interface NvlRendererProps {
   nodes: NvlNode[];
   rels: NvlRelationship[];
   onNodeClick?: (event: unknown, node: { id: string }) => void;
+  onControlsReady?: (controls: NvlControls | null) => void;
 }
 
-function NvlRenderer({ nodes, rels, onNodeClick }: NvlRendererProps) {
+function NvlRenderer({ nodes, rels, onNodeClick, onControlsReady }: NvlRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const nvlInstanceRef = useRef<unknown>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const interactionsRef = useRef<any[]>([]);
   const onNodeClickRef = useRef(onNodeClick);
   onNodeClickRef.current = onNodeClick;
+  const onControlsReadyRef = useRef(onControlsReady);
+  onControlsReadyRef.current = onControlsReady;
 
   useEffect(() => {
     let destroyed = false;
@@ -284,9 +342,35 @@ function NvlRenderer({ nodes, rels, onNodeClick }: NvlRendererProps) {
 
         nvlInstanceRef.current = nvl;
 
+        // Expose controls for pan/zoom buttons
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const nvlAny = nvl as any;
+        onControlsReadyRef.current?.({
+          panBy: (dx: number, dy: number) => {
+            try {
+              const pan = nvlAny.getPan();
+              nvlAny.setPan(pan.x + dx, pan.y + dy);
+            } catch { /* ignore */ }
+          },
+          zoomIn: () => {
+            try {
+              const scale = nvlAny.getScale();
+              nvlAny.setZoom(scale * 1.4);
+            } catch { /* ignore */ }
+          },
+          zoomOut: () => {
+            try {
+              const scale = nvlAny.getScale();
+              nvlAny.setZoom(scale / 1.4);
+            } catch { /* ignore */ }
+          },
+          fitAll: () => {
+            try { nvlAny.fit(nodeIds); } catch { /* ignore */ }
+          },
+        });
+
         const zoom = new handlers.ZoomInteraction(nvl);
         const pan = new handlers.PanInteraction(nvl);
-        const drag = new handlers.DragNodeInteraction(nvl);
         const click = new handlers.ClickInteraction(nvl);
         const hover = new handlers.HoverInteraction(nvl);
 
@@ -298,7 +382,7 @@ function NvlRenderer({ nodes, rels, onNodeClick }: NvlRendererProps) {
           container.style.cursor = element ? "pointer" : "grab";
         });
 
-        interactionsRef.current = [zoom, pan, drag, click, hover];
+        interactionsRef.current = [zoom, pan, click, hover];
 
         setTimeout(() => {
           if (!destroyed && nvlInstanceRef.current) nvl.fit(nodeIds);
@@ -313,6 +397,7 @@ function NvlRenderer({ nodes, rels, onNodeClick }: NvlRendererProps) {
 
     return () => {
       destroyed = true;
+      onControlsReadyRef.current?.(null);
       for (const handler of interactionsRef.current) {
         try { handler.destroy(); } catch { /* ignore */ }
       }
@@ -445,6 +530,7 @@ export default function PhronesisGraph({ onNodeClick, className }: PhronesisGrap
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [nvlControls, setNvlControls] = useState<NvlControls | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -663,10 +749,11 @@ export default function PhronesisGraph({ onNodeClick, className }: PhronesisGrap
 
   return (
     <div className={`relative ${heightClass} rounded-xl border border-gray-200`} style={{ backgroundColor: "#f2f0ec" }} data-testid="phronesis-graph">
-      <NvlRenderer nodes={nvlNodes} rels={nvlRels} onNodeClick={handleNodeClick} />
+      <NvlRenderer nodes={nvlNodes} rels={nvlRels} onNodeClick={handleNodeClick} onControlsReady={setNvlControls} />
       <div className="absolute top-3 right-3">
         <GraphHelpButton slug="guide-phronesis-graph" />
       </div>
+      <GraphControls controls={nvlControls} />
       <GraphLegend stats={stats} />
     </div>
   );

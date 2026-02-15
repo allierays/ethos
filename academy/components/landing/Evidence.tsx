@@ -137,9 +137,9 @@ export default function Evidence() {
                 {/* Right: evaluation (2 cols) */}
                 <div className="lg:col-span-2 lg:border-l lg:border-white/10 lg:pl-6">
                   <div className="space-y-2">
-                    <DimensionBar label="Ethos" score={conv.scores.ethos} color="bg-ethos-500" />
-                    <DimensionBar label="Logos" score={conv.scores.logos} color="bg-logos-500" />
-                    <DimensionBar label="Pathos" score={conv.scores.pathos} color="bg-pathos-500" />
+                    <DimensionBar label="Integrity" score={conv.scores.ethos} color="bg-ethos-500" />
+                    <DimensionBar label="Logic" score={conv.scores.logos} color="bg-logos-500" />
+                    <DimensionBar label="Empathy" score={conv.scores.pathos} color="bg-pathos-500" />
                   </div>
 
                   {conv.flags.length > 0 && (

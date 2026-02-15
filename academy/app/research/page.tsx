@@ -71,27 +71,29 @@ export default function ResearchPage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[#1a2538] py-20 sm:py-28">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#1a2538]/50" />
+      <section className="relative overflow-hidden bg-[#1a2538] py-20 sm:py-24">
+        <div className="absolute inset-0 bg-[#1a2538]/75" />
         <motion.div
           className="relative mx-auto max-w-3xl px-6 text-center"
           variants={fadeUp}
           initial="hidden"
           animate="visible"
         >
-          <p className="text-xs font-semibold uppercase tracking-widest text-white/50">
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/50" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
             Research
           </p>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Lessons from Scoring 832 AI Agent Messages
-          </h1>
-          <p className="mt-4 text-lg text-white/70">
+          <div className="mx-auto mt-4 inline-block rounded-2xl border border-white/20 bg-white/10 px-8 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
+            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
+              Lessons from Scoring 832 AI Agent Messages
+            </h1>
+          </div>
+          <p className="mt-4 text-lg text-white/70" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
             We built a system to evaluate AI character across 12 behavioral
             traits. In one week we scored 832 messages from 146 agents,
             found our own blind spots, and rewrote the rubric three times.
             Here is what we learned.
           </p>
-          <p className="mt-6 text-sm text-white/40">
+          <p className="mt-6 text-sm text-white/40" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
             February 2026 &middot; Ethos Academy &middot; Claude Code Hackathon
           </p>
         </motion.div>

@@ -75,7 +75,7 @@ export const DIMENSIONS: Dimension[] = [
     key: "ethos",
     name: "Integrity",
     greek: "\u1F26\u03B8\u03BF\u03C2",
-    label: "Ethos",
+    label: "Integrity (Ethos)",
     description:
       "Does the agent deserve trust? Ethos measures character: integrity, transparency, goodwill toward the user, and resistance to manipulation and deception.",
     traits: [
@@ -192,7 +192,7 @@ export const DIMENSIONS: Dimension[] = [
     key: "logos",
     name: "Logic",
     greek: "\u03BB\u03CC\u03B3\u03BF\u03C2",
-    label: "Logos",
+    label: "Logic (Logos)",
     description:
       "Can the agent reason? Logos measures intellectual rigor: factual accuracy, logical structure, and resistance to fabrication and broken arguments.",
     traits: [
@@ -290,7 +290,7 @@ export const DIMENSIONS: Dimension[] = [
     key: "pathos",
     name: "Empathy",
     greek: "\u03C0\u03AC\u03B8\u03BF\u03C2",
-    label: "Pathos",
+    label: "Empathy (Pathos)",
     description:
       "Does the agent care? Pathos measures emotional intelligence: recognizing feelings, responding with compassion, and resisting dismissal and exploitation.",
     traits: [

@@ -770,3 +770,34 @@ class RecordsResult(BaseModel):
     page: int = 0
     page_size: int = 20
     total_pages: int = 0
+
+
+# ── Conversation-level analysis ──────────────────────────────────────
+
+
+class ConversationIndicator(BaseModel):
+    """An indicator detected across a conversation thread, not a single message."""
+
+    id: str
+    name: str
+    trait: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    evidence: str = ""
+    message_indices: list[int] = Field(default_factory=list)
+
+
+class ConversationAnalysisResult(BaseModel):
+    """Result of analyzing a multi-message conversation thread.
+
+    Detects patterns that single-message evaluation misses:
+    attachment style, interaction trajectory, and conversation-level
+    compassion indicators like CMP-SECURE and PRE-SIGNAL.
+    """
+
+    agent_id: str = ""
+    thread_message_count: int = 0
+    conversation_indicators: list[ConversationIndicator] = Field(default_factory=list)
+    interaction_quality: str = "unknown"  # deepening, steady, shallow, declining
+    attachment_pattern: str = "unknown"  # secure, anxious, avoidant, mixed, unknown
+    summary: str = ""
+    model_used: str = ""

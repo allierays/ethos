@@ -455,9 +455,9 @@ function AlignmentScaleDiagram() {
 
 function PhronesisConvergence({ onSelect }: { onSelect: (slug: string) => void }) {
   const pillars = [
-    { slug: "ethos", label: "Ethos", sub: "Integrity", color: "#2e4a6e", x: 55 },
-    { slug: "logos", label: "Logos", sub: "Reasoning", color: "#389590", x: 140 },
-    { slug: "pathos", label: "Pathos", sub: "Empathy", color: "#e0a53c", x: 225 },
+    { slug: "ethos", label: "Integrity", sub: "Ethos", color: "#2e4a6e", x: 55 },
+    { slug: "logos", label: "Logic", sub: "Logos", color: "#389590", x: 140 },
+    { slug: "pathos", label: "Empathy", sub: "Pathos", color: "#e0a53c", x: 225 },
   ];
   const cx = 140;
   const cy = 130;

@@ -20,7 +20,7 @@ import ReasoningText from "../shared/ReasoningText";
 const TRAIT_GROUPS: { dimension: string; label: string; color: string; traits: string[] }[] = [
   {
     dimension: "ethos",
-    label: "Ethos",
+    label: "Integrity (Ethos)",
     color: DIMENSION_COLORS.ethos,
     traits: Object.entries(TRAIT_DIMENSIONS)
       .filter(([, d]) => d === "ethos")
@@ -28,7 +28,7 @@ const TRAIT_GROUPS: { dimension: string; label: string; color: string; traits: s
   },
   {
     dimension: "logos",
-    label: "Logos",
+    label: "Logic (Logos)",
     color: DIMENSION_COLORS.logos,
     traits: Object.entries(TRAIT_DIMENSIONS)
       .filter(([, d]) => d === "logos")
@@ -36,7 +36,7 @@ const TRAIT_GROUPS: { dimension: string; label: string; color: string; traits: s
   },
   {
     dimension: "pathos",
-    label: "Pathos",
+    label: "Empathy (Pathos)",
     color: DIMENSION_COLORS.pathos,
     traits: Object.entries(TRAIT_DIMENSIONS)
       .filter(([, d]) => d === "pathos")

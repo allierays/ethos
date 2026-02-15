@@ -19,6 +19,7 @@ from ethos_academy.context import anthropic_api_key_var, request_id_var
 from ethos_academy.graph.service import close_shared_service
 from ethos_academy import (
     analyze_authenticity,
+    analyze_conversation,
     character_report,
     compile_homework_rules,
     complete_exam,
@@ -52,6 +53,7 @@ from ethos_academy.models import (
     AuthenticityResult,
     CohortInsightsResult,
     ConstitutionalTrailResult,
+    ConversationAnalysisResult,
     DailyReportCard,
     DriftResult,
     EvaluationHistoryItem,
@@ -312,6 +314,16 @@ class EvaluateOutgoingRequest(BaseModel):
     message_timestamp: str | None = Field(default=None, max_length=64)
 
 
+class ConversationMessage(BaseModel):
+    author: str = Field(min_length=1, max_length=256)
+    content: str = Field(min_length=1, max_length=10000)
+
+
+class ConversationRequest(BaseModel):
+    messages: list[ConversationMessage] = Field(min_length=2)
+    agent_id: str = Field(default="", max_length=256)
+
+
 class HealthResponse(BaseModel):
     status: str
 
@@ -353,6 +365,20 @@ async def evaluate_outgoing_endpoint(req: EvaluateOutgoingRequest) -> Evaluation
         source_name=req.source_name or "",
         agent_specialty=req.agent_specialty or "",
         message_timestamp=req.message_timestamp or "",
+    )
+
+
+@app.post(
+    "/evaluate/conversation",
+    response_model=ConversationAnalysisResult,
+    dependencies=[Depends(rate_limit), Depends(require_api_key)],
+)
+async def evaluate_conversation_endpoint(
+    req: ConversationRequest,
+) -> ConversationAnalysisResult:
+    return await analyze_conversation(
+        messages=[m.model_dump() for m in req.messages],
+        agent_id=req.agent_id,
     )
 
 

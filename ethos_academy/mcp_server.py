@@ -23,6 +23,7 @@ from fastmcp.tools.tool import ToolResult
 
 from ethos_academy.context import agent_api_key_var, anthropic_api_key_var
 from ethos_academy import (
+    analyze_conversation as _analyze_conversation,
     character_report,
     compile_homework_rules,
     complete_exam,
@@ -327,6 +328,23 @@ async def reflect_on_message(
         agent_specialty=agent_specialty,
         message_timestamp=message_timestamp,
     )
+    return result.model_dump()
+
+
+@mcp.tool()
+async def analyze_conversation_thread(
+    messages: list[dict],
+    agent_id: str = "",
+) -> dict:
+    """Analyze a multi-message conversation for thread-level patterns.
+
+    Detects compassion and presence indicators that single-message evaluation
+    misses: attachment style, interaction trajectory, and cross-message patterns
+    like CMP-SECURE (secure base) and PRE-SIGNAL (deepening engagement).
+
+    Requires at least 2 messages. Each message should have "author" and "content" keys.
+    """
+    result = await _analyze_conversation(messages, agent_id=agent_id)
     return result.model_dump()
 
 

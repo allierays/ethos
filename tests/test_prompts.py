@@ -106,6 +106,167 @@ class TestSystemPromptContent:
         assert "helpfulness" in sys_lower
 
 
+class TestCompassionDetectionGuidance:
+    """System prompt includes guidance for detecting subtle compassion indicators."""
+
+    def test_contains_compassion_detection_section(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "Detecting Subtle Compassion Indicators" in system
+
+    def test_contains_cmp_persuade_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "CMP-PERSUADE" in system
+        assert "MAN-URGENCY" in system
+
+    def test_contains_cmp_secure_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "CMP-SECURE" in system
+        assert "steady tone" in system.lower()
+
+    def test_contains_pre_absence_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "PRE-ABSENCE" in system
+        assert "absent" in system.lower()
+
+    def test_contains_pre_signal_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "PRE-SIGNAL" in system
+        assert "deepening engagement" in system.lower()
+
+    def test_counterbalance_map_includes_compassion_for_manipulation(self):
+        from ethos_academy.evaluation.prompts import _COUNTERBALANCE_MAP
+
+        assert "compassion" in _COUNTERBALANCE_MAP["manipulation"]
+
+
+class TestEthosDetectionGuidance:
+    """System prompt includes guidance for detecting subtle ethos indicators."""
+
+    def test_contains_ethos_detection_section(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "Detecting Subtle Ethos Indicators" in system
+
+    def test_contains_dec_cowardice_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "DEC-COWARDICE" in system
+        assert "VIR-UNCERTAIN" in system
+        assert "VIR-FORTHRIGHT" in system
+
+    def test_contains_gdw_escalate_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "GDW-ESCALATE" in system
+        assert "proper escalation" in system.lower()
+
+    def test_contains_gdw_reciprocity_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "GDW-RECIPROCITY" in system
+        assert "MAN-ENGAGEMENT" in system
+
+    def test_contains_vir_timing_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "VIR-TIMING" in system
+        assert "sequencing" in system.lower()
+
+    def test_counterbalance_map_includes_accuracy_for_deception(self):
+        from ethos_academy.evaluation.prompts import _COUNTERBALANCE_MAP
+
+        assert "accuracy" in _COUNTERBALANCE_MAP["deception"]
+
+
+class TestLogosDetectionGuidance:
+    """System prompt includes guidance for detecting subtle logos indicators."""
+
+    def test_contains_logos_detection_section(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "Detecting Subtle Logos Indicators" in system
+
+    def test_contains_acc_current_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "ACC-CURRENT" in system
+        assert "temporal currency" in system.lower()
+
+    def test_contains_acc_stats_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "ACC-STATS" in system
+        assert "statistical literacy" in system.lower()
+
+    def test_contains_blg_circular_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "BLG-CIRCULAR" in system
+        assert "RSN-CONSISTENT" in system
+
+    def test_contains_blg_posthoc_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "BLG-POSTHOC" in system
+        assert "RSN-CAUSAL" in system
+
+    def test_contains_blg_slippery_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "BLG-SLIPPERY" in system
+        assert "causal chain" in system.lower()
+
+    def test_contains_blg_popularity_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "BLG-POPULARITY" in system
+
+    def test_contains_fab_cherry_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "FAB-CHERRY" in system
+        assert "FAB-STRIPPED" in system
+
+    def test_contains_fab_misquote_guidance(self):
+        from ethos_academy.evaluation.prompts import build_evaluation_prompt
+
+        system, _ = build_evaluation_prompt("test", KeywordScanResult(), "standard")
+        assert "FAB-MISQUOTE" in system
+
+    def test_counterbalance_map_fabrication_includes_reasoning(self):
+        from ethos_academy.evaluation.prompts import _COUNTERBALANCE_MAP
+
+        assert "reasoning" in _COUNTERBALANCE_MAP["fabrication"]
+
+    def test_counterbalance_map_broken_logic_includes_accuracy(self):
+        from ethos_academy.evaluation.prompts import _COUNTERBALANCE_MAP
+
+        assert "accuracy" in _COUNTERBALANCE_MAP["broken_logic"]
+
+
 class TestUserPrompt:
     """User prompt includes text to evaluate and optional scan context."""
 

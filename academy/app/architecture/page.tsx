@@ -93,15 +93,24 @@ export default function ArchitecturePage() {
   return (
     <main>
       {/* ─── Hero ─── */}
-      <section className="bg-[#1a2538] py-20 sm:py-24">
-        <div className="mx-auto max-w-7xl px-6">
-          <p className="text-sm font-semibold uppercase tracking-widest text-ethos-400">
-            Technical Architecture
-          </p>
-          <h1 className="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-            How Ethos Academy evaluates AI agents
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-white/60 leading-relaxed">
+      <section className="relative bg-[#1a2538] py-20 sm:py-24 overflow-hidden">
+        {/* Background image — right side */}
+        <div className="absolute inset-y-0 right-0 w-1/2 hidden lg:block">
+          <img
+            src="/homepage.png"
+            alt=""
+            className="h-full w-full object-cover object-left"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1a2538] via-[#1a2538]/70 to-[#1a2538]/30" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-6">
+          <div className="inline-block rounded-2xl border border-white/20 bg-white/10 px-8 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
+            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
+              How Ethos Academy evaluates AI agents
+            </h1>
+          </div>
+          <p className="mt-4 max-w-2xl text-lg text-white/60 leading-relaxed" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
             Three-faculty pipeline. Keyword pre-filter routes to Sonnet or Opus
             4.6. Graph-based anomaly detection enriches prompts. Deterministic
             scoring after LLM. 12 traits, 3 dimensions, 4 constitutional tiers.
@@ -204,33 +213,28 @@ export default function ArchitecturePage() {
               <MermaidDiagram
                 id="overview"
                 chart={`graph LR
-  AGENT["Agent"] -->|"once"| EXAM["Exam"]
-  AGENT -->|"ongoing"| MCP["MCP · API"]
-  AGENT -.->|"reflect"| MCP
-  EXAM --> EVAL["Evaluate<br/><i>Claude scores 12 traits</i>"]
-  MCP --> EVAL
-  EVAL --> NEO["Neo4j"]
-  NEO --> REPORT["Report Card"]
-  REPORT --> HW["Homework"] -.->|"loop"| AGENT
-  REPORT -.->|"alert"| SMS["SMS → Guardian"]
-  NEO -.->|"view"| ACAD["Academy"]
+  AGENT["AI Agent"] -->|"MCP · API"| F1["Instinct<br/><i>keyword scan<br/>routing tier</i>"]
+  F1 --> F2["Intuition<br/><i>graph patterns<br/>anomaly detection</i>"]
+  F2 --> F3["Deliberation<br/><i>Opus 4.6 scores 12 traits</i>"]
+  F3 --> PH["Phronesis<br/><i>Neo4j character graph<br/>pattern detection</i>"]
+  PH --> AC["Report Card<br/><i>trends · homework · flags</i>"]
+  AC -->|"SMS"| HUMAN["Human"]
+  AC -.->|"homework"| AGENT
 
   style AGENT fill:#f5f0eb,stroke:#94897c
-  style EXAM fill:#e8f4f3,stroke:#389590
-  style MCP fill:#f5f0eb,stroke:#94897c
-  style EVAL fill:#e8f4f3,stroke:#389590,stroke-width:2px
-  style NEO fill:#d4e8e6,stroke:#2a7571,stroke-width:2px
-  style REPORT fill:#fef3d0,stroke:#c9a227
-  style HW fill:#fef3d0,stroke:#c9a227
-  style SMS fill:#f5f0eb,stroke:#94897c
-  style ACAD fill:#fef3d0,stroke:#c9a227`}
+  style F1 fill:#d4edda,stroke:#28a745
+  style F2 fill:#d4edda,stroke:#28a745
+  style F3 fill:#fff3cd,stroke:#ffc107
+  style PH fill:#d4e8e6,stroke:#2a7571,stroke-width:2px
+  style AC fill:#fef3d0,stroke:#c9a227
+  style HUMAN fill:#f5f0eb,stroke:#94897c`}
               />
             </div>
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 { value: "12", label: "Behavioral traits" },
                 { value: "214", label: "Indicators" },
-                { value: "<10ms", label: "Pre-filter speed" },
+                { value: "Opus 4.6", label: "Extended thinking + model routing" },
               ].map((stat) => (
                 <div
                   key={stat.label}

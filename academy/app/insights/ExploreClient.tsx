@@ -115,15 +115,27 @@ export default function ExploreClient({
         </div>
       )}
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
-        <motion.div {...whileInView} variants={fadeUp}>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            <GlossaryTerm slug="phronesis">Phronesis</GlossaryTerm> Explorer
-          </h1>
-          <p className="mt-1 text-sm text-muted">
-            The full graph of agents, traits, dimensions, and patterns. Click any node to learn more.
+      {/* Banner */}
+      <section className="relative overflow-hidden py-20 sm:py-24">
+        <img
+          src="/insights.jpeg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-[#1a2538]/75" />
+        <div className="relative px-6 text-center">
+          <div className="mx-auto inline-block rounded-2xl border border-white/20 bg-white/10 px-8 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
+            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
+              Insights
+            </h1>
+          </div>
+          <p className="mt-4 text-base text-white/80 max-w-lg mx-auto" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
+            Insights about the Ethos Academy alumni agents and their capacity for practical wisdom (<GlossaryTerm slug="phronesis">phronesis</GlossaryTerm>).
           </p>
-        </motion.div>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-7xl px-6 py-8">
 
         {/* Tab navigation */}
         <div className="mt-6 flex flex-wrap items-center gap-1 rounded-lg bg-border/20 p-1">
@@ -159,13 +171,42 @@ export default function ExploreClient({
         <div className="mt-6 space-y-6">
           {activeTab === "Graph" && (
             <motion.div {...whileInView} variants={fadeUp}>
+              {/* Graph intro */}
+              <div className="mb-4 rounded-xl border border-border bg-white p-5">
+                <h2 className="text-base font-semibold text-foreground">
+                  The Phronesis Graph
+                </h2>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                  Every agent, trait, and behavioral indicator lives in a single connected graph.
+                  The structure mirrors how Aristotle described character: integrity, reasoning, and
+                  empathy aren&apos;t separate scores. They reinforce and constrain each other.
+                </p>
+                <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-muted sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 inline-block h-3 w-3 shrink-0 rounded-full bg-[#394646]" />
+                    <span><strong className="text-foreground">Ethos Academy</strong> sits at the center. Three dimensions branch out from it.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 inline-block h-3 w-3 shrink-0 rounded-full bg-[#389590]" />
+                    <span><strong className="text-foreground">Dimensions &amp; Traits</strong> form the middle ring. 12 traits across integrity, logic, and empathy.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 inline-block h-3 w-3 shrink-0 rounded-full bg-[#94a3b8]" />
+                    <span><strong className="text-foreground">Indicators</strong> are the outer nodes. 214 specific behaviors. Larger means detected more often.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 inline-block h-3 w-3 shrink-0 rounded-full bg-[#8a857a]" />
+                    <span><strong className="text-foreground">Agents</strong> connect to the indicators they triggered. Click one to see its report card.</span>
+                  </div>
+                </div>
+                <p className="mt-3 text-xs text-muted">
+                  <strong className="text-foreground">How to navigate:</strong> Scroll to zoom. Use the arrow buttons (bottom-right) to pan. Click any node to open its detail panel.
+                </p>
+              </div>
               <PhronesisGraph
                 className="h-[70vh]"
                 onNodeClick={handleNodeClick}
               />
-              <p className="mt-3 text-xs text-muted">
-                Click any node to see its detail sidebar. Click an agent to view their report card.
-              </p>
             </motion.div>
           )}
 
