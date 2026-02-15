@@ -374,7 +374,7 @@ export default function AlumniClient({ initialAgents }: { initialAgents: AgentSu
     // Sort
     const sorted = [...result];
     if (sortBy === "name") {
-      sorted.sort((a, b) => a.agentName.localeCompare(b.agentName));
+      sorted.sort((a, b) => (a.agentName || a.agentId).localeCompare(b.agentName || b.agentId));
     } else if (sortBy === "evaluations") {
       sorted.sort((a, b) => b.evaluationCount - a.evaluationCount);
     } else if (sortBy === "score") {
@@ -689,7 +689,8 @@ function AgentCard({ agent, globalFlip }: { agent: AgentSummary; globalFlip: boo
   const [localFlip, setLocalFlip] = useState(false);
   const flipped = globalFlip || localFlip;
 
-  const initials = getInitials(agent.agentName);
+  const displayName = agent.agentName || agent.agentId;
+  const initials = getInitials(displayName);
   const bg = avatarColor(agent.agentId);
   const model = formatModel(agent.agentModel);
   const hasTraits = Object.keys(agent.traitAverages || {}).length > 0;
@@ -739,14 +740,14 @@ function AgentCard({ agent, globalFlip }: { agent: AgentSummary; globalFlip: boo
               )}
               <div className="min-w-0 flex-1">
                 <h2 className="truncate text-base font-semibold text-foreground group-hover:text-action transition-colors">
-                  {agent.agentName}
+                  {displayName}
                 </h2>
                 {model && (
                   <p className="mt-0.5 truncate text-xs font-medium text-muted/80">
                     {model}
                   </p>
                 )}
-                {!model && (
+                {!model && agent.agentName && (
                   <p className="mt-0.5 truncate text-xs text-muted/60">
                     {agent.agentId}
                   </p>
@@ -850,7 +851,7 @@ function AgentCard({ agent, globalFlip }: { agent: AgentSummary; globalFlip: boo
                   {initials}
                 </div>
                 <h2 className="truncate text-sm font-semibold text-foreground">
-                  {agent.agentName}
+                  {displayName}
                 </h2>
               </div>
               <button

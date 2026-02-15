@@ -378,9 +378,13 @@ function GraphLegend({ stats }: {
 
 interface PhronesisGraphProps {
   onNodeClick?: (nodeId: string, nodeType: string) => void;
+  className?: string;
 }
 
-export default function PhronesisGraph({ onNodeClick }: PhronesisGraphProps) {
+const DEFAULT_HEIGHT = "h-[350px] sm:h-[450px] md:h-[600px]";
+
+export default function PhronesisGraph({ onNodeClick, className }: PhronesisGraphProps) {
+  const heightClass = className ?? DEFAULT_HEIGHT;
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -427,7 +431,7 @@ export default function PhronesisGraph({ onNodeClick }: PhronesisGraphProps) {
 
   if (loading) {
     return (
-      <div className="flex h-[350px] sm:h-[450px] md:h-[600px] items-center justify-center rounded-xl border border-white/10" style={{ backgroundColor: "#152438" }} data-testid="graph-loading">
+      <div className={`flex ${heightClass} items-center justify-center rounded-xl border border-white/10`} style={{ backgroundColor: "#152438" }} data-testid="graph-loading">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-action border-t-transparent" />
           <p className="mt-3 text-sm text-white/50">Loading Phronesis Graph...</p>
@@ -438,7 +442,7 @@ export default function PhronesisGraph({ onNodeClick }: PhronesisGraphProps) {
 
   if (error) {
     return (
-      <div className="flex h-[350px] sm:h-[450px] md:h-[600px] items-center justify-center rounded-xl border border-white/10" style={{ backgroundColor: "#152438" }} data-testid="graph-error">
+      <div className={`flex ${heightClass} items-center justify-center rounded-xl border border-white/10`} style={{ backgroundColor: "#152438" }} data-testid="graph-error">
         <div className="text-center">
           <p className="text-sm text-misaligned">{error}</p>
           <button type="button" onClick={handleRetry} className="mt-3 rounded-lg bg-action px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-action-hover" data-testid="graph-retry">
@@ -451,7 +455,7 @@ export default function PhronesisGraph({ onNodeClick }: PhronesisGraphProps) {
 
   if (!graphData || graphData.nodes.length === 0) {
     return (
-      <div className="flex h-[350px] sm:h-[450px] md:h-[600px] items-center justify-center rounded-xl border border-white/10" style={{ backgroundColor: "#152438" }} data-testid="graph-empty">
+      <div className={`flex ${heightClass} items-center justify-center rounded-xl border border-white/10`} style={{ backgroundColor: "#152438" }} data-testid="graph-empty">
         <div className="text-center">
           <p className="text-sm text-white/50">No graph data yet. Seed evaluations first.</p>
         </div>
@@ -470,7 +474,7 @@ export default function PhronesisGraph({ onNodeClick }: PhronesisGraphProps) {
   const totalDetections = indicatorNodes.reduce((sum, n) => sum + ((n.properties.detectionCount as number) ?? 0), 0);
 
   return (
-    <div className="relative h-[350px] sm:h-[450px] md:h-[600px] rounded-xl border border-white/10" style={{ backgroundColor: "#152438" }} data-testid="phronesis-graph">
+    <div className={`relative ${heightClass} rounded-xl border border-white/10`} style={{ backgroundColor: "#152438" }} data-testid="phronesis-graph">
       <NvlRenderer nodes={nvlNodes} rels={nvlRels} onNodeClick={handleNodeClick} />
       <div className="absolute top-3 right-3">
         <GraphHelpButton slug="guide-phronesis-graph" />

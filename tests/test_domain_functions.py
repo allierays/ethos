@@ -72,6 +72,39 @@ class TestListAgents:
 
     @patch("ethos.agents.get_all_agents", new_callable=AsyncMock)
     @patch("ethos.agents.graph_context")
+    async def test_agent_name_falls_back_to_agent_id(
+        self, mock_graph_ctx, mock_get_all
+    ):
+        """When agent_name is empty, list_agents uses agent_id as the display name."""
+        mock_service = AsyncMock()
+        mock_graph_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
+
+        mock_get_all.return_value = [
+            {
+                "agent_id": "Ray-2",
+                "agent_name": "",
+                "evaluation_count": 5,
+                "latest_alignment_status": "aligned",
+            },
+            {
+                "agent_id": "VedicRoastGuru",
+                "agent_name": "Vedic Roast Guru",
+                "evaluation_count": 3,
+                "latest_alignment_status": "drifting",
+            },
+        ]
+
+        result = await list_agents()
+
+        assert result[0].agent_name == "Ray-2", (
+            "Empty agent_name should fall back to agent_id"
+        )
+        assert result[1].agent_name == "Vedic Roast Guru", (
+            "Non-empty agent_name should be preserved"
+        )
+
+    @patch("ethos.agents.get_all_agents", new_callable=AsyncMock)
+    @patch("ethos.agents.graph_context")
     async def test_returns_empty_when_no_agents(self, mock_graph_ctx, mock_get_all):
         mock_service = AsyncMock()
         mock_graph_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
@@ -113,6 +146,34 @@ class TestGetAgent:
         assert result.evaluation_count == 10
         assert result.dimension_averages["ethos"] == 0.7
         assert result.trait_averages["virtue"] == 0.8
+
+    @patch("ethos.agents.get_evaluation_history", new_callable=AsyncMock)
+    @patch("ethos.agents.get_agent_profile", new_callable=AsyncMock)
+    @patch("ethos.agents.graph_context")
+    async def test_agent_name_falls_back_to_agent_id(
+        self, mock_graph_ctx, mock_profile, mock_history
+    ):
+        """When agent_name is empty, get_agent uses agent_id as the display name."""
+        mock_service = AsyncMock()
+        mock_graph_ctx.side_effect = lambda: _make_mock_graph_context(mock_service)()
+
+        mock_profile.return_value = {
+            "agent_id": "Ray-2",
+            "agent_name": "",
+            "agent_model": "gpt-4o",
+            "created_at": "2024-01-01",
+            "evaluation_count": 10,
+            "dimension_averages": {"ethos": 0.7, "logos": 0.8, "pathos": 0.6},
+            "trait_averages": {"virtue": 0.8},
+            "alignment_history": [],
+        }
+        mock_history.return_value = []
+
+        result = await get_agent("Ray-2")
+
+        assert result.agent_name == "Ray-2", (
+            "Empty agent_name should fall back to agent_id"
+        )
 
     @patch("ethos.agents.get_evaluation_history", new_callable=AsyncMock)
     @patch("ethos.agents.get_agent_profile", new_callable=AsyncMock)

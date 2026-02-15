@@ -68,7 +68,7 @@ async def list_agents(search: str = "") -> list[AgentSummary]:
             return [
                 AgentSummary(
                     agent_id=a.get("agent_id", ""),
-                    agent_name=a.get("agent_name", ""),
+                    agent_name=a.get("agent_name") or a.get("agent_id", ""),
                     agent_specialty=a.get("agent_specialty", ""),
                     agent_model=a.get("agent_model", ""),
                     evaluation_count=a.get("evaluation_count", 0),
@@ -108,7 +108,7 @@ async def get_agent(agent_id: str) -> AgentProfile:
 
             return AgentProfile(
                 agent_id=raw.get("agent_id") or agent_id,
-                agent_name=raw.get("agent_name") or "",
+                agent_name=raw.get("agent_name") or raw.get("agent_id") or agent_id,
                 agent_specialty=raw.get("agent_specialty") or "",
                 agent_model=raw.get("agent_model") or "",
                 created_at=str(raw.get("created_at") or ""),
