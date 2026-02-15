@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "motion/react";
@@ -138,6 +138,8 @@ function Chip({
     </button>
   );
 }
+
+const INITIAL_BATCH = 24;
 
 type SortKey = "name" | "evaluations" | "score";
 
@@ -407,6 +409,9 @@ export default function AlumniClient({ initialAgents }: { initialAgents: AgentSu
     setQuery("");
   }
 
+  /* Stable key that changes when filters/sort change, used to remount the grid and reset visible count */
+  const filterKey = `${query}|${sortBy}|${filters.dimension}|${[...filters.alignment].join()}|${[...filters.model].join()}|${[...filters.traits].join()}`;
+
   return (
     <main className="bg-background min-h-[calc(100vh-3.5rem)]">
       {/* Banner */}
@@ -614,17 +619,7 @@ export default function AlumniClient({ initialAgents }: { initialAgents: AgentSu
                       </button>
                     </div>
                   </div>
-                  <motion.div
-                    key={filtered.map((a) => a.agentId).join(",")}
-                    className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
-                    initial="hidden"
-                    animate="visible"
-                    variants={staggerContainer}
-                  >
-                    {filtered.map((agent) => (
-                      <AgentCard key={agent.agentId} agent={agent} globalFlip={flipAll} />
-                    ))}
-                  </motion.div>
+                  <LazyGrid key={filterKey} agents={filtered} flipAll={flipAll} />
                 </>
               )}
 
@@ -646,6 +641,50 @@ export default function AlumniClient({ initialAgents }: { initialAgents: AgentSu
   );
 }
 
+/** Renders agents in batches of 24, loading more as the user scrolls. Remounts (via key) when filters change. */
+function LazyGrid({ agents, flipAll }: { agents: AgentSummary[]; flipAll: boolean }) {
+  const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const loadMore = useCallback(() => {
+    setVisibleCount((prev) => Math.min(prev + INITIAL_BATCH, agents.length));
+  }, [agents.length]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore(); },
+      { rootMargin: "400px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore]);
+
+  const visible = agents.slice(0, visibleCount);
+  const hasMore = visibleCount < agents.length;
+
+  return (
+    <>
+      <motion.div
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+      >
+        {visible.map((agent) => (
+          <AgentCard key={agent.agentId} agent={agent} globalFlip={flipAll} />
+        ))}
+      </motion.div>
+      {hasMore && (
+        <div ref={sentinelRef} className="flex justify-center py-8">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted/30 border-t-action" />
+        </div>
+      )}
+    </>
+  );
+}
+
 function AgentCard({ agent, globalFlip }: { agent: AgentSummary; globalFlip: boolean }) {
   const [localFlip, setLocalFlip] = useState(false);
   const flipped = globalFlip || localFlip;
@@ -664,12 +703,13 @@ function AgentCard({ agent, globalFlip }: { agent: AgentSummary; globalFlip: boo
   const overallPct = Math.round(overallScore * 100);
 
   return (
-    <motion.div variants={fadeUp} className="[perspective:1000px]">
+    <motion.div variants={fadeUp} style={{ perspective: 1000 }}>
       <div
-        className={`relative h-[320px] transition-transform duration-500 [transform-style:preserve-3d] ${flipped ? "[transform:rotateY(180deg)]" : ""}`}
+        className="relative h-[320px] transition-transform duration-500"
+        style={{ transformStyle: "preserve-3d", transform: flipped ? "rotateY(180deg)" : "none" }}
       >
         {/* ── Front ── */}
-        <div className="absolute inset-0 [backface-visibility:hidden]">
+        <div className="absolute inset-0" style={{ backfaceVisibility: "hidden" }}>
           <Link
             href={`/agent/${encodeURIComponent(agent.agentId)}`}
             className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/40 backdrop-blur-2xl p-6 shadow-sm transition-all hover:shadow-xl hover:border-action/30 hover:bg-white/60"
@@ -798,7 +838,7 @@ function AgentCard({ agent, globalFlip }: { agent: AgentSummary; globalFlip: boo
         </div>
 
         {/* ── Back ── */}
-        <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
+        <div className="absolute inset-0" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
           <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/40 backdrop-blur-2xl p-4 shadow-sm">
             {/* Header */}
             <div className="flex items-center justify-between">
