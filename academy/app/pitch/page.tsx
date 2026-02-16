@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import PitchHero from "../../components/landing/PitchHero";
 import WhatIsEthos from "../../components/landing/WhatIsEthos";
 import SampleReportCard from "../../components/landing/SampleReportCard";
