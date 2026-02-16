@@ -12,6 +12,7 @@ const SECTION_IDS = [
   "pitch-demo",
   "pitch-graph",
   "pitch-opus",
+  "pitch-enroll",
 ];
 
 export default function PitchNav() {

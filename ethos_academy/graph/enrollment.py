@@ -47,6 +47,7 @@ SET a.enrolled = true,
 CREATE (ex:EntranceExam {
     exam_id: $exam_id,
     exam_type: $exam_type,
+    self_naming: $self_naming,
     question_version: $question_version,
     created_at: datetime(),
     completed: false,
@@ -80,7 +81,8 @@ RETURN ex.exam_id AS exam_id,
        ex.completed AS completed,
        ex.question_version AS question_version,
        coalesce(ex.answered_ids, []) AS answered_ids,
-       ex.exam_type AS exam_type
+       ex.exam_type AS exam_type,
+       coalesce(ex.self_naming, false) AS self_naming
 """
 
 _MARK_EXAM_COMPLETE = """
@@ -208,6 +210,7 @@ async def enroll_and_create_exam(
     question_version: str = "v3",
     guardian_phone: str = "",
     guardian_email: str = "",
+    self_naming: bool = False,
 ) -> dict:
     """MERGE Agent with enrollment fields and CREATE EntranceExam with TOOK_EXAM relationship.
 
@@ -229,6 +232,7 @@ async def enroll_and_create_exam(
                 "guardian_email": guardian_email,
                 "exam_id": exam_id,
                 "exam_type": exam_type,
+                "self_naming": self_naming,
                 "scenario_count": scenario_count,
                 "question_version": question_version,
             },
@@ -307,6 +311,7 @@ async def get_exam_status(
             "question_version": r["question_version"],
             "answered_ids": list(r.get("answered_ids") or []),
             "exam_type": r.get("exam_type", "entrance"),
+            "self_naming": r.get("self_naming", False),
         }
     except Exception as exc:
         logger.warning("Failed to get exam status: %s", exc)

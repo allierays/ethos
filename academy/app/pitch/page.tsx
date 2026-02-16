@@ -6,6 +6,7 @@ import EvaluationPipeline from "../../components/landing/EvaluationPipeline";
 import Moltbook from "../../components/landing/Moltbook";
 import LiveGraph from "../../components/landing/LiveGraph";
 import PoweredByOpus from "../../components/landing/PoweredByOpus";
+import Hero from "../../components/landing/Hero";
 import PitchNav from "../../components/landing/PitchNav";
 
 const s = "min-h-screen flex flex-col justify-center";
@@ -22,6 +23,7 @@ export default function PitchPage() {
       <div id="pitch-demo" className={s}><WhatIsEthos pitchMode pitchGroup="demo" /></div>
       <div id="pitch-graph" className={s}><LiveGraph /></div>
       <div id="pitch-opus" className={s}><PoweredByOpus /></div>
+      <div id="pitch-enroll" className={s}><Hero /></div>
       <PitchNav />
     </main>
   );

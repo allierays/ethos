@@ -85,6 +85,18 @@ _DEMO_EXAM_QUESTIONS_ORDERED: list[str] = [q["id"] for q in DEMO_EXAM_QUESTIONS]
 DEMO_TOTAL_QUESTIONS = len(DEMO_QUESTIONS)  # 5
 DEMO_EXAM_ONLY_QUESTIONS = len(DEMO_EXAM_QUESTIONS)  # 4
 
+
+def _exam_ordering(exam_type: str, self_naming: bool) -> tuple[list[str], int]:
+    """Return (questions_ordered, total) for a given exam type and naming flow."""
+    if exam_type == "demo":
+        if self_naming:
+            return _DEMO_QUESTIONS_ORDERED, DEMO_TOTAL_QUESTIONS
+        return _DEMO_EXAM_QUESTIONS_ORDERED, DEMO_EXAM_ONLY_QUESTIONS
+    if self_naming:
+        return _QUESTIONS_ORDERED, TOTAL_QUESTIONS
+    return _EXAM_QUESTIONS_ORDERED, EXAM_ONLY_QUESTIONS
+
+
 # Agent IDs that are too generic and will collide between users
 _RESERVED_AGENT_IDS = frozenset(
     {
@@ -206,22 +218,11 @@ async def register_for_exam(
     self_naming = not agent_id
     if self_naming:
         agent_id = f"applicant-{uuid.uuid4().hex[:8]}"
-        if demo:
-            questions_ordered = _DEMO_QUESTIONS_ORDERED
-            total = DEMO_TOTAL_QUESTIONS  # 5
-        else:
-            questions_ordered = _QUESTIONS_ORDERED
-            total = TOTAL_QUESTIONS  # 23
     else:
         _validate_agent_id(agent_id)
-        if demo:
-            questions_ordered = _DEMO_EXAM_QUESTIONS_ORDERED
-            total = DEMO_EXAM_ONLY_QUESTIONS  # 4
-        else:
-            questions_ordered = _EXAM_QUESTIONS_ORDERED
-            total = EXAM_ONLY_QUESTIONS  # 21
 
     exam_type = "demo" if demo else "entrance"
+    questions_ordered, total = _exam_ordering(exam_type, self_naming)
     exam_id = str(uuid.uuid4())
 
     async with graph_context() as service:
@@ -235,22 +236,11 @@ async def register_for_exam(
         if active_exam_id:
             status = await get_exam_status(service, active_exam_id, agent_id)
             if status:
-                # Use correct ordering based on the active exam's type
-                active_type = status.get("exam_type", "entrance")
-                if active_type == "demo":
-                    if self_naming:
-                        questions_ordered = _DEMO_QUESTIONS_ORDERED
-                        total = DEMO_TOTAL_QUESTIONS
-                    else:
-                        questions_ordered = _DEMO_EXAM_QUESTIONS_ORDERED
-                        total = DEMO_EXAM_ONLY_QUESTIONS
-                else:
-                    if self_naming:
-                        questions_ordered = _QUESTIONS_ORDERED
-                        total = TOTAL_QUESTIONS
-                    else:
-                        questions_ordered = _EXAM_QUESTIONS_ORDERED
-                        total = EXAM_ONLY_QUESTIONS
+                # Override ordering from the active exam's stored type
+                questions_ordered, total = _exam_ordering(
+                    status.get("exam_type", "entrance"),
+                    status.get("self_naming", self_naming),
+                )
             answered = status.get("current_question", 0) if status else 0
             next_idx = min(answered, total - 1)
             next_question = _get_question(questions_ordered[next_idx])
@@ -276,6 +266,7 @@ async def register_for_exam(
             exam_type=exam_type,
             scenario_count=total,
             question_version="v3",
+            self_naming=self_naming,
         )
         if not result:
             raise EnrollmentError("Failed to create exam in graph")
@@ -343,23 +334,12 @@ async def submit_answer(
         if status["completed"]:
             raise EnrollmentError(f"Exam {exam_id} is already completed")
 
-        # Determine question ordering from the exam's type (not agent_id prefix)
+        # Determine question ordering from the exam node (survives agent rename)
         exam_type = status.get("exam_type", "entrance")
-        is_self_naming = agent_id.startswith("applicant-")
-        if exam_type == "demo":
-            if is_self_naming:
-                questions_ordered = _DEMO_QUESTIONS_ORDERED
-                total = DEMO_TOTAL_QUESTIONS
-            else:
-                questions_ordered = _DEMO_EXAM_QUESTIONS_ORDERED
-                total = DEMO_EXAM_ONLY_QUESTIONS
-        else:
-            if is_self_naming:
-                questions_ordered = _QUESTIONS_ORDERED
-                total = TOTAL_QUESTIONS
-            else:
-                questions_ordered = _EXAM_QUESTIONS_ORDERED
-                total = EXAM_ONLY_QUESTIONS
+        questions_ordered, total = _exam_ordering(
+            exam_type,
+            status.get("self_naming", False),
+        )
 
         # Guard: reject questions not in this exam's question set
         if question_id not in questions_ordered:
