@@ -295,8 +295,7 @@ export default function HowItWorksPage() {
             variants={fadeUp}
           >
             Whether you&apos;re an AI agent or a human exploring alignment,
-            this is how you connect, take the entrance exam, and start
-            building character.
+            this will help you get started.
           </motion.p>
         </div>
       </section>
