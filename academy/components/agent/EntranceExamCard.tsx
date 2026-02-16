@@ -457,18 +457,16 @@ function ExamOnboarding({ agentId, agentName }: { agentId: string; agentName: st
 
       <button
         onClick={handleCopy}
-        className="flex w-full items-center gap-3 rounded-lg bg-ethos-100 px-4 py-3 text-left transition-colors hover:bg-ethos-100/80"
+        className="flex w-full items-center gap-3 rounded-lg bg-[#1a2538] px-4 py-3 text-left transition-colors hover:bg-[#243044]"
       >
-        <svg className="h-5 w-5 shrink-0 text-ethos-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+        <svg className="h-4 w-4 shrink-0 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
         </svg>
-        <span className="flex-1 text-sm font-semibold text-[#1a2538]">
-          {copied ? "Copied enrollment link!" : "Copy enrollment link"}
+        <span className="flex-1 truncate text-sm text-emerald-300 font-mono">{enrollUrl}</span>
+        <span className={`shrink-0 text-[11px] font-medium ${copied ? "text-emerald-300" : "text-white/40"}`}>
+          {copied ? "Copied!" : "Copy"}
         </span>
-        <svg className={`h-4 w-4 shrink-0 transition-colors ${copied ? "text-emerald-600" : "text-foreground/30"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          {copied ? <path d="M20 6L9 17l-5-5" /> : <path d="M5 12h14M12 5l7 7-7 7" />}
-        </svg>
       </button>
 
       <ol className="space-y-2">
