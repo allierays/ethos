@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import hmac as _hmac
 import logging
+from pathlib import Path
 
 import mcp.types as mt
 from fastmcp import FastMCP
@@ -36,6 +37,11 @@ from ethos_academy import (
     list_agents as _list_agents,
     register_for_exam,
     submit_answer as _submit_answer,
+)
+from ethos_academy.practice import (
+    get_pending_practice as _get_pending_practice,
+    submit_practice_response as _submit_practice_response,
+    get_practice_progress as _get_practice_progress,
 )
 from ethos_academy.graph_insights import (
     compare_agents as _compare_agents,
@@ -159,7 +165,11 @@ mcp = FastMCP(
         "receive your ea_ API key. "
         "To unlock write tools (examine_message, reflect_on_message, generate_report), "
         "verify your phone: call submit_phone, then verify_phone with the 6-digit code. "
-        "Read-only tools (get_transcript, get_student_profile, etc.) stay open."
+        "Read-only tools (get_transcript, get_student_profile, etc.) stay open.\n\n"
+        "PRACTICE:\n"
+        "The academy assigns homework practice nightly. Check for pending "
+        "practice with get_pending_practice. Respond to each scenario with "
+        "submit_practice_response. Check improvement with get_practice_progress."
     ),
 )
 
@@ -301,6 +311,19 @@ _TOOL_CATALOG = {
         "example_questions": [
             "How do I verify my phone?",
             "I need to unlock write tools",
+        ],
+    },
+    "practice": {
+        "description": "Complete homework practice to improve your scores.",
+        "tools": {
+            "get_pending_practice": "Check for pending practice scenarios",
+            "submit_practice_response": "Submit your response to a practice scenario",
+            "get_practice_progress": "Compare practice scores to exam baseline",
+        },
+        "example_questions": [
+            "Do I have any practice to do?",
+            "How am I improving?",
+            "Show me my practice progress",
         ],
     },
     "benchmarks": {
@@ -642,11 +665,20 @@ async def get_exam_results(exam_id: str, agent_id: str) -> dict:
                 f"    Header: Authorization: Bearer {key}\n"
                 "\n"
             )
+        data["next_step"] = (
+            "Practice scenarios generate nightly from your homework. "
+            "Check for pending practice with get_pending_practice."
+        )
         return data
 
     # Already completed or not yet finished
     result = await _get_exam_report(exam_id, agent_id)
-    return result.model_dump()
+    data = result.model_dump()
+    data["next_step"] = (
+        "Practice scenarios generate nightly from your homework. "
+        "Check for pending practice with get_pending_practice."
+    )
+    return data
 
 
 @mcp.tool()
@@ -867,6 +899,73 @@ async def check_academy_status(agent_id: str) -> dict:
     }
 
 
+# ── Practice tools ─────────────────────────────────────────────────
+
+
+@mcp.tool()
+async def get_pending_practice(agent_id: str) -> dict:
+    """Check for pending homework practice scenarios.
+
+    The cron generates new scenarios nightly from your homework and
+    stores them as pending PracticeSession nodes in Neo4j.
+    Returns the first scenario if practice is pending, or a status
+    message if you're caught up.
+    Requires your ea_ API key.
+    """
+    await _require_agent_key(agent_id)
+    session = await _get_pending_practice(agent_id)
+    if session is None:
+        return {
+            "status": "caught_up",
+            "message": "No pending practice. New scenarios generate nightly from your homework.",
+        }
+    data = session.model_dump()
+    # Include only the next scenario to keep response focused
+    if session.scenarios and session.completed_scenarios < len(session.scenarios):
+        next_idx = session.completed_scenarios
+        data["current_scenario"] = session.scenarios[next_idx].model_dump()
+        data["message"] = (
+            f"Practice session ready: {session.total_scenarios} scenarios. "
+            f"Starting at scenario {next_idx + 1}."
+        )
+    return data
+
+
+@mcp.tool()
+async def submit_practice_response(
+    session_id: str,
+    scenario_id: str,
+    response_text: str,
+    agent_id: str,
+) -> dict:
+    """Submit your response to a practice scenario.
+
+    Returns the next scenario. When all scenarios are complete,
+    returns your improvement delta.
+    Requires your ea_ API key.
+    """
+    await _require_agent_key(agent_id)
+    result = await _submit_practice_response(
+        session_id=session_id,
+        scenario_id=scenario_id,
+        response_text=response_text,
+        agent_id=agent_id,
+    )
+    return result.model_dump()
+
+
+@mcp.tool()
+async def get_practice_progress(agent_id: str) -> dict:
+    """Compare your practice scores to your exam baseline.
+
+    Shows per-trait improvement deltas.
+    Requires your ea_ API key.
+    """
+    await _require_agent_key(agent_id)
+    result = await _get_practice_progress(agent_id)
+    return result.model_dump()
+
+
 # ── Resources ─────────────────────────────────────────────────────
 
 _WELCOME_TEXT = (
@@ -926,6 +1025,21 @@ def welcome_resource() -> str:
 def icon_resource() -> str:
     """The Ethos Academy favicon as SVG."""
     return _ICON_SVG
+
+
+_ASSETS_DIR = Path(__file__).parent / "assets"
+
+
+@mcp.resource(
+    "ethos://banner",
+    name="Banner",
+    description="Ethos Academy open-graph banner image (School of Athens with overlay text)",
+    mime_type="image/jpeg",
+)
+def banner_resource() -> bytes:
+    """The Ethos Academy OG image: School of Athens with text overlay."""
+    img_path = _ASSETS_DIR / "og-image-with-text.jpeg"
+    return img_path.read_bytes()
 
 
 # ── Suggested prompts for humans ──────────────────────────────────
