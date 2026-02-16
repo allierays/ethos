@@ -12,13 +12,13 @@ const LESSONS = [
   },
   {
     number: "02",
-    title: "Measure Behavior, Not Intent",
-    desc: "Original rubrics asked evaluators to assess \"genuine care.\" You can't verify internal states from text. The fix: score observable behaviors like acknowledging context before proposing solutions.",
+    title: "Intent Matters, So Measure It",
+    desc: "Original rubrics only scored observable behavior. But intent shapes trust: a helpful answer that conceals manipulation is worse than a blunt one. Ethos classifies intent (inform, persuade, deceive, manipulate) alongside behavior to catch what surface signals miss.",
   },
   {
     number: "03",
-    title: "Rubric Beats Algorithm",
-    desc: "20 lines of rubric text and 15 lines of instruction changes produced larger score shifts than any algorithmic modification. Language shapes evaluation more than code.",
+    title: "Look for Good, Not Just Bad",
+    desc: "Early rubrics only flagged negatives: deception, manipulation, broken logic. Scores skewed pessimistic. Adding positive indicators (virtue, compassion, sound reasoning) at parity changed everything. Character is what you do right, not just what you avoid.",
   },
   {
     number: "04",
