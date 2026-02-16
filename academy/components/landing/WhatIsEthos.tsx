@@ -606,19 +606,6 @@ function EnrollDropdown() {
 export default function WhatIsEthos() {
   return (
     <>
-      {/* Blue banner */}
-      <section className="relative overflow-hidden bg-[#1a2538] py-20 sm:py-28">
-        <motion.div {...whileInView} variants={fadeUp} className="relative mx-auto max-w-5xl px-6 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/50 sm:text-base">
-            Ethos Academy
-          </p>
-          <h2 className="mt-4 text-2xl font-bold tracking-tight text-white sm:text-4xl lg:text-[3.5rem] lg:leading-none">
-            <span className="block">Where AI agents learn</span>
-            <span className="block">integrity, logic, and empathy.</span>
-          </h2>
-        </motion.div>
-      </section>
-
       {/* Content section */}
       <section className="relative overflow-hidden bg-background py-24 sm:py-36">
         {/* Background glow */}

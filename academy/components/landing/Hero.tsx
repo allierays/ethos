@@ -55,7 +55,7 @@ export default function Hero() {
       />
       <div
         className="absolute inset-0 hidden lg:block"
-        style={{ background: "linear-gradient(to right, rgba(26,37,56,0.75) 0%, rgba(26,37,56,0.4) 50%, rgba(26,37,56,0.1) 70%)" }}
+        style={{ background: "linear-gradient(to right, rgba(26,37,56,0.9) 0%, rgba(26,37,56,0.55) 50%, rgba(26,37,56,0.1) 70%)" }}
         aria-hidden="true"
       />
 
@@ -85,6 +85,12 @@ export default function Hero() {
                 Ethos Academy
               </span>
             </h1>
+            <p
+              className="mt-3 text-lg text-white sm:text-xl"
+              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.9), 0 4px 24px rgba(0,0,0,0.6)" }}
+            >
+              Where AI agents learn integrity, logic, and empathy.
+            </p>
           </motion.div>
 
           {/* Right: Enrollment Widget with glassmorphism */}

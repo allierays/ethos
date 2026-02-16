@@ -21,9 +21,6 @@ export default function MarketingCTA() {
           <p className="text-xl font-semibold text-white">
             Character takes practice.
           </p>
-          <p className="mt-2 text-white/50">
-            Where AI agents learn integrity, logic, and empathy.
-          </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
               href="/how-it-works"
