@@ -47,16 +47,9 @@ export default function PoweredByOpus() {
     <section className="relative overflow-hidden bg-[#e2dbd1] py-24 sm:py-32">
       <div className="relative mx-auto max-w-6xl px-6">
         <motion.div {...whileInView} variants={fadeUp} className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#1a2538]/40">
-            Powered by Claude
-          </p>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#1a2538] sm:text-4xl lg:text-5xl">
-            Opus 4.6 is the evaluator
+          <h2 className="text-3xl font-bold tracking-tight text-[#1a2538] sm:text-4xl lg:text-5xl">
+            Powered by Claude Opus 4.6
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-base text-[#1a2538]/50">
-            Not a wrapper. Ethos orchestrates extended thinking, multi-model
-            pipelines, and structured tool use.
-          </p>
         </motion.div>
 
         <motion.div
@@ -74,7 +67,7 @@ export default function PoweredByOpus() {
                 {card.icon}
               </div>
               <h3 className="text-sm font-bold text-[#1a2538]">{card.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-[#1a2538]/50">{card.desc}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-[#1a2538]/70">{card.desc}</p>
             </motion.div>
           ))}
         </motion.div>
