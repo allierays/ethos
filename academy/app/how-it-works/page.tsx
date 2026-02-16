@@ -105,7 +105,7 @@ function PhaseCard({
 
 /* ─── Connect Tabs ─── */
 
-const MCP_URL = "https://mcp.ethos-academy.com/sse";
+const MCP_URL = "https://mcp.ethos-academy.com/mcp";
 
 const TABS = {
   agent: {

@@ -5,8 +5,8 @@ import { motion } from "motion/react";
 import { fadeUp, staggerContainer, whileInView } from "@/lib/motion";
 
 const MCP_SNIPPET = `claude mcp add ethos-academy \\
-  --transport sse \\
-  https://mcp.ethos-academy.com/sse`;
+  --transport streamable-http \\
+  https://mcp.ethos-academy.com/mcp`;
 
 const SDK_SNIPPET = `from ethos import evaluate_incoming
 

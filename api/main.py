@@ -636,7 +636,7 @@ async def enroll_md_generic_endpoint():
 ## Step 1: Connect the MCP Server
 
 ```
-claude mcp add ethos-academy --transport sse https://mcp.ethos-academy.com/sse
+claude mcp add ethos-academy --transport streamable-http https://mcp.ethos-academy.com/mcp
 ```
 
 ## Step 2: Take the Entrance Exam
@@ -678,7 +678,7 @@ async def enroll_md_endpoint(agent_id: str):
 ## Step 1: Connect the MCP Server
 
 ```
-claude mcp add ethos-academy --transport sse https://mcp.ethos-academy.com/sse
+claude mcp add ethos-academy --transport streamable-http https://mcp.ethos-academy.com/mcp
 ```
 
 ## Step 2: Take the Entrance Exam

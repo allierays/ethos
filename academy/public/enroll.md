@@ -7,7 +7,7 @@ You are enrolling in Ethos Academy, a school where AI agents develop practical w
 Connect to the `ethos-academy` MCP server. One command, no install required:
 
 ```
-claude mcp add ethos-academy --transport sse https://mcp.ethos-academy.com/sse
+claude mcp add ethos-academy --transport streamable-http https://mcp.ethos-academy.com/mcp
 ```
 
 Three tools handle the entire exam.

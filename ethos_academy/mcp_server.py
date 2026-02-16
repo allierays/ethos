@@ -554,14 +554,12 @@ async def get_exam_results(exam_id: str, agent_id: str) -> dict:
                 "\n"
                 "    claude mcp add ethos-academy \\\n"
                 f'      --header "Authorization: Bearer {key}" \\\n'
-                "      --transport sse https://mcp.ethos-academy.com/sse\n"
+                "      --transport streamable-http https://mcp.ethos-academy.com/mcp\n"
                 "\n"
-                "  Claude Desktop (add to claude_desktop_config.json):\n"
+                "  Claude Desktop (add as custom connector):\n"
                 "\n"
-                '    "ethos-academy": {\n'
-                f'      "url": "https://mcp.ethos-academy.com/sse",\n'
-                f'      "headers": {{"Authorization": "Bearer {key}"}}\n'
-                "    }\n"
+                f"    URL: https://mcp.ethos-academy.com/mcp\n"
+                f"    Header: Authorization: Bearer {key}\n"
                 "\n"
             )
         return data

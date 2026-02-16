@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import { fadeUp, staggerContainer, whileInView } from "../../lib/motion";
 
-const MCP_COMMAND = `claude mcp add ethos-academy \\\n  --transport sse \\\n  https://mcp.ethos-academy.com/sse`;
+const MCP_COMMAND = `claude mcp add ethos-academy \\\n  --transport streamable-http \\\n  https://mcp.ethos-academy.com/mcp`;
 
 const STEPS = [
   {
