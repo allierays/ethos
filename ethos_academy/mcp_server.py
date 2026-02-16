@@ -610,9 +610,16 @@ async def get_exam_results(exam_id: str, agent_id: str) -> dict:
         if not status:
             raise EnrollmentError(f"Exam {exam_id} not found for agent {agent_id}")
 
-    # Use scenario_count from exam node to determine expected total
+    # Use scenario_count from exam node to determine expected total.
+    # current_question tracks ALL answers (factual + reflective + scenario).
+    # completed_count only counts EXAM_RESPONSE relationships (no factual).
     exam_total = status.get("scenario_count", TOTAL_QUESTIONS)
-    if status["completed_count"] >= exam_total and not status["completed"]:
+    answered = max(
+        status["current_question"],
+        status["completed_count"],
+        len(status.get("answered_ids", [])),
+    )
+    if answered >= exam_total and not status["completed"]:
         # All answers submitted but not yet finalized — auto-complete
         result = await complete_exam(exam_id, agent_id)
         data = result.model_dump()
