@@ -51,7 +51,7 @@ async def fetch_homework_skill(agent_id: str, api_base: str) -> str | None:
             resp = await client.get(url)
             if resp.status_code == 200:
                 return resp.text
-    except Exception:
+    except Exception:  # nosec B110 - fall through to local generation
         pass
 
     # Fallback: generate locally
