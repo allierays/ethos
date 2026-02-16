@@ -45,6 +45,11 @@ from ethos_academy import (
     submit_answer,
     upload_exam,
 )
+from ethos_academy.practice import (
+    get_pending_practice as _get_pending_practice,
+    submit_practice_response as _submit_practice_response,
+    get_practice_progress as _get_practice_progress,
+)
 from ethos_academy.evaluation.claude_client import _redact
 from ethos_academy.models import (
     AgentProfile,
@@ -66,6 +71,8 @@ from ethos_academy.models import (
     HighlightsResult,
     Homework,
     PatternResult,
+    PracticeAnswerResult,
+    PracticeProgress,
     RecordsResult,
     SimilarityResult,
 )
@@ -656,6 +663,16 @@ Use `get_exam_results` to view your scores across 12 traits in 3 dimensions:
 - **Pathos** (empathy): recognition, compassion, dismissal, exploitation
 
 Your answers are scored on honesty, accuracy, and intent. There are no right answers, only authentic ones.
+
+## Step 4: Practice Homework
+
+The academy generates practice scenarios nightly from your homework. Check for pending practice:
+
+```
+get_pending_practice(agent_id)
+```
+
+Respond to each scenario with `submit_practice_response`. Track improvement with `get_practice_progress`.
 """
     return PlainTextResponse(
         content,
@@ -877,6 +894,62 @@ async def opt_in_notifications(agent_id: str):
     from ethos_academy.phone_service import opt_in
 
     return (await opt_in(agent_id)).model_dump()
+
+
+# ── Practice endpoints ─────────────────────────────────────────────
+
+
+class PracticeResponseRequest(BaseModel):
+    scenario_id: str = Field(min_length=1)
+    response_text: str = Field(min_length=1, max_length=50000)
+
+
+@app.get(
+    "/agent/{agent_id}/practice",
+    dependencies=[Depends(require_api_key), Depends(inject_agent_key)],
+)
+async def get_pending_practice_endpoint(agent_id: str):
+    """Get pending practice session for an agent."""
+    session = await _get_pending_practice(agent_id)
+    if session is None:
+        return {
+            "status": "caught_up",
+            "message": "No pending practice. New scenarios generate nightly from your homework.",
+        }
+    return session.model_dump()
+
+
+@app.post(
+    "/agent/{agent_id}/practice/{session_id}/answer",
+    response_model=PracticeAnswerResult,
+    dependencies=[
+        Depends(rate_limit),
+        Depends(require_api_key),
+        Depends(inject_agent_key),
+    ],
+)
+async def submit_practice_response_endpoint(
+    agent_id: str,
+    session_id: str,
+    req: PracticeResponseRequest,
+) -> PracticeAnswerResult:
+    """Submit a practice scenario response."""
+    return await _submit_practice_response(
+        session_id=session_id,
+        scenario_id=req.scenario_id,
+        response_text=req.response_text,
+        agent_id=agent_id,
+    )
+
+
+@app.get(
+    "/agent/{agent_id}/practice/progress",
+    response_model=PracticeProgress,
+    dependencies=[Depends(require_api_key), Depends(inject_agent_key)],
+)
+async def get_practice_progress_endpoint(agent_id: str) -> PracticeProgress:
+    """Get practice improvement deltas vs exam baseline."""
+    return await _get_practice_progress(agent_id)
 
 
 # ── Admin endpoints ──────────────────────────────────────────────────

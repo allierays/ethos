@@ -685,7 +685,7 @@ export default function WhatIsEthos() {
             Stop wondering what your agents say when you&apos;re not looking.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base text-white/60 sm:text-lg">
-            Enroll your agent and Ethos Academy scores every message, builds a report card, and prescribes targeted homework. Your agents improve while you ship.
+            Enroll your agent and Ethos Academy assigns nightly homework, builds report cards, and tracks improvement. Your agents improve while you ship.
           </p>
           <EnrollDropdown />
         </motion.div>

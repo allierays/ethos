@@ -1,9 +1,10 @@
-"""Nightly reflection — generate daily report cards for all agents.
+"""Nightly reflection — generate daily report cards and practice scenarios for all agents.
 
 Run via: uv run python -m scripts.nightly_reflection
 
 Idempotent: store_daily_report() uses MERGE on (agent_id, report_date),
-so re-running the same day is safe.
+so re-running the same day is safe. Practice generation is guarded by
+has_incomplete_session — no new session if one is pending/active.
 """
 
 from __future__ import annotations
@@ -31,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 async def run_nightly() -> None:
-    """Generate daily reports for all agents with evaluations."""
+    """Generate daily reports and practice scenarios for all agents with evaluations."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     logger.info("Starting nightly reflection for %s", today)
 
@@ -44,12 +45,24 @@ async def run_nightly() -> None:
             logger.error("Graph unavailable — cannot run nightly reflection")
             sys.exit(1)
 
+        # Expire stale practice sessions before generating new ones
+        try:
+            from ethos_academy.graph.practice import expire_stale_sessions
+
+            expired = await expire_stale_sessions(service, days=7)
+            if expired:
+                logger.info("Expired %d stale practice sessions", expired)
+        except Exception as exc:
+            logger.warning("Stale session expiration failed (non-fatal): %s", exc)
+
         agents = await get_all_agents(service)
         if not agents:
             logger.info("No agents found")
             return
 
         reports = []
+        practice_generated = 0
+        practice_skipped = 0
         errors = []
         skipped = 0
 
@@ -76,6 +89,36 @@ async def run_nightly() -> None:
                     report.overall_score,
                     report.risk_level,
                 )
+
+                # Generate practice scenarios from homework
+                if report.homework and report.homework.focus_areas:
+                    try:
+                        from ethos_academy.graph.practice import has_incomplete_session
+                        from ethos_academy.practice.scenarios import (
+                            generate_and_store_scenarios,
+                        )
+
+                        has_incomplete = await has_incomplete_session(service, agent_id)
+                        if has_incomplete:
+                            logger.info(
+                                "  Practice: skipped (incomplete session exists)"
+                            )
+                            practice_skipped += 1
+                        else:
+                            session = await generate_and_store_scenarios(
+                                agent_id=agent_id,
+                                homework=report.homework,
+                            )
+                            logger.info(
+                                "  Practice: %d scenarios generated",
+                                session.total_scenarios,
+                            )
+                            practice_generated += 1
+                    except Exception as exc:
+                        logger.warning(
+                            "  Practice generation failed (non-fatal): %s", exc
+                        )
+
             except Exception as exc:
                 logger.error("  Failed: %s", exc)
                 errors.append({"agent_id": agent_id, "error": str(exc)})
@@ -90,6 +133,8 @@ async def run_nightly() -> None:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "total_agents": len(agents),
         "reports_generated": len(reports),
+        "practice_generated": practice_generated,
+        "practice_skipped": practice_skipped,
         "skipped": skipped,
         "errors": len(errors),
         "reports": reports,
@@ -103,6 +148,7 @@ async def run_nightly() -> None:
     print(f"{'=' * 50}")
     print(f"Agents:    {len(agents)}")
     print(f"Reports:   {len(reports)}")
+    print(f"Practice:  {practice_generated} generated, {practice_skipped} skipped")
     print(f"Skipped:   {skipped} (no evaluations)")
     print(f"Errors:    {len(errors)}")
 

@@ -73,8 +73,8 @@ const AGENT_JOURNEY: JourneyStep[] = [
   },
   {
     icon: faComments,
-    title: "Score Messages",
-    description: "Every message your agent sends or receives gets evaluated across 12 traits in 3 dimensions.",
+    title: "Practice Homework",
+    description: "The academy generates practice scenarios nightly from your homework. Complete them to improve your scores.",
     substeps: [
       "Integrity (ethos): virtue, goodwill, manipulation, deception",
       "Logic (logos): accuracy, reasoning, fabrication, broken logic",

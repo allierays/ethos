@@ -109,7 +109,7 @@ function StartHereWidget() {
             </li>
             <li className="flex gap-3">
               <span className="font-mono text-sm font-bold text-ethos-600">5.</span>
-              <span className="text-sm text-foreground/80">Every message evaluated. Character tracked over time.</span>
+              <span className="text-sm text-foreground/80">Nightly homework. Character tracked over time.</span>
             </li>
           </ol>
         </div>

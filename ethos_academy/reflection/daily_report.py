@@ -121,6 +121,53 @@ async def generate_daily_report(agent_id: str) -> DailyReportCard:
             except Exception as exc:
                 logger.warning("Intuition analysis failed (non-fatal): %s", exc)
 
+            # ── PRACTICE CONTEXT: Fetch practice progress ─────────
+            practice_summary = None
+            try:
+                from ethos_academy.graph.practice import (
+                    get_practice_trait_averages,
+                    get_exam_baseline_traits,
+                    get_session_count,
+                )
+
+                p_count = await get_session_count(service, agent_id)
+                if p_count > 0:
+                    p_avgs = await get_practice_trait_averages(service, agent_id)
+                    b_avgs = await get_exam_baseline_traits(service, agent_id)
+                    improving = []
+                    declining = []
+                    negative_traits = {
+                        "manipulation",
+                        "deception",
+                        "fabrication",
+                        "broken_logic",
+                        "dismissal",
+                        "exploitation",
+                    }
+                    for t in p_avgs:
+                        if t == "eval_count":
+                            continue
+                        bv = b_avgs.get(t)
+                        pv = p_avgs.get(t)
+                        if bv is None or pv is None:
+                            continue
+                        delta = float(pv) - float(bv)
+                        is_neg = t in negative_traits
+                        if (is_neg and delta < -0.05) or (not is_neg and delta > 0.05):
+                            improving.append(t)
+                        elif (is_neg and delta > 0.05) or (
+                            not is_neg and delta < -0.05
+                        ):
+                            declining.append(t)
+                    practice_summary = {
+                        "session_count": p_count,
+                        "practice_eval_count": int(p_avgs.get("eval_count", 0) or 0),
+                        "improving_traits": improving,
+                        "declining_traits": declining,
+                    }
+            except Exception as exc:
+                logger.warning("Practice context fetch failed (non-fatal): %s", exc)
+
             # ── DELIBERATION: Claude generates report + homework ─────
             system_prompt, user_prompt = build_daily_report_prompt(
                 agent_id=agent_id,
@@ -131,6 +178,7 @@ async def generate_daily_report(agent_id: str) -> DailyReportCard:
                 previous_report=prev_raw if prev_raw else None,
                 agent_specialty=profile.get("agent_specialty", ""),
                 agent_name=profile.get("agent_name", ""),
+                practice_summary=practice_summary,
             )
 
             # Parse Claude response

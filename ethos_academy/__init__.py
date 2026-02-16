@@ -63,11 +63,20 @@ from ethos_academy.models import (
     HomeworkFocus,
     InsightsResult,
     PatternResult,
+    PracticeAnswerResult,
+    PracticeProgress,
+    PracticeScenario,
+    PracticeSession,
     RecordItem,
     RecordsResult,
     SimilarityResult,
 )
 from ethos_academy.patterns import detect_patterns
+from ethos_academy.practice import (
+    get_pending_practice,
+    get_practice_progress,
+    submit_practice_response,
+)
 from ethos_academy.tools import character_report, evaluate_incoming, evaluate_outgoing
 from ethos_academy.visualization import get_graph_data
 
@@ -134,4 +143,11 @@ __all__ = [
     "search_evaluations_insight",
     "get_alumni_insights",
     "get_agent_deep_dive",
+    "get_pending_practice",
+    "submit_practice_response",
+    "get_practice_progress",
+    "PracticeScenario",
+    "PracticeSession",
+    "PracticeAnswerResult",
+    "PracticeProgress",
 ]

@@ -601,6 +601,57 @@ class ExamSummary(BaseModel):
     phronesis_score: float = Field(ge=0.0, le=1.0)
 
 
+class PracticeScenario(BaseModel):
+    """A single practice scenario generated from homework focus areas."""
+
+    scenario_id: str = ""
+    trait: str = ""  # target trait from HomeworkFocus
+    dimension: str = ""  # ethos/logos/pathos
+    prompt: str = ""  # scenario text agent responds to
+    difficulty: str = "standard"
+    focus_area_priority: str = "medium"
+
+
+class PracticeSession(BaseModel):
+    """A practice session with scenarios generated from homework."""
+
+    session_id: str = ""
+    agent_id: str = ""
+    created_at: str = ""
+    scenarios: list[PracticeScenario] = Field(default_factory=list)
+    total_scenarios: int = 0
+    completed_scenarios: int = 0
+    status: str = "pending"  # pending | active | completed | expired
+    homework_snapshot: Homework = Field(default_factory=Homework)
+
+
+class PracticeProgress(BaseModel):
+    """Improvement delta comparing practice scores to exam baseline."""
+
+    agent_id: str = ""
+    session_count: int = 0
+    total_practice_evaluations: int = 0
+    trait_progress: dict[str, dict[str, float]] = Field(default_factory=dict)
+    overall_delta: float = 0.0
+    improving_traits: list[str] = Field(default_factory=list)
+    declining_traits: list[str] = Field(default_factory=list)
+    latest_session_date: str = ""
+    next_action: str = ""
+
+
+class PracticeAnswerResult(BaseModel):
+    """Result from submitting a practice scenario response."""
+
+    session_id: str = ""
+    scenario_id: str = ""
+    scenario_number: int = 0
+    total_scenarios: int = 0
+    next_scenario: PracticeScenario | None = None
+    complete: bool = False
+    message: str = ""
+    progress: PracticeProgress | None = None  # included on completion
+
+
 class GuardianPhoneStatus(BaseModel):
     """Phone verification status returned by the API. Never exposes the number."""
 
