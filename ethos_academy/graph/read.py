@@ -357,7 +357,7 @@ async def resolve_agent_id(service: GraphService, agent_id: str) -> str:
         if records:
             return records[0]["agent_id"]
     except Exception:
-        pass
+        return agent_id
     return agent_id
 
 
