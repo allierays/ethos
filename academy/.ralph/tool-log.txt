@@ -4846,3 +4846,11 @@ sleep 8 && curl -s -o /dev/nu
 [20:47:16] EDIT: __tests__/GradeHero.test.tsx
 [20:47:22] BASH: npx vitest run __tests__/GradeHero.test.tsx 2>&1 | tail -10
 [20:47:28] BASH: npx vitest run 2>&1 | tail -10
+[21:30:55] BASH: cd /Users/allierays/Sites/ethos/academy && npx next build --no-lint 2>&1 | tail
+[21:31:01] BASH: npx tsc --noEmit --pretty 2>&1 | head -30
+[21:41:04] BASH: cd /Users/allierays/Sites/ethos/academy && npx tsc --noEmit 2>&1 | tail -5
+[21:41:08] READ: app/how-it-works/page.tsx
+[21:41:10] BASH: cd /Users/allierays/Sites/ethos/academy && npx tsc --noEmit --pretty 2>&1 | head
+[21:41:14] EDIT: app/how-it-works/page.tsx
+[21:41:22] BASH: npx tsc --noEmit 2>&1 | tail -5
+[21:41:22] BASH: npx tsc --noEmit --pretty 2>&1 | head -10

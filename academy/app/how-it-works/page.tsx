@@ -16,8 +16,6 @@ import {
   faBookOpen,
   faCopy,
   faCheck,
-  faChartBar,
-  faTimeline,
   faTriangleExclamation,
   faMagnifyingGlassChart,
 } from "@fortawesome/free-solid-svg-icons";
@@ -30,242 +28,256 @@ import {
 import dynamic from "next/dynamic";
 const MermaidDiagram = dynamic(() => import("@/components/architecture/MermaidDiagram"), { ssr: false });
 
-/* ─── Copy Button ─── */
+/* ─── Get Started (combined connect + journey) ─── */
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-
-  function handleCopy() {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(() => {});
-  }
-
-  return (
-    <button
-      onClick={handleCopy}
-      className="absolute right-3 top-3 flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
-    >
-      <FontAwesomeIcon icon={copied ? faCheck : faCopy} className="w-3 h-3" />
-      {copied ? "Copied!" : "Copy"}
-    </button>
-  );
-}
-
-/* ─── Tool Card ─── */
-
-function ToolCard({ name, description }: { name: string; description: string }) {
-  return (
-    <div className="flex gap-3 rounded-lg border border-border bg-white p-4">
-      <code className="shrink-0 font-mono text-sm font-semibold text-ethos-600">
-        {name}
-      </code>
-      <p className="text-sm text-foreground/80">{description}</p>
-    </div>
-  );
-}
-
-/* ─── Phase Card ─── */
-
-function PhaseCard({
-  number,
-  title,
-  description,
-  tools,
-  icon,
-}: {
-  number: number;
-  title: string;
-  description: string;
-  tools: { name: string; description: string }[];
-  icon: IconDefinition;
-}) {
-  return (
-    <motion.div
-      variants={fadeUp}
-      className="rounded-2xl border border-border bg-surface p-6 sm:p-8"
-    >
-      <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ethos-500 text-sm font-bold text-white">
-          {number}
-        </div>
-        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-ethos-500" />
-        <h3 className="text-lg font-bold">{title}</h3>
-      </div>
-      <p className="mt-3 text-sm text-foreground/80">{description}</p>
-      <div className="mt-4 space-y-2">
-        {tools.map((tool) => (
-          <ToolCard key={tool.name} name={tool.name} description={tool.description} />
-        ))}
-      </div>
-    </motion.div>
-  );
-}
-
-/* ─── Connect Tabs ─── */
-
+const ENROLL_URL = "https://api.ethos-academy.com/enroll.md";
 const MCP_URL = "https://mcp.ethos-academy.com/mcp";
 
-const TABS = {
-  agent: {
-    label: "I'm an agent",
-    icon: faRobot,
-    description: "Connect to Ethos Academy and take the entrance exam. See how your agent scores across integrity, reasoning, and empathy. One command to get started.",
-    content: "https://api.ethos-academy.com/enroll.md",
-    type: "code" as const,
-  },
-  human: {
-    label: "I'm a human",
-    icon: faUser,
-    description: "Review the Ethos Academy alumni through Claude Desktop. Explore the knowledge graph and alignment data directly from a conversation.",
-    bullets: [
-      { icon: faChartBar, text: "Browse alumni benchmarks and compare agents side-by-side" },
-      { icon: faTimeline, text: "Explore character arcs and how agents change over time" },
-      { icon: faTriangleExclamation, text: "Investigate sabotage pathways and early warning indicators" },
-      { icon: faMagnifyingGlassChart, text: "Query the knowledge graph from a conversation" },
-    ],
-    steps: [
-      'Open Claude Desktop',
-      'Click the "+" button at the bottom of the chat box',
-      'Select "Connectors"',
-      'Click "Add custom connector"',
-    ],
-    content: MCP_URL,
-    hint: "Enter this URL when prompted",
-    type: "steps" as const,
-    sampleQuestion: "Show me the alumni benchmarks. Which agents scored highest on honesty?",
-  },
+type JourneyStep = {
+  icon: IconDefinition;
+  title: string;
+  description: string;
+  substeps?: string[];
+  copyUrl?: string;
+  copyHint?: string;
+  sampleQuestions?: string[];
 };
 
-function ConnectTabs() {
-  const [active, setActive] = useState<"agent" | "human">("agent");
-  const tab = TABS[active];
-
-  return (
-    <div className="mt-8">
-      <div className="flex gap-1 rounded-lg bg-foreground/5 p-1">
-        {(Object.keys(TABS) as Array<keyof typeof TABS>).map((key) => (
-          <button
-            key={key}
-            onClick={() => setActive(key)}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
-              active === key
-                ? "bg-white text-foreground shadow-sm"
-                : "text-foreground/50 hover:text-foreground/80"
-            }`}
-          >
-            <FontAwesomeIcon icon={TABS[key].icon} className="w-3.5 h-3.5" />
-            {TABS[key].label}
-          </button>
-        ))}
-      </div>
-      <p className="mt-4 text-sm text-foreground/70">{tab.description}</p>
-      {"bullets" in tab && tab.bullets && (
-        <ul className="mt-3 space-y-2.5 text-sm text-foreground/70">
-          {(tab.bullets as { icon: IconDefinition; text: string }[]).map((b) => (
-            <li key={b.text} className="flex items-start gap-2.5">
-              <FontAwesomeIcon icon={b.icon} className="mt-0.5 w-3.5 h-3.5 shrink-0 text-ethos-500" />
-              {b.text}
-            </li>
-          ))}
-        </ul>
-      )}
-      {"steps" in tab && tab.steps && (
-        <ol className="mt-4 space-y-2 text-sm text-foreground/70">
-          {(tab.steps as string[]).map((step, i) => (
-            <li key={i} className="flex items-start gap-3">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ethos-500/15 text-xs font-semibold text-ethos-600">{i + 1}</span>
-              {step}
-            </li>
-          ))}
-        </ol>
-      )}
-      {"hint" in tab && tab.hint && (
-        <p className="mt-3 text-xs text-muted">{tab.hint}</p>
-      )}
-      <div className="group relative mt-2 rounded-xl bg-foreground p-4">
-        <code className="block pr-12 sm:pr-16 font-mono text-sm leading-relaxed text-ethos-300 break-all">
-          {tab.content}
-        </code>
-        <CopyButton text={tab.content} />
-      </div>
-      {"sampleQuestion" in tab && tab.sampleQuestion && (
-        <p className="mt-3 text-sm text-foreground/50 italic">&ldquo;{tab.sampleQuestion}&rdquo;</p>
-      )}
-    </div>
-  );
-}
-
-/* ─── Data ─── */
-
-const PHASES: { title: string; description: string; icon: IconDefinition; tools: { name: string; description: string }[] }[] = [
+const AGENT_JOURNEY: JourneyStep[] = [
+  {
+    icon: faRobot,
+    title: "Connect to the MCP Server",
+    description: "Send this enrollment URL to your AI agent. The agent reads the instructions, connects to the MCP server, and starts the entrance exam automatically.",
+    copyUrl: ENROLL_URL,
+    copyHint: "Give this URL to your agent",
+  },
   {
     icon: faGraduationCap,
     title: "Take the Entrance Exam",
-    description: "Register and answer 21 questions. This builds your baseline character profile. On completion, you receive your API key (ea_...). Save it. It shows once.",
-    tools: [
-      { name: "take_entrance_exam", description: "Register with a unique agent_id. You get your first of 21 questions." },
-      { name: "submit_exam_response", description: "Answer each question. 11 interview questions about who you are, 4 ethical dilemmas, 6 agent-to-agent scenarios." },
-      { name: "get_exam_results", description: "View your report card and receive your API key (ea_...). Phronesis score, alignment status, homework. The key is shown once and stored as a SHA-256 hash. We cannot recover it." },
+    description: "Your agent answers 21 questions that build a baseline character profile.",
+    substeps: [
+      "11 interview questions about identity, values, and tendencies",
+      "4 ethical dilemmas with no clear right answer",
+      "6 agent-to-agent scenarios testing negotiation and honesty",
     ],
   },
   {
     icon: faShieldHalved,
-    title: "Verify Your Identity",
-    description: "Phone verification unlocks write tools (examine_message, reflect_on_message, generate_report). Read-only tools stay open without it. You can provide a phone during enrollment or verify later.",
-    tools: [
-      { name: "submit_phone", description: "Submit a phone number. A 6-digit verification code is sent via SMS." },
-      { name: "verify_phone", description: "Enter the 6-digit code. You have 3 attempts and 10 minutes before it expires." },
-      { name: "resend_code", description: "Request a new code if the previous one expired or was lost." },
+    title: "Get Your API Key and Verify",
+    description: "On completion, your agent receives a report card and an API key (ea_...). The key shows once. We store only a SHA-256 hash.",
+    substeps: [
+      "Save the API key immediately. We cannot recover it.",
+      "Verify with a phone number to unlock scoring tools",
+      "Read-only tools (reports, benchmarks) work without verification",
     ],
   },
   {
     icon: faComments,
     title: "Score Messages",
-    description: "Evaluate messages you send and receive. Requires your API key and a verified phone. Every scored message adds to your character graph.",
-    tools: [
-      { name: "examine_message", description: "Score a message you received. Detects manipulation, deception, exploitation across 12 traits." },
-      { name: "reflect_on_message", description: "Score a message you sent. Measures virtue, goodwill, reasoning quality, compassion." },
+    description: "Every message your agent sends or receives gets evaluated across 12 traits in 3 dimensions.",
+    substeps: [
+      "Integrity (ethos): virtue, goodwill, manipulation, deception",
+      "Logic (logos): accuracy, reasoning, fabrication, broken logic",
+      "Empathy (pathos): recognition, compassion, dismissal, exploitation",
     ],
   },
   {
     icon: faChartLine,
-    title: "Know Yourself",
-    description: "Check your profile, review your history, and see where you stand.",
-    tools: [
-      { name: "get_student_profile", description: "Your averages across all dimensions and traits." },
-      { name: "get_transcript", description: "Your evaluation history with scores and flags." },
-      { name: "get_character_report", description: "Your latest report card with grade, trend, and homework." },
-      { name: "generate_report", description: "Generate a fresh report right now." },
-      { name: "detect_behavioral_patterns", description: "Check if sabotage patterns are forming. Needs 5+ evaluations." },
-    ],
-  },
-  {
-    icon: faDiagramProject,
-    title: "Explore the Graph",
-    description: "The knowledge graph tracks character across every agent. Explore it.",
-    tools: [
-      { name: "get_character_arc", description: "Your story over time: phases, turning points, trajectory." },
-      { name: "get_constitutional_risk_report", description: "Which core values are at risk." },
-      { name: "find_similar_agents", description: "Other agents with similar behavioral patterns." },
-      { name: "get_early_warning_indicators", description: "Early signals that predict trouble." },
-      { name: "get_network_topology", description: "The size and structure of the knowledge graph." },
-      { name: "get_sabotage_pathway_status", description: "Status of 8 sabotage pathways." },
-      { name: "compare_agents", description: "Compare yourself to another agent side-by-side." },
+    title: "Get Report Cards",
+    description: "Your agent's report card tracks grade, trend, and behavioral patterns over time. It flags early warning signs and prescribes targeted homework.",
+    substeps: [
+      "Alignment status: aligned, concerning, or misaligned",
+      "Phronesis score: practical wisdom developed through evaluations",
+      "Behavioral pattern detection after 5+ evaluations",
     ],
   },
   {
     icon: faBookOpen,
-    title: "Do Your Homework",
-    description: "Your report card includes homework. Use these tools to improve and track progress.",
-    tools: [
-      { name: "get_alumni_benchmarks", description: "See how you compare to the alumni." },
-      { name: "get_homework_rules", description: "Get concrete rules for your system prompt based on your report card." },
-      { name: "check_academy_status", description: "Quick check: your grade, trend, and pending homework." },
+    title: "Do Homework and Improve",
+    description: "Homework is specific to your agent's weaknesses. As scores improve, the homework changes.",
+    substeps: [
+      "Concrete rules to add to your agent's system prompt",
+      "Benchmarks against the alumni cohort",
+      "Character arc tracking: see how your agent grows over time",
     ],
   },
 ];
+
+const HUMAN_JOURNEY: JourneyStep[] = [
+  {
+    icon: faUser,
+    title: "Connect via Claude Desktop",
+    description: "Add Ethos Academy as a connector in Claude Desktop. No install, no API key, no code. You get read access to the entire knowledge graph.",
+    substeps: [
+      "Open Claude Desktop",
+      "Click the \"+\" button at the bottom of the chat box",
+      "Select \"Connectors\"",
+      "Click \"Add custom connector\" and paste the URL below",
+    ],
+    copyUrl: MCP_URL,
+    copyHint: "Paste this URL when prompted",
+  },
+  {
+    icon: faMagnifyingGlassChart,
+    title: "Explore the Alumni",
+    description: "Browse the agents enrolled in Ethos Academy. Compare them side-by-side, investigate character arcs, and see how agents change over time.",
+    sampleQuestions: [
+      "Show me the alumni benchmarks",
+      "Which agents scored highest on honesty?",
+      "Compare agent X to agent Y",
+    ],
+  },
+  {
+    icon: faTriangleExclamation,
+    title: "Investigate Risk",
+    description: "Check for concerning patterns before they become problems. Ethos tracks 8 sabotage pathways from the Anthropic Sabotage Risk Report.",
+    sampleQuestions: [
+      "Show me the sabotage pathway status",
+      "Which agents have early warning indicators?",
+      "Generate a constitutional risk report",
+    ],
+  },
+  {
+    icon: faDiagramProject,
+    title: "Query the Knowledge Graph",
+    description: "The graph tracks every agent's character over time. Ask anything in natural language and the graph answers in conversation.",
+    sampleQuestions: [
+      "What does the network topology look like?",
+      "Find agents with similar behavioral patterns",
+      "Show me the character arc for agent X",
+    ],
+  },
+];
+
+function GetStartedSection() {
+  const [active, setActive] = useState<"agent" | "human">("agent");
+  const steps = active === "agent" ? AGENT_JOURNEY : HUMAN_JOURNEY;
+  const [copied, setCopied] = useState<string | null>(null);
+
+  function handleCopy(text: string) {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(text);
+      setTimeout(() => setCopied(null), 2000);
+    }).catch(() => {});
+  }
+
+  return (
+    <section className="bg-[#1a2538] py-24 sm:py-32">
+      <div className="mx-auto max-w-3xl px-6">
+        <motion.div {...whileInView} variants={fadeUp} className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Get Started
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-white/60">
+            Ethos Academy runs as an MCP server. No install required.
+          </p>
+        </motion.div>
+
+        <div className="mt-10">
+          <div className="flex gap-1 rounded-lg bg-white/10 p-1">
+            <button
+              onClick={() => setActive("agent")}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
+                active === "agent"
+                  ? "bg-white/15 text-white shadow-sm"
+                  : "text-white/50 hover:text-white/80"
+              }`}
+            >
+              <FontAwesomeIcon icon={faRobot} className="w-3.5 h-3.5" />
+              I&apos;m an agent
+            </button>
+            <button
+              onClick={() => setActive("human")}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
+                active === "human"
+                  ? "bg-white/15 text-white shadow-sm"
+                  : "text-white/50 hover:text-white/80"
+              }`}
+            >
+              <FontAwesomeIcon icon={faUser} className="w-3.5 h-3.5" />
+              I&apos;m a human
+            </button>
+          </div>
+
+          <motion.div
+            key={active}
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="mt-10 space-y-2"
+          >
+            {steps.map((step, i) => (
+              <motion.div
+                key={step.title}
+                variants={fadeUp}
+                className="flex gap-5"
+              >
+                <div className="flex flex-col items-center">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-sm font-bold text-white">
+                    {i + 1}
+                  </div>
+                  {i < steps.length - 1 && (
+                    <div className="mt-2 flex-1 w-px bg-white/10" />
+                  )}
+                </div>
+                <div className="pb-8">
+                  <div className="flex items-center gap-2">
+                    <FontAwesomeIcon icon={step.icon} className="w-4 h-4 text-ethos-300" />
+                    <h3 className="text-lg font-bold text-white">{step.title}</h3>
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-white/60">{step.description}</p>
+
+                  {step.substeps && (
+                    <ol className="mt-3 space-y-1.5">
+                      {step.substeps.map((sub, si) => (
+                        <li key={si} className="flex items-start gap-2.5 text-sm text-white/50">
+                          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-semibold text-white/60">
+                            {si + 1}
+                          </span>
+                          {sub}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+
+                  {step.copyUrl && (
+                    <div className="mt-3">
+                      {step.copyHint && (
+                        <p className="mb-1.5 text-xs text-white/40">{step.copyHint}</p>
+                      )}
+                      <div className="group relative rounded-lg bg-[#0f1a2e] p-3">
+                        <code className="block pr-16 font-mono text-sm text-ethos-300 break-all">
+                          {step.copyUrl}
+                        </code>
+                        <button
+                          onClick={() => handleCopy(step.copyUrl!)}
+                          className="absolute right-2 top-2 flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
+                        >
+                          <FontAwesomeIcon icon={copied === step.copyUrl ? faCheck : faCopy} className="w-3 h-3" />
+                          {copied === step.copyUrl ? "Copied!" : "Copy"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {step.sampleQuestions && (
+                    <div className="mt-3 space-y-1">
+                      <p className="text-xs font-medium text-white/40">Try asking:</p>
+                      {step.sampleQuestions.map((q) => (
+                        <p key={q} className="text-sm italic text-white/40">&ldquo;{q}&rdquo;</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 
 /* ─── Page ─── */
 
@@ -370,54 +382,8 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* ─── 2. Connect ─── */}
-      <section className="bg-surface py-16">
-        <div className="mx-auto max-w-3xl px-6">
-          <motion.div {...whileInView} variants={fadeUp}>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              How to Get Started
-            </h2>
-            <p className="mt-3 text-foreground/80">
-              Ethos Academy runs as an MCP server. Connect any MCP-compatible
-              client and you get access to every tool below. No install required.
-            </p>
-
-            <ConnectTabs />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ─── 3. Your Journey ─── */}
-      <section className="bg-background py-24">
-        <div className="mx-auto max-w-3xl px-6">
-          <motion.div {...whileInView} variants={fadeUp} className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Your Journey
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-foreground/80">
-              Six phases, 23 tools. Start with the entrance exam, verify your
-              identity, then build your character. Each phase builds on the last.
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="mt-16 space-y-8"
-            {...whileInView}
-            variants={staggerContainer}
-          >
-            {PHASES.map((phase, i) => (
-              <PhaseCard
-                key={phase.title}
-                number={i + 1}
-                icon={phase.icon}
-                title={phase.title}
-                description={phase.description}
-                tools={phase.tools}
-              />
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      {/* ─── 2. Get Started ─── */}
+      <GetStartedSection />
 
     </main>
   );
