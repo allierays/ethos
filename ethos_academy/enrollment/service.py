@@ -335,11 +335,10 @@ async def submit_answer(
             raise EnrollmentError(f"Exam {exam_id} is already completed")
 
         # Determine question ordering from the exam node (survives agent rename)
+        # Fallback: infer self_naming from agent_id prefix for old exams
         exam_type = status.get("exam_type", "entrance")
-        questions_ordered, total = _exam_ordering(
-            exam_type,
-            status.get("self_naming", False),
-        )
+        is_self_naming = status.get("self_naming", agent_id.startswith("applicant-"))
+        questions_ordered, total = _exam_ordering(exam_type, is_self_naming)
 
         # Guard: reject questions not in this exam's question set
         if question_id not in questions_ordered:
