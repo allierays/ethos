@@ -147,16 +147,17 @@ class TestStoreEvaluationEarlyExits:
         from ethos_academy.graph.write import store_evaluation
 
         service = _mock_service()
-        # First call (duplicate check) returns empty, second call (store) succeeds
+        # duplicate check + trend history fetch + store
         service.execute_query.side_effect = [
             ([], None, None),  # duplicate check
+            ([], None, None),  # trend history fetch
             ([], None, None),  # store
         ]
 
         result = _make_result()
         await store_evaluation(service, "agent-1", result, message_hash="abc123")
 
-        assert service.execute_query.call_count == 2
+        assert service.execute_query.call_count == 3
 
     async def test_skips_duplicate_check_when_no_hash(self):
         from ethos_academy.graph.write import store_evaluation
@@ -166,24 +167,25 @@ class TestStoreEvaluationEarlyExits:
         result = _make_result()
         await store_evaluation(service, "agent-1", result, message_hash="")
 
-        # Only the store query runs (no duplicate check)
-        assert service.execute_query.call_count == 1
+        # trend history fetch + store (no duplicate check)
+        assert service.execute_query.call_count == 2
 
     async def test_continues_if_duplicate_check_fails(self):
         from ethos_academy.graph.write import store_evaluation
 
         service = _mock_service()
-        # Duplicate check raises, store succeeds
+        # Duplicate check raises, trend fetch + store succeed
         service.execute_query.side_effect = [
             ConnectionError("timeout"),  # duplicate check fails
+            ([], None, None),  # trend history fetch
             ([], None, None),  # store succeeds
         ]
 
         result = _make_result()
         await store_evaluation(service, "agent-1", result, message_hash="abc123")
 
-        # Both calls happen: failed duplicate check + store
-        assert service.execute_query.call_count == 2
+        # All three calls: failed duplicate check + trend fetch + store
+        assert service.execute_query.call_count == 3
 
 
 # ---------------------------------------------------------------------------

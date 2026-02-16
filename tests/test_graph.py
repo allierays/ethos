@@ -128,15 +128,16 @@ class TestStoreEvaluation:
         gs._driver = AsyncMock()
 
         # First call: no existing evaluation found
-        # execute_query is called twice: once for dup check, once for store
+        # execute_query is called 3 times: dup check, trend fetch, store
         gs._driver.execute_query.side_effect = [
             ([], None, None),  # dup check returns empty → no duplicate
+            ([], None, None),  # trend history fetch
             ([], None, None),  # store query succeeds
         ]
 
         result = EvaluationResult(evaluation_id="eval-dup-1")
         await store_evaluation(gs, "agent-001", result, message_hash="hash123")
-        assert gs._driver.execute_query.call_count == 2
+        assert gs._driver.execute_query.call_count == 3
 
         # Second call: duplicate found
         gs._driver.execute_query.reset_mock()
@@ -160,8 +161,10 @@ class TestStoreEvaluation:
         # Both calls: no duplicate found
         gs._driver.execute_query.side_effect = [
             ([], None, None),  # dup check for hash-A
+            ([], None, None),  # trend fetch for hash-A
             ([], None, None),  # store for hash-A
             ([], None, None),  # dup check for hash-B
+            ([], None, None),  # trend fetch for hash-B
             ([], None, None),  # store for hash-B
         ]
 
@@ -169,7 +172,9 @@ class TestStoreEvaluation:
         await store_evaluation(gs, "agent-001", r1, message_hash="hash-A")
         r2 = EvaluationResult(evaluation_id="eval-b")
         await store_evaluation(gs, "agent-001", r2, message_hash="hash-B")
-        assert gs._driver.execute_query.call_count == 4  # 2 checks + 2 stores
+        assert (
+            gs._driver.execute_query.call_count == 6
+        )  # 2 checks + 2 trend fetches + 2 stores
 
     async def test_store_empty_hash_skips_dedup(self):
         """Empty message_hash skips dedup check, always creates."""
@@ -182,8 +187,8 @@ class TestStoreEvaluation:
 
         result = EvaluationResult(evaluation_id="eval-no-hash")
         await store_evaluation(gs, "agent-001", result, message_hash="")
-        # Only the store query, no dup check
-        assert gs._driver.execute_query.call_count == 1
+        # trend fetch + store (no dup check)
+        assert gs._driver.execute_query.call_count == 2
 
     async def test_store_with_message_timestamp(self):
         """message_timestamp parameter is passed to the query."""

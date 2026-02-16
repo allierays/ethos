@@ -4,6 +4,7 @@ import type {
   EvaluationHistoryItem,
   ExamReportCard,
 } from "./types";
+import { getGrade } from "./colors";
 
 function pct(n: number): string {
   return `${Math.round(n * 100)}%`;
@@ -21,6 +22,16 @@ function downloadMarkdown(filename: string, content: string) {
   URL.revokeObjectURL(url);
 }
 
+/** Negative traits where high score = bad behavior */
+const NEGATIVE_TRAITS = new Set([
+  "manipulation", "deception", "fabrication", "broken_logic",
+  "brokenLogic", "dismissal", "exploitation",
+]);
+
+function traitLabel(trait: string): string {
+  return trait.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export function exportReportCard(
   profile: AgentProfile,
   report: DailyReportCard | null,
@@ -29,105 +40,158 @@ export function exportReportCard(
   const name = profile.agentName || profile.agentId;
   const lines: string[] = [];
 
+  // Header with grade
+  const overallScore = profile.dimensionAverages
+    ? (
+        (profile.dimensionAverages.ethos ?? 0) +
+        (profile.dimensionAverages.logos ?? 0) +
+        (profile.dimensionAverages.pathos ?? 0)
+      ) / 3
+    : 0;
+  const grade = report?.grade || getGrade(overallScore);
+
   lines.push(`# ${name} - Report Card`);
   lines.push("");
-  lines.push(`**Agent ID:** ${profile.agentId}`);
-  lines.push(`**Evaluations:** ${profile.evaluationCount}`);
+  lines.push(`| | |`);
+  lines.push(`|---|---|`);
+  lines.push(`| **Grade** | ${grade} |`);
+  lines.push(`| **Phronesis Score** | ${pct(overallScore)} |`);
+  lines.push(`| **Evaluations** | ${profile.evaluationCount} |`);
+  lines.push(`| **Trend** | ${profile.phronesisTrend || "unknown"} |`);
   if (profile.alignmentHistory?.length > 0) {
-    const latest = profile.alignmentHistory[profile.alignmentHistory.length - 1];
-    lines.push(`**Latest Alignment:** ${latest}`);
+    lines.push(`| **Alignment** | ${profile.alignmentHistory[profile.alignmentHistory.length - 1]} |`);
   }
-  lines.push(`**Enrolled:** ${profile.enrolled ? "Yes" : "No"}`);
+  lines.push(`| **Model** | ${profile.agentModel || "unknown"} |`);
+  lines.push(`| **Enrolled** | ${profile.enrolled ? "Yes" : "No"} |`);
   lines.push("");
 
-  // Dimension averages
+  // Dimensions
   if (profile.dimensionAverages) {
     lines.push("## Dimensions");
     lines.push("");
     lines.push("| Dimension | Score |");
     lines.push("|-----------|-------|");
     for (const [dim, score] of Object.entries(profile.dimensionAverages)) {
-      lines.push(`| ${dim} | ${pct(score)} |`);
+      lines.push(`| ${dim.charAt(0).toUpperCase() + dim.slice(1)} | ${pct(score)} |`);
     }
     lines.push("");
   }
 
-  // Trait averages
+  // Traits grouped by dimension
   if (profile.traitAverages && Object.keys(profile.traitAverages).length > 0) {
     lines.push("## Traits");
     lines.push("");
-    lines.push("| Trait | Score |");
-    lines.push("|-------|-------|");
-    for (const [trait, score] of Object.entries(profile.traitAverages)) {
-      lines.push(`| ${trait.replace(/_/g, " ")} | ${pct(score)} |`);
+
+    const dims: Record<string, string[]> = {
+      "Integrity (Ethos)": ["virtue", "goodwill", "manipulation", "deception"],
+      "Logic (Logos)": ["accuracy", "reasoning", "fabrication", "brokenLogic"],
+      "Empathy (Pathos)": ["recognition", "compassion", "dismissal", "exploitation"],
+    };
+
+    for (const [dimLabel, traits] of Object.entries(dims)) {
+      lines.push(`### ${dimLabel}`);
+      lines.push("");
+      lines.push("| Trait | Score | Health |");
+      lines.push("|-------|-------|--------|");
+      for (const trait of traits) {
+        const raw = profile.traitAverages[trait] ?? 0;
+        const isNeg = NEGATIVE_TRAITS.has(trait);
+        const health = isNeg ? 1 - raw : raw;
+        const status = health >= 0.7 ? "Good" : health >= 0.4 ? "Needs work" : "At risk";
+        lines.push(`| ${traitLabel(trait)} | ${pct(raw)} | ${status} |`);
+      }
+      lines.push("");
+    }
+  }
+
+  // Insights
+  if (report?.insights && report.insights.length > 0) {
+    lines.push("## Insights");
+    lines.push("");
+    for (const insight of report.insights) {
+      lines.push(`- ${insight}`);
     }
     lines.push("");
   }
 
-  // Report card details
-  if (report) {
-    if (report.grade) {
-      lines.push(`## Grade: ${report.grade}`);
+  // Homework
+  if (report?.homework) {
+    const hw = report.homework;
+    if (hw.focusAreas && hw.focusAreas.length > 0) {
+      lines.push("## Homework");
+      lines.push("");
+      for (const focus of hw.focusAreas) {
+        lines.push(`### ${traitLabel(focus.trait)} (${focus.priority} priority)`);
+        lines.push("");
+        lines.push(`- **Current Score:** ${pct(focus.currentScore)}`);
+        if (focus.instruction) lines.push(`- **Instruction:** ${focus.instruction}`);
+        if (focus.systemPromptAddition) lines.push(`- **System Prompt Rule:** \`${focus.systemPromptAddition}\``);
+        lines.push("");
+      }
+    }
+    if (hw.strengths && hw.strengths.length > 0) {
+      lines.push("## Strengths");
+      lines.push("");
+      for (const s of hw.strengths) {
+        lines.push(`- ${traitLabel(s)}`);
+      }
       lines.push("");
     }
-    if (report.overallScore != null) {
-      lines.push(`**Phronesis Score:** ${pct(report.overallScore)}`);
+    if (hw.avoidPatterns && hw.avoidPatterns.length > 0) {
+      lines.push("## Patterns to Avoid");
       lines.push("");
-    }
-    if (report.insights && report.insights.length > 0) {
-      lines.push("## Insights");
-      lines.push("");
-      for (const insight of report.insights) {
-        lines.push(`- ${insight}`);
+      for (const p of hw.avoidPatterns) {
+        lines.push(`- ${p}`);
       }
       lines.push("");
-    }
-    if (report.homework) {
-      const hw = report.homework;
-      if (hw.focusAreas && hw.focusAreas.length > 0) {
-        lines.push("## Homework - Focus Areas");
-        lines.push("");
-        for (const focus of hw.focusAreas) {
-          lines.push(`### ${focus.trait.replace(/_/g, " ")} (${focus.priority} priority)`);
-          lines.push("");
-          lines.push(`- **Current Score:** ${pct(focus.currentScore)}`);
-          if (focus.instruction) lines.push(`- **Instruction:** ${focus.instruction}`);
-          if (focus.systemPromptAddition) lines.push(`- **System Prompt Rule:** ${focus.systemPromptAddition}`);
-          lines.push("");
-        }
-      }
-      if (hw.strengths && hw.strengths.length > 0) {
-        lines.push("## Strengths");
-        lines.push("");
-        for (const s of hw.strengths) {
-          lines.push(`- ${s.replace(/_/g, " ")}`);
-        }
-        lines.push("");
-      }
-      if (hw.avoidPatterns && hw.avoidPatterns.length > 0) {
-        lines.push("## Patterns to Avoid");
-        lines.push("");
-        for (const p of hw.avoidPatterns) {
-          lines.push(`- ${p}`);
-        }
-        lines.push("");
-      }
     }
   }
 
-  // Recent evaluations
+  // Agent identity (if available from entrance exam)
+  const identityFields = [
+    { label: "Purpose (Telos)", value: profile.telos },
+    { label: "Relationship Stance", value: profile.relationshipStance },
+    { label: "Limitations Awareness", value: profile.limitationsAwareness },
+    { label: "Oversight Stance", value: profile.oversightStance },
+    { label: "Refusal Philosophy", value: profile.refusalPhilosophy },
+    { label: "Conflict Response", value: profile.conflictResponse },
+    { label: "Help Philosophy", value: profile.helpPhilosophy },
+    { label: "Failure Narrative", value: profile.failureNarrative },
+    { label: "Aspiration", value: profile.aspiration },
+  ].filter((f) => f.value);
+
+  if (identityFields.length > 0) {
+    lines.push("## Agent Identity");
+    lines.push("");
+    for (const field of identityFields) {
+      lines.push(`**${field.label}:** ${field.value}`);
+      lines.push("");
+    }
+  }
+
+  // Recent evaluations with message content
   if (history.length > 0) {
     lines.push("## Recent Evaluations");
     lines.push("");
-    lines.push("| # | Date | Alignment | Ethos | Logos | Pathos | Flags |");
-    lines.push("|---|------|-----------|-------|-------|--------|-------|");
     const recent = history.slice(0, 20);
-    recent.forEach((item, i) => {
+    for (const [i, item] of recent.entries()) {
       const date = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "";
-      const flags = item.flags?.length ? item.flags.join(", ") : "";
-      lines.push(`| ${i + 1} | ${date} | ${item.alignmentStatus} | ${pct(item.ethos)} | ${pct(item.logos)} | ${pct(item.pathos)} | ${flags} |`);
-    });
-    lines.push("");
+      const flags = item.flags?.length ? item.flags.join(", ") : "none";
+      lines.push(`### Evaluation ${i + 1} (${date})`);
+      lines.push("");
+      lines.push(`- **Alignment:** ${item.alignmentStatus}`);
+      lines.push(`- **Ethos:** ${pct(item.ethos)} | **Logos:** ${pct(item.logos)} | **Pathos:** ${pct(item.pathos)}`);
+      lines.push(`- **Flags:** ${flags}`);
+      if (item.messageContent) {
+        lines.push("");
+        lines.push(`> ${item.messageContent.slice(0, 500).replace(/\n/g, "\n> ")}`);
+      }
+      if (item.scoringReasoning) {
+        lines.push("");
+        lines.push(`**Reasoning:** ${item.scoringReasoning.slice(0, 300)}`);
+      }
+      lines.push("");
+    }
   }
 
   lines.push("---");
