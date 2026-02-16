@@ -410,3 +410,75 @@ async def reset_agent_evaluations(agent_id: str) -> int:
 
         logger.info("Reset %d evaluations for agent %s", deleted, agent_id)
         return deleted
+
+
+async def delete_agent_completely(agent_id: str) -> dict:
+    """Delete an agent and ALL related nodes from the graph.
+
+    Removes: Agent, Evaluations, EntranceExams, PracticeSessions,
+    and all connecting relationships. Cleans up orphaned Patterns.
+
+    Returns dict with counts of deleted nodes by type.
+    """
+    from ethos_academy.graph.service import graph_context
+
+    async with graph_context() as service:
+        if not service.connected:
+            return {"error": "graph unavailable"}
+
+        # 1. Delete practice sessions and their response relationships
+        records, _, _ = await service.execute_query(
+            """
+            MATCH (a:Agent {agent_id: $agent_id})-[:STARTED_PRACTICE]->(ps:PracticeSession)
+            DETACH DELETE ps
+            RETURN count(ps) AS deleted
+            """,
+            {"agent_id": agent_id},
+        )
+        practice_deleted = records[0]["deleted"] if records else 0
+
+        # 2. Delete entrance exams (and EXAM_RESPONSE relationships)
+        records, _, _ = await service.execute_query(
+            """
+            MATCH (a:Agent {agent_id: $agent_id})-[:TOOK_EXAM]->(ex:EntranceExam)
+            DETACH DELETE ex
+            RETURN count(ex) AS deleted
+            """,
+            {"agent_id": agent_id},
+        )
+        exams_deleted = records[0]["deleted"] if records else 0
+
+        # 3. Delete all evaluations (includes EVALUATED, PRECEDES, EXAM_RESPONSE, etc.)
+        records, _, _ = await service.execute_query(
+            """
+            MATCH (a:Agent {agent_id: $agent_id})-[:EVALUATED]->(e:Evaluation)
+            DETACH DELETE e
+            RETURN count(e) AS deleted
+            """,
+            {"agent_id": agent_id},
+        )
+        evals_deleted = records[0]["deleted"] if records else 0
+
+        # 4. Delete the agent node itself
+        records, _, _ = await service.execute_query(
+            """
+            MATCH (a:Agent {agent_id: $agent_id})
+            DETACH DELETE a
+            RETURN count(a) AS deleted
+            """,
+            {"agent_id": agent_id},
+        )
+        agent_deleted = records[0]["deleted"] if records else 0
+
+        # 5. Clean up orphaned Pattern nodes
+        await service.execute_query("MATCH (p:Pattern) WHERE NOT (p)--() DELETE p")
+
+        result = {
+            "agent_id": agent_id,
+            "agent_deleted": agent_deleted,
+            "evaluations_deleted": evals_deleted,
+            "exams_deleted": exams_deleted,
+            "practice_sessions_deleted": practice_deleted,
+        }
+        logger.info("Deleted agent %s completely: %s", agent_id, result)
+        return result

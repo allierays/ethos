@@ -1030,3 +1030,14 @@ async def reset_agent_evaluations_endpoint(agent_id: str):
 
     deleted = await reset_agent_evaluations(agent_id)
     return {"agent_id": agent_id, "evaluations_deleted": deleted}
+
+
+@app.delete(
+    "/admin/agent/{agent_id}",
+    dependencies=[Depends(require_api_key)],
+)
+async def delete_agent_endpoint(agent_id: str):
+    """Delete an agent and all related nodes (evaluations, exams, practice sessions)."""
+    from ethos_academy.graph.write import delete_agent_completely
+
+    return await delete_agent_completely(agent_id)
