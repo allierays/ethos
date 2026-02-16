@@ -250,7 +250,7 @@ function getTraitTags(traitAverages: Record<string, number>): {
   };
 }
 
-export default function AlumniClient({ initialAgents }: { initialAgents: AgentSummary[] }) {
+export default function AlumniClient({ initialAgents, initialError }: { initialAgents: AgentSummary[]; initialError?: string | null }) {
   const [query, setQuery] = useState("");
   // Dedup by agentId: keep the entry with highest evaluationCount
   const dedupedAgents = useMemo(() => {
@@ -274,7 +274,7 @@ export default function AlumniClient({ initialAgents }: { initialAgents: AgentSu
   const [sortBy, setSortBy] = useState<SortKey>("name");
 
   const loading = false;
-  const error: string | null = initialAgents.length === 0 ? null : null;
+  const error: string | null = initialError ?? null;
 
   /* Precomputed metadata per agent */
   const agentMeta = useMemo(

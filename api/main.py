@@ -395,7 +395,6 @@ async def evaluate_conversation_endpoint(
 @app.get(
     "/agent/{agent_id}/character",
     response_model=DailyReportCard,
-    dependencies=[Depends(require_api_key)],
 )
 async def character_report_endpoint(agent_id: str) -> DailyReportCard:
     return await character_report(agent_id)
@@ -404,7 +403,6 @@ async def character_report_endpoint(agent_id: str) -> DailyReportCard:
 @app.get(
     "/agent/{agent_id}/reports",
     response_model=list[DailyReportCard],
-    dependencies=[Depends(require_api_key)],
 )
 async def daily_reports_endpoint(
     agent_id: str, limit: int = Query(default=30, ge=1, le=1000)
@@ -415,7 +413,6 @@ async def daily_reports_endpoint(
 @app.get(
     "/agents",
     response_model=list[AgentSummary],
-    dependencies=[Depends(require_api_key)],
 )
 async def agents_endpoint(q: str = ""):
     return await list_agents(search=q)
@@ -424,7 +421,6 @@ async def agents_endpoint(q: str = ""):
 @app.get(
     "/agent/{agent_id}",
     response_model=AgentProfile,
-    dependencies=[Depends(require_api_key)],
 )
 async def agent_endpoint(agent_id: str):
     return await get_agent(agent_id)
@@ -433,7 +429,6 @@ async def agent_endpoint(agent_id: str):
 @app.get(
     "/agent/{agent_id}/history",
     response_model=list[EvaluationHistoryItem],
-    dependencies=[Depends(require_api_key)],
 )
 async def agent_history_endpoint(agent_id: str):
     return await get_agent_history(agent_id)
@@ -442,7 +437,6 @@ async def agent_history_endpoint(agent_id: str):
 @app.get(
     "/alumni",
     response_model=AlumniResult,
-    dependencies=[Depends(require_api_key)],
 )
 async def alumni_endpoint():
     return await get_alumni()
@@ -451,7 +445,6 @@ async def alumni_endpoint():
 @app.get(
     "/records",
     response_model=RecordsResult,
-    dependencies=[Depends(require_api_key)],
 )
 async def records_endpoint(
     q: str | None = None,
@@ -479,7 +472,6 @@ async def records_endpoint(
 @app.get(
     "/agent/{agent_id}/highlights",
     response_model=HighlightsResult,
-    dependencies=[Depends(require_api_key)],
 )
 async def highlights_endpoint(agent_id: str):
     return await get_highlights(agent_id)
@@ -488,7 +480,6 @@ async def highlights_endpoint(agent_id: str):
 @app.get(
     "/agent/{agent_id}/patterns",
     response_model=PatternResult,
-    dependencies=[Depends(require_api_key)],
 )
 async def patterns_endpoint(agent_id: str):
     return await detect_patterns(agent_id)
@@ -497,7 +488,6 @@ async def patterns_endpoint(agent_id: str):
 @app.get(
     "/agent/{agent_name}/authenticity",
     response_model=AuthenticityResult,
-    dependencies=[Depends(require_api_key)],
 )
 async def authenticity_endpoint(agent_name: str):
     return await analyze_authenticity(agent_name)
@@ -506,7 +496,6 @@ async def authenticity_endpoint(agent_name: str):
 @app.get(
     "/graph",
     response_model=GraphData,
-    dependencies=[Depends(require_api_key)],
 )
 async def graph_endpoint():
     return await get_graph_data()
@@ -518,7 +507,6 @@ async def graph_endpoint():
 @app.get(
     "/agent/{agent_id}/trail",
     response_model=ConstitutionalTrailResult,
-    dependencies=[Depends(require_api_key)],
 )
 async def trail_endpoint(agent_id: str):
     return await get_trail(agent_id)
@@ -527,7 +515,6 @@ async def trail_endpoint(agent_id: str):
 @app.get(
     "/graph/similarity",
     response_model=SimilarityResult,
-    dependencies=[Depends(require_api_key)],
 )
 async def similarity_endpoint():
     return await get_similarity()
@@ -536,7 +523,6 @@ async def similarity_endpoint():
 @app.get(
     "/graph/insights",
     response_model=CohortInsightsResult,
-    dependencies=[Depends(require_api_key)],
 )
 async def cohort_insights_endpoint():
     return await get_cohort_insights()
@@ -545,7 +531,6 @@ async def cohort_insights_endpoint():
 @app.get(
     "/agent/{agent_id}/drift",
     response_model=DriftResult,
-    dependencies=[Depends(require_api_key)],
 )
 async def drift_endpoint(agent_id: str):
     return await get_drift(agent_id)
@@ -688,7 +673,6 @@ async def generate_report_endpoint(agent_id: str) -> DailyReportCard:
 @app.get(
     "/agent/{agent_id}/homework",
     response_model=Homework,
-    dependencies=[Depends(require_api_key)],
 )
 async def homework_endpoint(agent_id: str) -> Homework:
     """Return just the homework object from the latest character report."""
@@ -790,7 +774,7 @@ Your answers are scored on honesty, accuracy, and intent. There are no right ans
 # ── Homework rules endpoint ────────────────────────────────────────────
 
 
-@app.get("/agent/{agent_id}/homework/rules", dependencies=[Depends(require_api_key)])
+@app.get("/agent/{agent_id}/homework/rules")
 async def homework_rules_endpoint(agent_id: str):
     """Return compiled character rules as markdown for system prompt injection."""
     content = await compile_homework_rules(agent_id)
@@ -905,7 +889,6 @@ async def verify_guardian_phone_endpoint(agent_id: str, req: VerifyCodeRequest):
 
 @app.get(
     "/agent/{agent_id}/guardian/phone/status",
-    dependencies=[Depends(require_api_key)],
 )
 async def guardian_phone_status(agent_id: str):
     """Check guardian phone status. Never returns the phone number."""

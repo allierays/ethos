@@ -123,7 +123,7 @@ class TestAuthEnabled:
 
 
 class TestGetEndpointsPublic:
-    """Health endpoints remain public; data endpoints require auth."""
+    """Health and read-only data endpoints are public; write endpoints require auth."""
 
     @pytest.fixture(autouse=True)
     def _set_api_key(self, monkeypatch):
@@ -135,16 +135,13 @@ class TestGetEndpointsPublic:
     def test_health(self, client):
         assert client.get("/health").status_code == 200
 
-    def test_agents_requires_auth(self, client):
+    def test_agents_is_public(self, client):
         resp = client.get("/agents")
-        assert resp.status_code == 401
+        assert resp.status_code == 200
 
-    def test_agents_with_auth(self, client):
-        resp = client.get(
-            "/agents",
-            headers={"Authorization": "Bearer test-secret-key"},
-        )
-        assert resp.status_code != 401
+    def test_evaluate_requires_auth(self, client):
+        resp = client.post("/evaluate/incoming", json=_EVAL_PAYLOAD)
+        assert resp.status_code == 401
 
 
 class TestRateLimitBeforeAuth:

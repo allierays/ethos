@@ -60,6 +60,8 @@ services:
       - "127.0.0.1:3000:3000"
     expose:
       - "3000"
+    environment:
+      - PITCH_VIDEO=${PITCH_VIDEO:-}
     depends_on:
       app:
         condition: service_healthy

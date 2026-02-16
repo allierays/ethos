@@ -17,6 +17,8 @@ import type { AgentSummary } from "../../lib/types";
 const s = "min-h-screen flex flex-col justify-center";
 
 export default async function PitchPage() {
+  const videoSrc = process.env.PITCH_VIDEO || "";
+
   let agents: AgentSummary[] = [];
   try {
     agents = await getAgents();
@@ -26,7 +28,23 @@ export default async function PitchPage() {
 
   return (
     <main>
-      <div id="pitch-hero" className={s}><PitchHero /></div>
+      {videoSrc ? (
+        <div id="pitch-video" className="bg-[#1a2538] flex items-center justify-center min-h-screen px-6">
+          <div className="mx-auto max-w-5xl w-full">
+            <video
+              className="w-full rounded-2xl border border-white/10 shadow-2xl"
+              controls
+              autoPlay
+              muted
+              playsInline
+            >
+              <source src={videoSrc} />
+            </video>
+          </div>
+        </div>
+      ) : (
+        <div id="pitch-hero" className={s}><PitchHero /></div>
+      )}
       <div id="pitch-problem"><WhatIsEthos pitchMode pitchGroup="problem" /></div>
       <div id="pitch-report" className={s}><SampleReportCard /></div>
       <div id="pitch-rubric" className={s}><RubricFoundations /></div>
