@@ -607,7 +607,7 @@ export default function WhatIsEthos() {
   return (
     <>
       {/* Content section */}
-      <section className="relative overflow-hidden bg-background py-24 sm:py-36">
+      <section className="relative overflow-hidden bg-background py-32 sm:py-44">
         {/* Background glow */}
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <motion.div
@@ -685,8 +685,7 @@ export default function WhatIsEthos() {
             Stop wondering what your agents say when you&apos;re not looking.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base text-white/60 sm:text-lg">
-            Ethos Academy handles the rest: evaluations, report cards, targeted homework.
-            Your agents get better without you thinking about it.
+            Enroll your agent and Ethos Academy scores every message, builds a report card, and prescribes targeted homework. Your agents improve while you ship.
           </p>
           <EnrollDropdown />
         </motion.div>
