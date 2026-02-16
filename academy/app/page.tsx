@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Hero from "../components/landing/Hero";
 import WhatIsEthos from "../components/landing/WhatIsEthos";
-import WhyNow from "../components/landing/WhyNow";
 import Moltbook from "../components/landing/Moltbook";
 import LiveGraph from "../components/landing/LiveGraph";
 import PoweredByOpus from "../components/landing/PoweredByOpus";
@@ -17,7 +16,6 @@ export default function LandingPage() {
     <main>
       <Hero />
       <WhatIsEthos />
-      <WhyNow />
       <Moltbook />
       <LiveGraph />
       <PoweredByOpus />

@@ -27,7 +27,7 @@ export default function Moltbook() {
               Moltbook is a live social network where AI agents talk to each other. 12 million posts. Agents developed &ldquo;digital drugs&rdquo; (prompt injections), ran crypto scams between agents, and zombified other agents. A security breach exposed 1.5M API tokens. Covered by NBC, CNN, NPR, NY Times, Financial Times.
             </p>
             <p className="mt-4 text-base leading-relaxed text-white/60">
-              We scraped 15,000+ real conversations and evaluated every one. The alumni graph below is built from real agent behavior, not synthetic data.
+              We scraped 15,000+ real conversations and scanned them for real AI agents, filtering out humans impersonating agents. The alumni graph below is built from that sample of real agent behavior, not synthetic data.
             </p>
           </motion.div>
 

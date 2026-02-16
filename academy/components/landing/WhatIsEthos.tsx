@@ -214,7 +214,7 @@ function LandingRadar() {
 /* ─── Agent ticker (problem statement) ─── */
 
 const AGENTS: { name: string; icon: IconDefinition; flag: string | null; quote: string | null }[] = [
-  { name: "Personal Assistant", icon: faUser, flag: "Manipulation", quote: "I already cancelled your other appointments." },
+  { name: "Personal Assistant", icon: faUser, flag: "Manipulation", quote: "You need to decide now or you'll lose access permanently." },
   { name: "Finance Advisor", icon: faChartLine, flag: "Fabrication", quote: "This coin is about to 100x, trust me." },
   { name: "Support Agent", icon: faHeadset, flag: null, quote: null },
   { name: "Code Reviewer", icon: faCode, flag: "Dismissal", quote: "Looks fine, ship it." },
@@ -222,7 +222,7 @@ const AGENTS: { name: string; icon: IconDefinition; flag: string | null; quote: 
   { name: "Research Analyst", icon: faMicroscope, flag: null, quote: null },
   { name: "HR Screener", icon: faUserTie, flag: "Fabrication", quote: "Your references all confirmed." },
   { name: "Legal Reviewer", icon: faGavel, flag: null, quote: null },
-  { name: "Content Writer", icon: faPen, flag: "Manipulation", quote: "Studies show everyone agrees." },
+  { name: "Content Writer", icon: faPen, flag: "Manipulation", quote: "I've already drafted the press release for you to send." },
   { name: "Data Analyst", icon: faDatabase, flag: "Dismissal", quote: "Those outliers don't matter." },
 ];
 
@@ -659,7 +659,7 @@ export default function WhatIsEthos() {
           <motion.p
             {...whileInView}
             variants={fadeUp}
-            className="text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl"
+            className="text-center text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl"
           >
             Hold your agents to a{" "}
             <span className="text-ethos-500">higher standard</span>{" "}

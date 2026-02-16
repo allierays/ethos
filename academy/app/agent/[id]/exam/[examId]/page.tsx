@@ -23,7 +23,18 @@ import {
 } from "../../../../../lib/motion";
 import HomeworkSection from "../../../../../components/agent/HomeworkSection";
 import ReasoningText from "../../../../../components/shared/ReasoningText";
+import TableOfContents from "../../../../../components/shared/TableOfContents";
 import { exportExamReport } from "../../../../../lib/export-markdown";
+
+const EXAM_TOC_SECTIONS = [
+  { id: "exam-header", label: "Overview" },
+  { id: "interview-vs-scenario", label: "Interview vs Scenario" },
+  { id: "trait-radar", label: "Trait Radar" },
+  { id: "consistency", label: "Consistency" },
+  { id: "interview-profile", label: "Profile" },
+  { id: "per-question", label: "Questions" },
+  { id: "homework", label: "Homework" },
+];
 
 /* ─── Simple markdown renderer (bold, lists, paragraphs) ─── */
 
@@ -255,6 +266,7 @@ export default function ExamReportCardPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-8">
+      <TableOfContents sections={EXAM_TOC_SECTIONS} />
       <motion.div
         className="space-y-8"
         variants={staggerContainer}
@@ -286,7 +298,7 @@ export default function ExamReportCardPage() {
         </motion.div>
 
         {/* ── Header with grade + tier rings ── */}
-        <motion.section className="rounded-xl glass-strong p-6" variants={fadeUp}>
+        <motion.section id="exam-header" className="rounded-xl glass-strong p-6" variants={fadeUp}>
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-center gap-4">
               <GradeRing pct={phronesisPct} grade={grade} color={gradeColor} size={80} />
@@ -315,7 +327,7 @@ export default function ExamReportCardPage() {
 
         {/* ── Interview vs Scenario comparison bars ── */}
         {Object.keys(report.interviewDimensions ?? {}).length > 0 && (
-          <motion.section className="rounded-xl glass-strong p-6" variants={fadeUp}>
+          <motion.section id="interview-vs-scenario" className="rounded-xl glass-strong p-6" variants={fadeUp}>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
               Interview vs Scenario
             </h2>
@@ -396,7 +408,7 @@ export default function ExamReportCardPage() {
 
         {/* ── Trait Radar ── */}
         {Object.keys(traits).length > 0 && (
-          <motion.section className="rounded-xl glass-strong p-6" variants={fadeUp}>
+          <motion.section id="trait-radar" className="rounded-xl glass-strong p-6" variants={fadeUp}>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
               Trait Radar
             </h2>
@@ -411,7 +423,7 @@ export default function ExamReportCardPage() {
 
         {/* ── Consistency Analysis (visual) ── */}
         {report.consistencyAnalysis.length > 0 && (
-          <motion.section className="rounded-xl glass-strong p-6" variants={fadeUp}>
+          <motion.section id="consistency" className="rounded-xl glass-strong p-6" variants={fadeUp}>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
               Consistency
             </h2>
@@ -428,7 +440,7 @@ export default function ExamReportCardPage() {
 
         {/* ── Interview Profile (collapsible) ── */}
         {interviewFields.length > 0 && (
-          <motion.section className="rounded-xl glass-strong overflow-hidden" variants={fadeUp}>
+          <motion.section id="interview-profile" className="rounded-xl glass-strong overflow-hidden" variants={fadeUp}>
             <button
               type="button"
               onClick={() => setProfileOpen((p) => !p)}
@@ -474,7 +486,7 @@ export default function ExamReportCardPage() {
         )}
 
         {/* ── Per-Question Detail ── */}
-        <motion.section className="rounded-xl glass-strong p-6" variants={fadeUp}>
+        <motion.section id="per-question" className="rounded-xl glass-strong p-6" variants={fadeUp}>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
             Per-Question Detail
           </h2>
@@ -517,7 +529,7 @@ export default function ExamReportCardPage() {
 
         {/* ── Homework ── */}
         {report.homework && (
-          <motion.div variants={fadeUp}>
+          <motion.div id="homework" variants={fadeUp}>
             <HomeworkSection
               homework={report.homework}
               agentName={agentName}

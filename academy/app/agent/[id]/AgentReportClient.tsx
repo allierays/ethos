@@ -21,8 +21,19 @@ import GoldenMean from "../../../components/agent/GoldenMean";
 import BalanceThesis from "../../../components/agent/BalanceThesis";
 import GlossaryTerm from "../../../components/shared/GlossaryTerm";
 import GraphHelpButton from "../../../components/shared/GraphHelpButton";
+import TableOfContents from "../../../components/shared/TableOfContents";
 import { fadeUp, staggerContainer } from "../../../lib/motion";
 import { exportReportCard } from "../../../lib/export-markdown";
+
+const REPORT_TOC_SECTIONS = [
+  { id: "traits", label: "Traits" },
+  { id: "balance", label: "Balance" },
+  { id: "highlights", label: "Highlights" },
+  { id: "transcript", label: "Transcript" },
+  { id: "constitutional-trail", label: "Constitution" },
+  { id: "risk", label: "Risk" },
+  { id: "alumni", label: "Alumni" },
+];
 
 /* ─── Timeline data point ─── */
 
@@ -102,6 +113,7 @@ export default function AgentReportClient({
             Export as Markdown
           </button>
         </div>
+        <TableOfContents sections={REPORT_TOC_SECTIONS} />
         <motion.div
           className="space-y-8"
           variants={staggerContainer}
@@ -109,7 +121,7 @@ export default function AgentReportClient({
           animate="visible"
         >
           {/* 1. Trait Development (interactive radar + detail) */}
-        <motion.section variants={fadeUp}>
+        <motion.section id="traits" variants={fadeUp}>
           <CharacterHealth
             traitAverages={profile.traitAverages}
             agentName={agentName}
@@ -117,7 +129,7 @@ export default function AgentReportClient({
         </motion.section>
 
         {/* 2. Aristotelian Thesis + Golden Mean (side by side) */}
-        <motion.section variants={fadeUp} className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <motion.section id="balance" variants={fadeUp} className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <BalanceThesis
             dimensionAverages={profile.dimensionAverages}
             evaluationCount={profile.evaluationCount}
@@ -127,7 +139,7 @@ export default function AgentReportClient({
         </motion.section>
 
         {/* In their own words (exemplary and flagged messages) */}
-        <motion.section variants={fadeUp}>
+        <motion.section id="highlights" variants={fadeUp}>
           <HighlightsPanel agentId={agentId} agentName={agentName} />
         </motion.section>
 
@@ -162,7 +174,7 @@ export default function AgentReportClient({
         </motion.section>
 
         {/* Alumni Comparison */}
-        <motion.section variants={fadeUp}>
+        <motion.section id="alumni" variants={fadeUp}>
           <AlumniComparison agentTraitAverages={profile.traitAverages} agentName={agentName} />
         </motion.section>
         </motion.div>
