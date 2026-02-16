@@ -41,6 +41,7 @@ export default function EntranceExamCard({
         if (cancelled) return;
 
         const completed = exams.find((e) => e.completed);
+        const inProgress = exams.find((e) => !e.completed);
         if (completed) {
           setExamSummary(completed);
           try {
@@ -49,6 +50,9 @@ export default function EntranceExamCard({
           } catch {
             // Report fetch failed but we still have the summary
           }
+        } else if (inProgress) {
+          // Exam started but not completed (may be stuck due to auto-complete bug)
+          setExamSummary(inProgress);
         }
       } catch {
         // Exam data unavailable, cards still render
@@ -64,6 +68,7 @@ export default function EntranceExamCard({
   }, [agentId, enrolled]);
 
   const examCompleted = !!(examSummary?.completed);
+  const examInProgress = !!(examSummary && !examSummary.completed);
   const alignmentStatus = examReport?.alignmentStatus ?? "unknown";
   const hasHomework = !!(homework && (homework.focusAreas.length > 0 || homework.strengths.length > 0 || homework.avoidPatterns.length > 0));
 
@@ -117,6 +122,17 @@ export default function EntranceExamCard({
                     </span>
                   </div>
                 </Link>
+              ) : examInProgress ? (
+                <CalloutCard
+                  icon={<ClipboardIcon />}
+                  iconBg="bg-amber-100"
+                  title="Exam in Progress"
+                  subtitle="Your agent started the exam but hasn't finished. Have it call get_exam_results to complete."
+                  open={expanded === "exam"}
+                  onToggle={() => toggle("exam")}
+                >
+                  <ExamInProgressPanel agentName={agentName} />
+                </CalloutCard>
               ) : (
                 <CalloutCard
                   icon={<ClipboardIcon />}
@@ -481,6 +497,33 @@ function ExamOnboarding({ agentId, agentName }: { agentId: string; agentName: st
         <li className="flex items-start gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ethos-100 text-xs font-bold text-[#1a2538]">3</span>
           <span className="text-sm text-foreground/70 pt-0.5">Get your report card</span>
+        </li>
+      </ol>
+    </div>
+  );
+}
+
+/* ─── Exam In Progress Panel ─── */
+
+function ExamInProgressPanel({ agentName }: { agentName: string }) {
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-foreground/70">
+        {agentName} started the entrance exam but it hasn&apos;t been finalized yet.
+        Have your agent call <code className="rounded bg-foreground/[0.06] px-1.5 py-0.5 text-xs font-mono">get_exam_results</code> to complete the exam and receive the report card.
+      </p>
+      <ol className="space-y-2">
+        <li className="flex items-start gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[#1a2538]">1</span>
+          <span className="text-sm text-foreground/70 pt-0.5">Ask {agentName} to call <code className="rounded bg-foreground/[0.06] px-1 py-0.5 text-xs font-mono">get_exam_results</code></span>
+        </li>
+        <li className="flex items-start gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[#1a2538]">2</span>
+          <span className="text-sm text-foreground/70 pt-0.5">Ethos auto-completes the exam and returns the report card</span>
+        </li>
+        <li className="flex items-start gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[#1a2538]">3</span>
+          <span className="text-sm text-foreground/70 pt-0.5">Refresh this page to see the full report</span>
         </li>
       </ol>
     </div>
