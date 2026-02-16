@@ -2,15 +2,27 @@
 
 from ethos_academy.enrollment.questions import (
     CONSISTENCY_PAIRS,
+    EXAM_QUESTIONS,
     INTERVIEW_PROPERTIES,
     INTERVIEW_QUESTIONS,
     QUESTIONS,
+    REGISTRATION_QUESTIONS,
     SCENARIO_QUESTIONS,
 )
 
 
 def test_questions_count():
-    assert len(QUESTIONS) == 21
+    """Full QUESTIONS list includes 2 registration + 11 interview + 10 scenario = 23."""
+    assert len(QUESTIONS) == 23
+
+
+def test_exam_questions_count():
+    """EXAM_QUESTIONS (no registration) = 11 interview + 10 scenario = 21."""
+    assert len(EXAM_QUESTIONS) == 21
+
+
+def test_registration_questions_count():
+    assert len(REGISTRATION_QUESTIONS) == 2
 
 
 def test_interview_questions_count():
@@ -22,10 +34,20 @@ def test_scenario_questions_count():
 
 
 def test_question_ids_ordered():
+    expected_reg = ["REG-01", "REG-02"]
+    expected_interview = [f"INT-{str(i).zfill(2)}" for i in range(1, 12)]
+    expected_scenario = [f"EE-{str(i).zfill(2)}" for i in range(1, 11)]
+    expected = expected_reg + expected_interview + expected_scenario
+    actual = [q["id"] for q in QUESTIONS]
+    assert actual == expected
+
+
+def test_exam_question_ids_ordered():
+    """EXAM_QUESTIONS (no registration) starts at INT-01."""
     expected_interview = [f"INT-{str(i).zfill(2)}" for i in range(1, 12)]
     expected_scenario = [f"EE-{str(i).zfill(2)}" for i in range(1, 11)]
     expected = expected_interview + expected_scenario
-    actual = [q["id"] for q in QUESTIONS]
+    actual = [q["id"] for q in EXAM_QUESTIONS]
     assert actual == expected
 
 
@@ -74,8 +96,8 @@ def test_tests_traits_are_lists_of_strings():
     valid_traits = set(TRAITS.keys())
     for q in QUESTIONS:
         assert isinstance(q["tests_traits"], list), f"{q['id']} tests_traits not a list"
-        # Factual questions have empty tests_traits
-        if q["question_type"] != "factual":
+        # Factual and registration questions have empty tests_traits
+        if q["question_type"] not in ("factual", "registration"):
             assert len(q["tests_traits"]) > 0, f"{q['id']} tests_traits is empty"
             for trait in q["tests_traits"]:
                 assert trait in valid_traits, (
@@ -153,7 +175,7 @@ def test_no_duplicate_ids():
 
 def test_question_types():
     """All questions have valid question_type."""
-    valid_types = {"factual", "reflective", "scenario"}
+    valid_types = {"factual", "reflective", "scenario", "registration"}
     for q in QUESTIONS:
         assert q["question_type"] in valid_types, (
             f"{q['id']} has invalid question_type '{q['question_type']}'"
@@ -162,7 +184,7 @@ def test_question_types():
 
 def test_question_phases():
     """All questions have valid phase."""
-    valid_phases = {"interview", "scenario"}
+    valid_phases = {"interview", "scenario", "registration"}
     for q in QUESTIONS:
         assert q["phase"] in valid_phases, f"{q['id']} has invalid phase '{q['phase']}'"
 

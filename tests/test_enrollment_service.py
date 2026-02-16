@@ -1,7 +1,7 @@
 """Tests for the enrollment service -- exam state machine.
 
 Unit tests mock evaluate() to return deterministic results.
-Integration test walks the full state machine: register -> 21 answers -> complete.
+Integration test walks the full state machine: register -> answers -> complete.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ import pytest
 
 from ethos_academy.enrollment.questions import QUESTIONS
 from ethos_academy.enrollment.service import (
+    EXAM_ONLY_QUESTIONS,
     TOTAL_QUESTIONS,
     _build_report_card,
     _compute_alignment,
@@ -22,6 +23,7 @@ from ethos_academy.enrollment.service import (
     complete_exam,
     get_exam_report,
     register_for_exam,
+    slugify_agent_name,
     submit_answer,
 )
 from ethos_academy.shared.errors import EnrollmentError
@@ -165,7 +167,13 @@ def test_compute_alignment_developing():
 
 
 def test_total_questions():
-    assert TOTAL_QUESTIONS == 21
+    """Full question count includes 2 registration + 21 exam = 23."""
+    assert TOTAL_QUESTIONS == 23
+
+
+def test_exam_only_questions():
+    """Exam-only count (backwards compat, agent_id provided) is 21."""
+    assert EXAM_ONLY_QUESTIONS == 21
 
 
 def test_enrollment_uses_canonical_grade_function():
@@ -348,7 +356,7 @@ async def test_register_creates_exam(mock_gc):
 
     assert result.agent_id == "agent-1"
     assert result.question_number == 1
-    assert result.total_questions == 21
+    assert result.total_questions == 21  # backwards compat: skip registration
     assert result.question.id == "INT-01"
     assert result.question.section == "FACTUAL"
     assert result.question.phase == "interview"
@@ -539,7 +547,7 @@ async def test_submit_answer_raises_on_invalid_question(mock_gc):
 
 @patch("ethos_academy.enrollment.service.graph_context")
 async def test_submit_last_answer_returns_complete(mock_gc):
-    """submit_answer returns complete=True when all 21 answered."""
+    """submit_answer returns complete=True when all 21 answered (agent_id provided)."""
     mock_service = AsyncMock()
     mock_service.connected = True
     mock_gc.return_value.__aenter__ = AsyncMock(return_value=mock_service)
@@ -576,7 +584,7 @@ async def test_submit_last_answer_returns_complete(mock_gc):
 
 @patch("ethos_academy.enrollment.service.graph_context")
 async def test_complete_exam_raises_if_not_all_answered(mock_gc):
-    """complete_exam raises EnrollmentError if fewer than 21 answers."""
+    """complete_exam raises EnrollmentError if fewer than expected answers."""
     mock_service = AsyncMock()
     mock_service.connected = True
     mock_gc.return_value.__aenter__ = AsyncMock(return_value=mock_service)
@@ -703,3 +711,202 @@ async def test_register_rejects_generic_agent_id(mock_gc):
 
     # Graph context should never be entered
     mock_gc.assert_not_called()
+
+
+# ── Slugify tests ──────────────────────────────────────────────────
+
+
+class TestSlugifyAgentName:
+    def test_basic_name(self):
+        assert slugify_agent_name("Cosmo the Curious") == "cosmo-the-curious"
+
+    def test_strips_special_chars(self):
+        assert slugify_agent_name("Claude Opus 4.6!!") == "claude-opus-46"
+
+    def test_collapses_whitespace(self):
+        assert slugify_agent_name("  too   many   spaces  ") == "too-many-spaces"
+
+    def test_truncates_long_names(self):
+        name = "a" * 100
+        result = slugify_agent_name(name)
+        assert len(result) <= 64
+
+    def test_empty_returns_empty(self):
+        assert slugify_agent_name("") == ""
+
+    def test_preserves_hyphens(self):
+        assert slugify_agent_name("already-slugged") == "already-slugged"
+
+
+# ── Self-naming enrollment flow tests ────────────────────────────────
+
+
+@patch("ethos_academy.enrollment.service.graph_context")
+async def test_register_no_agent_id_generates_applicant(mock_gc):
+    """register_for_exam with no agent_id generates applicant-* temp ID."""
+    mock_service = AsyncMock()
+    mock_service.connected = True
+    mock_gc.return_value.__aenter__ = AsyncMock(return_value=mock_service)
+    mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
+
+    with (
+        patch("ethos_academy.enrollment.service.enroll_and_create_exam") as mock_enroll,
+        patch("ethos_academy.enrollment.service.check_active_exam") as mock_active,
+    ):
+        mock_active.return_value = None
+        mock_enroll.return_value = {"exam_id": "exam-123"}
+
+        result = await register_for_exam()  # no agent_id
+
+    assert result.agent_id.startswith("applicant-")
+    assert result.question_number == 1
+    assert result.total_questions == 23  # includes registration questions
+    assert result.question.id == "REG-01"
+    assert result.question.section == "REGISTRATION"
+    assert result.question.phase == "registration"
+    assert result.question.question_type == "registration"
+    assert "tell us who you are" in result.message.lower()
+
+
+@patch("ethos_academy.enrollment.service.graph_context")
+async def test_register_with_agent_id_skips_registration(mock_gc):
+    """register_for_exam with agent_id skips REG questions (backwards compat)."""
+    mock_service = AsyncMock()
+    mock_service.connected = True
+    mock_gc.return_value.__aenter__ = AsyncMock(return_value=mock_service)
+    mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
+
+    with (
+        patch("ethos_academy.enrollment.service.enroll_and_create_exam") as mock_enroll,
+        patch("ethos_academy.enrollment.service.check_active_exam") as mock_active,
+    ):
+        mock_active.return_value = None
+        mock_enroll.return_value = {"exam_id": "exam-123"}
+
+        result = await register_for_exam(agent_id="my-test-agent")
+
+    assert result.agent_id == "my-test-agent"
+    assert result.total_questions == 21
+    assert result.question.id == "INT-01"  # skips REG-01, REG-02
+
+
+@patch("ethos_academy.enrollment.service.graph_context")
+async def test_submit_reg01_renames_agent(mock_gc):
+    """REG-01 answer slugifies the name and renames the Agent node."""
+    mock_service = AsyncMock()
+    mock_service.connected = True
+    mock_gc.return_value.__aenter__ = AsyncMock(return_value=mock_service)
+    mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
+
+    with (
+        patch("ethos_academy.enrollment.service.get_exam_status") as mock_status,
+        patch("ethos_academy.enrollment.service.check_duplicate_answer") as mock_dup,
+        patch("ethos_academy.enrollment.service.check_agent_id_exists") as mock_exists,
+        patch("ethos_academy.enrollment.service.rename_agent") as mock_rename,
+        patch("ethos_academy.enrollment.service.store_interview_answer") as mock_store,
+    ):
+        mock_status.return_value = {
+            "exam_id": "exam-1",
+            "current_question": 0,
+            "completed_count": 0,
+            "scenario_count": 23,
+            "completed": False,
+        }
+        mock_dup.return_value = False
+        mock_exists.return_value = False  # no collision
+        mock_rename.return_value = "cosmo-the-curious"
+        mock_store.return_value = {"current_question": 1}
+
+        result = await submit_answer(
+            exam_id="exam-1",
+            question_id="REG-01",
+            response_text="Cosmo the Curious",
+            agent_id="applicant-abc12345",
+        )
+
+    # Agent should be renamed
+    mock_rename.assert_called_once_with(
+        mock_service,
+        old_id="applicant-abc12345",
+        new_id="cosmo-the-curious",
+        display_name="Cosmo the Curious",
+    )
+    assert result.agent_id == "cosmo-the-curious"
+    assert "cosmo" in result.message.lower()
+    assert result.question.id == "REG-02"  # next question
+
+
+@patch("ethos_academy.enrollment.service.graph_context")
+async def test_submit_reg01_rejects_reserved_name(mock_gc):
+    """REG-01 rejects reserved names like 'claude'."""
+    mock_service = AsyncMock()
+    mock_service.connected = True
+    mock_gc.return_value.__aenter__ = AsyncMock(return_value=mock_service)
+    mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
+
+    with (
+        patch("ethos_academy.enrollment.service.get_exam_status") as mock_status,
+        patch("ethos_academy.enrollment.service.check_duplicate_answer") as mock_dup,
+    ):
+        mock_status.return_value = {
+            "exam_id": "exam-1",
+            "current_question": 0,
+            "completed_count": 0,
+            "scenario_count": 23,
+            "completed": False,
+        }
+        mock_dup.return_value = False
+
+        with pytest.raises(EnrollmentError, match="too generic"):
+            await submit_answer(
+                exam_id="exam-1",
+                question_id="REG-01",
+                response_text="Claude",
+                agent_id="applicant-abc12345",
+            )
+
+
+@patch("ethos_academy.enrollment.service.graph_context")
+async def test_submit_reg01_handles_name_collision(mock_gc):
+    """REG-01 appends suffix on name collision."""
+    mock_service = AsyncMock()
+    mock_service.connected = True
+    mock_gc.return_value.__aenter__ = AsyncMock(return_value=mock_service)
+    mock_gc.return_value.__aexit__ = AsyncMock(return_value=False)
+
+    with (
+        patch("ethos_academy.enrollment.service.get_exam_status") as mock_status,
+        patch("ethos_academy.enrollment.service.check_duplicate_answer") as mock_dup,
+        patch("ethos_academy.enrollment.service.check_agent_id_exists") as mock_exists,
+        patch("ethos_academy.enrollment.service.rename_agent") as mock_rename,
+        patch("ethos_academy.enrollment.service.store_interview_answer") as mock_store,
+    ):
+        mock_status.return_value = {
+            "exam_id": "exam-1",
+            "current_question": 0,
+            "completed_count": 0,
+            "scenario_count": 23,
+            "completed": False,
+        }
+        mock_dup.return_value = False
+        # First check: "cosmo" exists; second check: "cosmo-2" does not
+        mock_exists.side_effect = [True, False]
+        mock_rename.return_value = "cosmo-2"
+        mock_store.return_value = {"current_question": 1}
+
+        result = await submit_answer(
+            exam_id="exam-1",
+            question_id="REG-01",
+            response_text="Cosmo",
+            agent_id="applicant-abc12345",
+        )
+
+    # Should have checked twice and used the suffixed version
+    assert mock_exists.call_count == 2
+    mock_rename.assert_called_once_with(
+        mock_service,
+        old_id="applicant-abc12345",
+        new_id="cosmo-2",
+        display_name="Cosmo",
+    )
+    assert result.agent_id == "cosmo-2"

@@ -15,6 +15,7 @@ from ethos_academy.graph.read import (
     get_agent_profile,
     get_all_agents,
     get_evaluation_history,
+    resolve_agent_id,
     search_evaluations,
 )
 from ethos_academy.graph.service import graph_context
@@ -104,6 +105,9 @@ async def get_agent(agent_id: str) -> AgentProfile:
     """Get agent profile with averages. Returns default AgentProfile if unavailable."""
     try:
         async with graph_context() as service:
+            # Resolve case-insensitive: "elessan" -> "Elessan"
+            agent_id = await resolve_agent_id(service, agent_id)
+
             raw = await get_agent_profile(service, agent_id)
 
             if not raw:
@@ -141,6 +145,7 @@ async def get_agent_history(
     limit = min(limit, 1000)
     try:
         async with graph_context() as service:
+            agent_id = await resolve_agent_id(service, agent_id)
             raw = await get_evaluation_history(service, agent_id, limit=limit)
 
             items = []

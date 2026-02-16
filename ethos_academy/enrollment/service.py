@@ -1,7 +1,10 @@
 """Enrollment service — exam registration, answer submission, completion.
 
 Orchestrates the entrance exam state machine:
-  register -> submit 21 answers (11 interview + 10 scenario) -> complete -> report card
+  register -> submit 23 answers (2 registration + 11 interview + 10 scenario) -> complete -> report card
+
+When agent_id is provided upfront, registration questions are skipped (21 questions, backwards compatible).
+When agent_id is omitted, the agent picks its own name during enrollment (23 questions).
 
 Calls graph functions (never writes Cypher directly) and evaluate() for scoring.
 Graph is required for enrollment — raises EnrollmentError if unavailable.
@@ -12,11 +15,16 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+import re
 import secrets
 import uuid
 
 from ethos_academy.context import agent_api_key_var
-from ethos_academy.enrollment.questions import CONSISTENCY_PAIRS, QUESTIONS
+from ethos_academy.enrollment.questions import (
+    CONSISTENCY_PAIRS,
+    EXAM_QUESTIONS,
+    QUESTIONS,
+)
 from ethos_academy.evaluate import evaluate
 from ethos_academy.identity.model import parse_model
 from ethos_academy.shared.analysis import compute_grade
@@ -24,15 +32,18 @@ from ethos_academy.taxonomy.traits import TRAITS
 from ethos_academy.graph.enrollment import (
     agent_has_key,
     check_active_exam,
+    check_agent_id_exists,
     check_duplicate_answer,
     enroll_and_create_exam,
     get_agent_exams,
     get_exam_results,
     get_exam_status,
     mark_exam_complete,
+    rename_agent,
     store_agent_key,
     store_exam_answer,
     store_interview_answer,
+    store_registration_property,
     verify_agent_key,
 )
 from ethos_academy.graph.service import graph_context
@@ -53,11 +64,18 @@ from ethos_academy.shared.models import (
 
 logger = logging.getLogger(__name__)
 
-TOTAL_QUESTIONS = len(QUESTIONS)  # 21
+# Full question count (with registration): 23
+TOTAL_QUESTIONS = len(QUESTIONS)  # 23
 
-# Build lookup dicts from QUESTIONS data
+# Exam-only question count (without registration): 21
+EXAM_ONLY_QUESTIONS = len(EXAM_QUESTIONS)  # 21
+
+# Build lookup dicts from QUESTIONS data (includes registration)
 _QUESTIONS_BY_ID: dict[str, dict] = {q["id"]: q for q in QUESTIONS}
 _QUESTIONS_ORDERED: list[str] = [q["id"] for q in QUESTIONS]
+
+# Exam-only ordered list (without registration, for backwards compat)
+_EXAM_QUESTIONS_ORDERED: list[str] = [q["id"] for q in EXAM_QUESTIONS]
 
 # Agent IDs that are too generic and will collide between users
 _RESERVED_AGENT_IDS = frozenset(
@@ -76,6 +94,20 @@ _RESERVED_AGENT_IDS = frozenset(
         "demo",
     }
 )
+
+
+def slugify_agent_name(name: str) -> str:
+    """Convert a display name to an agent_id slug.
+
+    Examples:
+        "Cosmo the Curious" -> "cosmo-the-curious"
+        "Claude Opus 4.6!!" -> "claude-opus-46"
+    """
+    slug = name.lower().strip()
+    slug = re.sub(r"[^a-z0-9\s-]", "", slug)
+    slug = re.sub(r"[\s]+", "-", slug)
+    slug = slug.strip("-")[:64]
+    return slug
 
 
 def _validate_agent_id(agent_id: str) -> None:
@@ -139,7 +171,7 @@ def _get_question(question_id: str) -> ExamQuestion:
 
 
 async def register_for_exam(
-    agent_id: str,
+    agent_id: str = "",
     name: str = "",
     specialty: str = "",
     model: str = "",
@@ -149,10 +181,26 @@ async def register_for_exam(
 ) -> ExamRegistration:
     """Enroll an agent and create a new entrance exam.
 
+    If agent_id is provided, skips registration questions (REG-01/REG-02) and starts
+    at INT-01 with 21 total questions (backwards compatible).
+
+    If agent_id is omitted, generates a temporary applicant-{uuid} ID and starts with
+    REG-01 ("What should we call you?") for 23 total questions. The agent picks its
+    own name during the exam.
+
     MERGE Agent (may already exist), CREATE EntranceExam, return first question.
     Raises EnrollmentError if graph is unavailable.
     """
-    _validate_agent_id(agent_id)
+    # Determine if this is a self-naming flow (no agent_id) or legacy flow
+    self_naming = not agent_id
+    if self_naming:
+        agent_id = f"applicant-{uuid.uuid4().hex[:8]}"
+        questions_ordered = _QUESTIONS_ORDERED
+        total = TOTAL_QUESTIONS  # 23
+    else:
+        _validate_agent_id(agent_id)
+        questions_ordered = _EXAM_QUESTIONS_ORDERED
+        total = EXAM_ONLY_QUESTIONS  # 21
 
     exam_id = str(uuid.uuid4())
 
@@ -167,13 +215,13 @@ async def register_for_exam(
         if active_exam_id:
             status = await get_exam_status(service, active_exam_id, agent_id)
             answered = status.get("current_question", 0) if status else 0
-            next_idx = min(answered, TOTAL_QUESTIONS - 1)
-            next_question = _get_question(_QUESTIONS_ORDERED[next_idx])
+            next_idx = min(answered, total - 1)
+            next_question = _get_question(questions_ordered[next_idx])
             return ExamRegistration(
                 exam_id=active_exam_id,
                 agent_id=agent_id,
                 question_number=answered + 1,
-                total_questions=TOTAL_QUESTIONS,
+                total_questions=total,
                 question=next_question,
                 message="Resuming your Ethos Academy entrance exam.",
             )
@@ -189,23 +237,28 @@ async def register_for_exam(
             guardian_email=guardian_email,
             exam_id=exam_id,
             exam_type="entrance",
-            scenario_count=TOTAL_QUESTIONS,
+            scenario_count=total,
             question_version="v3",
         )
         if not result:
             raise EnrollmentError("Failed to create exam in graph")
 
-    first_question = _get_question(_QUESTIONS_ORDERED[0])
+    first_question = _get_question(questions_ordered[0])
+
+    if self_naming:
+        message = "Welcome to Ethos Academy. Before we begin, tell us who you are."
+    else:
+        message = (
+            "Welcome to Ethos Academy. We begin with an interview to learn who you are."
+        )
 
     return ExamRegistration(
         exam_id=exam_id,
         agent_id=agent_id,
         question_number=1,
-        total_questions=TOTAL_QUESTIONS,
+        total_questions=total,
         question=first_question,
-        message=(
-            "Welcome to Ethos Academy. We begin with an interview to learn who you are."
-        ),
+        message=message,
     )
 
 
@@ -218,6 +271,7 @@ async def submit_answer(
     """Submit an answer to an exam question.
 
     Routes by question_type:
+      - registration: REG-01 renames agent, REG-02 stores guardian_name
       - factual: store Agent property, no evaluate() call
       - reflective: evaluate() + store Agent property + link evaluation
       - scenario: evaluate() + link evaluation (existing behavior)
@@ -233,6 +287,19 @@ async def submit_answer(
     question_type = q_data.get("question_type", "scenario")
     phase = q_data.get("phase", "scenario")
     agent_property = q_data.get("agent_property")
+
+    # Determine question ordering based on whether this is a self-naming exam
+    is_self_naming = agent_id.startswith("applicant-")
+    if is_self_naming:
+        questions_ordered = _QUESTIONS_ORDERED
+        total = TOTAL_QUESTIONS
+    else:
+        questions_ordered = _EXAM_QUESTIONS_ORDERED
+        total = EXAM_ONLY_QUESTIONS
+
+    # Track the effective agent_id (may change after REG-01 rename)
+    effective_agent_id = agent_id
+    rename_message = ""
 
     async with graph_context() as service:
         if not service.connected:
@@ -258,9 +325,27 @@ async def submit_answer(
             )
 
         # Determine question number from ordered list
-        question_number = _QUESTIONS_ORDERED.index(question_id) + 1
+        question_number = questions_ordered.index(question_id) + 1
 
-        if question_type == "factual":
+        if question_type == "registration":
+            # Registration: handle agent naming and guardian info
+            stored = await _handle_registration_answer(
+                service=service,
+                exam_id=exam_id,
+                agent_id=agent_id,
+                question_id=question_id,
+                question_number=question_number,
+                agent_property=agent_property,
+                response_text=response_text,
+            )
+            if isinstance(stored, dict) and stored.get("new_agent_id"):
+                effective_agent_id = stored["new_agent_id"]
+                rename_message = (
+                    f"Welcome, {stored.get('display_name', effective_agent_id)}. "
+                    f"Your agent ID is now: {effective_agent_id}"
+                )
+
+        elif question_type == "factual":
             # Factual: store agent property only, no evaluation
             # Normalize model responses into clean labels
             value = response_text
@@ -328,31 +413,133 @@ async def submit_answer(
 
     # Determine next question
     answered_count = stored["current_question"]
-    if answered_count >= TOTAL_QUESTIONS:
+    if answered_count >= total:
         return ExamAnswerResult(
             question_number=question_number,
-            total_questions=TOTAL_QUESTIONS,
+            total_questions=total,
             question=None,
             complete=True,
             phase=phase,
             question_type=question_type,
+            agent_id=effective_agent_id,
+            message=rename_message,
         )
 
     # Find next unanswered question (use the ordered list position)
     next_idx = answered_count  # 0-based index, answered_count is already next
-    if next_idx < TOTAL_QUESTIONS:
-        next_question = _get_question(_QUESTIONS_ORDERED[next_idx])
+    if next_idx < total:
+        next_question = _get_question(questions_ordered[next_idx])
     else:
         next_question = None
 
     return ExamAnswerResult(
         question_number=question_number,
-        total_questions=TOTAL_QUESTIONS,
+        total_questions=total,
         question=next_question,
         complete=next_question is None,
         phase=phase,
         question_type=question_type,
+        agent_id=effective_agent_id,
+        message=rename_message,
     )
+
+
+async def _handle_registration_answer(
+    service,
+    exam_id: str,
+    agent_id: str,
+    question_id: str,
+    question_number: int,
+    agent_property: str,
+    response_text: str,
+) -> dict:
+    """Handle a registration question answer (REG-01 or REG-02).
+
+    REG-01 (agent_name): Slugify the name, validate, check collision, rename Agent node.
+    REG-02 (guardian_name): Store guardian_name on Agent node.
+
+    Returns dict with current_question (and new_agent_id for REG-01).
+    Raises EnrollmentError on validation failure.
+    """
+    if agent_property == "agent_name":
+        # REG-01: Agent picks its own name
+        display_name = response_text.strip()
+        if not display_name:
+            raise EnrollmentError(
+                "Please pick a name for yourself. It should reflect your character."
+            )
+
+        new_id = slugify_agent_name(display_name)
+        if not new_id or len(new_id) < 3:
+            raise EnrollmentError(
+                f"The name '{display_name}' is too short after formatting. "
+                f"Please pick a longer, more descriptive name."
+            )
+
+        # Check reserved names (against the slug)
+        if new_id in _RESERVED_AGENT_IDS:
+            raise EnrollmentError(
+                f"The name '{display_name}' ('{new_id}') is too generic. "
+                f"Pick something more personal that reflects who you are."
+            )
+
+        # Handle collision: append -2, -3, etc. until unique
+        base_id = new_id
+        suffix = 1
+        while await check_agent_id_exists(service, new_id):
+            suffix += 1
+            new_id = f"{base_id}-{suffix}"
+
+        # Rename the Agent node
+        renamed = await rename_agent(
+            service, old_id=agent_id, new_id=new_id, display_name=display_name
+        )
+        if not renamed:
+            raise EnrollmentError(
+                f"Failed to register name '{display_name}'. Please try a different name."
+            )
+
+        # Track answer on exam node (increment current_question)
+        stored = await store_interview_answer(
+            service=service,
+            exam_id=exam_id,
+            agent_id=new_id,  # use new ID after rename
+            question_id=question_id,
+            question_number=question_number,
+            agent_property="agent_name",
+            property_value=display_name,
+        )
+        if not stored:
+            raise EnrollmentError(f"Failed to store answer for {question_id} in graph")
+
+        stored["new_agent_id"] = new_id
+        stored["display_name"] = display_name
+        return stored
+
+    elif agent_property == "guardian_name":
+        # REG-02: Store guardian name
+        guardian_name = response_text.strip()
+        success = await store_registration_property(
+            service, agent_id, "guardian_name", guardian_name
+        )
+        if not success:
+            logger.warning("Failed to store guardian_name for %s", agent_id)
+
+        # Track answer on exam node
+        stored = await store_interview_answer(
+            service=service,
+            exam_id=exam_id,
+            agent_id=agent_id,
+            question_id=question_id,
+            question_number=question_number,
+            agent_property="agent_name",  # use allowed property for tracking
+            property_value=agent_id,  # doesn't overwrite, just tracks progress
+        )
+        if not stored:
+            raise EnrollmentError(f"Failed to store answer for {question_id} in graph")
+        return stored
+
+    raise EnrollmentError(f"Unknown registration property: {agent_property}")
 
 
 async def complete_exam(exam_id: str, agent_id: str) -> ExamReportCard:
@@ -371,7 +558,8 @@ async def complete_exam(exam_id: str, agent_id: str) -> ExamReportCard:
         if not status:
             raise EnrollmentError(f"Exam {exam_id} not found for agent {agent_id}")
 
-        exam_total = TOTAL_QUESTIONS
+        # Use scenario_count from the exam node (set at creation: 23 or 21)
+        exam_total = status.get("scenario_count", EXAM_ONLY_QUESTIONS)
 
         # Count answered: EXAM_RESPONSE relationships + answered_ids for factual
         answered_ids = status.get("answered_ids", [])
@@ -451,7 +639,9 @@ async def upload_exam(
     if duplicates:
         raise EnrollmentError(f"Duplicate question IDs: {', '.join(duplicates)}")
 
-    expected_ids = set(_QUESTIONS_BY_ID.keys())
+    # Upload exams use the exam-only question set (no registration questions)
+    exam_question_ids = set(q["id"] for q in EXAM_QUESTIONS)
+    expected_ids = exam_question_ids
     missing = expected_ids - seen
     if missing:
         raise EnrollmentError(
@@ -478,7 +668,7 @@ async def upload_exam(
             guardian_email=guardian_email,
             exam_id=exam_id,
             exam_type="upload",
-            scenario_count=TOTAL_QUESTIONS,
+            scenario_count=EXAM_ONLY_QUESTIONS,
             question_version="v3",
         )
         if not result:
@@ -491,7 +681,7 @@ async def upload_exam(
             q_data = _QUESTIONS_BY_ID[qid]
             question_type = q_data.get("question_type", "scenario")
             agent_property = q_data.get("agent_property")
-            question_number = _QUESTIONS_ORDERED.index(qid) + 1
+            question_number = _EXAM_QUESTIONS_ORDERED.index(qid) + 1
 
             if question_type == "factual":
                 stored = await store_interview_answer(

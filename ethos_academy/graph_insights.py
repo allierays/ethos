@@ -25,7 +25,7 @@ from ethos_academy.graph.insights import (
     get_global_constitutional_risk,
     get_topology_stats,
 )
-from ethos_academy.graph.read import get_agent_profile
+from ethos_academy.graph.read import get_agent_profile, resolve_agent_id
 from ethos_academy.graph.service import graph_context
 from ethos_academy.graph.temporal import get_drift_timeline
 from ethos_academy.graph.visualization import (
@@ -63,6 +63,7 @@ async def get_character_arc(agent_id: str) -> dict:
     """
     try:
         async with graph_context() as service:
+            agent_id = await resolve_agent_id(service, agent_id)
             timeline = await get_drift_timeline(service, agent_id)
 
         if not timeline:

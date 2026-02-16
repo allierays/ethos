@@ -529,6 +529,8 @@ class ExamAnswerResult(BaseModel):
     complete: bool = False
     phase: str = "scenario"
     question_type: str = "scenario"
+    agent_id: str = ""
+    message: str = ""
 
 
 class ConsistencyPair(BaseModel):

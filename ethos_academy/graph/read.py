@@ -334,6 +334,29 @@ async def get_evaluation_history(
         return []
 
 
+_RESOLVE_AGENT_ID_QUERY = """
+MATCH (a:Agent)
+WHERE toLower(a.agent_id) = toLower($agent_id)
+RETURN a.agent_id AS agent_id
+LIMIT 1
+"""
+
+
+async def resolve_agent_id(service: GraphService, agent_id: str) -> str:
+    """Resolve agent_id with case-insensitive lookup. Returns exact ID or original."""
+    if not service.connected:
+        return agent_id
+    try:
+        records, _, _ = await service.execute_query(
+            _RESOLVE_AGENT_ID_QUERY, {"agent_id": agent_id}
+        )
+        if records:
+            return records[0]["agent_id"]
+    except Exception:
+        pass
+    return agent_id
+
+
 async def get_agent_profile(
     service: GraphService,
     agent_id: str,

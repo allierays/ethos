@@ -267,6 +267,8 @@ TS_EXAM_ANSWER_RESULT = {
     "complete",
     "phase",
     "questionType",
+    "agentId",
+    "message",
 }
 
 TS_QUESTION_DETAIL = {

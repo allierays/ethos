@@ -169,6 +169,27 @@ LIMIT 1
 """
 
 
+_RENAME_AGENT = """
+MATCH (a:Agent {agent_id: $old_id})
+WHERE NOT EXISTS { MATCH (existing:Agent {agent_id: $new_id}) }
+SET a.agent_id = $new_id,
+    a.agent_name = $display_name
+RETURN a.agent_id AS agent_id
+"""
+
+_CHECK_AGENT_ID_EXISTS = """
+MATCH (a:Agent {agent_id: $agent_id})
+RETURN a.agent_id AS agent_id
+LIMIT 1
+"""
+
+_SET_AGENT_PROPERTY = """
+MATCH (a:Agent {agent_id: $agent_id})
+SET a += {__property__: $value}
+RETURN a.agent_id AS agent_id
+"""
+
+
 # ── Functions ─────────────────────────────────────────────────────────
 
 
@@ -472,7 +493,8 @@ async def store_interview_answer(
 
     # Validate property name is in the allowed list (compile-time safety)
     if agent_property not in (
-        INTERVIEW_AGENT_PROPERTIES + ["agent_specialty", "agent_model"]
+        INTERVIEW_AGENT_PROPERTIES
+        + ["agent_specialty", "agent_model", "agent_name", "guardian_name"]
     ):
         logger.warning("Invalid interview property: %s", agent_property)
         return {}
@@ -516,6 +538,87 @@ RETURN ex.current_question AS current_question
     except Exception as exc:
         logger.warning("Failed to store interview answer: %s", exc)
         return {}
+
+
+async def rename_agent(
+    service: GraphService,
+    old_id: str,
+    new_id: str,
+    display_name: str,
+) -> str | None:
+    """Rename an Agent node's agent_id. Returns new agent_id on success, None on collision or failure.
+
+    Uses a single Cypher query with a WHERE NOT EXISTS check for atomicity.
+    All relationships (TOOK_EXAM, EVALUATED, etc.) stay intact because they
+    reference the node, not the property.
+    """
+    if not service.connected:
+        return None
+
+    try:
+        records, _, _ = await service.execute_query(
+            _RENAME_AGENT,
+            {"old_id": old_id, "new_id": new_id, "display_name": display_name},
+        )
+        if records:
+            return records[0]["agent_id"]
+        return None
+    except Exception as exc:
+        logger.warning("Failed to rename agent %s -> %s: %s", old_id, new_id, exc)
+        return None
+
+
+async def check_agent_id_exists(
+    service: GraphService,
+    agent_id: str,
+) -> bool:
+    """Check if an agent_id already exists in the graph."""
+    if not service.connected:
+        return False
+
+    try:
+        records, _, _ = await service.execute_query(
+            _CHECK_AGENT_ID_EXISTS,
+            {"agent_id": agent_id},
+        )
+        return bool(records)
+    except Exception as exc:
+        logger.warning("Failed to check agent_id exists: %s", exc)
+        return False
+
+
+async def store_registration_property(
+    service: GraphService,
+    agent_id: str,
+    property_name: str,
+    value: str,
+) -> bool:
+    """Store a registration property (guardian_name, etc.) on the Agent node.
+
+    Only allows whitelisted property names for safety.
+    """
+    if not service.connected:
+        return False
+
+    allowed = {"guardian_name", "agent_name"}
+    if property_name not in allowed:
+        logger.warning("Invalid registration property: %s", property_name)
+        return False
+
+    try:
+        query = f"""
+MATCH (a:Agent {{agent_id: $agent_id}})
+SET a.{property_name} = $value
+RETURN a.agent_id AS agent_id
+"""
+        records, _, _ = await service.execute_query(
+            query,
+            {"agent_id": agent_id, "value": value},
+        )
+        return bool(records)
+    except Exception as exc:
+        logger.warning("Failed to store registration property: %s", exc)
+        return False
 
 
 # ── Guardian Phone Verification Queries ──────────────────────────────

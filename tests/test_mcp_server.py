@@ -110,8 +110,8 @@ class TestHelpTool:
         result = await help.fn()
 
         total_tools = sum(len(data["tools"]) for data in result.values())
-        # 21 tools cataloged (help itself is not listed)
-        assert total_tools == 21
+        # 22 tools cataloged (help itself is not listed)
+        assert total_tools == 22
 
 
 class TestMCPToolsHappyPath:
