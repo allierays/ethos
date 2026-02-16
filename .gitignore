@@ -20,15 +20,8 @@ venv/
 # Node
 node_modules/
 
-# Ralph (keep config.json and prd.json, ignore runtime files)
-.ralph/last_*
-.ralph/screenshots/
-.ralph/archive/
-.ralph/progress.txt
-.ralph/tool-log.txt
-.ralph/suggested-signs.txt
-.ralph/.preflight_cache
-.ralph/__pycache__/
+# Ralph
+.ralph/
 
 # Playwright MCP screenshots and logs
 .playwright-mcp/

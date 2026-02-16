@@ -1,11 +1,4 @@
-"""Tests for API key security: X25519 encryption, auth on regeneration, Cypher guards.
-
-Covers the three critical fixes from security review:
-  1. X25519 ECDH + AES-256-GCM encryption (not symmetric)
-  2. Auth enforcement on regenerate_api_key
-  3. Encrypted key delivery in get_exam_results
-Plus the Cypher injection regex guard on property names.
-"""
+"""Tests for API key security: X25519 encryption, auth on regeneration, Cypher guards."""
 
 from __future__ import annotations
 

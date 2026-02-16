@@ -1,8 +1,0 @@
-[23:46:28] Grep: test_already_completed_exam|test_auto_complete_when_all_answered
-[23:46:31] READ: /Users/allierays/Sites/ethos/tests/test_exam_mcp.py
-[23:46:32] READ: /Users/allierays/Sites/ethos/ethos_academy/mcp_server.py
-[23:46:37] Grep: async def get_exam_status
-[23:46:41] READ: /Users/allierays/Sites/ethos/ethos_academy/graph/enrollment.py
-[23:46:47] EDIT: /Users/allierays/Sites/ethos/tests/test_exam_mcp.py
-[23:46:52] EDIT: /Users/allierays/Sites/ethos/tests/test_exam_mcp.py
-[00:20:21] BASH: cd /Users/allierays/Sites/ethos/packages/ethos-sdk && rm -rf dist && npm run bui
