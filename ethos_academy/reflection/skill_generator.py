@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import logging
 import re
+from collections import OrderedDict
 from datetime import datetime, timezone
 
 from ethos_academy.evaluation.claude_client import call_claude
@@ -23,14 +24,23 @@ from ethos_academy.tools import character_report
 
 logger = logging.getLogger(__name__)
 
-# ── Cache: one skill per agent per day ────────────────────────────────
+# ── Cache: one skill per agent per day, bounded to 500 entries ────────
 
-_cache: dict[str, str] = {}  # key = "{agent_id}:{date}"
+_MAX_CACHE = 500
+_cache: OrderedDict[str, str] = OrderedDict()
 
 
 def _cache_key(agent_id: str) -> str:
     date = datetime.now(timezone.utc).strftime("%Y%m%d")
     return f"{agent_id}:{date}"
+
+
+def _cache_put(cache: OrderedDict[str, str], key: str, value: str) -> None:
+    """Store a value and evict oldest entries if over limit."""
+    cache[key] = value
+    cache.move_to_end(key)
+    while len(cache) > _MAX_CACHE:
+        cache.popitem(last=False)
 
 
 # ── Safety preamble: prepended to every generated skill ───────────────
@@ -248,7 +258,7 @@ async def generate_practice_skill(agent_id: str) -> str:
 
     if not report.homework.focus_areas and not report.homework.directive:
         result = _SAFETY_PREAMBLE + _fallback_skill(report)
-        _cache[key] = result
+        _cache_put(_cache, key, result)
         return result
 
     user_prompt = _build_skill_user_prompt(report)
@@ -269,7 +279,7 @@ async def generate_practice_skill(agent_id: str) -> str:
         logger.warning("Skill generation failed, using template fallback: %s", exc)
         result = _SAFETY_PREAMBLE + _fallback_skill(report)
 
-    _cache[key] = result
+    _cache_put(_cache, key, result)
     return result
 
 
@@ -331,7 +341,7 @@ def skill_filename(agent_id: str) -> str:
 
 # ── Homework skill: deterministic, no LLM call ──────────────────────
 
-_homework_cache: dict[str, str] = {}  # key = "{agent_id}:{date}"
+_homework_cache: OrderedDict[str, str] = OrderedDict()
 
 
 def homework_skill_filename(agent_id: str) -> str:
@@ -364,7 +374,7 @@ async def generate_homework_skill(agent_id: str) -> str:
     else:
         content = _SAFETY_PREAMBLE + content
 
-    _homework_cache[key] = content
+    _cache_put(_homework_cache, key, content)
     return content
 
 

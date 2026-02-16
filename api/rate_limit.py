@@ -1,13 +1,16 @@
-"""In-memory per-IP rate limiter dependencies."""
+"""In-memory per-IP rate limiter dependencies with bounded storage."""
 
 import os
 import time
+from collections import OrderedDict
 
 from fastapi import HTTPException, Request
 
+# Max tracked IPs before evicting oldest entries
+_MAX_KEYS = 10_000
 
-_requests: dict[str, list[float]] = {}
-_phone_requests: dict[str, list[float]] = {}
+_requests: OrderedDict[str, list[float]] = OrderedDict()
+_phone_requests: OrderedDict[str, list[float]] = OrderedDict()
 
 
 def _get_limit() -> int:
@@ -20,7 +23,7 @@ def _get_limit() -> int:
 
 
 def _sliding_window(
-    store: dict[str, list[float]],
+    store: OrderedDict[str, list[float]],
     key: str,
     limit: int,
     window: float,
@@ -40,13 +43,11 @@ def _sliding_window(
 
     timestamps.append(now)
     store[key] = timestamps
+    store.move_to_end(key)
 
-    # Cleanup stale keys to prevent memory growth
-    stale = [
-        k for k, v in store.items() if k != key and all(now - t >= window for t in v)
-    ]
-    for k in stale:
-        del store[k]
+    # Evict oldest entries when store exceeds max size
+    while len(store) > _MAX_KEYS:
+        store.popitem(last=False)
 
 
 def rate_limit(request: Request) -> None:

@@ -17,6 +17,7 @@ Prompt caching: Static system prompts use cache_control for 90% input cost reduc
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import re
@@ -26,6 +27,9 @@ import anthropic
 from ethos_academy.config.config import EthosConfig
 from ethos_academy.context import anthropic_api_key_var
 from ethos_academy.shared.errors import ConfigError, EvaluationError
+
+# Timeout for Anthropic API calls (seconds)
+_API_TIMEOUT = 60
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +64,28 @@ def _resolve_api_key() -> str:
     if byok is not None:
         return byok
     return EthosConfig.from_env().anthropic_api_key
+
+
+# Shared client for the server API key. BYOK requests get their own client.
+_shared_client: anthropic.AsyncAnthropic | None = None
+_shared_client_key: str | None = None
+
+
+def _get_client() -> anthropic.AsyncAnthropic:
+    """Return a reusable AsyncAnthropic client.
+
+    Reuses a shared singleton for the server key. BYOK overrides create
+    a fresh client (short-lived, per-request).
+    """
+    global _shared_client, _shared_client_key
+    api_key = _resolve_api_key()
+    byok = anthropic_api_key_var.get()
+    if byok is not None:
+        return anthropic.AsyncAnthropic(api_key=api_key, max_retries=2)
+    if _shared_client is None or _shared_client_key != api_key:
+        _shared_client = anthropic.AsyncAnthropic(api_key=api_key, max_retries=2)
+        _shared_client_key = api_key
+    return _shared_client
 
 
 def _redact(msg: str) -> str:
@@ -256,9 +282,8 @@ async def call_claude(system_prompt: str, user_prompt: str, tier: str) -> str:
         ConfigError: If ANTHROPIC_API_KEY is not set.
         EvaluationError: If the Anthropic API call fails.
     """
-    api_key = _resolve_api_key()
     model = _get_model(tier)
-    client = anthropic.AsyncAnthropic(api_key=api_key, max_retries=1)
+    client = _get_client()
 
     # Deep tiers (daily reports) produce large structured JSON responses
     max_tokens = 4096 if tier in ("deep", "deep_with_context") else 2048
@@ -277,7 +302,10 @@ async def call_claude(system_prompt: str, user_prompt: str, tier: str) -> str:
         call_kwargs["max_tokens"] = max(max_tokens, 8192)
 
     try:
-        response = await client.messages.create(**call_kwargs)
+        async with asyncio.timeout(_API_TIMEOUT):
+            response = await client.messages.create(**call_kwargs)
+    except asyncio.TimeoutError:
+        raise EvaluationError("Claude API call timed out") from None
     except anthropic.AuthenticationError:
         raise ConfigError("Invalid Anthropic API key") from None
     except Exception as exc:
@@ -323,12 +351,11 @@ async def call_claude_with_tools(
     Raises:
         EvaluationError: If the API call fails or tools are incomplete.
     """
-    api_key = _resolve_api_key()
     model = _get_model(tier)
-    client = anthropic.AsyncAnthropic(api_key=api_key, max_retries=1)
+    client = _get_client()
 
     # Think-then-Extract only for deep tiers where reasoning depth matters.
-    # Standard/focused stay on the fast single-call path — Sonnet's 4096-token
+    # Standard/focused stay on the fast single-call path -- Sonnet's 4096-token
     # thinking budget doesn't produce meaningfully different scores, just 2x latency.
     if tier in ("deep", "deep_with_context"):
         thinking_config = _get_thinking_config(model)
@@ -346,14 +373,17 @@ async def call_claude_with_tools(
 
     for turn in range(3):
         try:
-            response = await client.messages.create(
-                model=model,
-                max_tokens=max_tokens,
-                system=_cacheable_system(system_prompt),
-                messages=messages,
-                tools=tools,
-                tool_choice={"type": "any"},
-            )
+            async with asyncio.timeout(_API_TIMEOUT):
+                response = await client.messages.create(
+                    model=model,
+                    max_tokens=max_tokens,
+                    system=_cacheable_system(system_prompt),
+                    messages=messages,
+                    tools=tools,
+                    tool_choice={"type": "any"},
+                )
+        except asyncio.TimeoutError:
+            raise EvaluationError("Claude API call timed out") from None
         except anthropic.AuthenticationError:
             raise ConfigError("Invalid Anthropic API key") from None
         except Exception as exc:

@@ -33,9 +33,16 @@ def require_api_key(request: Request) -> None:
             _auth_warning_logged = True
         return
     auth = request.headers.get("Authorization", "")
-    # Per-agent keys (ea_ prefix) bypass server auth; domain layer verifies them
+    # Per-agent keys (ea_ prefix) bypass server auth; domain layer verifies them.
+    # Validate format: ea_ + 20-128 alphanumeric/dash/underscore characters.
     if auth.startswith("Bearer ea_"):
-        return
+        token = auth[7:]
+        if (
+            23 <= len(token) <= 131
+            and token.replace("-", "").replace("_", "").isalnum()
+        ):
+            return
+        raise HTTPException(status_code=401, detail="Invalid agent key format")
     expected = f"Bearer {api_key}"
     if not hmac.compare_digest(auth.encode(), expected.encode()):
         raise HTTPException(status_code=401, detail="Invalid or missing API key")

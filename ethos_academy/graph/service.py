@@ -35,7 +35,12 @@ class GraphService:
         user = user or os.environ.get("NEO4J_USER", "neo4j")
         password = password or os.environ.get("NEO4J_PASSWORD", "password")
         try:
-            self._driver = AsyncGraphDatabase.driver(uri, auth=(user, password))
+            self._driver = AsyncGraphDatabase.driver(
+                uri,
+                auth=(user, password),
+                max_connection_pool_size=50,
+                connection_acquisition_timeout=10,
+            )
             await self._driver.verify_connectivity()
             logger.info("Connected to Neo4j at %s", uri)
         except Exception as exc:

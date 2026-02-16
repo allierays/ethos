@@ -14,6 +14,18 @@ import pytest
 from ethos_academy.shared.errors import ConfigError, EvaluationError
 
 
+@pytest.fixture(autouse=True)
+def _reset_shared_client():
+    """Reset the singleton Anthropic client between tests."""
+    import ethos_academy.evaluation.claude_client as mod
+
+    mod._shared_client = None
+    mod._shared_client_key = None
+    yield
+    mod._shared_client = None
+    mod._shared_client_key = None
+
+
 # ---------------------------------------------------------------------------
 # Model selection
 # ---------------------------------------------------------------------------
@@ -350,7 +362,7 @@ class TestBYOKKeyResolution:
         try:
             await call_claude("sys", "usr", "standard")
             mock_anthropic.AsyncAnthropic.assert_called_once_with(
-                api_key="byok-key-abc", max_retries=1
+                api_key="byok-key-abc", max_retries=2
             )
         finally:
             anthropic_api_key_var.reset(token)
