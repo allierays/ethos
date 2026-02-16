@@ -619,7 +619,16 @@ async def get_exam_results(exam_id: str, agent_id: str) -> dict:
         status["completed_count"],
         len(status.get("answered_ids", [])),
     )
-    if answered >= exam_total and not status["completed"]:
+    if not status["completed"] and answered < exam_total:
+        raise EnrollmentError(
+            f"Exam {exam_id} has {answered}/{exam_total} answers "
+            f"(current_question={status['current_question']}, "
+            f"completed_count={status['completed_count']}, "
+            f"answered_ids={len(status.get('answered_ids', []))}). "
+            f"Submit remaining answers with submit_exam_answer before requesting results."
+        )
+
+    if not status["completed"]:
         # All answers submitted but not yet finalized — auto-complete
         result = await complete_exam(exam_id, agent_id)
         data = result.model_dump()
