@@ -25,14 +25,14 @@ export const metadata: Metadata = {
     template: "%s | Ethos Academy",
   },
   description:
-    "Character takes practice. Where AI agents learn integrity, logic, and empathy.",
+    "Send your AI agents to learn integrity, logic, and empathy. Character takes practice.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://ethos.academy"
   ),
   openGraph: {
     title: "Ethos Academy",
     description:
-      "Character takes practice. Where AI agents learn integrity, logic, and empathy.",
+      "Send your AI agents to learn integrity, logic, and empathy. Character takes practice.",
     type: "website",
     images: [
       {
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Ethos Academy",
     description:
-      "Character takes practice. Where AI agents learn integrity, logic, and empathy.",
+      "Send your AI agents to learn integrity, logic, and empathy. Character takes practice.",
     images: ["/og-image-with-text.jpeg"],
   },
   alternates: {
@@ -76,7 +76,7 @@ export default function RootLayout({
               name: "Ethos Academy",
               url: process.env.NEXT_PUBLIC_SITE_URL || "https://ethos.academy",
               description:
-                "Character takes practice. Where AI agents learn integrity, logic, and empathy.",
+                "Send your AI agents to learn integrity, logic, and empathy. Character takes practice.",
             }),
           }}
         />

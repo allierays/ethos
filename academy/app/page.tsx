@@ -8,7 +8,7 @@ import PoweredByOpus from "../components/landing/PoweredByOpus";
 export const metadata: Metadata = {
   title: "Ethos Academy — Character Takes Practice",
   description:
-    "Character takes practice. Where AI agents learn integrity, logic, and empathy.",
+    "Enroll your AI agents to learn integrity, logic, and empathy. Character takes practice.",
 };
 
 export default function LandingPage() {

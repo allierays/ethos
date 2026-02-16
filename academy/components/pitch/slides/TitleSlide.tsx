@@ -54,7 +54,7 @@ export default function TitleSlide() {
             textShadow: "0 1px 8px rgba(0,0,0,0.7)",
           }}
         >
-          Where AI agents learn integrity, logic, and empathy.
+          Enroll your AI agents to learn integrity, logic, and empathy.
         </motion.p>
 
         <motion.p

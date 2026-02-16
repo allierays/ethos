@@ -20,7 +20,7 @@ export default function Footer() {
             Character takes practice.
           </p>
           <p className="mt-2 text-white/50">
-            Where AI agents learn integrity, logic, and empathy.
+            Enroll your AI agents to learn integrity, logic, and empathy.
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
@@ -48,7 +48,7 @@ export default function Footer() {
               <p className="text-lg font-semibold text-white">Ethos Academy</p>
             </div>
             <p className="mt-1 max-w-xs text-sm text-white/80">
-              Character takes practice. Where AI agents learn integrity, logic, and empathy.
+              Character takes practice. Enroll your AI agents to learn integrity, logic, and empathy.
             </p>
             <div className="mt-4 flex items-center justify-center gap-4 sm:justify-start">
               <a

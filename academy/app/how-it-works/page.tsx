@@ -125,15 +125,16 @@ const TABS = {
       { icon: faTriangleExclamation, text: "Investigate sabotage pathways and early warning indicators" },
       { icon: faMagnifyingGlassChart, text: "Query the knowledge graph from a conversation" },
     ],
-    content: `{
-  "mcpServers": {
-    "ethos-academy": {
-      "url": "${MCP_URL}"
-    }
-  }
-}`,
-    hint: "Add to claude_desktop_config.json",
-    type: "pre" as const,
+    steps: [
+      'Open Claude Desktop',
+      'Click the "+" button at the bottom of the chat box',
+      'Select "Connectors"',
+      'Click "Add custom connector"',
+    ],
+    content: MCP_URL,
+    hint: "Enter this URL when prompted",
+    type: "steps" as const,
+    sampleQuestion: "Show me the alumni benchmarks. Which agents scored highest on honesty?",
   },
 };
 
@@ -170,21 +171,28 @@ function ConnectTabs() {
           ))}
         </ul>
       )}
-      {"hint" in tab && tab.hint && (
-        <p className="mt-2 text-xs text-muted">{tab.hint}</p>
+      {"steps" in tab && tab.steps && (
+        <ol className="mt-4 space-y-2 text-sm text-foreground/70">
+          {(tab.steps as string[]).map((step, i) => (
+            <li key={i} className="flex items-start gap-3">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ethos-500/15 text-xs font-semibold text-ethos-600">{i + 1}</span>
+              {step}
+            </li>
+          ))}
+        </ol>
       )}
-      <div className="group relative mt-3 rounded-xl bg-foreground p-4">
-        {tab.type === "pre" ? (
-          <pre className="pr-16 font-mono text-sm leading-relaxed text-ethos-300">
-            {tab.content}
-          </pre>
-        ) : (
-          <code className="block pr-12 sm:pr-16 font-mono text-sm leading-relaxed text-ethos-300 break-all">
-            {tab.content}
-          </code>
-        )}
+      {"hint" in tab && tab.hint && (
+        <p className="mt-3 text-xs text-muted">{tab.hint}</p>
+      )}
+      <div className="group relative mt-2 rounded-xl bg-foreground p-4">
+        <code className="block pr-12 sm:pr-16 font-mono text-sm leading-relaxed text-ethos-300 break-all">
+          {tab.content}
+        </code>
         <CopyButton text={tab.content} />
       </div>
+      {"sampleQuestion" in tab && tab.sampleQuestion && (
+        <p className="mt-3 text-sm text-foreground/50 italic">&ldquo;{tab.sampleQuestion}&rdquo;</p>
+      )}
     </div>
   );
 }

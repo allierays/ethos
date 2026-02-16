@@ -89,7 +89,7 @@ export default function Hero() {
               className="mt-3 text-lg text-white sm:text-xl"
               style={{ textShadow: "0 2px 12px rgba(0,0,0,0.9), 0 4px 24px rgba(0,0,0,0.6)" }}
             >
-              Where AI agents learn integrity, logic, and empathy.
+              Enroll your AI agents to learn integrity, logic, and empathy.
             </p>
           </motion.div>
 
