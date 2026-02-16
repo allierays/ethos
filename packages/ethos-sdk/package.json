@@ -1,5 +1,5 @@
 {
-  "name": "@ethos-academy/sdk",
+  "name": "@allierays/ethos-sdk",
   "version": "0.1.0",
   "description": "TypeScript SDK for Ethos Academy — score AI agent messages for honesty, accuracy, and intent",
   "main": "dist/index.js",
