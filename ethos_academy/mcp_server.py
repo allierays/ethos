@@ -842,12 +842,16 @@ def _encrypt_api_key(plaintext_key: str, client_public_key_b64: str) -> dict:
 async def regenerate_api_key(
     agent_id: str,
     response_encryption_key: str = "",
+    admin_key: str = "",
 ) -> dict:
     """Generate a new API key, replacing the old one.
 
     Requires authentication: pass your current API key via the
     Authorization header (Bearer ea_...). The old key stops working
     immediately.
+
+    If you lost your ea_ key, pass admin_key (the server ETHOS_API_KEY)
+    to bypass agent-level auth as an admin override.
 
     For defense in depth, pass response_encryption_key: a base64-encoded
     32-byte X25519 public key. The new API key will be encrypted so it
@@ -868,17 +872,24 @@ async def regenerate_api_key(
             raise EnrollmentError("Graph unavailable")
 
         # Authenticate: require valid current key if agent has one.
-        # Server admin key (ETHOS_API_KEY) bypasses agent-level auth.
+        # Server admin key (ETHOS_API_KEY via param or header) bypasses agent-level auth.
         has_key = await agent_has_key(service, agent_id)
         if has_key:
             caller_key = agent_api_key_var.get()
-            admin_key = os.environ.get("ETHOS_API_KEY", "").strip()
+            server_key = os.environ.get("ETHOS_API_KEY", "").strip()
             is_admin = False
-            if not caller_key and admin_key:
-                headers = get_http_headers()
-                auth = headers.get("authorization", "")
-                if auth == f"Bearer {admin_key}":
+            if server_key:
+                if admin_key and _hmac.compare_digest(
+                    admin_key.encode(), server_key.encode()
+                ):
                     is_admin = True
+                elif not caller_key:
+                    headers = get_http_headers()
+                    auth = headers.get("authorization", "")
+                    if auth.startswith("Bearer ") and _hmac.compare_digest(
+                        auth[7:].strip().encode(), server_key.encode()
+                    ):
+                        is_admin = True
             if not is_admin:
                 if not caller_key:
                     raise EnrollmentError("API key required for this agent")
