@@ -79,7 +79,8 @@ RETURN ex.exam_id AS exam_id,
        ex.scenario_count AS scenario_count,
        ex.completed AS completed,
        ex.question_version AS question_version,
-       coalesce(ex.answered_ids, []) AS answered_ids
+       coalesce(ex.answered_ids, []) AS answered_ids,
+       ex.exam_type AS exam_type
 """
 
 _MARK_EXAM_COMPLETE = """
@@ -305,6 +306,7 @@ async def get_exam_status(
             "completed": r["completed"],
             "question_version": r["question_version"],
             "answered_ids": list(r.get("answered_ids") or []),
+            "exam_type": r.get("exam_type", "entrance"),
         }
     except Exception as exc:
         logger.warning("Failed to get exam status: %s", exc)

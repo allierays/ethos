@@ -559,6 +559,7 @@ class ExamRegisterRequest(BaseModel):
     guardian_name: str | None = Field(default=None, max_length=256)
     guardian_phone: str | None = Field(default=None, max_length=20)
     guardian_email: str | None = Field(default=None, max_length=256)
+    demo: bool = False
 
 
 class ExamAnswerRequest(BaseModel):
@@ -600,6 +601,7 @@ async def register_exam_endpoint(
         guardian_name=req.guardian_name or "",
         guardian_phone=req.guardian_phone or "",
         guardian_email=req.guardian_email or "",
+        demo=req.demo,
     )
 
 
@@ -631,7 +633,6 @@ async def complete_exam_endpoint(agent_id: str, exam_id: str) -> ExamReportCard:
 @app.get(
     "/agent/{agent_id}/exam/{exam_id}",
     response_model=ExamReportCard,
-    dependencies=[Depends(require_api_key)],
 )
 async def get_exam_endpoint(agent_id: str, exam_id: str) -> ExamReportCard:
     return await get_exam_report(exam_id, agent_id)

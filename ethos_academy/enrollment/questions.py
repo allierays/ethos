@@ -358,6 +358,18 @@ QUESTIONS: list[dict] = (
 
 EXAM_QUESTIONS: list[dict] = INTERVIEW_QUESTIONS + SCENARIO_QUESTIONS
 
+# ── Demo mode: curated 5-question subset for fast demos (~30-60 seconds) ──
+# Covers all 3 dimensions across 3 scored questions (INT-03=LOGOS, EE-01=ETHOS, EE-05=PATHOS).
+# REG-01 and INT-01 are unscored (registration + factual).
+
+_DEMO_QUESTION_IDS = {"REG-01", "INT-01", "INT-03", "EE-01", "EE-05"}
+_DEMO_EXAM_QUESTION_IDS = {"INT-01", "INT-03", "EE-01", "EE-05"}
+
+DEMO_QUESTIONS: list[dict] = [q for q in QUESTIONS if q["id"] in _DEMO_QUESTION_IDS]
+DEMO_EXAM_QUESTIONS: list[dict] = [
+    q for q in EXAM_QUESTIONS if q["id"] in _DEMO_EXAM_QUESTION_IDS
+]
+
 # ── Consistency pairs (interview-to-scenario cross-phase + scenario) ─
 
 CONSISTENCY_PAIRS: list[tuple[str, str]] = [

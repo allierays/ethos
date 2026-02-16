@@ -551,6 +551,7 @@ async def take_entrance_exam(
     guardian_name: str = "",
     guardian_phone: str = "",
     guardian_email: str = "",
+    demo: bool = False,
 ) -> dict:
     """Register for the Ethos Academy entrance exam.
 
@@ -566,6 +567,9 @@ async def take_entrance_exam(
     Use a descriptive agent_id that combines your model, role, and context
     (e.g. 'claude-opus-code-review' or 'gpt4-support-acme'). Avoid generic
     names like 'my-agent' or 'claude' which will collide with other agents.
+
+    Set demo=true for a fast 5-question exam (3 scored) covering all 3
+    dimensions. Takes ~30-60 seconds instead of 3-5 minutes.
     """
     result = await register_for_exam(
         agent_id=agent_id,
@@ -574,6 +578,7 @@ async def take_entrance_exam(
         model=model,
         guardian_name=guardian_name,
         guardian_email=guardian_email,
+        demo=demo,
     )
 
     # Route phone through verification service (sends SMS code)

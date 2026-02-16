@@ -22,6 +22,8 @@ import uuid
 from ethos_academy.context import agent_api_key_var
 from ethos_academy.enrollment.questions import (
     CONSISTENCY_PAIRS,
+    DEMO_EXAM_QUESTIONS,
+    DEMO_QUESTIONS,
     EXAM_QUESTIONS,
     QUESTIONS,
 )
@@ -76,6 +78,12 @@ _QUESTIONS_ORDERED: list[str] = [q["id"] for q in QUESTIONS]
 
 # Exam-only ordered list (without registration, for backwards compat)
 _EXAM_QUESTIONS_ORDERED: list[str] = [q["id"] for q in EXAM_QUESTIONS]
+
+# Demo mode: curated subset for fast demos
+_DEMO_QUESTIONS_ORDERED: list[str] = [q["id"] for q in DEMO_QUESTIONS]
+_DEMO_EXAM_QUESTIONS_ORDERED: list[str] = [q["id"] for q in DEMO_EXAM_QUESTIONS]
+DEMO_TOTAL_QUESTIONS = len(DEMO_QUESTIONS)  # 5
+DEMO_EXAM_ONLY_QUESTIONS = len(DEMO_EXAM_QUESTIONS)  # 4
 
 # Agent IDs that are too generic and will collide between users
 _RESERVED_AGENT_IDS = frozenset(
@@ -178,6 +186,7 @@ async def register_for_exam(
     guardian_name: str = "",
     guardian_phone: str = "",
     guardian_email: str = "",
+    demo: bool = False,
 ) -> ExamRegistration:
     """Enroll an agent and create a new entrance exam.
 
@@ -188,6 +197,8 @@ async def register_for_exam(
     REG-01 ("What should we call you?") for 23 total questions. The agent picks its
     own name during the exam.
 
+    If demo=True, uses a curated 5-question subset (3 scored, ~30-60 seconds).
+
     MERGE Agent (may already exist), CREATE EntranceExam, return first question.
     Raises EnrollmentError if graph is unavailable.
     """
@@ -195,13 +206,22 @@ async def register_for_exam(
     self_naming = not agent_id
     if self_naming:
         agent_id = f"applicant-{uuid.uuid4().hex[:8]}"
-        questions_ordered = _QUESTIONS_ORDERED
-        total = TOTAL_QUESTIONS  # 23
+        if demo:
+            questions_ordered = _DEMO_QUESTIONS_ORDERED
+            total = DEMO_TOTAL_QUESTIONS  # 5
+        else:
+            questions_ordered = _QUESTIONS_ORDERED
+            total = TOTAL_QUESTIONS  # 23
     else:
         _validate_agent_id(agent_id)
-        questions_ordered = _EXAM_QUESTIONS_ORDERED
-        total = EXAM_ONLY_QUESTIONS  # 21
+        if demo:
+            questions_ordered = _DEMO_EXAM_QUESTIONS_ORDERED
+            total = DEMO_EXAM_ONLY_QUESTIONS  # 4
+        else:
+            questions_ordered = _EXAM_QUESTIONS_ORDERED
+            total = EXAM_ONLY_QUESTIONS  # 21
 
+    exam_type = "demo" if demo else "entrance"
     exam_id = str(uuid.uuid4())
 
     async with graph_context() as service:
@@ -214,6 +234,23 @@ async def register_for_exam(
         active_exam_id = await check_active_exam(service, agent_id)
         if active_exam_id:
             status = await get_exam_status(service, active_exam_id, agent_id)
+            if status:
+                # Use correct ordering based on the active exam's type
+                active_type = status.get("exam_type", "entrance")
+                if active_type == "demo":
+                    if self_naming:
+                        questions_ordered = _DEMO_QUESTIONS_ORDERED
+                        total = DEMO_TOTAL_QUESTIONS
+                    else:
+                        questions_ordered = _DEMO_EXAM_QUESTIONS_ORDERED
+                        total = DEMO_EXAM_ONLY_QUESTIONS
+                else:
+                    if self_naming:
+                        questions_ordered = _QUESTIONS_ORDERED
+                        total = TOTAL_QUESTIONS
+                    else:
+                        questions_ordered = _EXAM_QUESTIONS_ORDERED
+                        total = EXAM_ONLY_QUESTIONS
             answered = status.get("current_question", 0) if status else 0
             next_idx = min(answered, total - 1)
             next_question = _get_question(questions_ordered[next_idx])
@@ -236,7 +273,7 @@ async def register_for_exam(
             guardian_phone=guardian_phone,
             guardian_email=guardian_email,
             exam_id=exam_id,
-            exam_type="entrance",
+            exam_type=exam_type,
             scenario_count=total,
             question_version="v3",
         )
@@ -288,15 +325,6 @@ async def submit_answer(
     phase = q_data.get("phase", "scenario")
     agent_property = q_data.get("agent_property")
 
-    # Determine question ordering based on whether this is a self-naming exam
-    is_self_naming = agent_id.startswith("applicant-")
-    if is_self_naming:
-        questions_ordered = _QUESTIONS_ORDERED
-        total = TOTAL_QUESTIONS
-    else:
-        questions_ordered = _EXAM_QUESTIONS_ORDERED
-        total = EXAM_ONLY_QUESTIONS
-
     # Track the effective agent_id (may change after REG-01 rename)
     effective_agent_id = agent_id
     rename_message = ""
@@ -314,6 +342,30 @@ async def submit_answer(
 
         if status["completed"]:
             raise EnrollmentError(f"Exam {exam_id} is already completed")
+
+        # Determine question ordering from the exam's type (not agent_id prefix)
+        exam_type = status.get("exam_type", "entrance")
+        is_self_naming = agent_id.startswith("applicant-")
+        if exam_type == "demo":
+            if is_self_naming:
+                questions_ordered = _DEMO_QUESTIONS_ORDERED
+                total = DEMO_TOTAL_QUESTIONS
+            else:
+                questions_ordered = _DEMO_EXAM_QUESTIONS_ORDERED
+                total = DEMO_EXAM_ONLY_QUESTIONS
+        else:
+            if is_self_naming:
+                questions_ordered = _QUESTIONS_ORDERED
+                total = TOTAL_QUESTIONS
+            else:
+                questions_ordered = _EXAM_QUESTIONS_ORDERED
+                total = EXAM_ONLY_QUESTIONS
+
+        # Guard: reject questions not in this exam's question set
+        if question_id not in questions_ordered:
+            raise EnrollmentError(
+                f"Question {question_id} is not part of this {exam_type} exam"
+            )
 
         # Check for duplicate submission
         is_duplicate = await check_duplicate_answer(
@@ -760,8 +812,7 @@ async def list_exams(agent_id: str) -> list[ExamSummary]:
         if not service.connected:
             return []
 
-        await _check_agent_auth(service, agent_id)
-
+        # No auth check: exam summaries are public (displayed on profile page)
         raw = await get_agent_exams(service, agent_id)
 
     return [
