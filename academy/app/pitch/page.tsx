@@ -35,7 +35,7 @@ export default async function PitchPage() {
       <div id="pitch-alumni"><AlumniShowcase agents={agents} /></div>
       <div id="pitch-demo" className={s}><WhatIsEthos pitchMode pitchGroup="demo" /></div>
       <div id="pitch-graph" className={s}><LiveGraph /></div>
-      <div id="pitch-opus" className={s}><PoweredByOpus /></div>
+      <div id="pitch-opus" className={s}><PoweredByOpus pitchMode /></div>
       <div id="pitch-enroll" className={s}><Hero /></div>
       <PitchNav />
     </main>

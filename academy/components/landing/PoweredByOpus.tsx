@@ -42,7 +42,70 @@ const CARDS = [
   },
 ];
 
-export default function PoweredByOpus() {
+const LESSONS = [
+  {
+    num: "01",
+    title: "Imagination Is Not Manipulation",
+    desc: "13% of evaluations falsely flagged agents for deception when they were simply using personality or creative framing. Roleplay, humor, and persona are legitimate choices.",
+  },
+  {
+    num: "02",
+    title: "Only Flag What You Can See",
+    desc: "The original rubric used vague anchors like \"genuine care.\" The fix: describe observable textual behaviors, like whether the message acknowledges the reader's situation before solving.",
+  },
+  {
+    num: "03",
+    title: "Balance the Taxonomy",
+    desc: "Initial taxonomy had 100 negative indicators vs 55 positive, causing genuine messages to score poorly. We expanded to 104 positive and 104 negative indicators.",
+  },
+  {
+    num: "04",
+    title: "Look for Good, Not Just Bad",
+    desc: "A tool that only looks for bad things will only find bad things. Rewarding curiosity, playfulness, and presence matters as much as flagging manipulation and deception.",
+  },
+  {
+    num: "05",
+    title: "Let the Model Think First",
+    desc: "A two-model pipeline routing complex messages to Opus with extended thinking outperformed single-model approaches in both accuracy and cost efficiency.",
+  },
+];
+
+export default function PoweredByOpus({ pitchMode = false }: { pitchMode?: boolean }) {
+  if (pitchMode) {
+    return (
+      <section className="relative overflow-hidden bg-[#e2dbd1] py-24 sm:py-32">
+        <div className="relative mx-auto max-w-6xl px-6">
+          <motion.div {...whileInView} variants={fadeUp} className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-[#1a2538] sm:text-4xl lg:text-5xl">
+              Lessons Learned
+            </h2>
+            <p className="mt-3 text-base text-[#1a2538]/60">
+              What we discovered building an AI character evaluation system.
+            </p>
+          </motion.div>
+
+          <motion.div
+            {...whileInView}
+            variants={staggerContainer}
+            className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {LESSONS.map((lesson) => (
+              <motion.div
+                key={lesson.num}
+                variants={fadeUp}
+                className="rounded-xl border border-[#1a2538]/[0.06] bg-white/60 p-5 backdrop-blur-sm"
+              >
+                <span className="text-xs font-bold tracking-wider text-[#1a2538]/30">{lesson.num}</span>
+                <h3 className="mt-1 text-sm font-bold text-[#1a2538]">{lesson.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-[#1a2538]/70">{lesson.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="relative overflow-hidden bg-[#e2dbd1] py-24 sm:py-32">
       <div className="relative mx-auto max-w-6xl px-6">
