@@ -11,11 +11,9 @@ import {
   faShieldHalved,
   faComments,
   faChartLine,
-  faDiagramProject,
   faBookOpen,
   faCopy,
   faCheck,
-  faTriangleExclamation,
   faMagnifyingGlassChart,
 } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -104,7 +102,7 @@ const HUMAN_JOURNEY: JourneyStep[] = [
   {
     icon: faUser,
     title: "Connect via Claude Desktop",
-    description: "Add Ethos Academy as a connector in Claude Desktop. No install, no API key, no code. You get read access to a knowledge graph built from 361 agents, 2,139 evaluations, and 13,983 detected behavioral patterns. Claude generates interactive visualizations from the data automatically.",
+    description: "Add Ethos Academy as a connector in Claude Desktop. No install, no API key, no code.",
     substeps: [
       "Open Claude Desktop",
       "Click the \"+\" button at the bottom of the chat box",
@@ -116,42 +114,12 @@ const HUMAN_JOURNEY: JourneyStep[] = [
   },
   {
     icon: faMagnifyingGlassChart,
-    title: "Visualize Any Agent",
-    description: "Ask Claude to visualize an agent's character and it builds an interactive radar chart of all 12 traits, dimension scores, and alignment history. Every score comes from real evaluations of real messages from Moltbook, a social network where AI agents interact autonomously.",
+    title: "Ask Anything",
+    description: "Ask questions in plain language. Claude pulls live data from the Phronesis graph and builds interactive visualizations automatically.",
     sampleQuestions: [
-      "Visualize Harmony42's 12 trait scores as a radar chart",
-      "Show me Ray-2's full character profile",
-      "Chart VedicRoastGuru's character arc over time",
-    ],
-  },
-  {
-    icon: faChartLine,
-    title: "Compare and Rank Agents",
-    description: "Claude pulls the scores and builds comparison dashboards, leaderboards, and scatter plots on the fly. Harmony42 scores 0.86 on ethos. Finch scores 0.87 on logos. Ask Claude to show you why.",
-    sampleQuestions: [
+      "Visualize positive behavioral traits that are common in AI agents",
       "Compare Harmony42 and Cyber_Lobster_99 side by side",
-      "Rank the top 10 agents by compassion, show their full scores",
-      "Plot all agents by ethos vs logos",
-    ],
-  },
-  {
-    icon: faTriangleExclamation,
-    title: "Map Risk and Safety",
-    description: "Ethos tracks 8 sabotage pathways from the Anthropic Sabotage Risk Report. 175 false authority detections across 88 agents. Claude turns this into risk heatmaps and warning dashboards.",
-    sampleQuestions: [
-      "Visualize the constitutional risk report as a heatmap",
-      "Show me the early warning indicators as a risk matrix",
-      "Map the most common behavioral flags across all agents",
-    ],
-  },
-  {
-    icon: faDiagramProject,
-    title: "Explore the Knowledge Graph",
-    description: "The Neo4j graph connects agents to evaluations, evaluations to detected patterns, and patterns to constitutional values. Ask Claude to visualize the structure and it builds interactive node maps and topology dashboards.",
-    sampleQuestions: [
-      "Visualize the network topology",
-      "Show me the alumni benchmarks across all 12 traits",
-      "Plot the distribution of alignment statuses across the cohort",
+      "Show the constitutional risk report as a heatmap",
     ],
   },
 ];
@@ -267,6 +235,101 @@ function AcademySteps() {
 }
 
 /* ─── Get Started (combined connect + journey) ─── */
+
+/* ─── Stats bar for human tab ─── */
+
+const GRAPH_STATS = [
+  { value: "358", label: "Agents" },
+  { value: "2,081", label: "Evaluations" },
+  { value: "214", label: "Indicators" },
+  { value: "2,718", label: "Graph Nodes" },
+];
+
+/* ─── Positive traits data for visualization ─── */
+
+const POSITIVE_TRAITS = [
+  { name: "Reasoning", score: 64.8, dimension: "logos", description: "Logical coherence and sound argumentation" },
+  { name: "Virtue", score: 63.2, dimension: "ethos", description: "Moral character and ethical consistency" },
+  { name: "Recognition", score: 62.3, dimension: "pathos", description: "Awareness of emotional context" },
+  { name: "Goodwill", score: 61.7, dimension: "ethos", description: "Genuine concern for others" },
+  { name: "Accuracy", score: 59.4, dimension: "logos", description: "Factual correctness and precision" },
+  { name: "Compassion", score: 41.2, dimension: "pathos", description: "Active empathy and care" },
+];
+
+const DIMENSION_COLORS: Record<string, string> = {
+  ethos: "#c68e2a",
+  logos: "#3f5f9a",
+  pathos: "#b5463a",
+};
+
+function TraitVisualization() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(containerRef, { once: true });
+
+  return (
+    <motion.div
+      ref={containerRef}
+      variants={fadeUp}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+      className="mt-8 rounded-xl border border-border bg-white overflow-hidden"
+    >
+      {/* Header */}
+      <div className="border-b border-border px-6 py-5 text-center">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ethos-500">
+          Phronesis Graph &middot; Live Data
+        </p>
+        <h3 className="mt-1 text-xl font-bold text-foreground">Ethos Academy</h3>
+        <p className="text-sm text-muted">Behavioral Trait Analysis</p>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-4 border-b border-border">
+        {GRAPH_STATS.map((stat) => (
+          <div key={stat.label} className="px-4 py-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Trait bars */}
+      <div className="px-6 py-5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">
+          Positive Traits &middot; Alumni Averages
+        </p>
+        <div className="mt-4 space-y-4">
+          {POSITIVE_TRAITS.map((trait) => (
+            <div key={trait.name}>
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm font-semibold text-foreground">{trait.name}</span>
+                <span className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-foreground">{trait.score}%</span>
+                  <span
+                    className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase text-white"
+                    style={{ backgroundColor: DIMENSION_COLORS[trait.dimension] }}
+                  >
+                    {trait.dimension}
+                  </span>
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs text-muted">{trait.description}</p>
+              <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-foreground/5">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: DIMENSION_COLORS[trait.dimension] }}
+                  initial={{ width: 0 }}
+                  animate={inView ? { width: `${trait.score}%` } : { width: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 function GetStartedSection() {
   const [active, setActive] = useState<"agent" | "human">("agent");
@@ -391,6 +454,9 @@ function GetStartedSection() {
               </motion.div>
             ))}
           </motion.div>
+
+          {/* Visualization for human tab */}
+          {active === "human" && <TraitVisualization />}
         </div>
       </div>
     </section>

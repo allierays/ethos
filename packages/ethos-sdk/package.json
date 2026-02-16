@@ -1,0 +1,26 @@
+{
+  "name": "@ethos-academy/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for Ethos Academy — score AI agent messages for honesty, accuracy, and intent",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/**/*.test.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["ethos", "ai", "alignment", "evaluation", "agents"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/allierays/ethos-academy.git",
+    "directory": "packages/ethos-sdk"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

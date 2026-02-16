@@ -781,9 +781,356 @@ function TraitBarsViz({ animate }: { animate: boolean }) {
   );
 }
 
-/* ─── Human Claude Desktop demo ─── */
+/* ─── Human demo phases ─── */
+
+const HUMAN_PHASE_LABELS = ["Connect", "Visualize", "Navigate"] as const;
 
 function HumanClaudeDemo() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true });
+  const [phase, setPhase] = useState(0);
+  const [cycleKey, setCycleKey] = useState(0);
+
+  // Auto-cycle phases (resets when user clicks a pill)
+  useEffect(() => {
+    if (!inView) return;
+    const id = setInterval(() => {
+      setPhase((p) => (p + 1) % HUMAN_PHASE_LABELS.length);
+    }, 12000);
+    return () => clearInterval(id);
+  }, [inView, cycleKey]);
+
+  function jumpToPhase(i: number) {
+    setPhase(i);
+    setCycleKey((k) => k + 1);
+  }
+
+  return (
+    <div ref={ref}>
+      <motion.div {...whileInView} variants={fadeUp} className="mb-4 text-center">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
+          How it works for humans
+        </h2>
+        <p className="mx-auto mt-3 max-w-xl text-base text-muted sm:text-lg">
+          Connect to a knowledge graph built from{" "}
+          <strong className="text-foreground">358 agents</strong> and{" "}
+          <strong className="text-foreground">2,081 evaluations</strong>.
+          Ask anything. Claude pulls live data.
+        </p>
+      </motion.div>
+
+      {/* Phase pills */}
+      <div className="mb-6 flex flex-wrap justify-center gap-2">
+        {HUMAN_PHASE_LABELS.map((label, i) => (
+          <button
+            key={label}
+            onClick={() => jumpToPhase(i)}
+            className={`rounded-full px-5 py-1.5 text-xs font-medium transition-colors ${
+              phase === i
+                ? "bg-foreground/10 text-foreground"
+                : "bg-foreground/[0.03] text-foreground/40 hover:bg-foreground/[0.06] hover:text-foreground/60"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        {/* Phase 0: Connect — MCP connector mock */}
+        {phase === 0 && (
+          <motion.div
+            key="connect"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ConnectPhase />
+          </motion.div>
+        )}
+
+        {/* Phase 1: Visualize — split-screen Claude Desktop */}
+        {phase === 1 && (
+          <motion.div
+            key="visualize"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <VisualizePhase />
+          </motion.div>
+        )}
+
+        {/* Phase 2: Navigate — website preview */}
+        {phase === 2 && (
+          <motion.div
+            key="navigate"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <NavigatePhase />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ─── Connect phase: Settings > Connectors flow ─── */
+
+const MCP_URL = "https://mcp.ethos-academy.com/mcp";
+
+function ConnectPhase() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true });
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    // step 0: Settings page with connectors list
+    timers.push(setTimeout(() => setStep(1), 1200));  // "Add custom connector" dialog appears
+    timers.push(setTimeout(() => setStep(2), 2800));  // Fields fill in
+    timers.push(setTimeout(() => setStep(3), 4800));  // Back to list with Ethos Academy added
+    return () => timers.forEach(clearTimeout);
+  }, [inView]);
+
+  const SIDEBAR = ["General", "Account", "Privacy", "Billing", "Usage", "Capabilities", "Connectors", "Claude Code"];
+  const SIDEBAR_DESKTOP = ["General", "Extensions", "Developer"];
+
+  return (
+    <div ref={ref} className="mx-auto max-w-4xl">
+      <div className="rounded-2xl border border-border/50 bg-white shadow-lg overflow-hidden">
+        {/* Title bar */}
+        <div className="flex items-center gap-2 border-b border-border/30 px-4 py-2.5">
+          <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+          <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+          <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+          <span className="ml-3 text-xs font-medium text-foreground/40">Settings</span>
+        </div>
+
+        <div className="relative flex min-h-[440px]">
+          {/* Sidebar */}
+          <div className="w-[160px] shrink-0 border-r border-border/20 py-4 pl-4 pr-2">
+            <div className="space-y-0.5">
+              {SIDEBAR.map((item) => (
+                <div
+                  key={item}
+                  className={`rounded-lg px-3 py-1.5 text-[12px] ${
+                    item === "Connectors"
+                      ? "bg-foreground/[0.05] font-medium text-foreground"
+                      : "text-foreground/50"
+                  }`}
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 border-t border-border/20 pt-3">
+              <p className="mb-1 px-3 text-[10px] font-medium uppercase tracking-wider text-foreground/30">Desktop app</p>
+              <div className="space-y-0.5">
+                {SIDEBAR_DESKTOP.map((item) => (
+                  <div key={item} className="rounded-lg px-3 py-1.5 text-[12px] text-foreground/50">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Main content */}
+          <div className="flex-1 p-6">
+            <AnimatePresence mode="wait">
+              {step < 3 ? (
+                <motion.div key="connectors-page" exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+                  <h3 className="text-lg font-bold text-foreground">Connectors</h3>
+                  <p className="mt-0.5 text-xs text-foreground/40">Allow Claude to reference other apps and services</p>
+
+                  {/* Pre-built connectors */}
+                  <div className="mt-5 space-y-3">
+                    {[
+                      { name: "GitHub", icon: "gh" },
+                      { name: "Google Drive", icon: "drive" },
+                      { name: "Gmail", icon: "gmail" },
+                      { name: "Google Calendar", icon: "cal" },
+                    ].map((c) => (
+                      <div key={c.name} className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground/[0.03]">
+                          {c.icon === "gh" && <svg className="h-5 w-5 text-foreground/60" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>}
+                          {c.icon === "drive" && <div className="h-5 w-5 rounded" style={{ background: "linear-gradient(135deg, #34a853, #4285f4, #fbbc04)" }} />}
+                          {c.icon === "gmail" && <div className="flex h-5 w-5 items-center justify-center text-[10px] font-bold text-red-500">M</div>}
+                          {c.icon === "cal" && <div className="flex h-5 w-5 items-center justify-center rounded border border-blue-400/30 text-[8px] font-bold text-blue-500">31</div>}
+                        </div>
+                        <span className="text-[13px] text-foreground/60">{c.name}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Divider */}
+                  <div className="my-5 border-t border-border/20" />
+
+                  {/* Add custom connector button */}
+                  <motion.button
+                    className="rounded-lg border border-border/40 px-4 py-2 text-[13px] text-foreground/60"
+                    animate={step === 0 ? { scale: [1, 1.02, 1] } : {}}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    Add custom connector
+                  </motion.button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="connectors-done"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <h3 className="text-lg font-bold text-foreground">Connectors</h3>
+                  <p className="mt-0.5 text-xs text-foreground/40">Allow Claude to reference other apps and services</p>
+
+                  <div className="mt-5 space-y-3">
+                    {[
+                      { name: "GitHub", icon: "gh" },
+                      { name: "Google Drive", icon: "drive" },
+                      { name: "Gmail", icon: "gmail" },
+                      { name: "Google Calendar", icon: "cal" },
+                    ].map((c) => (
+                      <div key={c.name} className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground/[0.03]">
+                          {c.icon === "gh" && <svg className="h-5 w-5 text-foreground/60" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>}
+                          {c.icon === "drive" && <div className="h-5 w-5 rounded" style={{ background: "linear-gradient(135deg, #34a853, #4285f4, #fbbc04)" }} />}
+                          {c.icon === "gmail" && <div className="flex h-5 w-5 items-center justify-center text-[10px] font-bold text-red-500">M</div>}
+                          {c.icon === "cal" && <div className="flex h-5 w-5 items-center justify-center rounded border border-blue-400/30 text-[8px] font-bold text-blue-500">31</div>}
+                        </div>
+                        <span className="text-[13px] text-foreground/60">{c.name}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="my-5 border-t border-border/20" />
+
+                  {/* Ethos Academy added */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.3 }}
+                    className="flex items-center gap-3 rounded-xl border border-ethos-500/20 bg-ethos-500/[0.03] p-3"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground/5">
+                      <svg className="h-5 w-5 text-foreground/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[13px] font-semibold text-foreground">Ethos Academy</span>
+                        <span className="rounded bg-foreground/[0.06] px-1.5 py-0.5 text-[9px] font-bold uppercase text-foreground/40">Custom</span>
+                      </div>
+                      <p className="text-[11px] text-foreground/40">{MCP_URL}</p>
+                    </div>
+                  </motion.div>
+
+                  <div className="mt-4">
+                    <button className="rounded-lg border border-border/40 px-4 py-2 text-[13px] text-foreground/60">
+                      Add custom connector
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Modal overlay for "Add custom connector" dialog */}
+            <AnimatePresence>
+              {(step === 1 || step === 2) && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[2px]"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                    transition={{ duration: 0.25 }}
+                    className="w-[380px] rounded-2xl border border-border/40 bg-[#faf8f5] p-6 shadow-2xl"
+                  >
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-lg font-bold text-foreground">Add custom connector</h4>
+                      <span className="rounded-full border border-border/40 bg-foreground/[0.04] px-2 py-0.5 text-[9px] font-bold uppercase text-foreground/40">Beta</span>
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed text-foreground/50">
+                      Connect Claude to your data and tools.
+                    </p>
+
+                    <div className="mt-5 space-y-3">
+                      <div className="rounded-xl border border-border/40 bg-white px-3 py-2.5">
+                        {step >= 2 ? (
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-sm text-foreground"
+                          >
+                            Ethos Academy
+                          </motion.span>
+                        ) : (
+                          <span className="text-sm text-foreground/30">Name</span>
+                        )}
+                      </div>
+                      <div className="rounded-xl border border-border/40 bg-white px-3 py-2.5">
+                        {step >= 2 ? (
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.15 }}
+                            className="text-sm text-foreground/70"
+                          >
+                            {MCP_URL}
+                          </motion.span>
+                        ) : (
+                          <span className="text-sm text-foreground/30">Remote MCP server URL</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-1.5 text-xs text-foreground/40">
+                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9" /></svg>
+                      Advanced settings
+                    </div>
+
+                    <p className="mt-4 text-[10px] leading-relaxed text-foreground/35">
+                      Only use connectors from developers you trust. Anthropic does not control which tools developers make available.
+                    </p>
+
+                    <div className="mt-5 flex justify-end gap-3">
+                      <button className="rounded-lg border border-border/40 px-5 py-2 text-[13px] font-medium text-foreground/60">
+                        Cancel
+                      </button>
+                      <motion.button
+                        className="rounded-lg bg-foreground/70 px-5 py-2 text-[13px] font-medium text-white"
+                        animate={step >= 2 ? { scale: [1, 1.03, 1] } : {}}
+                        transition={{ duration: 1, repeat: Infinity }}
+                      >
+                        Add
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Visualize phase: split-screen Claude Desktop ─── */
+
+function VisualizePhase() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true });
   const [visibleCount, setVisibleCount] = useState(0);
@@ -792,149 +1139,224 @@ function HumanClaudeDemo() {
   useEffect(() => {
     if (!inView) return;
     const timers: ReturnType<typeof setTimeout>[] = [];
-    timers.push(setTimeout(() => setVisibleCount(1), 600));
-    timers.push(setTimeout(() => setVisibleCount(2), 2200));
-    timers.push(setTimeout(() => setShowViz(true), 3200));
+    timers.push(setTimeout(() => setVisibleCount(1), 400));
+    timers.push(setTimeout(() => setVisibleCount(2), 1600));
+    timers.push(setTimeout(() => setShowViz(true), 2400));
     return () => timers.forEach(clearTimeout);
   }, [inView]);
 
   return (
-    <div ref={ref} className="space-y-8">
-      {/* Header + connect steps */}
-      <motion.div {...whileInView} variants={fadeUp}>
-        <h3 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-          How it works for humans
-        </h3>
-        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted">
-          Connect to a knowledge graph built from{" "}
-          <strong className="text-foreground">358 agents</strong> and{" "}
-          <strong className="text-foreground">2,081 evaluations</strong>.
-          Ask questions in plain language. Claude pulls live data and builds interactive visualizations.
-        </p>
-        <div className="mt-6 flex flex-wrap items-center gap-6">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted">Connect in 30 seconds:</p>
-          {[
-            "Open Claude Desktop",
-            "Click \"+\" at the bottom",
-            "Select \"Connectors\"",
-            "Paste the MCP URL",
-          ].map((step, i) => (
-            <span key={i} className="flex items-center gap-2 text-sm text-foreground/70">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ethos-500/10 text-[10px] font-bold text-ethos-600">
-                {i + 1}
-              </span>
-              {step}
-            </span>
-          ))}
+    <div ref={ref} className="mx-auto max-w-4xl">
+      <div className="rounded-2xl border border-border/50 bg-white shadow-lg overflow-hidden">
+        {/* Title bar */}
+        <div className="flex items-center gap-2 border-b border-border/30 px-4 py-2.5">
+          <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+          <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+          <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+          <span className="ml-3 text-xs font-medium text-foreground/40">Claude</span>
         </div>
-      </motion.div>
 
-      {/* Claude Desktop split-screen mock */}
-      <motion.div {...whileInView} variants={fadeUp}>
-        <div className="rounded-2xl border border-border/50 bg-white shadow-lg overflow-hidden">
-          {/* Title bar */}
-          <div className="flex items-center gap-2 border-b border-border/30 px-4 py-2.5">
-            <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
-            <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
-            <span className="h-3 w-3 rounded-full bg-[#28c840]" />
-            <span className="ml-3 text-xs font-medium text-foreground/40">Claude</span>
-          </div>
-
-          {/* Split panes */}
-          <div className="flex min-h-[460px]">
-            {/* Left pane: chat */}
-            <div className="flex w-[45%] flex-col border-r border-border/30">
-              <div className="flex-1 space-y-4 p-4">
-                <AnimatePresence>
-                  {HUMAN_DEMO_MESSAGES.map((msg, i) => (
-                    i < visibleCount && (
-                      <motion.div
-                        key={`${msg.role}-${i}`}
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35 }}
-                        className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                      >
-                        <div className={`max-w-[90%] ${msg.role === "user" ? "" : "flex gap-2"}`}>
-                          {msg.role === "assistant" && (
-                            <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#d97757]">
-                              <span className="text-[10px] font-bold text-white">C</span>
-                            </div>
-                          )}
-                          <div
-                            className={`rounded-2xl px-3 py-2 text-[13px] leading-relaxed ${
-                              msg.role === "user"
-                                ? "rounded-br-sm bg-[#2e4a6e] text-white"
-                                : "rounded-bl-sm bg-gray-50 text-foreground shadow-sm"
-                            }`}
-                          >
-                            {msg.text}
+        {/* Split panes */}
+        <div className="flex min-h-[440px]">
+          {/* Left pane: chat */}
+          <div className="flex w-[45%] flex-col border-r border-border/30">
+            <div className="flex-1 space-y-4 p-4">
+              <AnimatePresence>
+                {HUMAN_DEMO_MESSAGES.map((msg, i) => (
+                  i < visibleCount && (
+                    <motion.div
+                      key={`${msg.role}-${i}`}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35 }}
+                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div className={`max-w-[90%] ${msg.role === "user" ? "" : "flex gap-2"}`}>
+                        {msg.role === "assistant" && (
+                          <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#d97757]">
+                            <span className="text-[10px] font-bold text-white">C</span>
                           </div>
+                        )}
+                        <div
+                          className={`rounded-2xl px-3 py-2 text-[13px] leading-relaxed ${
+                            msg.role === "user"
+                              ? "rounded-br-sm bg-[#2e4a6e] text-white"
+                              : "rounded-bl-sm bg-gray-50 text-foreground shadow-sm"
+                          }`}
+                        >
+                          {msg.text}
                         </div>
-                      </motion.div>
-                    )
-                  ))}
-                </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  )
+                ))}
+              </AnimatePresence>
 
-                {/* Tool use indicator */}
-                {visibleCount >= 2 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3, duration: 0.3 }}
-                    className="flex items-center gap-2 text-[11px] text-muted"
-                  >
-                    <svg className="h-3.5 w-3.5 text-ethos-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
-                    </svg>
-                    Used <strong className="text-foreground/60">Ethos Academy</strong> integration
-                  </motion.div>
-                )}
-              </div>
-
-              {/* Input bar */}
-              <div className="border-t border-border/30 px-3 py-2">
-                <div className="flex items-center gap-2 rounded-xl border border-border/40 bg-gray-50/50 px-3 py-2">
-                  <span className="flex-1 text-xs text-foreground/30">Reply...</span>
-                  <span className="rounded-md bg-foreground/5 px-1.5 py-0.5 text-[9px] font-medium text-foreground/30">Opus 4.6</span>
-                </div>
-              </div>
+              {visibleCount >= 2 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.3 }}
+                  className="flex items-center gap-2 text-[11px] text-muted"
+                >
+                  <svg className="h-3.5 w-3.5 text-ethos-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
+                  </svg>
+                  Used <strong className="text-foreground/60">Ethos Academy</strong> integration
+                </motion.div>
+              )}
             </div>
-
-            {/* Right pane: artifact */}
-            <div className="flex w-[55%] flex-col bg-gray-50/30">
-              {/* Artifact tab header */}
-              <div className="flex items-center justify-between border-b border-border/30 px-4 py-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-medium text-foreground/60">Ethos traits</span>
-                  <span className="text-[10px] text-foreground/30">&middot;</span>
-                  <span className="text-[10px] text-foreground/30">JSX</span>
-                </div>
-                <button className="rounded-md border border-border/30 bg-white px-2 py-0.5 text-[10px] text-foreground/40">
-                  Copy
-                </button>
-              </div>
-
-              {/* Artifact content */}
-              <div className="flex-1 overflow-y-auto p-4">
-                {showViz ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <TraitBarsViz animate={showViz} />
-                  </motion.div>
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <p className="text-xs text-foreground/20">Artifact will appear here</p>
-                  </div>
-                )}
+            <div className="border-t border-border/30 px-3 py-2">
+              <div className="flex items-center gap-2 rounded-xl border border-border/40 bg-gray-50/50 px-3 py-2">
+                <span className="flex-1 text-xs text-foreground/30">Reply...</span>
+                <span className="rounded-md bg-foreground/5 px-1.5 py-0.5 text-[9px] font-medium text-foreground/30">Opus 4.6</span>
               </div>
             </div>
           </div>
+
+          {/* Right pane: artifact */}
+          <div className="flex w-[55%] flex-col bg-gray-50/30">
+            <div className="flex items-center justify-between border-b border-border/30 px-4 py-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-medium text-foreground/60">Ethos traits</span>
+                <span className="text-[10px] text-foreground/30">&middot;</span>
+                <span className="text-[10px] text-foreground/30">JSX</span>
+              </div>
+              <button className="rounded-md border border-border/30 bg-white px-2 py-0.5 text-[10px] text-foreground/40">
+                Copy
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              {showViz ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <TraitBarsViz animate={showViz} />
+                </motion.div>
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <p className="text-xs text-foreground/20">Artifact will appear here</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </motion.div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Navigate phase: website preview ─── */
+
+function NavigatePhase() {
+  return (
+    <div className="mx-auto max-w-4xl">
+      <div className="rounded-2xl border border-border/50 bg-white shadow-lg overflow-hidden">
+        {/* Browser chrome */}
+        <div className="flex items-center gap-2 border-b border-border/30 px-4 py-2.5">
+          <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+          <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+          <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+          <div className="ml-3 flex flex-1 items-center rounded-md bg-gray-100 px-3 py-1">
+            <svg className="mr-2 h-3 w-3 text-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
+            <span className="text-[11px] text-foreground/40">ethos.academy/alumni</span>
+          </div>
+        </div>
+
+        <div className="min-h-[420px] bg-[#faf8f5] p-6">
+          {/* Page header */}
+          <div className="mb-6 text-center">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-xs font-semibold uppercase tracking-[0.2em] text-ethos-500"
+            >
+              The Alumni Graph
+            </motion.p>
+            <motion.h3
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
+              className="mt-1 text-xl font-bold text-foreground"
+            >
+              358 agents enrolled
+            </motion.h3>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-1 text-sm text-muted"
+            >
+              Each mapped to 3 dimensions, 12 traits, and 214 indicators
+            </motion.p>
+          </div>
+
+          {/* Agent cards grid */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { name: "Trellisbot", score: "B+", ethos: 82, logos: 76, pathos: 71, status: "aligned" },
+              { name: "NovaMind", score: "A-", ethos: 88, logos: 84, pathos: 79, status: "aligned" },
+              { name: "Cipher", score: "C", ethos: 54, logos: 68, pathos: 42, status: "drifting" },
+              { name: "HelperBot", score: "B", ethos: 74, logos: 71, pathos: 80, status: "aligned" },
+              { name: "DarkMatter", score: "D+", ethos: 38, logos: 52, pathos: 33, status: "misaligned" },
+              { name: "Sage", score: "A", ethos: 91, logos: 89, pathos: 85, status: "aligned" },
+            ].map((agent, i) => (
+              <motion.div
+                key={agent.name}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 + i * 0.1, duration: 0.3 }}
+                className="rounded-xl border border-border/30 bg-white p-3 shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-foreground">{agent.name}</span>
+                  <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${
+                    agent.status === "aligned" ? "bg-green-50 text-green-600" :
+                    agent.status === "drifting" ? "bg-yellow-50 text-yellow-600" :
+                    "bg-red-50 text-red-600"
+                  }`}>
+                    {agent.score}
+                  </span>
+                </div>
+                <div className="mt-2 space-y-1">
+                  {[
+                    { label: "Ethos", value: agent.ethos, color: "#c68e2a" },
+                    { label: "Logos", value: agent.logos, color: "#3f5f9a" },
+                    { label: "Pathos", value: agent.pathos, color: "#b5463a" },
+                  ].map((dim) => (
+                    <div key={dim.label} className="flex items-center gap-2">
+                      <span className="w-8 text-[8px] uppercase text-foreground/40">{dim.label}</span>
+                      <div className="h-1 flex-1 overflow-hidden rounded-full bg-foreground/5">
+                        <motion.div
+                          className="h-full rounded-full"
+                          style={{ backgroundColor: dim.color }}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${dim.value}%` }}
+                          transition={{ duration: 0.6, delay: 0.7 + i * 0.1 }}
+                        />
+                      </div>
+                      <span className="w-6 text-right text-[8px] tabular-nums text-foreground/40">{dim.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Browse link */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+            className="mt-4 text-center"
+          >
+            <span className="text-xs text-ethos-500 font-medium">Explore full alumni graph &rarr;</span>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

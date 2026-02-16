@@ -190,7 +190,7 @@ class TestGetExamResults:
 
     async def test_already_completed_exam(self):
         """Completed exam returns report directly."""
-        mock_status = {"completed": True, "completed_count": 21}
+        mock_status = {"completed": True, "completed_count": 21, "current_question": 21}
         mock_report = _mock_report_card()
 
         with (
@@ -231,7 +231,12 @@ class TestGetExamResults:
 
     async def test_auto_complete_when_all_answered(self):
         """All 21 answered but not finalized triggers auto-complete."""
-        mock_status = {"completed": False, "completed_count": 21, "scenario_count": 21}
+        mock_status = {
+            "completed": False,
+            "completed_count": 21,
+            "current_question": 21,
+            "scenario_count": 21,
+        }
         mock_report = _mock_report_card()
 
         with (
