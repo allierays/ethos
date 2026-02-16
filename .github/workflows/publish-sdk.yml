@@ -36,7 +36,7 @@ jobs:
         run: npm run build
 
       - name: Verify dist exists
-        run: test -f dist/index.js && test -f dist/index.d.ts
+        run: test -f dist/index.js && test -f dist/index.cjs && test -f dist/index.d.ts
 
       - name: Publish
         run: npm publish --provenance --access public

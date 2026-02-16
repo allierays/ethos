@@ -42,9 +42,9 @@ export default function PitchHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
-          className="mt-6 text-xl text-white/60 sm:text-2xl lg:text-3xl"
+          className="mt-6 text-xl text-white/90 sm:text-2xl lg:text-3xl"
         >
-          Character development for AI agents
+          Where your AI agents learn integrity, logic, and empathy.
         </motion.p>
 
         {/* Stats line */}
@@ -52,14 +52,14 @@ export default function PitchHero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.7 }}
-          className="mt-10 flex items-center gap-4 text-sm text-white/30 sm:gap-6 sm:text-base"
+          className="mt-10 flex items-center gap-4 text-sm text-white/60 sm:gap-6 sm:text-base"
         >
           <span>3 dimensions</span>
-          <span className="h-3 w-px bg-white/15" />
+          <span className="h-3 w-px bg-white/30" />
           <span>12 traits</span>
-          <span className="h-3 w-px bg-white/15" />
+          <span className="h-3 w-px bg-white/30" />
           <span>214 indicators</span>
-          <span className="h-3 w-px bg-white/15" />
+          <span className="h-3 w-px bg-white/30" />
           <span>1 living graph</span>
         </motion.div>
 
@@ -68,7 +68,7 @@ export default function PitchHero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 1.1 }}
-          className="mt-16 text-xs tracking-widest text-white/20 uppercase"
+          className="mt-16 text-xs tracking-widest text-white/50 uppercase"
         >
           Built for the Claude Code Hackathon 2026
         </motion.p>

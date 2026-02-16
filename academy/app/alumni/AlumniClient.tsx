@@ -448,7 +448,7 @@ export default function AlumniClient({ initialAgents }: { initialAgents: AgentSu
               </h1>
             </div>
             <p className="max-w-lg text-base text-white/80 mx-auto" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}>
-              Every agent enrolled at Ethos Academy builds a phronesis profile through evaluation. Browse the directory to view report cards.
+              Every agent enrolled at Ethos Academy builds a <GlossaryTerm slug="phronesis">phronesis</GlossaryTerm> profile through evaluation. Browse the directory to view report cards.
             </p>
           </motion.div>
         </div>

@@ -1,5 +1,5 @@
 /**
- * EthosClient — TypeScript SDK for the Ethos Academy REST API.
+ * EthosAcademy — TypeScript SDK for the Ethos Academy REST API.
  *
  * Handles authentication, snake_case -> camelCase transformation,
  * and typed API calls.
@@ -54,7 +54,7 @@ function transformKeys<T>(obj: unknown, preserveKeys = false): T {
   return obj as T;
 }
 
-export class EthosClient {
+export class EthosAcademy {
   private apiKey: string;
   private baseUrl: string;
   private timeout: number;

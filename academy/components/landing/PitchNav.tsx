@@ -9,6 +9,7 @@ const SECTION_IDS = [
   "pitch-rubric",
   "pitch-pipeline",
   "pitch-moltbook",
+  "pitch-alumni",
   "pitch-demo",
   "pitch-graph",
   "pitch-opus",

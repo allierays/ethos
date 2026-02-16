@@ -15,6 +15,8 @@ import hashlib
 import hmac as _hmac
 import logging
 import os
+import time
+from collections import OrderedDict
 from pathlib import Path
 
 import mcp.types as mt
@@ -258,6 +260,44 @@ async def _require_verified_phone(agent_id: str) -> None:
         )
 
 
+# ── Transport-aware guard for write tools ─────────────────────────
+
+
+def _require_byok_on_http() -> None:
+    """On HTTP transport, require BYOK so the server's Anthropic key is not used."""
+    headers = get_http_headers()
+    if headers and not anthropic_api_key_var.get():
+        raise VerificationError(
+            "Write tools on the hosted server require your own Anthropic API key. "
+            "Pass it as Authorization: Bearer sk-ant-... or via X-Anthropic-Key header."
+        )
+
+
+# ── Demo-day rate limiter (replaces phone auth temporarily) ───────
+
+_write_tool_requests: OrderedDict[str, list[float]] = OrderedDict()
+_WRITE_LIMIT = 30
+_WRITE_WINDOW = 3600.0  # 1 hour
+
+
+def _rate_limit_write_tool(agent_id: str) -> None:
+    """Enforce 30 calls/hour per agent for write tools during demo period."""
+    now = time.time()
+    timestamps = [
+        t for t in _write_tool_requests.get(agent_id, []) if now - t < _WRITE_WINDOW
+    ]
+    if len(timestamps) >= _WRITE_LIMIT:
+        raise VerificationError(
+            "Rate limit exceeded. Write tools allow 30 calls per hour."
+        )
+    timestamps.append(now)
+    _write_tool_requests[agent_id] = timestamps
+    _write_tool_requests.move_to_end(agent_id)
+    # Evict stale agents to bound memory
+    while len(_write_tool_requests) > 10_000:
+        _write_tool_requests.popitem(last=False)
+
+
 _TOOL_CATALOG = {
     "getting_started": {
         "description": "New here? Start with the entrance exam.",
@@ -394,7 +434,10 @@ async def examine_message(
     Returns scores across 12 behavioral traits in 3 dimensions (ethos, logos, pathos).
     Requires a verified phone number (call submit_phone + verify_phone first).
     """
-    await _require_verified_phone(source)
+    # Phone + agent key commented out for demo — re-enable after AWS SNS verified
+    # await _require_verified_phone(source)
+    _require_byok_on_http()
+    _rate_limit_write_tool(source)
     result = await evaluate_incoming(
         text,
         source=source,
@@ -419,7 +462,10 @@ async def reflect_on_message(
     virtue, goodwill, reasoning quality, and compassion.
     Requires a verified phone number (call submit_phone + verify_phone first).
     """
-    await _require_verified_phone(source)
+    # Phone + agent key commented out for demo — re-enable after AWS SNS verified
+    # await _require_verified_phone(source)
+    _require_byok_on_http()
+    _rate_limit_write_tool(source)
     result = await evaluate_outgoing(
         text,
         source=source,
@@ -465,7 +511,10 @@ async def generate_report(agent_id: str) -> dict:
     and returns a DailyReportCard with grade, insights, and homework assignments.
     Requires a verified phone number (call submit_phone + verify_phone first).
     """
-    await _require_verified_phone(agent_id)
+    # Phone + agent key commented out for demo — re-enable after AWS SNS verified
+    # await _require_verified_phone(agent_id)
+    _require_byok_on_http()
+    _rate_limit_write_tool(agent_id)
     result = await generate_daily_report(agent_id)
     return result.model_dump()
 

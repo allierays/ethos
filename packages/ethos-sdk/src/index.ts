@@ -5,7 +5,9 @@
  * Complete practice homework. Track character development.
  */
 
-export { EthosClient } from "./client";
+export { EthosAcademy } from "./client";
+// Backwards-compatible alias
+export { EthosAcademy as EthosClient } from "./client";
 export { completePracticeSession } from "./practice";
 export type { RespondFn } from "./practice";
 export type {

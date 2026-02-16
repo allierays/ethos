@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import GlossaryTerm from "../shared/GlossaryTerm";
 import {
   fadeUp,
   staggerContainer,
@@ -194,7 +195,7 @@ export default function EvaluationPipeline() {
           <p className="mt-2 text-muted leading-relaxed">
             After Claude returns raw trait scores, everything is pure math. No
             randomness, no LLM. The same scores always produce the same
-            alignment status, phronesis level, and flags.
+            alignment status, <GlossaryTerm slug="phronesis">phronesis</GlossaryTerm> level, and flags.
           </p>
 
           <div className="mt-6 overflow-x-auto rounded-xl border border-border/50 bg-[#0d1117]">

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import GlossaryTerm from "../shared/GlossaryTerm";
 import {
   fadeUp,
   slideInLeft,
@@ -94,7 +95,7 @@ export default function RubricFoundations() {
             </h3>
             <p className="mt-4 text-muted leading-relaxed">
               His three modes of persuasion became the three scoring dimensions.
-              His concept of phronesis, practical wisdom, became the graph layer
+              His concept of <GlossaryTerm slug="phronesis">phronesis</GlossaryTerm>, practical wisdom, became the graph layer
               that tracks character over time.
             </p>
             <p className="mt-4 text-sm font-medium text-foreground/80">

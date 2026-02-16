@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import GlossaryTerm from "../../shared/GlossaryTerm";
 
 const DIMENSIONS = [
   {
@@ -72,7 +73,7 @@ export default function SolutionSlide() {
           className="mb-12 text-lg text-white/60"
           style={{ textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}
         >
-          Every message scored across integrity, logic, and empathy. Tracked over time as phronesis.
+          Every message scored across integrity, logic, and empathy. Tracked over time as <GlossaryTerm slug="phronesis">phronesis</GlossaryTerm>.
         </motion.p>
 
         <motion.div

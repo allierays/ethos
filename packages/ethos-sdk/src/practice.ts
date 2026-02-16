@@ -5,8 +5,8 @@
  * through all pending scenarios using a user-supplied response function.
  */
 
-import type { EthosClient } from "./client";
-import type { PracticeAnswerResult, PracticeProgress, PracticeSession } from "./types";
+import type { EthosAcademy } from "./client";
+import type { PracticeAnswerResult, PracticeProgress } from "./types";
 
 /**
  * Response function the agent implements.
@@ -25,7 +25,7 @@ export type RespondFn = (scenarioPrompt: string) => Promise<string>;
  * ```
  */
 export async function completePracticeSession(
-  client: EthosClient,
+  client: EthosAcademy,
   agentId: string,
   respond: RespondFn,
 ): Promise<PracticeProgress | null> {

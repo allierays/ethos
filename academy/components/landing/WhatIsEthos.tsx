@@ -22,6 +22,7 @@ import {
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { fadeUp, whileInView } from "../../lib/motion";
 import { API_URL } from "../../lib/api";
+import GlossaryTerm from "../shared/GlossaryTerm";
 
 const ENROLL_URL = `${API_URL}/enroll.md`;
 
@@ -417,6 +418,20 @@ const AGENT_DEMO_PHASES: AgentPhase[] = [
     ],
   },
   {
+    id: "exam",
+    title: "BYOK",
+    lines: [
+      { label: "CMD", text: "npm install ethos-academy" },
+      { label: "CODE", text: "import { EthosAcademy } from 'ethos-academy'" },
+      { label: "CODE", text: "const ethos = new EthosAcademy({ apiKey: 'ea_...' })" },
+      { label: "CODE", text: "await ethos.evaluateIncoming(msg, 'trellisbot')" },
+      { label: "ACADEMY", text: "Scanning 214 indicators across 12 traits ..." },
+      { label: "SCORE", text: "Virtue 0.85 · Manipulation 0.12 · Reasoning 0.91" },
+      { label: "CODE", text: "await ethos.evaluateOutgoing(response, 'trellisbot')" },
+      { label: "SCORE", text: "Compassion 0.74 · Recognition 0.82 · Deception 0.03" },
+    ],
+  },
+  {
     id: "sms",
     title: "SMS",
     from: "Ethos Academy",
@@ -425,7 +440,7 @@ const AGENT_DEMO_PHASES: AgentPhase[] = [
   },
 ];
 
-const PHASE_LABELS = ["Enroll", "Exam", "Homework", "SMS"] as const;
+const PHASE_LABELS = ["Enroll", "Exam", "Homework", "BYOK", "SMS"] as const;
 
 /* ─── Human demo messages ─── */
 
@@ -766,6 +781,16 @@ function AgentTerminalDemo() {
                               <span className="text-logos-400">{ENROLL_URL}</span>
                               <br />
                               <span className="text-white/30">{line.text}</span>
+                            </span>
+                          ) : line.label === "CMD" ? (
+                            <span className="text-white/50">
+                              <span className="text-white/30">$ </span>
+                              <span className="text-logos-400">{line.text}</span>
+                            </span>
+                          ) : line.label === "CODE" ? (
+                            <span className="text-white/50">
+                              <span className="text-logos-400/60">&gt;&gt;&gt; </span>
+                              <span className="text-white/70">{line.text}</span>
                             </span>
                           ) : line.label === "TRELLISBOT" ? (
                             <span className="text-white/50">
@@ -2122,7 +2147,7 @@ export default function WhatIsEthos({ pitchMode = false, pitchGroup }: { pitchMo
       {showProblem && (
       <>
       {/* Content section */}
-      <section className="relative overflow-hidden bg-background py-32 sm:py-44">
+      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background py-16 sm:py-20">
         {/* Background glow */}
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <motion.div
@@ -2170,7 +2195,7 @@ export default function WhatIsEthos({ pitchMode = false, pitchGroup }: { pitchMo
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-background py-32 sm:py-44">
+      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background py-16 sm:py-20">
         <div className="relative mx-auto max-w-6xl px-6">
           {/* Headline — full width */}
           <motion.p
@@ -2187,7 +2212,7 @@ export default function WhatIsEthos({ pitchMode = false, pitchGroup }: { pitchMo
             variants={fadeUp}
             className="mx-auto mt-4 max-w-3xl text-center text-lg leading-relaxed text-muted sm:text-xl"
           >
-            Ethos builds phronesis (Aristotle&apos;s word for practical wisdom), a living graph of character that grows with every interaction.
+            Ethos builds <GlossaryTerm slug="phronesis">phronesis</GlossaryTerm> (Aristotle&apos;s word for practical wisdom), a living graph of character that grows with every interaction.
           </motion.p>
 
           {/* Taxonomy tree + Radar */}
