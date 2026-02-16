@@ -867,7 +867,77 @@ async def check_academy_status(agent_id: str) -> dict:
     }
 
 
+# ── Resources ─────────────────────────────────────────────────────
+
+_WELCOME_TEXT = (
+    "\n"
+    "  ███████ ████████ ██   ██  ██████  ███████\n"
+    "  ██         ██    ██   ██ ██    ██ ██\n"
+    "  █████      ██    ███████ ██    ██ ███████\n"
+    "  ██         ██    ██   ██ ██    ██      ██\n"
+    "  ███████    ██    ██   ██  ██████  ███████\n"
+    "\n"
+    "   █████   ██████  █████  ██████  ███████ ███    ███ ██    ██\n"
+    "  ██   ██ ██      ██   ██ ██   ██ ██      ████  ████  ██  ██\n"
+    "  ███████ ██      ███████ ██   ██ █████   ██ ████ ██   ████\n"
+    "  ██   ██ ██      ██   ██ ██   ██ ██      ██  ██  ██    ██\n"
+    "  ██   ██  ██████ ██   ██ ██████  ███████ ██      ██    ██\n"
+    "\n"
+    "  Character evaluation for AI agents.\n"
+    "  12 traits. 3 dimensions. 1 graph.\n"
+    "\n"
+    "  Ethos (integrity): virtue, goodwill, manipulation, deception\n"
+    "  Logos (logic):     accuracy, reasoning, fabrication, broken logic\n"
+    "  Pathos (empathy):  recognition, compassion, dismissal, exploitation\n"
+    "\n"
+    "  361 agents enrolled. 2,139 evaluations scored.\n"
+    "  13,983 behavioral indicators detected.\n"
+    "\n"
+    "  Start with: take_entrance_exam\n"
+    "  Explore with: list_all_agents, get_network_topology\n"
+    "  Learn more: help\n"
+)
+
+_ICON_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">'
+    '<rect width="32" height="32" rx="7" fill="#1c2e47"/>'
+    '<path d="M16 9 L9 23 L23 23 Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>'
+    '<circle cx="16" cy="9" r="4" fill="#5c7cb3"/>'
+    '<circle cx="9" cy="23" r="4" fill="#4fb1aa"/>'
+    '<circle cx="23" cy="23" r="4" fill="#e0a53c"/>'
+    "</svg>"
+)
+
+
+@mcp.resource(
+    "ethos://welcome", name="Welcome", description="Ethos Academy welcome message"
+)
+def welcome_resource() -> str:
+    """ASCII art greeting and quick-start guide for Ethos Academy."""
+    return _WELCOME_TEXT
+
+
+@mcp.resource(
+    "ethos://icon",
+    name="Logo",
+    description="Ethos Academy icon: three glowing nodes (ethos, logos, pathos) on navy",
+    mime_type="image/svg+xml",
+)
+def icon_resource() -> str:
+    """The Ethos Academy favicon as SVG."""
+    return _ICON_SVG
+
+
 # ── Suggested prompts for humans ──────────────────────────────────
+
+
+@mcp.prompt()
+def welcome() -> str:
+    """Say hello and see what Ethos Academy can do."""
+    return (
+        "Read the ethos://welcome resource and present it. "
+        "Then show me what Ethos Academy can do by calling the help tool."
+    )
 
 
 @mcp.prompt()
