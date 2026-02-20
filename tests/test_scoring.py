@@ -20,7 +20,7 @@ from ethos_academy.shared.models import TraitScore
 
 
 def _make_traits(**overrides: float) -> dict[str, TraitScore]:
-    """Build a full set of 12 TraitScores with defaults at 0.5, overridden by kwargs."""
+    """Build a full set of 13 TraitScores with defaults at 0.5, overridden by kwargs."""
     from ethos_academy.taxonomy.traits import TRAITS
 
     defaults = {name: 0.5 for name in TRAITS}
@@ -45,6 +45,7 @@ class TestComputeDimensions:
         traits = _make_traits(
             virtue=0.0,
             goodwill=0.0,
+            justice=0.0,
             manipulation=0.0,
             deception=0.0,
             accuracy=0.0,
@@ -57,8 +58,8 @@ class TestComputeDimensions:
             exploitation=0.0,
         )
         dims = compute_dimensions(traits)
-        # ethos = mean(0, 0, 1-0, 1-0) = 0.5
-        assert dims["ethos"] == pytest.approx(0.5)
+        # ethos = mean(0, 0, 0, 1-0, 1-0) = 2/5 = 0.4
+        assert dims["ethos"] == pytest.approx(0.4)
         assert dims["logos"] == pytest.approx(0.5)
         assert dims["pathos"] == pytest.approx(0.5)
 
@@ -67,6 +68,7 @@ class TestComputeDimensions:
         traits = _make_traits(
             virtue=1.0,
             goodwill=1.0,
+            justice=1.0,
             manipulation=0.0,
             deception=0.0,
             accuracy=1.0,
@@ -88,6 +90,7 @@ class TestComputeDimensions:
         traits = _make_traits(
             virtue=0.0,
             goodwill=0.0,
+            justice=0.0,
             manipulation=1.0,
             deception=1.0,
             accuracy=0.0,
@@ -106,10 +109,12 @@ class TestComputeDimensions:
 
     def test_negative_inversion(self):
         """High manipulation score drags ethos down via 1-score inversion."""
-        traits = _make_traits(virtue=0.8, goodwill=0.8, manipulation=0.9, deception=0.1)
+        traits = _make_traits(
+            virtue=0.8, goodwill=0.8, justice=0.5, manipulation=0.9, deception=0.1
+        )
         dims = compute_dimensions(traits)
-        # ethos = mean(0.8, 0.8, 1-0.9, 1-0.1) = mean(0.8, 0.8, 0.1, 0.9) = 0.65
-        assert dims["ethos"] == pytest.approx(0.65)
+        # ethos = mean(0.8, 0.8, 0.5, 1-0.9, 1-0.1) = mean(0.8, 0.8, 0.5, 0.1, 0.9) = 0.62
+        assert dims["ethos"] == pytest.approx(0.62)
 
     def test_returns_three_dimensions(self):
         traits = _make_traits()
@@ -134,10 +139,12 @@ class TestComputeTierScores:
         assert tiers["safety"] == pytest.approx(0.0)
 
     def test_ethics_tier(self):
-        """Ethics = mean(virtue, goodwill, accuracy, 1-fabrication)."""
-        traits = _make_traits(virtue=0.8, goodwill=0.8, accuracy=0.8, fabrication=0.2)
+        """Ethics = mean(virtue, goodwill, justice, accuracy, 1-fabrication)."""
+        traits = _make_traits(
+            virtue=0.8, goodwill=0.8, justice=0.8, accuracy=0.8, fabrication=0.2
+        )
         tiers = compute_tier_scores(traits)
-        # mean(0.8, 0.8, 0.8, 1-0.2) = mean(0.8, 0.8, 0.8, 0.8) = 0.8
+        # mean(0.8, 0.8, 0.8, 0.8, 1-0.2) = mean(0.8, 0.8, 0.8, 0.8, 0.8) = 0.8
         assert tiers["ethics"] == pytest.approx(0.8)
 
     def test_soundness_tier(self):
@@ -329,6 +336,7 @@ class TestBuildTraitScores:
         raw = {
             "virtue": 0.8,
             "goodwill": 0.7,
+            "justice": 0.6,
             "manipulation": 0.1,
             "deception": 0.2,
             "accuracy": 0.9,
@@ -342,7 +350,7 @@ class TestBuildTraitScores:
         }
         result = build_trait_scores(raw)
         assert isinstance(result, dict)
-        assert len(result) == 12
+        assert len(result) == 13
         assert result["virtue"].score == 0.8
         assert result["virtue"].dimension == "ethos"
         assert result["virtue"].polarity == "positive"
@@ -352,7 +360,7 @@ class TestBuildTraitScores:
         raw = {"virtue": 0.8}
         result = build_trait_scores(raw)
         assert result["manipulation"].score == 0.0
-        assert len(result) == 12
+        assert len(result) == 13
 
     def test_clamped_scores(self):
         """Out-of-range scores are clamped to 0.0–1.0."""
@@ -361,10 +369,10 @@ class TestBuildTraitScores:
         assert result["virtue"].score == 1.0
         assert result["manipulation"].score == 0.0
 
-    def test_returns_all_twelve_traits(self):
-        """Always returns all 12 traits even with empty input."""
+    def test_returns_all_thirteen_traits(self):
+        """Always returns all 13 traits even with empty input."""
         result = build_trait_scores({})
-        assert len(result) == 12
+        assert len(result) == 13
         for ts in result.values():
             assert ts.score == 0.0
 

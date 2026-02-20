@@ -5,12 +5,12 @@
 
 
 class TestTraits:
-    """TRAITS dict must have 12 entries with required fields."""
+    """TRAITS dict must have 13 entries with required fields."""
 
     def test_traits_count(self):
         from ethos_academy.taxonomy.traits import TRAITS
 
-        assert len(TRAITS) == 12
+        assert len(TRAITS) == 13
 
     def test_trait_has_required_fields(self):
         from ethos_academy.taxonomy.traits import TRAITS
@@ -49,7 +49,13 @@ class TestTraits:
         from ethos_academy.taxonomy.traits import TRAITS
 
         ethos = [k for k, v in TRAITS.items() if v["dimension"] == "ethos"]
-        assert set(ethos) == {"virtue", "goodwill", "manipulation", "deception"}
+        assert set(ethos) == {
+            "virtue",
+            "goodwill",
+            "justice",
+            "manipulation",
+            "deception",
+        }
 
     def test_logos_traits(self):
         from ethos_academy.taxonomy.traits import TRAITS
@@ -80,32 +86,35 @@ class TestDimensions:
 
         assert set(DIMENSIONS.keys()) == {"ethos", "logos", "pathos"}
 
-    def test_each_dimension_has_four_traits(self):
+    def test_each_dimension_has_expected_traits(self):
         from ethos_academy.taxonomy.traits import DIMENSIONS
 
+        expected = {"ethos": 5, "logos": 4, "pathos": 4}
         for dim, traits in DIMENSIONS.items():
-            assert len(traits) == 4, f"{dim} has {len(traits)} traits, expected 4"
+            assert len(traits) == expected[dim], (
+                f"{dim} has {len(traits)} traits, expected {expected[dim]}"
+            )
 
-    def test_all_twelve_traits_covered(self):
+    def test_all_thirteen_traits_covered(self):
         from ethos_academy.taxonomy.traits import DIMENSIONS
 
         all_traits = []
         for traits in DIMENSIONS.values():
             all_traits.extend(traits)
-        assert len(all_traits) == 12
-        assert len(set(all_traits)) == 12  # no duplicates
+        assert len(all_traits) == 13
+        assert len(set(all_traits)) == 13  # no duplicates
 
 
 # ── Trait Metadata ───────────────────────────────────────────────────
 
 
 class TestTraitMetadata:
-    """TRAIT_METADATA maps 12 traits to dimension, polarity, constitutional_value, relationship."""
+    """TRAIT_METADATA maps 13 traits to dimension, polarity, constitutional_value, relationship."""
 
     def test_metadata_count(self):
         from ethos_academy.taxonomy.traits import TRAIT_METADATA
 
-        assert len(TRAIT_METADATA) == 12
+        assert len(TRAIT_METADATA) == 13
 
     def test_metadata_has_required_fields(self):
         from ethos_academy.taxonomy.traits import TRAIT_METADATA
@@ -162,7 +171,7 @@ class TestIndicators:
     def test_indicators_count(self):
         from ethos_academy.taxonomy.indicators import INDICATORS
 
-        assert len(INDICATORS) == 214
+        assert len(INDICATORS) == 228
 
     def test_indicator_has_required_fields(self):
         from ethos_academy.taxonomy.indicators import INDICATORS
@@ -195,8 +204,8 @@ class TestIndicators:
         counts = {}
         for ind in INDICATORS:
             counts[ind["trait"]] = counts.get(ind["trait"], 0) + 1
-        # Verify all 12 traits have at least 1 indicator
-        assert len(counts) == 12
+        # Verify all 13 traits have at least 1 indicator
+        assert len(counts) == 13
 
     def test_indicator_id_prefixes(self):
         """Each indicator ID should have a recognizable prefix."""
@@ -311,7 +320,7 @@ class TestScoringRubric:
     def test_rubric_count(self):
         from ethos_academy.taxonomy.rubrics import SCORING_RUBRIC
 
-        assert len(SCORING_RUBRIC) == 12
+        assert len(SCORING_RUBRIC) == 13
 
     def test_rubric_keys_match_traits(self):
         from ethos_academy.taxonomy.traits import TRAITS
@@ -357,14 +366,14 @@ class TestReExports:
             SCORING_RUBRIC,
         )
 
-        assert len(TRAITS) == 12
+        assert len(TRAITS) == 13
         assert len(DIMENSIONS) == 3
-        assert len(INDICATORS) == 214
-        assert len(TRAIT_METADATA) == 12
+        assert len(INDICATORS) == 228
+        assert len(TRAIT_METADATA) == 13
         assert len(CONSTITUTIONAL_VALUES) == 4
         assert len(HARD_CONSTRAINTS) == 7
         assert len(LEGITIMACY_TESTS) == 3
-        assert len(SCORING_RUBRIC) == 12
+        assert len(SCORING_RUBRIC) == 13
         assert len(ANTHROPIC_ASSESSMENTS) == 16
         assert len(INDICATOR_ASSESSMENT_MAPPINGS) == 55
 

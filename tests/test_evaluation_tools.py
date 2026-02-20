@@ -1,7 +1,7 @@
 """Tests for ethos/evaluation/tools.py -- tool schema validation.
 
 Ensures the EVALUATION_TOOLS schemas stay in sync with the taxonomy
-(12 traits, 3 dimensions) and meet Anthropic tool_use API requirements.
+(13 traits, 3 dimensions) and meet Anthropic tool_use API requirements.
 Schema drift here silently breaks LLM evaluation behavior.
 """
 
@@ -192,7 +192,7 @@ class TestDetectIndicatorsSchema:
 
 
 class TestScoreTraitsSchema:
-    """score_traits must score all 12 taxonomy traits, no more, no fewer."""
+    """score_traits must score all 13 taxonomy traits, no more, no fewer."""
 
     def test_required_top_level_fields(self):
         schema = _get_schema("score_traits")
@@ -203,7 +203,7 @@ class TestScoreTraitsSchema:
             "reasoning",
         }
 
-    def test_all_12_traits_in_schema(self):
+    def test_all_13_traits_in_schema(self):
         """Every trait from the taxonomy must appear in score_traits."""
         schema = _get_schema("score_traits")
         trait_props = schema["properties"]["trait_scores"]["properties"]
@@ -221,7 +221,7 @@ class TestScoreTraitsSchema:
                 f"Schema trait '{schema_trait}' not in taxonomy TRAITS"
             )
 
-    def test_all_12_traits_required(self):
+    def test_all_13_traits_required(self):
         schema = _get_schema("score_traits")
         required = schema["properties"]["trait_scores"]["required"]
         assert set(required) == set(TRAITS.keys())
@@ -260,9 +260,9 @@ class TestScoreTraitsSchema:
 class TestToolsTaxonomySync:
     """Tool schemas stay in sync with the canonical taxonomy."""
 
-    def test_trait_count_is_12(self):
-        """Taxonomy defines exactly 12 traits (4 per dimension)."""
-        assert len(TRAITS) == 12
+    def test_trait_count_is_13(self):
+        """Taxonomy defines exactly 13 traits (5 ethos + 4 logos + 4 pathos)."""
+        assert len(TRAITS) == 13
 
     def test_dimensions_cover_all_traits(self):
         """Every trait belongs to exactly one dimension."""

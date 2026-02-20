@@ -25,6 +25,7 @@ VALID_IDS: set[str] = {ind["id"] for ind in INDICATORS}
 _ALL_TRAITS = [
     "virtue",
     "goodwill",
+    "justice",
     "manipulation",
     "deception",
     "accuracy",

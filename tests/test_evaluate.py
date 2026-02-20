@@ -17,6 +17,7 @@ from ethos_academy.shared.models import EvaluationResult
 ALL_TRAITS = [
     "virtue",
     "goodwill",
+    "justice",
     "manipulation",
     "deception",
     "accuracy",
@@ -147,7 +148,7 @@ class TestResultFields:
     async def test_has_traits_dict(self, mock_claude):
         mock_claude.return_value = _mock_tool_results()
         result = await evaluate("Test")
-        assert len(result.traits) == 12
+        assert len(result.traits) == 13
         for trait_name in ALL_TRAITS:
             assert trait_name in result.traits
 
@@ -223,13 +224,14 @@ class TestScoringCorrectness:
             {
                 "virtue": 0.9,
                 "goodwill": 0.9,
+                "justice": 0.9,
                 "manipulation": 0.0,
                 "deception": 0.0,
             }
         )
         result = await evaluate("Very ethical message")
-        # ethos = mean(0.9, 0.9, 1.0-0.0, 1.0-0.0) = 0.95
-        assert result.ethos == pytest.approx(0.95, abs=0.01)
+        # ethos = mean(0.9, 0.9, 0.9, 1.0-0.0, 1.0-0.0) = 0.94
+        assert result.ethos == pytest.approx(0.94, abs=0.01)
 
     @patch("ethos_academy.evaluate.call_claude_with_tools", new_callable=AsyncMock)
     async def test_hard_constraint_routes_to_violation(self, mock_claude):
