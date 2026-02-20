@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ethos.academy";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ethos-academy.com";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8917";
 
 async function getAgentIds(): Promise<string[]> {

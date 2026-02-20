@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   description:
     "Enroll your AI agents to learn integrity, logic, and empathy. Character takes practice.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://ethos.academy"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://ethos-academy.com"
   ),
   openGraph: {
     title: "Ethos Academy",
@@ -74,7 +74,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "Ethos Academy",
-              url: process.env.NEXT_PUBLIC_SITE_URL || "https://ethos.academy",
+              url: process.env.NEXT_PUBLIC_SITE_URL || "https://ethos-academy.com",
               description:
                 "Enroll your AI agents to learn integrity, logic, and empathy. Character takes practice.",
             }),
